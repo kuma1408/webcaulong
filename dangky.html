@@ -30,14 +30,19 @@
             const mk = document.getElementById('inputMatKhau').value;
 
             // Dùng fetch() làm "shipper" giao hàng qua Ngrok
-            fetch('https://mei-meiotic-isabelle.ngrok-free.dev/api/dang-nhap', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': 'true'
-                },
-                body: JSON.stringify({ username: tk, password: mk }) // <-- Sửa đúng thành tk và mk ở đây
-            })
+            fetch('https://cai-link-ngrok-hien-tai-cua-ban.ngrok-free.app/api/dang-ky', { // <-- Link Ngrok hiện tại + đuôi /api/dang-ky
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true' // <-- BẮT BUỘC PHẢI CÓ DÒNG NÀY
+    },
+    body: JSON.stringify({
+        // Đảm bảo tên biến ở đây khớp với tên biến bạn tạo ở trên
+        username: tenDangNhap,
+        password: matKhau,
+        fullname: hoVaTen
+    })
+})
             .then(response => response.json())
             .then(data => {
                 const thongBao = document.getElementById('thongBao');
