@@ -148,16 +148,18 @@
             };
 
             // Dùng fetch() làm "shipper" giao hàng sang cổng 5000 của Python
-            fetch('http://127.0.0.1:5000/api/dang-nhap', {
-                method: 'POST', // Phương thức gửi dữ liệu bảo mật
+           // Dùng fetch() làm "shipper" giao hàng qua Ngrok
+            fetch('https://mei-meiotic-isabelle.ngrok-free.dev/api/dang-nhap', {
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
                 },
-                body: JSON.stringify(duLieu) // Biến dữ liệu thành chuỗi JSON
+                body: JSON.stringify({ username: tk, password: mk }) // <-- Sửa đúng thành tk và mk ở đây
             })
             .then(response => response.json()) // Nhận câu trả lời từ Python
             .then(data => {
-                if (data.success === true) {
+                if (data.success === true) {s
                     // Nếu đúng, thông báo và chuyển hướng về trang chủ
                     document.getElementById('thongBao').style.color = "green";
                     document.getElementById('thongBao').innerText = "Đăng nhập thành công! Đang chuyển hướng...";

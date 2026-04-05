@@ -29,10 +29,14 @@
             const tk = document.getElementById('inputTaiKhoan').value;
             const mk = document.getElementById('inputMatKhau').value;
 
-            fetch('http://127.0.0.1:5000/api/dang-ky', {
+            // Dùng fetch() làm "shipper" giao hàng qua Ngrok
+            fetch('https://mei-meiotic-isabelle.ngrok-free.dev/api/dang-nhap', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: tk, password: mk, fullname: hoten })
+                headers: {
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({ username: tk, password: mk }) // <-- Sửa đúng thành tk và mk ở đây
             })
             .then(response => response.json())
             .then(data => {
