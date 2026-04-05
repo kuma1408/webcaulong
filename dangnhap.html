@@ -159,7 +159,7 @@
             })
             .then(response => response.json()) // Nhận câu trả lời từ Python
             .then(data => {
-                if (data.success === true) {s
+                if (data.success === true) {
                     // Nếu đúng, thông báo và chuyển hướng về trang chủ
                     document.getElementById('thongBao').style.color = "green";
                     document.getElementById('thongBao').innerText = "Đăng nhập thành công! Đang chuyển hướng...";
