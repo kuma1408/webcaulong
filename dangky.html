@@ -30,19 +30,19 @@
             const mk = document.getElementById('inputMatKhau').value;
 
             // Dùng fetch() làm "shipper" giao hàng qua Ngrok
-            fetch('https://cai-link-ngrok-hien-tai-cua-ban.ngrok-free.app/api/dang-ky', { // <-- Link Ngrok hiện tại + đuôi /api/dang-ky
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true' // <-- BẮT BUỘC PHẢI CÓ DÒNG NÀY
-    },
-    body: JSON.stringify({
-        // Đảm bảo tên biến ở đây khớp với tên biến bạn tạo ở trên
-        username: tenDangNhap,
-        password: matKhau,
-        fullname: hoVaTen
-    })
-})
+// Dùng fetch() làm "shipper" giao hàng qua Ngrok
+            fetch('LINK_NGROK_CUA_BAN_O_DAY/api/dang-ky', { // <--- XÓA CHỮ NÀY ĐI, DÁN LINK NGROK VÀO ĐÂY (Vẫn giữ lại đuôi /api/dang-ky nhé)
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({
+                    username: tk,       // <-- Đã sửa đúng tên biến
+                    password: mk,       // <-- Đã sửa đúng tên biến
+                    fullname: hoten     // <-- Đã sửa đúng tên biến
+                })
+            })
             .then(response => response.json())
             .then(data => {
                 const thongBao = document.getElementById('thongBao');
