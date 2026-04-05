@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <title>Khám phá sân cầu lông Tô Ngọc Vân chất lượng đáng để trải nghiệm tại TP. Thủ Đức, TP.HCM</title>
+
+    <!-- CSS -->
+    <link href="css/tutaoo.css" rel="stylesheet" style="text/css" />
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <style>
+body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        nav {
+            background: #555;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .lkj {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .news-title {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .news-meta {
+            font-size: 0.9em;
+            color: #999;
+            margin-bottom: 20px;
+        }
+        .news-content {
+            color: #666;
+        }
+        .news-content p {
+            margin-bottom: 15px;
+        }
+        .related-news {
+            margin-top: 30px;
+        }
+        .related-news h3 {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .related-news ul {
+            list-style: none;
+            padding: 0;
+        }
+        .related-news ul li {
+            margin-bottom: 10px;
+        }
+        .related-news ul li a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .related-news ul li a:hover {
+            text-decoration: underline;
+        }
+        footer {
+            background: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            margin-top: 20px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="baotrang">
+       <div class="header">
+            <!-- Logo đăng nhập -->
+            <div class="logo-small">
+                <a href="trangchu.html">
+                    <img src="HA/cc-removebg-preview.png" width="45" height="50">
+                </a>
+            </div>
+
+            <!-- Logo lớn -->
+            <div class="logo-large" style="float:left">
+                <a href="trangchu.html">
+                    <img src="HA/dcm.png" width="160" height="55">
+                </a>
+            </div>
+
+            <div style="width:100%">
+                <center>
+                    <!-- Thanh tìm kiếm -->
+                    <div class="search-container">
+                        <input type="text" class="search-input" placeholder="Tìm kiếm sản phẩm...">
+                        <button class="search-button" onclick="searchProduct()">Tìm kiếm</button>
+                    </div>
+                </center>
+            </div>
+
+            <!-- Icon đăng nhập -->
+            <div class="login-icon" id="loginIconContainer">
+                <a href="dangnhap.html" id="loginLink">
+                    <img id="loginIcon" src="HA/lop.png" width="50" height="50">
+                </a>
+                <!-- Thông tin người dùng -->
+                <div class="user-info" id="userInfo">
+                    <p><strong>Tài khoản:</strong> <span id="username"></span></p>
+                    <p><strong>ID:</strong> <span id="userId"></span></p>
+                    <p><strong>Số dư:</strong> <span id="userBalance">0</span> VND</p>
+                    <p><strong>Sản phẩm đã mua:</strong></p>
+                    <ul id="purchasedProducts"></ul>
+                </div>
+            </div>
+        </div>
+        <script src="CSS/auth.js"></script>
+         <div id="menu">
+            <ul>
+                <li><a href="trangchu.html">TRANG CHỦ</a></li>
+                <li><a href="#sanpham">SẢN PHẨM</a>
+                    <ul class="sub-menu">
+                        <li><a href="Vợt cầu lông.html">Vợt Cầu Lông</a></li>
+                        <li><a href="Giày cầu lông.html">Giày Cầu Lông</a></li>
+                        <li><a href="Áo cầu lông.html">Áo Cầu Lông</a></li>
+                        <li><a href="Váy cầu lông.html">Váy Cầu Lông</a></li>
+                        <li><a href="Quần cầu lông.html">Quần Cầu Lông</a></li>
+                        <li><a href="Túi cầu lông.html">Túi Vợt</a></li>
+                        <li><a href="Balo cầu lông.html">Balo </a></li>
+                        <li><a href="Phụ kiện cầu lông.html">Phụ Kiện</a></li>
+                    </ul>
+                </li>
+                <li><a href="sale off.html">SALE OFF</a></li>
+                <li><a href="tin tức.html">TIN TỨC</a></li>
+                <li><a href="hướng dẫn.html">HƯỚNG DẪN</a></li>
+                <li><a href="lienhe.html">LIÊN HỆ</a></li>
+            </ul>
+        </div>
+        <div class="lkj">
+        <h2 class="news-title">Khám phá sân cầu lông Tô Ngọc Vân chất lượng đáng để trải nghiệm tại TP. Thủ Đức, TP.HCM</h2>
+        <p class="news-meta">Ngày đăng: 26/11/2024 | Credit:VNBSports</p>
+        <div class="news-content">
+            <p>Bài viết được ShopVNB - Hệ thống shop cầu lông hàng đầu Việt Nam với hơn 5 shop Premium và 65 chi nhánh trên toàn quốc kiểm duyệt và chia sẻ.</p>
+            <p>Sân cầu lông Tô Ngọc Vân được biết đến là một trong những cụm sân cầu lông chất lượng tại TP. Thủ Đức, TP.HCM. Với không gian thoáng mát, cơ sở vật chất sạch đẹp và các dịch vụ tiện ích đầy đủ, có thể đáp ứng được mọi nhu cầu đa dạng của người chơi khi đến đây. Hãy cùng ShopVNB tìm hiểu thông tin chi tiết về sân cầu này qua bài viết dưới đây nhé.</p>
+            <p><b>1. Giới thiệu sân cầu lông Tô Ngọc Vân</b><br>
+Sân cầu lông Tô Ngọc Vân được hiển thị trên Google Maps là Sân cầu lông và pickleball Tô Ngọc Vân, tọa lạc trong Hẻm 260 Tô Ngọc Vân, Phường Tam Phú, TP. Thủ Đức, TP.HCM. Đường đi vào sân này có phần hơi ngoằn ngoèo, nhưng các bạn cứ chạy theo các bảng chỉ dẫn là sẽ thấy được cụm sân.</p>
+            <p>Sân cầu lông Tô Ngọc Vân có quy mô gồm 8 sân trong nhà được thiết kế khang trang, sạch đẹp. Trần cao cách nhiệt, không gian ở đây rộng rãi và rất thoáng mát. Hệ thống chiếu sáng chống chói hiện đại, bố trí đồng đều, đảm bảo cung cấp đủ ánh sáng cho cả ban ngày lẫn ban đêm. Mặt sân chất lượng, thảm vân cát dày 6mm, luôn được vệ sinh sạch sẽ, đảm bảo độ bám tốt và an toàn cho người chơi. Khu vực nghỉ ngơi rộng rãi, được bố trí đầy đủ bàn ghế và quạt máy giúp người chơi thư giãn sau khi vận động.</p>
+            <p>Bãi giữ xe rộng rãi, có thể chứa được trăm chiếc xe máy. Phòng tắm, thay đồ và WC sạch sẽ, an toàn và đầy đủ tiện nghi. Trang thiết bị tại sân đều mới, sạch sẽ và đạt chuẩn. Những người đến chơi tại đây đều rất hòa đồng, thân thiện và hài lòng khi trải nghiệm sân này.</p>
+            <p>- Địa chỉ: Hẻm 260 Tô Ngọc Vân, Phường Tam Phú, TP. Thủ Đức, TP.HCM<br>
+- Link Map: https://maps.app.goo.gl/NeiHLvaWouoTcKrZ7<br>
+- Quy mô: 8 sân  <br>
+- Thời gian hoạt động: 5h - 23h</p>
+            <p><b>2. Giá thuê sân cầu lông Tô Ngọc Vân</b></p>
+            <p>Giá thuê sân cầu lông Tô Ngọc Vân sẽ dao động từ 50.000đ - 110.000đ/giờ tuỳ theo giờ chơi. Giá có thể thay đổi theo tình hình giờ giấc thực tế, nếu bạn muốn biết thêm chi tiết giá đặt sân, các bạn có thể liên hệ qua hotline hoặc Zalo của sân để được tư vấn nhé.</p>
+            <p><b>3. Các dịch vụ tiện ích của sân cầu lông Tô Ngọc Vân</b></p>
+            <p>Sân cầu lông Tô Ngọc Vân cung cấp nhiều dịch vụ tiện ích nhằm mang đến những trải nghiệm tốt nhất cho người chơi:</p>
+            <p>- Quầy nước giải khát phục vụ người chơi nạp năng lượng trước và sau khi chơi.<br>
+- Phòng tắm, thay đồ và nhà vệ sinh sạch sẽ, an toàn và đầy đủ tiện nghi.<br>
+- Bãi giữ xe rộng rãi, có thể chứa được trăm chiếc xe máy.</p>
+            <p>Trên đây, ShopVNB đã chia sẻ đầy đủ thông tin về địa chỉ, giờ giấc hoạt động cũng như các tiện ích của sân cầu lông Tô Ngọc Vân. Có thể thấy đây là một sân chơi chất lượng, đầy đủ các tiện ích có thể đáp ứng hầu hết các nhu cầu của người dân tại TP. Thủ Đức, TP.HCM và các vùng lân cận, mang đến những trải nghiệm tốt nhất để tận hưởng niềm đam mê cầu lông. Ngoài sân này ra, thì tại TP. Thủ Đức còn có nhiều sân cầu lông khác cũng chất lượng không kém, các bạn có thể tham khảo thêm qua bài viết "Tổng hợp đầy đủ các sân cầu lông ở Thủ Đức, cập nhật thông tin mới nhất" để có được sự lựa chọn phù hợp nhất nhé.</p>
+        </div>
+
+        <div class="related-news">
+            <h3>Tin Tức Liên Quan</h3>
+            <ul>
+                <li><a href="chi tiết tin tức 1.html">Tin Tức 1: Vợt cầu lông 6U là gì? Top 5 cây vợt cầu lông 6U được ưa chuộng hiện nay</a></li>
+                <li><a href="chi tiết tin tức 2.html">Tin Tức 2: Khám phá sân cầu lông Tô Ngọc Vân chất lượng đáng để trải nghiệm tại TP. Thủ Đức, TP.HCM</a></li>
+                <li><a href="chi tiết tin tức 3.html">Tin Tức 3: Khám phá sân cầu lông An Bình Biên Hoà uy tín và chất lượng tại TP. Biên Hoà, tỉnh Đồng Nai</a></li>
+            </ul>
+        </div>
+
+        <a href="tin tức.html" class="back-link">&larr; Quay lại trang tin tức</a>
+    </div>
+
+<div id="cuoitrang">
+   <footer>
+  <div class="footer-container">
+    <div class="footer-section">
+      <h3>Thông tin công ty</h3>
+      <ul>
+        <li><a href="#">Giới thiệu</a></li>
+        <li><a href="#">Chính sách bảo mật</a></li>
+        <li><a href="#">Chính sách đổi trả</a></li>
+        <li><a href="#">Điều khoản dịch vụ</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer-section">
+      <h3>Sản phẩm</h3>
+      <ul>
+        <li><a href="#">Vợt cầu lông</a></li>
+        <li><a href="#">Lưới cầu lông</a></li>
+        <li><a href="#">Quần áo cầu lông</a></li>
+        <li><a href="#">Phụ kiện cầu lông</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer-section">
+      <h3>Liên hệ</h3>
+      <ul>
+        <li><a href="tel:+123456789">Hotline: +123456789</a></li>
+        <li><a href="mailto:support@thethao.com">Email: support@thethao.com</a></li>
+        <li><a href="#">Địa chỉ: Số 123, Đường ABC, TP. HCM</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-section social-media">
+      <h3>Follow Us</h3>
+      <a href="https://www.facebook.com" target="_blank" class="social-icon facebook"><img src="HA/FB.png" width="80" height="80"></a>
+      <a href="https://www.instagram.com" target="_blank" class="social-icon instagram"><img src="HA/ISG.png" width="40" height="40"></a>
+      <a href="https://www.youtube.com" target="_blank" class="social-icon youtube"><img src="HA/YT.png" width="60" height="60"></a>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; 2024 Cửa Hàng Cầu Lông | Tất cả quyền được bảo lưu</p>
+  </div>
+</footer>
+</div>        
+
+   
+</body>
+
+<script>
+    let slideIndex = 0; // Bắt đầu từ slide đầu tiên
+    let slideInterval; // Lưu trữ ID của setTimeout
+
+    function showSlides() {
+        let slides = document.getElementsByClassName("mySlides");
+
+        // Ẩn tất cả các slide
+        for (let i = 0; i < slides.length; i++) {
+            slides[i].style.display = "none";
+        }
+
+        // Chuyển đến slide tiếp theo
+        slideIndex++;
+        if (slideIndex > slides.length) {
+            slideIndex = 1; // Quay lại slide đầu tiên
+        }
+
+        // Hiển thị slide hiện tại
+        slides[slideIndex - 1].style.display = "block";
+
+        // Tự động chuyển slide sau 3 giây
+        slideInterval = setTimeout(showSlides, 3000);
+    }
+
+    // Khởi động slideshow
+    showSlides();
+</script>
+     <!-- Swiper JS -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script>
+        const swiper = new Swiper('.khung-trinh-chieu', {
+            slidesPerView: 4, // Hiển thị 4 sản phẩm trên một dòng
+            spaceBetween: 20, // Khoảng cách giữa các sản phẩm
+            loop: true, // Lặp lại slide
+            navigation: {
+                nextEl: '.nut-tiep',
+                prevEl: '.nut-lui',
+            },
+            pagination: {
+                el: '.phan-trang',
+                clickable: true,
+            },
+            autoplay: {
+                delay: 3000, // Tự động chuyển slide sau 3 giây
+                disableOnInteraction: false,
+            },
+        });
+    </script>
+</html>

@@ -1,0 +1,1112 @@
+@charset "utf-8";
+input {
+	height:45px;
+	padding: 10px;
+}
+body {
+	width:100%;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+table{
+	padding-top:10px;
+}
+tungphan {
+    padding: 20px;
+}
+.user-info {
+  position: absolute;
+  top: 100%; /* Bám ngay sát dưới chân icon thay vì dùng số px cố định */
+  right: 10px;
+  width: 250px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  display: none;
+  z-index: 1000;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  margin-top: 10px; /* Đẩy bảng xuống một chút cho thoáng */
+}
+/* Tạo cầu nối tàng hình để chuột không bị rơi vào khoảng trống chết */
+.user-info::after {
+  content: "";
+  position: absolute;
+  top: -15px; /* Chiều cao kéo lên bằng với khoảng trống */
+  left: 0;
+  width: 100%;
+  height: 15px; /* Độ dày của cây cầu */
+  background-color: transparent; /* Hoàn toàn trong suốt */
+}
+.user-info p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+.user-info ul {
+  list-style-type: none;
+  padding: 0;
+}
+.user-info ul li {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+.login-icon:hover .user-info {
+  display: block;
+}
+.slideshow-container img {
+  width: 100%;
+}
+/* Điều chỉnh hình ảnh */
+.sanpham img {
+  width: 250px; /* Kích thước ảnh mặc định */
+  height: 250px; /* Giữ tỷ lệ khung hình */
+  border-radius: 10px; /* Bo góc ảnh */
+  margin: 0 auto; /* Canh giữa ảnh */
+  display: block; /* Đảm bảo ảnh không gây lệch */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Hiệu ứng mượt khi phóng to và thêm viền */
+}
+
+.sanpham img:hover {
+  transform: scale(1.03); /* Phóng to ảnh lên 10% */
+  box-shadow: 0 0 15px 3px rgba(255, 0, 0, 0.3); /* Thêm viền bóng mềm mại */
+}
+
+/* Căn chỉnh các phần tử trong mỗi ô của bảng */
+.sanpham td {
+  padding: 5px; /* Giảm padding để khoảng cách nhỏ hơn */
+  text-align: center;
+  vertical-align: top; /* Căn trên để các phần tử không bị đẩy xuống */
+}
+
+/* Căn chỉnh tên sản phẩm ngay dưới ảnh */
+.sanpham .ten {
+  font-size: 16px; /* Tăng kích thước để tên sản phẩm dễ nhìn hơn */
+  font-family: 'Montserrat', sans-serif; /* Phông chữ hiện đại, chuyên nghiệp */
+  color: #333; /* Màu chữ tối, dễ đọc */
+  margin-top: 0; /* Giảm khoảng cách giữa ảnh và tên sản phẩm */
+  text-align: center; /* Căn giữa cho tên sản phẩm */
+  font-weight: 600; /* Đậm nhẹ để tạo điểm nhấn */
+}
+
+/* Căn chỉnh giá sản phẩm */
+.sanpham .gia {
+  font-size: 18px; /* Độ lớn vừa phải cho giá sản phẩm */
+  font-family: 'Montserrat', sans-serif; /* Đồng bộ phông chữ */
+  color: #E53935; /* Màu đỏ đậm tạo sự nổi bật */
+  margin-top: -5px; /* Giảm khoảng cách giữa tên và giá */
+  text-align: center; /* Căn giữa */
+  font-weight: 700; /* Đậm hơn tên sản phẩm */
+}
+
+/* Điều chỉnh bảng để các phần tử có khoảng cách và không bị co dãn */
+.sanpham table {
+  width: 100%; /* Đảm bảo bảng chiếm toàn bộ chiều rộng */
+  border-spacing: 5px; /* Giảm khoảng cách giữa các ô */
+  table-layout: fixed; /* Cố định chiều rộng của các ô */
+}
+
+
+
+#trangchu{
+	  padding: 20px;
+	 
+}
+#lienhe{
+}
+
+
+
+
+#menu ul {
+    list-style-type: none;
+    background-color: #C60;
+    margin: 0;
+    text-align: center;
+    z-index: 999;
+    padding: 0;
+}
+
+#menu li {
+    color: #fff;
+    width: auto; /* Cho tự giãn theo độ dài chữ */
+    height: 50px;
+    line-height: 50px;
+    display: inline-block;
+    position: relative;
+    font-size: 20px;
+    font-family: 'Poppins', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+    margin: 0 5px;
+    
+}
+
+#menu a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+    padding: 0 15px; /* Tạo khoảng cách ngang */
+    transition: all 0.3s ease;
+    white-space: nowrap; /* Ngăn chữ xuống dòng */
+    overflow: hidden;
+}
+
+#menu a:hover {
+    color: #000;
+    background-color: #fff;
+    border-radius: 5px;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
+    height: 100%;
+}
+
+
+.sub-menu {
+    display: none;
+    position: absolute;
+    background-color: #333; /* Màu nền submenu */
+    padding: 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Đổ bóng submenu */
+    border-radius: 5px; /* Bo góc submenu */
+}
+
+.sub-menu li {
+    display: block;
+    width: 160px;
+}
+
+#menu li:hover .sub-menu {
+    display: block;
+}
+	 
+		  * {box-sizing:border-box}
+body {font-family: Verdana,sans-serif;}
+
+/* Slideshow container */
+.slideshow-container {
+  width: 100%;
+  position: relative;
+  margin: auto;
+}
+ .mySlides img {
+            width: 100%; /* Giữ ảnh theo chiều rộng của slideshow */
+            height: auto; /* Tự động điều chỉnh chiều cao theo tỉ lệ */
+            max-height: 400px; /* Giới hạn chiều cao tối đa (nếu cần) */
+        }
+/* Caption text */
+.text {
+  color: #f2f2f2;
+  font-size: 15px;
+  padding: 8px 12px;
+  position: absolute;
+  bottom: 8px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Number text (1/3 etc) */
+.numbertext {
+  color: #f2f2f2;
+  font-size: 12px;
+  padding: 8px 12px;
+  position: absolute;
+  top: 0;
+}
+.dot-container {
+            position: absolute;
+            bottom: 10px; /* Điều chỉnh vị trí dọc của dots */
+            width: 100%;
+            text-align: center;
+}
+/* The dots/bullets/indicators */
+.dot {
+  height: 13px;
+  width: 13px;
+  margin: 0 2px;
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;
+  transition: background-color 0.6s ease;
+}
+
+.active {
+  background-color: #717171;
+}
+
+/* Fading animation */
+.fade {
+  -webkit-animation-name: fade;
+  -webkit-animation-duration: 1.5s;
+  animation-name: fade;
+  animation-duration: 1.5s;
+}
+
+@-webkit-keyframes fade {
+  from {opacity: .4}
+  to {opacity: 1}
+}
+
+@keyframes fade {
+  from {opacity: .4}
+  to {opacity: 1}
+}
+
+/* On smaller screens, decrease text size */
+@media only screen and (max-width: 300px) {
+  .text {font-size: 11px}
+}
+.thantrang
+{
+	width:100%;
+	float:left;
+	background-color:#FFF;
+}
+#cuoitrang
+{
+	width:100%;
+	float:left;
+	border-top:1px solid #666;
+	background-color:#C60;
+	color:#FFF;
+	}
+
+ .search-container {
+      width: 70%;
+      height: 50px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+	  flex-grow: 1;
+  	  text-align: center;
+	  flex-wrap: wrap;
+	  border-radius: 20px;
+    }
+
+    /* Định dạng cho ô nhập liệu */
+    .search-input {
+      width: 50%;
+      height: 40px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+     
+      box-sizing: border-box; /* Đảm bảo padding không làm tăng kích thước tổng thể */
+	  flex-grow: 1;
+		margin-left: 10px;
+	   
+    }
+
+    /* Định dạng cho nút tìm kiếm */
+.search-button {
+    width: 25%;
+    height: 40px;
+    font-size: 16px;
+    color: #fff; /* Màu chữ */
+    background: linear-gradient(to right, yellow, orange); /* Gradient vàng-cam */
+    border: none;
+    border-radius: 20px; /* Bo góc */
+    cursor: pointer;
+    margin-left: 10px; /* Khoảng cách giữa ô nhập liệu và nút */
+	margin-right: 10px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Hiệu ứng khi rê chuột */
+}
+
+    /* Hiệu ứng khi hover */
+.search-button:hover {
+    transform: scale(1.05); /* Phóng to nhẹ */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Đổ bóng */
+    }
+
+.result-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.product-item {
+    width: 200px;
+    padding: 15px;
+    margin: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.product-item img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.product-item h3 {
+    font-size: 18px;
+    margin: 10px 0;
+}
+
+.product-item p {
+    font-size: 14px;
+    color: #888;
+}	
+/* General styling for the contact page */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: #f4f4f4;
+}
+
+.container {
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Section Header */
+.contact-section {
+    padding: 60px 0;
+    
+}
+
+.contact-heading h2 {
+    font-size: 32px;
+    color: #333;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.contact-heading p {
+    text-align: center;
+    color: #666;
+}
+
+/* Contact Form Styling */
+.contact-form form {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #f9f9f9;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    font-weight: bold;
+    color: #333;
+}
+
+.form-group input, .form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-top: 5px;
+    font-size: 14px;
+}
+
+.submit-btn {
+    background-color: #4CAF50;
+    color: #fff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    transition: background-color 0.3s ease;
+}
+
+.submit-btn:hover {
+    background-color: #45a049;
+}
+
+/* Contact Info and Map Styling */
+.contact-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 40px;
+}
+
+.info-item {
+    flex: 1;
+    padding-right: 20px;
+}
+
+.info-item h3 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.info-item ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.info-item li {
+    margin-bottom: 8px;
+    color: #666;
+}
+
+.map iframe {
+    width: 100%;
+    border: 0;
+    border-radius: 8px;
+}
+
+/* Social Media Links */
+.social-links {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.social-icon {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 0 10px;
+    background-color: #333;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.social-icon:hover {
+    background-color: #555;
+}
+
+.social-icon.facebook {
+    background-color: #3b5998;
+}
+
+.social-icon.instagram {
+    background-color: #e4405f;
+}
+
+.social-icon.linkedin {
+    background-color: #0077b5;
+}
+/* Style cho phần footer */
+footer {
+  background-color: #333;
+  color: #fff;
+  padding: 40px 20px ;
+  font-family: Arial, sans-serif;
+  padding-left: 70px;
+}
+
+.footer-container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.footer-section {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.footer-section h3 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #f8c400;
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-section ul li {
+  margin-bottom: 10px;
+}
+
+.footer-section ul li a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.footer-section ul li a:hover {
+  color: #f8c400;
+}
+
+.social-media {
+  display: flex;
+  gap: 10px;
+}
+
+.social-icon {
+  color: #fff;
+  background-color: #444;
+  padding: 20px;
+  border-radius: 50%;
+  text-align: center;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  text-decoration: none;
+}
+
+.social-icon:hover {
+  background-color: #f8c400;
+}
+
+.footer-bottom {
+  text-align: center;
+  margin-top: 40px;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.footer-bottom p {
+  margin: 0;
+}
+.product-container {
+  width: 686px;
+  height: 350px;
+  position: relative;
+  overflow: hidden; /* Ẩn các phần của ảnh phóng to bị tràn ra ngoài */
+}
+
+.product-image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.product-image1 {
+  width: 100%;
+  height: 100%;
+  background-image: url(../HA/anh%20nen.jpg);  /* Ảnh nền */
+  background-size: cover;  /* Làm cho ảnh nền bao phủ toàn bộ diện tích */
+  background-position: center;  /* Căn chỉnh ảnh nền vào giữa */
+  transition: transform 0.5s ease-in-out; /* Hiệu ứng phóng to mượt mà */
+}
+
+.product-image2 {
+  width: 100%;
+  height: 100%;
+  background-image: url(../HA/nengiay.png);  /* Ảnh nền */
+  background-size: cover;  /* Làm cho ảnh nền bao phủ toàn bộ diện tích */
+  background-position: center;  /* Căn chỉnh ảnh nền vào giữa */
+  transition: transform 0.5s ease-in-out; /* Hiệu ứng phóng to mượt mà */
+}
+
+.product-image3 {
+  width: 100%;
+  height: 100%;
+  background-image: url(../HA/nenao.png);  /* Ảnh nền */
+  background-size: cover;  /* Làm cho ảnh nền bao phủ toàn bộ diện tích */
+  background-position: center;  /* Căn chỉnh ảnh nền vào giữa */
+  transition: transform 0.5s ease-in-out; /* Hiệu ứng phóng to mượt mà */
+}
+
+.product-image4 {
+  width: 100%;
+  height: 100%;
+  background-image: url(../HA/nenvay.png);  /* Ảnh nền */
+  background-size: cover;  /* Làm cho ảnh nền bao phủ toàn bộ diện tích */
+  background-position: center;  /* Căn chỉnh ảnh nền vào giữa */
+  transition: transform 0.5s ease-in-out; /* Hiệu ứng phóng to mượt mà */
+}
+
+.product-image5 {
+  width: 100%;
+  height: 100%;
+  background-image: url(../HA/nenquan.png);  /* Ảnh nền */
+  background-size: cover;  /* Làm cho ảnh nền bao phủ toàn bộ diện tích */
+  background-position: center;  /* Căn chỉnh ảnh nền vào giữa */
+  transition: transform 0.5s ease-in-out; /* Hiệu ứng phóng to mượt mà */
+}
+
+.product-image6 {
+  width: 100%;
+  height: 100%;
+  background-image: url(../HA/nentui.png);  /* Ảnh nền */
+  background-size: cover;  /* Làm cho ảnh nền bao phủ toàn bộ diện tích */
+  background-position: center;  /* Căn chỉnh ảnh nền vào giữa */
+  transition: transform 0.5s ease-in-out; /* Hiệu ứng phóng to mượt mà */
+}
+
+.product-image7 {
+  width: 100%;
+  height: 100%;
+  background-image: url(../HA/nenbalo.png);  /* Ảnh nền */
+  background-size: cover;  /* Làm cho ảnh nền bao phủ toàn bộ diện tích */
+  background-position: center;  /* Căn chỉnh ảnh nền vào giữa */
+  transition: transform 0.5s ease-in-out; /* Hiệu ứng phóng to mượt mà */
+}
+
+.product-image8 {
+  width: 100%;
+  height: 100%;
+  background-image: url(../HA/nenphukien.png);  /* Ảnh nền */
+  background-size: cover;  /* Làm cho ảnh nền bao phủ toàn bộ diện tích */
+  background-position: center;  /* Căn chỉnh ảnh nền vào giữa */
+  transition: transform 0.5s ease-in-out; /* Hiệu ứng phóng to mượt mà */
+}
+
+/* Khi hover, phóng to ảnh nền */
+.product-container:hover .product-image1 {
+  transform: scale(1.1);
+}
+.product-container:hover .product-image2 {
+  transform: scale(1.1);
+}
+.product-container:hover .product-image3 {
+  transform: scale(1.1);
+}
+.product-container:hover .product-image4 {
+  transform: scale(1.1);
+}
+.product-container:hover .product-image5 {
+  transform: scale(1.1);
+}
+.product-container:hover .product-image6 {
+  transform: scale(1.1);
+}
+.product-container:hover .product-image7 {
+  transform: scale(1.1);
+}
+.product-container:hover .product-image8 {
+  transform: scale(1.1);
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Màu nền đen với độ mờ */
+  opacity: 0; /* Ẩn lớp phủ mặc định */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.3s ease; /* Hiệu ứng mờ dần */
+}
+
+.product-container:hover .overlay {
+  opacity: 1; /* Hiển thị lớp phủ khi hover */
+}
+
+.overlay img {
+  width: 100%;
+  height: 15%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Căn giữa ảnh overlay */
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid black;
+  padding: 5px;
+ 
+  
+}
+
+.logo-large{
+  display: flex;
+  text-align: center;
+  
+  
+}
+.login-icon {
+  display: flex;
+  text-align: center;
+  flex-grow: 1;
+  padding-right: 20px;
+  position: relative; /* Thêm dòng này, và đã xóa overflow: hidden */
+}
+.logo-small{
+	display: flex;
+	align-items: right;
+	flex-grow: 1;
+	
+}
+.baotrang {
+	width:100%;
+	height:100%;
+
+}
+/* Ẩn icon trên màn hình nhỏ */
+.thanhduoibaner {
+ display: flex;
+            flex-wrap: wrap; /* Cho phép các mục tự động xuống dòng nếu không đủ không gian */
+            justify-content: space-between;
+            background-color: white;
+            padding: 20px;
+            gap: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin: 20px auto; /* Canh giữa trên dưới */
+            max-width: 1200px; /* Giới hạn chiều rộng tối đa */
+            border-radius: 8px;
+        }
+
+        .muc {
+            display: flex;
+            align-items: center; /* Căn giữa ảnh và chữ theo chiều dọc */
+            flex: 1 1 calc(25% - 20px); /* Chiếm 1/4 chiều rộng, trừ khoảng cách (responsive) */
+            background-color: #fff;
+            padding: 10px;
+            border: 1px solid #eaeaea;
+            border-radius: 8px;
+            text-align: left;
+            gap: 10px; /* Khoảng cách giữa ảnh và chữ */
+            min-width: 200px; /* Chiều rộng tối thiểu */
+        }
+
+        .muc img {
+            width: 50px;
+            height: 50px;
+        }
+
+        .noi-dung {
+            flex-grow: 1;
+        }
+
+        .noi-dung .tieu-de {
+            font-weight: bold;
+            color: #c95e17;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .noi-dung .mo-ta {
+            font-size: 14px;
+            color: #666;
+        }
+/* Phần chứa trình chiếu */
+.khung-trinh-chieu {
+    width: 90%;
+    margin: 20px auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+/* Khung trình chiếu */
+.trinh-chieu-slide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 10px;
+    height: 250px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Ảnh */
+.trinh-chieu-slide img {
+    max-height: 50%;
+    max-width: 80%;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+/* Tên sản phẩm */
+.ten-san-pham {
+    font-size: clamp(12px, 1.5vw, 18px);
+    line-height: 1.2;
+    margin: 5px 0;
+    white-space: nowrap;  /* Ngừng xuống dòng */
+    overflow: hidden;     /* Đảm bảo chữ không tràn */
+    position: relative;
+    animation: slideIn 10s linear infinite;  /* Hiệu ứng chạy chữ với thời gian đồng nhất */
+    display: inline-block;
+}
+
+/* Giá sản phẩm */
+.gia-san-pham {
+  font-size: 5em;  /* Chữ lớn */
+  font-weight: bold;
+    margin-top: 5px;
+    color: #e74c3c;
+    max-height: 20%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+
+/* Tạo hiệu ứng chạy cho tên sản phẩm */
+@keyframes slideIn {
+    0% {
+        transform: translateX(100%);  /* Chữ bắt đầu ngoài khung bên phải */
+    }
+    100% {
+        transform: translateX(-100%); /* Chữ chạy hoàn toàn ra ngoài khung bên trái */
+    }
+}
+
+
+/* Phần trình bày sản phẩm */
+.trung-bay-san-pham {
+    text-align: center;
+    height: 800px;
+    width: 95%;
+    margin: 0 auto;
+    border-radius: 30px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(to right, orange, yellow);
+}
+
+.container-san-pham {
+    width: 90%;
+    height: 90%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 50px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 30px;
+    padding: 20px;
+    position: relative;
+}
+
+/* Hình ảnh chính */
+.hinh-anh-san-pham {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+    position: relative;
+    max-width: 700px; /* Giới hạn chiều rộng ảnh chính */
+    margin: 0 auto;  /* Căn giữa */
+}
+
+.hinh-anh-san-pham img {
+    width: 100%; /* Chiều rộng tối đa của khung */
+    max-width: 700px; /* Giới hạn chiều rộng tối đa */
+    height: 550px; /* Chiều cao cố định */
+	width: 500px;
+    border-radius: 10px; /* Bo góc ảnh */
+    object-fit: cover; /* Cắt ảnh để vừa với khung mà không bị méo */
+    overflow: hidden; /* Ẩn phần vượt ra khỏi khung */
+}
+
+/* Swiper container */
+.swiper-container {
+    width: 100%;
+    max-width: 450px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.swiper-slide {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+}
+
+.swiper-slide img {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+    transition: transform 0.2s ease, border 0.2s ease;
+    cursor: pointer;
+}
+
+.swiper-slide img:hover {
+    border: 2px solid #ff6600;
+    transform: scale(0.96); /* Phóng to nhẹ khi hover */
+}
+
+/* Phần thông tin sản phẩm */
+.thong-tin-san-pham-container {
+    width: 700px;
+    max-width: 1200px;
+    font-family: Arial, sans-serif;
+}
+.thong-tin-san-pham-container p {
+  font-size: 30px;
+}
+.uu-dai h4 {
+    color: #FF5722;
+    margin-bottom: 10px;
+	
+}
+
+.uu-dai ul {
+    list-style-type: none;
+    padding: 0;
+	border: 1px solid #ddd;
+	text-align:left;
+}
+
+.uu-dai ul li {
+    padding: 5px 0;
+    font-size: 14px;
+}
+
+.nut-thao-tac {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+/* Hiệu ứng hover cho nút */
+button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease; /* Thêm hiệu ứng mượt */
+}
+
+.mua-ngay {
+  background-color: #FF5722;
+  color: white;
+}
+
+.mua-ngay:hover {
+  background-color: #E64A19; /* Màu nền đậm hơn khi hover */
+  transform: scale(1.05); /* Phóng to nhẹ */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Đổ bóng */
+}
+
+.them-gio-hang {
+  background-color: #FFC107;
+  color: white;
+}
+
+.them-gio-hang:hover {
+  background-color: #FFA000; /* Màu nền đậm hơn khi hover */
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.thanh-toan-the {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.thanh-toan-the:hover {
+  background-color: #388E3C; /* Màu nền đậm hơn khi hover */
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tra-gop {
+  background-color: #2196F3;
+  color: white;
+}
+
+.tra-gop:hover {
+  background-color: #1976D2; /* Màu nền đậm hơn khi hover */
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tra-cham {
+  background-color: #795548;
+  color: white;
+}
+
+.tra-cham:hover {
+  background-color: #5D4037; /* Màu nền đậm hơn khi hover */
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.san-pham-goi-y {
+    margin-top: 30px;
+    text-align: center;
+    border: 5px solid; /* Độ dày viền */
+    border-image: linear-gradient(to right, orange, yellow) 1;
+	width: 98%;
+	margin-left: auto;
+    margin-right: auto;
+	margin-bottom: 20px;
+}
+.danh-sach-san-pham-goi-y {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 sản phẩm mỗi hàng */
+    gap: 20px; /* Khoảng cách giữa các sản phẩm */
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.danh-sach-san-pham-goi-y {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 sản phẩm mỗi hàng */
+  gap: 10px; /* Giảm khoảng cách giữa các sản phẩm */
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.san-pham-goi-y-item img {
+  width: 100%;
+  max-width: 250px; /* Tăng kích thước hình ảnh */
+  height: auto;
+  border-radius: 10px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.san-pham-goi-y-item img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 128, 255, 0.6); /* Hiệu ứng đường viền phát sáng */
+}
+
+.san-pham-goi-y-item p {
+  margin-top: 10px;
+  font-size: 16px; /* Kích thước chữ lớn hơn */
+  line-height: 1.6; /* Khoảng cách dòng thoáng hơn */
+  color: #333; /* Màu chữ dễ nhìn */
+  text-align: center;
+  word-break: break-word; /* Ngắt dòng nếu quá dài */
+  font-family: 'Poppins', sans-serif; /* Sử dụng phông chữ Poppins */
+  font-weight: 600; /* Đậm nhẹ để làm nổi bật */
+}
+/* Media query cho màn hình rộng */
+@media (min-width: 1024px) {
+    .trinh-chieu-slide {
+        height: 300px;
+    }
+
+    .trinh-chieu-slide img {
+        max-height: 45%;
+    }
+
+    .ten-san-pham, .gia-san-pham {
+        font-size: clamp(14px, 1.8vw, 20px);
+    }
+}
+@media (max-width: 768px) {
+  .login-icon {
+    display: none; /* Ẩn icon trên màn hình nhỏ */
+  }
+  .map {
+    display: none;
+  }
+}
+  .map {
+	   display: none;
+  }
+}

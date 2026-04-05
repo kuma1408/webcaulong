@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <title>Shop Cầu Lông</title>
+
+    <!-- CSS -->
+    <link href="css/tutaoo.css" rel="stylesheet" style="text/css" />
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        header {
+            background: #007BFF;
+            color: #fff;
+            padding: 10px 15px;
+            text-align: center;
+        }
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #007BFF;
+        }
+        ul {
+            list-style: disc;
+            margin-left: 20px;
+        }
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        
+    </style>
+</head>
+
+<body>
+    <div class="baotrang">
+       <div class="header">
+            <!-- Logo đăng nhập -->
+            <div class="logo-small">
+                <a href="trangchu.html">
+                    <img src="HA/cc-removebg-preview.png" width="45" height="50">
+                </a>
+            </div>
+
+            <!-- Logo lớn -->
+            <div class="logo-large" style="float:left">
+                <a href="trangchu.html">
+                    <img src="HA/dcm.png" width="160" height="55">
+                </a>
+            </div>
+
+            <div style="width:100%">
+                <center>
+                    <!-- Thanh tìm kiếm -->
+                    <div class="search-container">
+                        <input type="text" class="search-input" placeholder="Tìm kiếm sản phẩm...">
+                        <button class="search-button" onclick="searchProduct()">Tìm kiếm</button>
+                    </div>
+                </center>
+            </div>
+
+            <!-- Icon đăng nhập -->
+            <div class="login-icon" id="loginIconContainer">
+                <a href="dangnhap.html" id="loginLink">
+                    <img id="loginIcon" src="HA/lop.png" width="50" height="50">
+                </a>
+                <!-- Thông tin người dùng -->
+                <div class="user-info" id="userInfo">
+                    <p><strong>Tài khoản:</strong> <span id="username"></span></p>
+                    <p><strong>ID:</strong> <span id="userId"></span></p>
+                    <p><strong>Số dư:</strong> <span id="userBalance">0</span> VND</p>
+                    <p><strong>Sản phẩm đã mua:</strong></p>
+                    <ul id="purchasedProducts"></ul>
+                </div>
+            </div>
+        </div>
+        <script src="CSS/auth.js"></script>
+       <div id="menu">
+            <ul>
+                <li><a href="trangchu.html">TRANG CHỦ</a></li>
+                <li><a href="#sanpham">SẢN PHẨM</a>
+                    <ul class="sub-menu">
+                        <li><a href="Vợt cầu lông.html">Vợt Cầu Lông</a></li>
+                        <li><a href="Giày cầu lông.html">Giày Cầu Lông</a></li>
+                        <li><a href="Áo cầu lông.html">Áo Cầu Lông</a></li>
+                        <li><a href="Váy cầu lông.html">Váy Cầu Lông</a></li>
+                        <li><a href="Quần cầu lông.html">Quần Cầu Lông</a></li>
+                        <li><a href="Túi cầu lông.html">Túi Vợt</a></li>
+                        <li><a href="Balo cầu lông.html">Balo </a></li>
+                        <li><a href="Phụ kiện cầu lông.html">Phụ Kiện</a></li>
+                    </ul>
+                </li>
+                <li><a href="sale off.html">SALE OFF</a></li>
+                <li><a href="tin tức.html">TIN TỨC</a></li>
+                <li><a href="hướng dẫn.html">HƯỚNG DẪN</a></li>
+                <li><a href="lienhe.html">LIÊN HỆ</a></li>
+            </ul>
+        </div>
+
+  
+    
+    <main>
+        <h2>1. Đối với khách hàng mua trực tiếp tại các chi nhánh</h2>
+        <ul>
+            <li>Thanh toán bằng tiền mặt, chuyển khoản ngân hàng hoặc thẻ tín dụng (Badmnton Sport chịu phí thẻ).</li>
+            <li>Quý khách có thể đến trực tiếp chi nhánh hoặc liên hệ hotline để biết thêm chi tiết.</li>
+            <li>Vui lòng kiểm tra sản phẩm kỹ trước khi thanh toán.</li>
+        </ul>
+
+        <h2>2. Đối với khách hàng mua hàng online qua Website</h2>
+        <h3>2.1 Thanh toán chuyển khoản hoặc thanh toán khi nhận hàng (COD)</h3>
+        <ul>
+            <li>Shop sẽ gọi điện xác nhận đơn hàng trong vòng 24h sau khi nhận thông tin đặt hàng.</li>
+            <li>Khách hàng có thể chọn thanh toán COD hoặc chuyển khoản trước qua tài khoản ngân hàng.</li>
+            <li>Với sản phẩm vợt yêu cầu đan cước, quý khách cần thanh toán trước toàn bộ giá trị đơn hàng.</li>
+            <li>Hotline hỗ trợ: 0338000308</li>
+        </ul>
+        <p><strong>Thông tin tài khoản ngân hàng:</strong></p>
+        <ul>
+            <li><strong>Ngân hàng:</strong> MB Bank</li>
+            <li><strong>Số tài khoản:</strong> 6914082007</li>
+            <li><strong>Chủ tài khoản:</strong> Nguyễn Hải Anh</li>
+        </ul>
+        <p><em>Lưu ý:</em> Vui lòng kiểm tra kỹ thông tin trước khi thực hiện giao dịch.</p>
+
+        <h3>2.2 Thanh toán trả góp qua Website</h3>
+        <ul>
+            <li>Lựa chọn trả góp qua CCCD hoặc thẻ tín dụng trong giỏ hàng.</li>
+            <li>Các hình thức hỗ trợ: Home Paylater, Muadee hoặc trả góp qua thẻ ngân hàng.</li>
+            <li>Tham khảo thêm bài viết: <a href="#">Hướng dẫn Mua vợt cầu lông trả góp tại Badminton Sport</a>.</li>
+        </ul>
+
+        <h2>3. Đối với khách hàng mua hàng qua hotline</h2>
+        <ul>
+            <li>Thanh toán COD hoặc chuyển khoản trước qua tài khoản ngân hàng.</li>
+            <li>Danh sách số tài khoản của từng chi nhánh được cập nhật khi liên hệ.</li>
+        </ul>
+
+        <h2>4. Đối với khách hàng mua sỉ</h2>
+        <ul>
+            <li>Liên hệ số: 1234 567891 để được Nguyễn Minh Đức hỗ trợ.</li>
+        </ul>
+    </main>
+
+
+<div id="cuoitrang">
+   <footer>
+  <div class="footer-container">
+    <div class="footer-section">
+      <h3>Thông tin công ty</h3>
+      <ul>
+        <li><a href="#">Giới thiệu</a></li>
+        <li><a href="#">Chính sách bảo mật</a></li>
+        <li><a href="#">Chính sách đổi trả</a></li>
+        <li><a href="#">Điều khoản dịch vụ</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer-section">
+      <h3>Sản phẩm</h3>
+      <ul>
+        <li><a href="#">Vợt cầu lông</a></li>
+        <li><a href="#">Lưới cầu lông</a></li>
+        <li><a href="#">Quần áo cầu lông</a></li>
+        <li><a href="#">Phụ kiện cầu lông</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer-section">
+      <h3>Liên hệ</h3>
+      <ul>
+        <li><a href="tel:+123456789">Hotline: +123456789</a></li>
+        <li><a href="mailto:support@thethao.com">Email: support@thethao.com</a></li>
+        <li><a href="#">Địa chỉ: Số 123, Đường ABC, TP. HCM</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-section social-media">
+      <h3>Follow Us</h3>
+      <a href="https://www.facebook.com" target="_blank" class="social-icon facebook"><img src="HA/FB.png" width="80" height="80"></a>
+      <a href="https://www.instagram.com" target="_blank" class="social-icon instagram"><img src="HA/ISG.png" width="40" height="40"></a>
+      <a href="https://www.youtube.com" target="_blank" class="social-icon youtube"><img src="HA/YT.png" width="60" height="60"></a>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; 2024 Cửa Hàng Cầu Lông | Tất cả quyền được bảo lưu</p>
+  </div>
+</footer>
+</div>        
+
+   
+</body>
+
+<script>
+    let slideIndex = 0; // Bắt đầu từ slide đầu tiên
+    let slideInterval; // Lưu trữ ID của setTimeout
+
+    function showSlides() {
+        let slides = document.getElementsByClassName("mySlides");
+
+        // Ẩn tất cả các slide
+        for (let i = 0; i < slides.length; i++) {
+            slides[i].style.display = "none";
+        }
+
+        // Chuyển đến slide tiếp theo
+        slideIndex++;
+        if (slideIndex > slides.length) {
+            slideIndex = 1; // Quay lại slide đầu tiên
+        }
+
+        // Hiển thị slide hiện tại
+        slides[slideIndex - 1].style.display = "block";
+
+        // Tự động chuyển slide sau 3 giây
+        slideInterval = setTimeout(showSlides, 3000);
+    }
+
+    // Khởi động slideshow
+    showSlides();
+</script>
+     <!-- Swiper JS -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script>
+        const swiper = new Swiper('.khung-trinh-chieu', {
+            slidesPerView: 4, // Hiển thị 4 sản phẩm trên một dòng
+            spaceBetween: 20, // Khoảng cách giữa các sản phẩm
+            loop: true, // Lặp lại slide
+            navigation: {
+                nextEl: '.nut-tiep',
+                prevEl: '.nut-lui',
+            },
+            pagination: {
+                el: '.phan-trang',
+                clickable: true,
+            },
+            autoplay: {
+                delay: 3000, // Tự động chuyển slide sau 3 giây
+                disableOnInteraction: false,
+            },
+        });
+    </script>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <title>Tin tức</title>
+
+    <!-- CSS -->
+    <link href="css/tutaoo.css" rel="stylesheet" style="text/css" />
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <style>
+.card-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px;
+}
+
+.card {
+    position: relative;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    flex: 1 1 calc(33.333% - 20px);
+    max-width: calc(33.333% - 20px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.card img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.card:hover img {
+    transform: scale(1.1);
+}
+
+.card-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 15px;
+    text-align: center;
+    opacity: 1; /* Đảm bảo rằng nó luôn hiển thị */
+    transition: none; /* Loại bỏ hiệu ứng chuyển đổi */
+}
+
+
+.card:hover .card-content {
+    opacity: 1;
+}
+
+.card-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0 0 10px;
+    color: #fff;
+}
+
+.card-date {
+    font-size: 14px;
+    color: #ffa500;
+    margin-bottom: 10px;
+}
+
+.card-description {
+    font-size: 14px;
+    color: #ccc;
+    margin: 0;
+}     
+    </style>
+</head>
+
+<body>
+    <div class="baotrang">
+       <div class="header">
+            <!-- Logo đăng nhập -->
+            <div class="logo-small">
+                <a href="trangchu.html">
+                    <img src="HA/cc-removebg-preview.png" width="45" height="50">
+                </a>
+            </div>
+
+            <!-- Logo lớn -->
+            <div class="logo-large" style="float:left">
+                <a href="trangchu.html">
+                    <img src="HA/dcm.png" width="160" height="55">
+                </a>
+            </div>
+
+            <div style="width:100%">
+                <center>
+                    <!-- Thanh tìm kiếm -->
+                    <div class="search-container">
+                        <input type="text" class="search-input" placeholder="Tìm kiếm sản phẩm...">
+                        <button class="search-button" onclick="searchProduct()">Tìm kiếm</button>
+                    </div>
+                </center>
+            </div>
+
+            <!-- Icon đăng nhập -->
+            <div class="login-icon" id="loginIconContainer">
+                <a href="dangnhap.html" id="loginLink">
+                    <img id="loginIcon" src="HA/lop.png" width="50" height="50">
+                </a>
+                <!-- Thông tin người dùng -->
+                <div class="user-info" id="userInfo">
+                    <p><strong>Tài khoản:</strong> <span id="username"></span></p>
+                    <p><strong>ID:</strong> <span id="userId"></span></p>
+                    <p><strong>Số dư:</strong> <span id="userBalance">0</span> VND</p>
+                    <p><strong>Sản phẩm đã mua:</strong></p>
+                    <ul id="purchasedProducts"></ul>
+                </div>
+            </div>
+        </div>
+        <script src="CSS/auth.js"></script>
+         <div id="menu">
+            <ul>
+                <li><a href="trangchu.html">TRANG CHỦ</a></li>
+                <li><a href="#sanpham">SẢN PHẨM</a>
+                    <ul class="sub-menu">
+                        <li><a href="Vợt cầu lông.html">Vợt Cầu Lông</a></li>
+                        <li><a href="Giày cầu lông.html">Giày Cầu Lông</a></li>
+                        <li><a href="Áo cầu lông.html">Áo Cầu Lông</a></li>
+                        <li><a href="Váy cầu lông.html">Váy Cầu Lông</a></li>
+                        <li><a href="Quần cầu lông.html">Quần Cầu Lông</a></li>
+                        <li><a href="Túi cầu lông.html">Túi Vợt</a></li>
+                        <li><a href="Balo cầu lông.html">Balo </a></li>
+                        <li><a href="Phụ kiện cầu lông.html">Phụ Kiện</a></li>
+                    </ul>
+                </li>
+                <li><a href="sale off.html">SALE OFF</a></li>
+                <li><a href="tin tức.html">TIN TỨC</a></li>
+                <li><a href="hướng dẫn.html">HƯỚNG DẪN</a></li>
+                <li><a href="lienhe.html">LIÊN HỆ</a></li>
+            </ul>
+        </div>
+
+        <div class="card-container">
+            <div class="card">
+                <a href="chi tiết tin tức 1.html" style="text-decoration: none; color: inherit;"><img src="HA/ảnh tin tức/vot6u.png" alt="News 1"></a>
+                <div class="card-content">
+                    <a href="chi tiết tin tức 1.html" style="text-decoration: none; color: inherit;"><h3 class="card-title">Vợt Cầu Lông 6U Là Gì? Top 5 Cây Vợt Cầu Lông 6U Được Ưa Chuộng</h3></a>
+                    <p class="card-date">20-12-2024 17:19</p>
+                    <p class="card-description">Nếu bạn đang tìm kiếm một cây vợt cầu lông có trọng lượng nhẹ để có được độ linh hoạt trong lối chơi...</p>
+                </div>
+            </div>
+            <div class="card">
+                <a href="chi tiết tin tức 2.html" style="text-decoration: none; color: inherit;"><img src="HA/ảnh tin tức/tin2.png" alt="News 2"></a>
+                <div class="card-content">
+                    <a href="chi tiết tin tức 2.html" style="text-decoration: none; color: inherit;"><h3 class="card-title">Khám phá sân cầu lông Tô Ngọc Vân chất lượng đáng để trải</h3></a>
+                    <p class="card-date">26-11-2024 13:30</p>
+                    <p class="card-description">Sân cầu lông Tô Ngọc Vân được biết đến là một trong những cụm sân cầu lông chất lượng tại TP. Thủ Đứ...</p>
+                </div>
+            </div>
+            <div class="card">
+                <a href="chi tiết tin tức 3.html" style="text-decoration: none; color: inherit;"><img src="HA/ảnh tin tức/tin3.png" alt="News 3"></a>
+                <div class="card-content">
+                    <a href="chi tiết tin tức 3.html" style="text-decoration: none; color: inherit;"><h3 class="card-title">Khám phá sân cầu lông An Bình Biên Hoà uy tín và chất lượng</h3></a>
+                    <p class="card-date">19-11-2024 08:59</p>
+                    <p class="card-description">Sân cầu lông An Bình Biên Hoà là một trong những điểm đến lý tưởng cho các anh em lông thủ tại TP. B...</p>
+                </div>
+            </div>
+            <div class="card">
+                <a href="chi tiết tin tức 4.html" style="text-decoration: none; color: inherit;"><img src="HA/ảnh tin tức/tin4.png" alt="News 4"></a>
+                <div class="card-content">
+                    <a href="chi tiết tin tức 4.html" style="text-decoration: none; color: inherit;"><h3 class="card-title">Top 5 cây vợt cầu lông thiên công giá tầm giá 1 triệu đến 1</h3></a>
+                    <p class="card-date">04-11-2024 08:46</p>
+                    <p class="card-description">Nếu các bạn đang tìm cho mình một cây vợt cầu lông thiên về lối chơi tấn công mạnh mẽ với một mức gi...</p>
+                </div>
+            </div>
+            <div class="card">
+                <a href="chi tiết tin tức 5.html" style="text-decoration: none; color: inherit;"><img src="HA/ảnh tin tức/tin5.png" alt="News 5"></a>
+                <div class="card-content">
+                    <a href="chi tiết tin tức 5.html" style="text-decoration: none; color: inherit;"><h3 class="card-title">Tổng hợp danh sách các sân cầu lông Phú Quốc uy tín được</h3></a>
+                    <p class="card-date">04-11-2024 11:31</p>
+                    <p class="card-description">Hiện tại, phong trào cầu lông ở Phú Quốc đang phát triển mạnh mẽ và có rất nhiều bạn muốn tìm một sâ...</p>
+                </div>
+            </div>
+            <div class="card">
+                <a href="chi tiết tin tức 6.html" style="text-decoration: none; color: inherit;"><img src="HA/ảnh tin tức/tin6.png" alt="News 6"></a>
+                <div class="card-content">
+                    <a href="chi tiết tin tức 6.html" style="text-decoration: none; color: inherit;"><h3 class="card-title">Review sân cầu lông Oanh Toàn đẹp và chất lượng tại TP. Phú</h3></a>
+                    <p class="card-date">04-11-2024 11:28</p>
+                    <p class="card-description">Sân cầu lông Oanh Toàn với không gian thông thoáng, cơ sở vật chất sạch đẹp, được biết đến là một tr...</p>
+                </div>
+            </div>
+        </div>
+ 
+
+
+<div id="cuoitrang">
+   <footer>
+  <div class="footer-container">
+    <div class="footer-section">
+      <h3>Thông tin công ty</h3>
+      <ul>
+        <li><a href="#">Giới thiệu</a></li>
+        <li><a href="#">Chính sách bảo mật</a></li>
+        <li><a href="#">Chính sách đổi trả</a></li>
+        <li><a href="#">Điều khoản dịch vụ</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer-section">
+      <h3>Sản phẩm</h3>
+      <ul>
+        <li><a href="#">Vợt cầu lông</a></li>
+        <li><a href="#">Lưới cầu lông</a></li>
+        <li><a href="#">Quần áo cầu lông</a></li>
+        <li><a href="#">Phụ kiện cầu lông</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer-section">
+      <h3>Liên hệ</h3>
+      <ul>
+        <li><a href="tel:+123456789">Hotline: +123456789</a></li>
+        <li><a href="mailto:support@thethao.com">Email: support@thethao.com</a></li>
+        <li><a href="#">Địa chỉ: Số 123, Đường ABC, TP. HCM</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-section social-media">
+      <h3>Follow Us</h3>
+      <a href="https://www.facebook.com" target="_blank" class="social-icon facebook"><img src="HA/FB.png" width="80" height="80"></a>
+      <a href="https://www.instagram.com" target="_blank" class="social-icon instagram"><img src="HA/ISG.png" width="40" height="40"></a>
+      <a href="https://www.youtube.com" target="_blank" class="social-icon youtube"><img src="HA/YT.png" width="60" height="60"></a>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; 2024 Cửa Hàng Cầu Lông | Tất cả quyền được bảo lưu</p>
+  </div>
+</footer>
+</div>        
+
+   
+</body>
+
+<script>
+    let slideIndex = 0; // Bắt đầu từ slide đầu tiên
+    let slideInterval; // Lưu trữ ID của setTimeout
+
+    function showSlides() {
+        let slides = document.getElementsByClassName("mySlides");
+
+        // Ẩn tất cả các slide
+        for (let i = 0; i < slides.length; i++) {
+            slides[i].style.display = "none";
+        }
+
+        // Chuyển đến slide tiếp theo
+        slideIndex++;
+        if (slideIndex > slides.length) {
+            slideIndex = 1; // Quay lại slide đầu tiên
+        }
+
+        // Hiển thị slide hiện tại
+        slides[slideIndex - 1].style.display = "block";
+
+        // Tự động chuyển slide sau 3 giây
+        slideInterval = setTimeout(showSlides, 3000);
+    }
+
+    // Khởi động slideshow
+    showSlides();
+</script>
+     <!-- Swiper JS -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script>
+        const swiper = new Swiper('.khung-trinh-chieu', {
+            slidesPerView: 4, // Hiển thị 4 sản phẩm trên một dòng
+            spaceBetween: 20, // Khoảng cách giữa các sản phẩm
+            loop: true, // Lặp lại slide
+            navigation: {
+                nextEl: '.nut-tiep',
+                prevEl: '.nut-lui',
+            },
+            pagination: {
+                el: '.phan-trang',
+                clickable: true,
+            },
+            autoplay: {
+                delay: 3000, // Tự động chuyển slide sau 3 giây
+                disableOnInteraction: false,
+            },
+        });
+    </script>
+</html>

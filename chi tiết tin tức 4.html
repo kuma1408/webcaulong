@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <title>Top 5 cây vợt cầu lông thiên công giá tầm giá 1 triệu đến 1 triệu 3 đáng mua nhất hiện nay</title>
+
+    <!-- CSS -->
+    <link href="css/tutaoo.css" rel="stylesheet" style="text/css" />
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <style>
+body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        nav {
+            background: #555;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .lkj {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .news-title {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .news-meta {
+            font-size: 0.9em;
+            color: #999;
+            margin-bottom: 20px;
+        }
+        .news-content {
+            color: #666;
+        }
+        .news-content p {
+            margin-bottom: 15px;
+        }
+        .related-news {
+            margin-top: 30px;
+        }
+        .related-news h3 {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .related-news ul {
+            list-style: none;
+            padding: 0;
+        }
+        .related-news ul li {
+            margin-bottom: 10px;
+        }
+        .related-news ul li a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .related-news ul li a:hover {
+            text-decoration: underline;
+        }
+        footer {
+            background: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            margin-top: 20px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="baotrang">
+       <div class="header">
+            <!-- Logo đăng nhập -->
+            <div class="logo-small">
+                <a href="trangchu.html">
+                    <img src="HA/cc-removebg-preview.png" width="45" height="50">
+                </a>
+            </div>
+
+            <!-- Logo lớn -->
+            <div class="logo-large" style="float:left">
+                <a href="trangchu.html">
+                    <img src="HA/dcm.png" width="160" height="55">
+                </a>
+            </div>
+
+            <div style="width:100%">
+                <center>
+                    <!-- Thanh tìm kiếm -->
+                    <div class="search-container">
+                        <input type="text" class="search-input" placeholder="Tìm kiếm sản phẩm...">
+                        <button class="search-button" onclick="searchProduct()">Tìm kiếm</button>
+                    </div>
+                </center>
+            </div>
+
+            <!-- Icon đăng nhập -->
+            <div class="login-icon" id="loginIconContainer">
+                <a href="dangnhap.html" id="loginLink">
+                    <img id="loginIcon" src="HA/lop.png" width="50" height="50">
+                </a>
+                <!-- Thông tin người dùng -->
+                <div class="user-info" id="userInfo">
+                    <p><strong>Tài khoản:</strong> <span id="username"></span></p>
+                    <p><strong>ID:</strong> <span id="userId"></span></p>
+                    <p><strong>Số dư:</strong> <span id="userBalance">0</span> VND</p>
+                    <p><strong>Sản phẩm đã mua:</strong></p>
+                    <ul id="purchasedProducts"></ul>
+                </div>
+            </div>
+        </div>
+        <script src="CSS/auth.js"></script>
+         <div id="menu">
+            <ul>
+                <li><a href="trangchu.html">TRANG CHỦ</a></li>
+                <li><a href="#sanpham">SẢN PHẨM</a>
+                    <ul class="sub-menu">
+                        <li><a href="Vợt cầu lông.html">Vợt Cầu Lông</a></li>
+                        <li><a href="Giày cầu lông.html">Giày Cầu Lông</a></li>
+                        <li><a href="Áo cầu lông.html">Áo Cầu Lông</a></li>
+                        <li><a href="Váy cầu lông.html">Váy Cầu Lông</a></li>
+                        <li><a href="Quần cầu lông.html">Quần Cầu Lông</a></li>
+                        <li><a href="Túi cầu lông.html">Túi Vợt</a></li>
+                        <li><a href="Balo cầu lông.html">Balo </a></li>
+                        <li><a href="Phụ kiện cầu lông.html">Phụ Kiện</a></li>
+                    </ul>
+                </li>
+                <li><a href="sale off.html">SALE OFF</a></li>
+                <li><a href="tin tức.html">TIN TỨC</a></li>
+                <li><a href="hướng dẫn.html">HƯỚNG DẪN</a></li>
+                <li><a href="lienhe.html">LIÊN HỆ</a></li>
+            </ul>
+        </div>
+        <div class="lkj">
+        <h2 class="news-title">Top 5 cây vợt cầu lông thiên công giá tầm giá 1 triệu đến 1 triệu 3 đáng mua nhất hiện nay</h2>
+        <p class="news-meta">Ngày đăng: 04/11/2024 | Credit:VNBSports</p>
+        <div class="news-content">
+            <p><b>I. Top 5 cây vợt cầu lông thiên công giá tầm giá 1 triệu đến 1 triệu 3 hot nhất hiện nay</b><br>
+
+<b>1. Vợt Cầu Lông Apacs Z-Ziggler</b><br>
+- Đầu tiên trong top các cây vợt cầu lông thiên công giá tầm 1 triệu đến 1 triệu 3 đó là cây vợt cầu lông Apacs Z-Ziggler, thuộc dòng vợt thiên công với điểm cân bằng hơi nặng đầu, được thiết kế với các công nghệ nhằm hỗ trợ người chơi có những cú đập sắc nét nhanh hơn.<br><br>
+
+- Được phát triển với "TRIPLE SPEED SYSTEM" kết hợp sức mạnh đặc biệt và khả năng xử lý tuyệt vời. Cùng với đó là công nghệ Extra Slim Shaft có tính khí động học cao hơn và giảm sức cản không khí làm cho cú đánh của bạn mạnh hơn và chính xác hơn.<br><br>
+
+- Xem đầy đủ thông tin chi tiết về vợt tại: https://shopvnb.com/vot-cau-long-apacs-z-ziggler.html<br><br>
+
+<b>2. Vợt cầu lông Lining Axforce Cannon</b><br>
+- Tiếp theo trong top vợt cầu lông thiên công giá tầm 1 triệu đến 1 triệu 3 chính là vợt cầu lông Lining Axforce Cannon được thiết kế cho lối chơi công thủ toàn diện, hơi thiên công với điểm cân bằng hơi nặng đầu, cùng với đũa vợt cứng ở mức trung bình giúp hỗ trợ lực tốt hơn, không quá gây áp lực lên cổ tay cho người chơi.<br><br>
+
+
+- Mang 4 phiên bản màu sắc, đặc biệt có 2 bản màu mới là xanh lá và xanh lục, cùng các chi tiết được làm tỉ mỉ tạo nên độ nổi bật, hiện đại và năng động. Được trang bị các công nghệ tiên tiến, ngoài Thunder Technology có thể kể đến như High Carbon xử lý vật liệu tạo cây vợt với độ bền và cứng cáp vượt trội, công nghệ Power Flexible Shaft cho thân vợt linh hoạt, dễ dàng chuyển đổi trạng thái từ phòng thủ sang tấn công.<br><br>
+- Xem đầy đủ thông tin chi tiết về vợt tại: https://shopvnb.com/vot-cau-long-lining-axforce-cannon.html<br><br>
+
+<b>3. Vợt Cầu Lông Lining Halbertec Motor</b><br>
+- Vợt Cầu Lông Lining Halbertec Motor với điểm cân bằng là 298 +- 5 mm, đũa vợt có độ cứng trung bình cho khả năng trợ lực, phù hợp với những ai đang tìm một cây vợt với lối đánh công thủ linh hoạt, hơi thiên về tấn công với những cú smash đầy tốc độ và mạnh mẽ.<br><br>
+
+
+- Lining Halbertec Motor có 2 phiên bản: màu trắng và màu đỏ, được thiết kế vô cùng bắt mắt với những chi tiết hiện đại, màu sắc vừa ấn tượng lại hài hòa, trẻ trung.<br><br>
+
+ 
+- Được làm bằng chất liệu carbon cao cấp giúp vợt đảm bảo độ bền và chịu được lực căng tối đa lên đến 30lbs. Cùng với đó là công nghệ MODULUS SLIM SHAFT giúp cải thiện điểm uốn trên trục vợt, làm trục vợt mỏng hỗ trợ những cú đập có độ chính xác hơn và linh hoạt hơn.<br><br>
+
+- Xem đầy đủ thông tin chi tiết về vợt tại: https://shopvnb.com/vot-cau-long-lining-halbertec-motor.html<br><br>
+
+<b>4. Vợt Cầu Lông VS YouLong</b><br>
+- Vợt cầu lông VS YouLong được thiết kế dành cho lối chơi tấn công mạnh mẽ với thông số nặng đầu 305mm ± 3mm và độ cứng trung bình giúp cho các lông thủ có khả năng trợ lực để tung ra những pha đập cầu uy lực khiến đối phương không kịp trở tay.<br><br> 
+
+- Bề mặt hình hộp Energy Compact Frame có các góc được thiết kế thon gọn, mỏng và nhỏ kết hợp công nghệ 6840 Tube giúp trục vợt mỏng hơn đảm bảo tính chắn chắn và ổn định, giúp tăng khả năng giảm lực cản không khí, tăng tốc độ ra vợt nhanh hơn và mạnh mẽ hơn.<br><br>
+
+- Xem đầy đủ thông tin chi tiết về vợt tại: banhang.shopvnb.com/vot-cau-long-vs-youlong.html<br><br>
+<b>II. Cách lựa chọn vợt cầu lông thiên công phù hợp</b><br>
+- Bên cạnh đó, ngoài việc tham khảo các cây vợt cầu lông thiên công tầm 1 triệu đến 1 triệu 3 ra thì các bạn cần phải chú ý khi lựa chọn vợt sao cho phù hợp với bản thân. Chúng ta cần chú ý đến các yếu tố như độ nặng đầu vợt, độ cứng của thân vợt và trọng lượng. Vợt có đầu nặng giúp gia tăng lực đập, trong khi thân vợt cứng tạo độ ổn định cho cú smash mạnh. Ngoài ra, chọn vợt có khung thiết kế khí động học sẽ giúp tối ưu hóa lực đánh, giảm lực cản.<br><br>
+
+<b>III. Địa điểm mua các vợt cầu lông thiên công tầm giá 1 triệu đến 1 triệu 3 uy tín, chất lượng trên thị trường</b> <br>
+- Để mua các vợt cầu lông thiên công tầm giá 1 triệu đến 1 triệu 3 uy tín thì ShopVNB là một trong những đại lý lớn nhất bán các dòng vợt cầu lông đến từ các thương hiệu trên toàn thế giới. Với hơn 10 năm kinh nghiệm cũng như hơn 60 chi nhánh trải dài toàn quốc, là sự chọn lựa đáng tin cây cho quý khách hàng để lựa chọn những sản phẩm vợt chính hãng.<br><br>
+
+- Đến với hệ thống cửa hàng bán vợt cầu lông VNB, bạn sẽ nhận được những dịch vụ đi kèm tốt nhất. Nhiều chế độ hậu mãi cũng như bảo hành chính hãng với tiêu chí nhanh, gọn, lẹ cho khách hàng.<br><br>
+
+- Ngoài ra, hiện nay ShopVNB đang có chương trình khai trương Shop cầu lông Thủ Dầu Một - Bình Dương - CN2 với nhiều phần ưu đãi hấp dẫn mà cá lông thủ không thể bỏ qua.<br><br>
+
+Xem thông tin chi tiết về chương trình khai trinh qua bài viết: Khai trương cửa hàng thể thao VNB TP. Thủ Dầu Một Chi nhánh 2<br><br>
+
+
+Vừa rồi là danh sách top các cây vợt cầu lông thiên công tầm giá 1 triệu đến 1 triệu 3 đáng mua nhất được tổng hợp cho các lông thủ. Hy vọng bài viết sẽ giúp bạn có thêm thông tin và lựa chọn dễ dàng hơn khi tìm kiếm một cây vợt cầu lông thiên công chất lượng trong tầm giá phải chăng nhé.</p>
+        </div>
+
+        <div class="related-news">
+            <h3>Tin Tức Liên Quan</h3>
+            <ul>
+                <li><a href="chi tiết tin tức 1.html">Tin Tức 1: Vợt cầu lông 6U là gì? Top 5 cây vợt cầu lông 6U được ưa chuộng hiện nay</a></li>
+                <li><a href="chi tiết tin tức 2.html">Tin Tức 2: Khám phá sân cầu lông Tô Ngọc Vân chất lượng đáng để trải nghiệm tại TP. Thủ Đức, TP.HCM</a></li>
+                <li><a href="chi tiết tin tức 3.html">Tin Tức 3: Khám phá sân cầu lông An Bình Biên Hoà uy tín và chất lượng tại TP. Biên Hoà, tỉnh Đồng Nai</a></li>
+            </ul>
+        </div>
+
+        <a href="tin tức.html" class="back-link">&larr; Quay lại trang tin tức</a>
+    </div>
+
+<div id="cuoitrang">
+   <footer>
+  <div class="footer-container">
+    <div class="footer-section">
+      <h3>Thông tin công ty</h3>
+      <ul>
+        <li><a href="#">Giới thiệu</a></li>
+        <li><a href="#">Chính sách bảo mật</a></li>
+        <li><a href="#">Chính sách đổi trả</a></li>
+        <li><a href="#">Điều khoản dịch vụ</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer-section">
+      <h3>Sản phẩm</h3>
+      <ul>
+        <li><a href="#">Vợt cầu lông</a></li>
+        <li><a href="#">Lưới cầu lông</a></li>
+        <li><a href="#">Quần áo cầu lông</a></li>
+        <li><a href="#">Phụ kiện cầu lông</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer-section">
+      <h3>Liên hệ</h3>
+      <ul>
+        <li><a href="tel:+123456789">Hotline: +123456789</a></li>
+        <li><a href="mailto:support@thethao.com">Email: support@thethao.com</a></li>
+        <li><a href="#">Địa chỉ: Số 123, Đường ABC, TP. HCM</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-section social-media">
+      <h3>Follow Us</h3>
+      <a href="https://www.facebook.com" target="_blank" class="social-icon facebook"><img src="HA/FB.png" width="80" height="80"></a>
+      <a href="https://www.instagram.com" target="_blank" class="social-icon instagram"><img src="HA/ISG.png" width="40" height="40"></a>
+      <a href="https://www.youtube.com" target="_blank" class="social-icon youtube"><img src="HA/YT.png" width="60" height="60"></a>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; 2024 Cửa Hàng Cầu Lông | Tất cả quyền được bảo lưu</p>
+  </div>
+</footer>
+</div>        
+
+   
+</body>
+
+<script>
+    let slideIndex = 0; // Bắt đầu từ slide đầu tiên
+    let slideInterval; // Lưu trữ ID của setTimeout
+
+    function showSlides() {
+        let slides = document.getElementsByClassName("mySlides");
+
+        // Ẩn tất cả các slide
+        for (let i = 0; i < slides.length; i++) {
+            slides[i].style.display = "none";
+        }
+
+        // Chuyển đến slide tiếp theo
+        slideIndex++;
+        if (slideIndex > slides.length) {
+            slideIndex = 1; // Quay lại slide đầu tiên
+        }
+
+        // Hiển thị slide hiện tại
+        slides[slideIndex - 1].style.display = "block";
+
+        // Tự động chuyển slide sau 3 giây
+        slideInterval = setTimeout(showSlides, 3000);
+    }
+
+    // Khởi động slideshow
+    showSlides();
+</script>
+     <!-- Swiper JS -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script>
+        const swiper = new Swiper('.khung-trinh-chieu', {
+            slidesPerView: 4, // Hiển thị 4 sản phẩm trên một dòng
+            spaceBetween: 20, // Khoảng cách giữa các sản phẩm
+            loop: true, // Lặp lại slide
+            navigation: {
+                nextEl: '.nut-tiep',
+                prevEl: '.nut-lui',
+            },
+            pagination: {
+                el: '.phan-trang',
+                clickable: true,
+            },
+            autoplay: {
+                delay: 3000, // Tự động chuyển slide sau 3 giây
+                disableOnInteraction: false,
+            },
+        });
+    </script>
+</html>

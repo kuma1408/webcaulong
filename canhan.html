@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <title>Trang Cá Nhân</title>
+</head>
+<body style="background-color: #f4f4f4; font-family: Arial, sans-serif;">
+
+    <div style="max-width: 600px; margin: 50px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <h2 style="text-align: center; color: #FF6600; border-bottom: 2px solid #FF6600; padding-bottom: 10px;">HỒ SƠ CỦA TÔI</h2>
+
+        <div id="loading" style="text-align: center; font-style: italic; color: #666;">Đang tải thông tin...</div>
+
+        <div id="noiDungHoSo" style="display: none; line-height: 1.8; font-size: 18px;">
+            <p><strong>Mã Khách Hàng:</strong> <span id="maKH" style="color: #666;"></span></p>
+            <p><strong>Họ và Tên:</strong> <span id="hoTen" style="color: #333;"></span></p>
+            <p><strong>Tên Đăng Nhập:</strong> <span id="tenDN" style="color: #333;"></span></p>
+            <p><strong>Số Dư Tài Khoản:</strong> <span id="soDu" style="color: red; font-weight: bold; font-size: 20px;"></span></p>
+            <p><strong>Ngày Tham Gia:</strong> <span id="ngayTao" style="color: #666;"></span></p>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="trangchu.html" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin-right: 10px;">Quay lại Trang Chủ</a>
+                <a href="#" onclick="dangXuat()" style="padding: 10px 20px; background-color: #f44336; color: white; text-decoration: none; border-radius: 5px;">Đăng xuất</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const tkDaLuu = localStorage.getItem('username');
+
+            // Nếu chưa đăng nhập, đuổi về trang đăng nhập
+            if (!tkDaLuu) {
+                alert("Vui lòng đăng nhập để xem trang cá nhân!");
+                window.location.href = 'dangnhap.html';
+                return;
+            }
+
+            // Gọi API lấy thông tin
+            fetch('http://127.0.0.1:5000/api/thong-tin-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: tkDaLuu })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.isLoggedIn) {
+                    // Tắt chữ Loading, bật khu vực nội dung
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('noiDungHoSo').style.display = 'block';
+
+                    // Điền dữ liệu
+                    document.getElementById('maKH').innerText = "#" + data.id;
+                    document.getElementById('hoTen').innerText = data.fullname || "Chưa cập nhật";
+                    document.getElementById('tenDN').innerText = data.username;
+                    document.getElementById('soDu').innerText = data.balance.toLocaleString('vi-VN') + " VND";
+                    document.getElementById('ngayTao').innerText = data.created_at;
+                }
+            })
+            .catch(error => console.error('Lỗi:', error));
+        });
+
+        function dangXuat() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('username');
+            window.location.href = 'trangchu.html';
+        }
+    </script>
+</body>
+</html>

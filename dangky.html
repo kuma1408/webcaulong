@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <title>Đăng ký tài khoản - Shop Cầu Lông</title>
+</head>
+<body style="background-color: #f4f4f4; font-family: Arial, sans-serif;">
+    <div style="width: 350px; margin: 80px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;">
+        <h2 style="color: #FF6600;">TẠO TÀI KHOẢN</h2>
+
+        <form id="formDangKy">
+            <input type="text" id="inputHoTen" placeholder="Họ và Tên của bạn" required style="width: 90%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px;">
+            <input type="text" id="inputTaiKhoan" placeholder="Tên đăng nhập" required style="width: 90%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px;">
+            <input type="password" id="inputMatKhau" placeholder="Mật khẩu" required style="width: 90%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 5px;">
+
+            <button type="submit" style="width: 95%; padding: 12px; background: linear-gradient(to right, #FF6600, #FFCC00); color: white; border: none; font-weight: bold; border-radius: 5px; cursor: pointer;">
+                ĐĂNG KÝ NGAY
+            </button>
+        </form>
+
+        <p id="thongBao" style="margin-top: 15px; font-weight: bold;"></p>
+        <p style="margin-top: 10px; font-size: 14px;">Đã có tài khoản? <a href="dangnhap.html" style="color: #FF6600; text-decoration: none;">Đăng nhập</a></p>
+    </div>
+
+    <script>
+        document.getElementById('formDangKy').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const hoten = document.getElementById('inputHoTen').value;
+            const tk = document.getElementById('inputTaiKhoan').value;
+            const mk = document.getElementById('inputMatKhau').value;
+
+            fetch('http://127.0.0.1:5000/api/dang-ky', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: tk, password: mk, fullname: hoten })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const thongBao = document.getElementById('thongBao');
+                if (data.success) {
+                    thongBao.style.color = "green";
+                    thongBao.innerText = data.message + " Đang chuyển đến trang Đăng nhập...";
+                    setTimeout(() => { window.location.href = 'dangnhap.html'; }, 1500);
+                } else {
+                    thongBao.style.color = "red";
+                    thongBao.innerText = data.message;
+                }
+            })
+            .catch(error => console.error('Lỗi:', error));
+        });
+    </script>
+</body>
+</html>
