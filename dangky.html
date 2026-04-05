@@ -29,18 +29,17 @@
             const tk = document.getElementById('inputTaiKhoan').value;
             const mk = document.getElementById('inputMatKhau').value;
 
-            // Dùng fetch() làm "shipper" giao hàng qua Ngrok
 // Dùng fetch() làm "shipper" giao hàng qua Ngrok
-            fetch('LINK_NGROK_CUA_BAN_O_DAY/api/dang-ky', { // <--- XÓA CHỮ NÀY ĐI, DÁN LINK NGROK VÀO ĐÂY (Vẫn giữ lại đuôi /api/dang-ky nhé)
+            fetch('https://mei-meiotic-isabelle.ngrok-free.dev/api/dang-ky', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'ngrok-skip-browser-warning': 'true'
                 },
                 body: JSON.stringify({
-                    username: tk,       // <-- Đã sửa đúng tên biến
-                    password: mk,       // <-- Đã sửa đúng tên biến
-                    fullname: hoten     // <-- Đã sửa đúng tên biến
+                    username: tk,
+                    password: mk,
+                    fullname: hoten
                 })
             })
             .then(response => response.json())
