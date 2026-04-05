@@ -14,9 +14,13 @@
         }
 
         // Nếu đã đăng nhập, gọi lên Python để lấy thông tin thật
-        fetch('http://127.0.0.1:5000/api/thong-tin-user', {
+        // Nếu đã đăng nhập, gọi lên Python để lấy thông tin thật
+        fetch('https://mei-meiotic-isabelle.ngrok-free.dev/api/thong-tin-user', { // <-- Đã thêm phần đuôi API
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true' // <-- Đã thêm thẻ vượt rào (BẮT BUỘC)
+            },
             body: JSON.stringify({ username: tkDaLuu }) // Gửi tên tk sang Python
         })
         .then(response => response.json())
