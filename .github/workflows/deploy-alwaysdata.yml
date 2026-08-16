@@ -58,7 +58,7 @@ jobs:
           test -n "$SSH_PRIVATE_KEY" && test -n "$SSH_KNOWN_HOSTS"
           [[ "$SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
           [[ "$SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]]
-          [[ "$APP_PATH" =~ ^/home/[A-Za-z0-9._-]+/www/[A-Za-z0-9._/-]+$ ]]
+          [[ "$APP_PATH" =~ ^/home/[A-Za-z0-9._-]+/www(/[A-Za-z0-9._/-]+)?$ ]]
 
       - name: Configure SSH
         run: |
