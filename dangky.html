@@ -1,61 +1,98 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
     <meta charset="utf-8">
-    <title>Đăng ký tài khoản - Shop Cầu Lông</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tạo tài khoản Badminton Store để mua sắm và quản lý đơn hàng thuận tiện.">
+    <meta name="theme-color" content="#e9381b">
+    <title>Đăng ký | Badminton Store</title>
+    <link rel="stylesheet" href="css/account.css?v=20260801-2">
+    <script src="css/auth.js?v=20260815-1" defer></script>
+    <script src="css/account.js?v=20260809-1" defer></script>
 </head>
-<body style="background-color: #f4f4f4; font-family: Arial, sans-serif;">
-    <div style="width: 350px; margin: 80px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;">
-        <h2 style="color: #FF6600;">TẠO TÀI KHOẢN</h2>
+<body class="account-body" data-account-page="register">
+    <a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+    <div class="header"></div>
+    <div id="menu"></div>
 
-        <form id="formDangKy">
-            <input type="text" id="inputHoTen" placeholder="Họ và Tên của bạn" required style="width: 90%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px;">
-            <input type="text" id="inputTaiKhoan" placeholder="Tên đăng nhập" required style="width: 90%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px;">
-            <input type="password" id="inputMatKhau" placeholder="Mật khẩu" required style="width: 90%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 5px;">
+    <main id="main-content" class="auth-stage auth-stage--register">
+        <section class="auth-layout auth-layout--register" aria-labelledby="register-title">
+            <div class="auth-story">
+                <a class="auth-story__back" href="trangchu.html">← Trở về cửa hàng</a>
+                <p class="eyebrow">Gia nhập cộng đồng</p>
+                <h1>Sẵn sàng cho trận cầu tiếp theo.</h1>
+                <p>Tạo tài khoản trong ít phút để lưu hồ sơ giao hàng, theo dõi đơn và nhận hỗ trợ phù hợp với lối chơi.</p>
+                <div class="auth-quote">
+                    <span aria-hidden="true">“</span>
+                    <p>Đúng gear không chỉ giúp chơi tốt hơn — nó giúp bạn tự tin hơn từ cú giao cầu đầu tiên.</p>
+                </div>
+            </div>
 
-            <button type="submit" style="width: 95%; padding: 12px; background: linear-gradient(to right, #FF6600, #FFCC00); color: white; border: none; font-weight: bold; border-radius: 5px; cursor: pointer;">
-                ĐĂNG KÝ NGAY
-            </button>
-        </form>
+            <div class="auth-card auth-card--wide">
+                <div class="auth-card__heading">
+                    <span class="auth-card__mark" aria-hidden="true">B</span>
+                    <div>
+                        <p class="eyebrow">Bắt đầu ngay</p>
+                        <h2 id="register-title">Tạo tài khoản</h2>
+                    </div>
+                </div>
 
-        <p id="thongBao" style="margin-top: 15px; font-weight: bold;"></p>
-        <p style="margin-top: 10px; font-size: 14px;">Đã có tài khoản? <a href="dangnhap.html" style="color: #FF6600; text-decoration: none;">Đăng nhập</a></p>
-    </div>
+                <form id="registerForm" class="account-form" novalidate>
+                    <div class="field-grid">
+                        <div class="field">
+                            <label for="registerFullname">Họ và tên</label>
+                            <input id="registerFullname" name="fullname" type="text" autocomplete="name" required minlength="2" maxlength="100" placeholder="Nguyễn Minh Anh">
+                            <span class="field__error" data-error-for="registerFullname"></span>
+                        </div>
+                        <div class="field">
+                            <label for="registerUsername">Tên đăng nhập</label>
+                            <input id="registerUsername" name="username" type="text" autocomplete="username" required minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" placeholder="minhanh_26">
+                            <span class="field__hint">3–30 ký tự, gồm chữ, số hoặc _</span>
+                            <span class="field__error" data-error-for="registerUsername"></span>
+                        </div>
+                    </div>
+                    <div class="field-grid">
+                        <div class="field">
+                            <label for="registerEmail">Email</label>
+                            <input id="registerEmail" name="email" type="email" autocomplete="email" required maxlength="150" placeholder="ban@email.com">
+                            <span class="field__error" data-error-for="registerEmail"></span>
+                        </div>
+                        <div class="field">
+                            <label for="registerPhone">Số điện thoại <span class="label-optional">(không bắt buộc)</span></label>
+                            <input id="registerPhone" name="phone" type="tel" autocomplete="tel" maxlength="15" placeholder="09xxxxxxxx">
+                            <span class="field__error" data-error-for="registerPhone"></span>
+                        </div>
+                    </div>
+                    <div class="field-grid">
+                        <div class="field">
+                            <label for="registerPassword">Mật khẩu</label>
+                            <div class="password-field">
+                                <input id="registerPassword" name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="128" placeholder="Ít nhất 8 ký tự">
+                                <button class="password-toggle" type="button" data-password-toggle="registerPassword" aria-label="Hiện mật khẩu">Hiện</button>
+                            </div>
+                            <div class="password-meter" aria-hidden="true"><span data-password-meter></span></div>
+                            <span class="field__hint" data-password-hint>Cần ít nhất một chữ cái và một chữ số.</span>
+                            <span class="field__error" data-error-for="registerPassword"></span>
+                        </div>
+                        <div class="field">
+                            <label for="registerConfirm">Nhập lại mật khẩu</label>
+                            <div class="password-field">
+                                <input id="registerConfirm" name="confirm_password" type="password" autocomplete="new-password" required maxlength="128" placeholder="Nhập lại mật khẩu">
+                                <button class="password-toggle" type="button" data-password-toggle="registerConfirm" aria-label="Hiện mật khẩu">Hiện</button>
+                            </div>
+                            <span class="field__error" data-error-for="registerConfirm"></span>
+                        </div>
+                    </div>
+                    <label class="check-control check-control--terms"><input id="registerTerms" type="checkbox" required><span>Tôi đồng ý với <a href="hướng dẫn.html">điều khoản sử dụng</a> và chính sách bảo mật.</span></label>
+                    <p id="registerStatus" class="form-status" role="alert" aria-live="polite"></p>
+                    <button id="registerSubmit" class="primary-button" type="submit"><span>Tạo tài khoản</span><span aria-hidden="true">→</span></button>
+                </form>
 
-    <script>
-        document.getElementById('formDangKy').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const hoten = document.getElementById('inputHoTen').value;
-            const tk = document.getElementById('inputTaiKhoan').value;
-            const mk = document.getElementById('inputMatKhau').value;
+                <p class="auth-switch">Đã là thành viên? <a href="dangnhap.html">Đăng nhập</a></p>
+            </div>
+        </section>
+    </main>
 
-// Dùng fetch() làm "shipper" giao hàng qua Ngrok
-            fetch('https://mei-meiotic-isabelle.ngrok-free.dev/api/dang-ky', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': 'true'
-                },
-                body: JSON.stringify({
-                    username: tk,
-                    password: mk,
-                    fullname: hoten
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                const thongBao = document.getElementById('thongBao');
-                if (data.success) {
-                    thongBao.style.color = "green";
-                    thongBao.innerText = data.message + " Đang chuyển đến trang Đăng nhập...";
-                    setTimeout(() => { window.location.href = 'dangnhap.html'; }, 1500);
-                } else {
-                    thongBao.style.color = "red";
-                    thongBao.innerText = data.message;
-                }
-            })
-            .catch(error => console.error('Lỗi:', error));
-        });
-    </script>
+    <div id="cuoitrang"></div>
 </body>
 </html>

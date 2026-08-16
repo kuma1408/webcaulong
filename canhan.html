@@ -1,70 +1,96 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
     <meta charset="utf-8">
-    <title>Trang Cá Nhân</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Quản lý hồ sơ, đơn hàng, ví và bảo mật tài khoản Badminton Store.">
+    <meta name="theme-color" content="#e9381b">
+    <title>Không gian cá nhân | Badminton Store</title>
+    <link rel="stylesheet" href="css/account.css?v=20260809-3">
+    <script src="css/auth.js?v=20260815-1" defer></script>
+    <script src="css/account.js?v=20260809-4" defer></script>
 </head>
-<body style="background-color: #f4f4f4; font-family: Arial, sans-serif;">
+<body class="account-body account-body--dashboard" data-account-page="profile">
+    <a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+    <div class="header"></div>
+    <div id="menu"></div>
 
-    <div style="max-width: 600px; margin: 50px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-        <h2 style="text-align: center; color: #FF6600; border-bottom: 2px solid #FF6600; padding-bottom: 10px;">HỒ SƠ CỦA TÔI</h2>
+    <main id="main-content" class="account-main" aria-busy="true">
+        <div class="account-loading" id="accountLoading" role="status">
+            <span class="spinner" aria-hidden="true"></span><span>Đang xác thực tài khoản…</span>
+        </div>
 
-        <div id="loading" style="text-align: center; font-style: italic; color: #666;">Đang tải thông tin...</div>
+        <div class="account-shell" id="accountShell" hidden>
+            <aside class="account-sidebar" aria-label="Không gian cá nhân">
+                <div class="profile-identity">
+                    <div class="profile-avatar" id="profileAvatar" aria-hidden="true">B</div>
+                    <div><p class="eyebrow">Thành viên</p><h1 id="profileName">Tài khoản</h1><p id="profileHandle">@user</p></div>
+                </div>
+                <nav class="account-tabs" aria-label="Quản lý tài khoản" role="tablist" aria-orientation="vertical">
+                    <button type="button" role="tab" aria-selected="true" aria-controls="panel-overview" id="tab-overview" data-account-tab="overview"><span aria-hidden="true">⌂</span>Tổng quan</button>
+                    <button type="button" role="tab" aria-selected="false" aria-controls="panel-profile" id="tab-profile" data-account-tab="profile"><span aria-hidden="true">◎</span>Hồ sơ</button>
+                    <button type="button" role="tab" aria-selected="false" aria-controls="panel-orders" id="tab-orders" data-account-tab="orders"><span aria-hidden="true">□</span>Đơn hàng</button>
+                    <button type="button" role="tab" aria-selected="false" aria-controls="panel-wallet" id="tab-wallet" data-account-tab="wallet"><span aria-hidden="true">₫</span>Ví & giao dịch</button>
+                    <button type="button" role="tab" aria-selected="false" aria-controls="panel-security" id="tab-security" data-account-tab="security"><span aria-hidden="true">◇</span>Bảo mật</button>
+                </nav>
+                <a class="account-secondary-link" href="yeuthich.html"><span aria-hidden="true">♡</span><span>Sản phẩm yêu thích</span></a>
+                <a class="admin-entry" id="adminEntry" href="admin.html" hidden><span>Trang quản trị</span><span aria-hidden="true">→</span></a>
+                <button class="sidebar-logout" id="accountLogout" type="button">Đăng xuất</button>
+            </aside>
 
-        <div id="noiDungHoSo" style="display: none; line-height: 1.8; font-size: 18px;">
-            <p><strong>Mã Khách Hàng:</strong> <span id="maKH" style="color: #666;"></span></p>
-            <p><strong>Họ và Tên:</strong> <span id="hoTen" style="color: #333;"></span></p>
-            <p><strong>Tên Đăng Nhập:</strong> <span id="tenDN" style="color: #333;"></span></p>
-            <p><strong>Số Dư Tài Khoản:</strong> <span id="soDu" style="color: red; font-weight: bold; font-size: 20px;"></span></p>
-            <p><strong>Ngày Tham Gia:</strong> <span id="ngayTao" style="color: #666;"></span></p>
+            <div class="account-content">
+                <section class="account-panel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" data-account-panel="overview">
+                    <div class="panel-heading"><div><p class="eyebrow">Tổng quan tài khoản</p><h2>Xin chào, <span id="welcomeName">bạn</span>.</h2><p>Mọi thông tin quan trọng cho lần mua sắm tiếp theo của bạn.</p></div><a class="soft-button" href="sanpham.html">Khám phá sản phẩm</a></div>
+                    <div class="account-metrics">
+                        <article><span class="metric-icon metric-icon--wallet" aria-hidden="true">₫</span><p>Số dư khả dụng</p><strong id="metricBalance">0 ₫</strong><button type="button" data-open-tab="wallet">Nạp thêm →</button></article>
+                        <article><span class="metric-icon" aria-hidden="true">□</span><p>Tổng đơn hàng</p><strong id="metricOrders">0</strong><button type="button" data-open-tab="orders">Xem đơn →</button></article>
+                        <article><span class="metric-icon" aria-hidden="true">↻</span><p>Đang xử lý</p><strong id="metricProcessing">0</strong><span>Đơn đang được chuẩn bị</span></article>
+                        <article><span class="metric-icon" aria-hidden="true">✓</span><p>Tổng đã mua</p><strong id="metricSpent">0 ₫</strong><span>Từ các đơn hoàn thành</span></article>
+                    </div>
+                    <div class="overview-grid">
+                        <article class="account-card"><div class="card-heading"><div><p class="eyebrow">Hồ sơ giao hàng</p><h3>Thông tin liên hệ</h3></div><button type="button" data-open-tab="profile">Chỉnh sửa</button></div><dl class="contact-summary"><div><dt>Email</dt><dd id="summaryEmail">—</dd></div><div><dt>Điện thoại</dt><dd id="summaryPhone">Chưa cập nhật</dd></div><div><dt>Địa chỉ</dt><dd id="summaryAddress">Chưa cập nhật</dd></div></dl></article>
+                        <article class="account-card account-card--accent"><p class="eyebrow">Mẹo chọn gear</p><h3>Hãy bắt đầu từ lối chơi.</h3><p>Ưu tiên khả năng kiểm soát nếu bạn mới chơi; chọn thân vợt cứng hơn khi lực cổ tay đã ổn định.</p><a href="hướng dẫn.html">Xem hướng dẫn chọn vợt →</a></article>
+                    </div>
+                </section>
 
-            <div style="text-align: center; margin-top: 30px;">
-                <a href="trangchu.html" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin-right: 10px;">Quay lại Trang Chủ</a>
-                <a href="#" onclick="dangXuat()" style="padding: 10px 20px; background-color: #f44336; color: white; text-decoration: none; border-radius: 5px;">Đăng xuất</a>
+                <section class="account-panel" id="panel-profile" role="tabpanel" aria-labelledby="tab-profile" data-account-panel="profile" hidden>
+                    <div class="panel-heading"><div><p class="eyebrow">Hồ sơ cá nhân</p><h2>Thông tin tài khoản</h2><p>Thông tin này được dùng để liên hệ và giao hàng.</p></div></div>
+                    <form id="profileForm" class="account-card account-form account-form--profile" novalidate>
+                        <div class="avatar-editor"><div class="avatar-editor__preview" id="avatarPreview">B</div><div><strong>Ảnh đại diện</strong><p>JPG, PNG hoặc WebP, dung lượng tối đa 2 MB.</p><input id="avatarInput" type="file" accept="image/jpeg,image/png,image/webp" hidden><button type="button" class="soft-button" id="chooseAvatar">Chọn ảnh</button><button type="button" class="primary-button primary-button--compact" id="uploadAvatar" disabled>Lưu ảnh</button><span class="form-status" id="avatarStatus" role="alert"></span></div></div>
+                        <div class="field-grid"><div class="field"><label for="profileFullname">Họ và tên</label><input id="profileFullname" autocomplete="name" required minlength="2" maxlength="100"></div><div class="field"><label for="profileUsername">Tên đăng nhập</label><input id="profileUsername" disabled aria-describedby="usernameNote"><span class="field__hint" id="usernameNote">Tên đăng nhập không thể thay đổi.</span></div></div>
+                        <div class="field-grid"><div class="field"><label for="profileEmail">Email</label><input id="profileEmail" type="email" autocomplete="email" required maxlength="150"></div><div class="field"><label for="profilePhone">Số điện thoại</label><input id="profilePhone" type="tel" autocomplete="tel" maxlength="15"></div></div>
+                        <div class="field"><label for="profileAddress">Địa chỉ giao hàng</label><textarea id="profileAddress" autocomplete="street-address" maxlength="500" rows="4" placeholder="Số nhà, đường, phường/xã, tỉnh/thành phố"></textarea><span class="field__hint"><span id="addressCount">0</span>/500 ký tự</span></div>
+                        <div class="form-actions"><p id="profileStatus" class="form-status" role="alert" aria-live="polite"></p><button class="primary-button primary-button--compact" id="profileSubmit" type="submit">Lưu thay đổi</button></div>
+                    </form>
+                </section>
+
+                <section class="account-panel" id="panel-orders" role="tabpanel" aria-labelledby="tab-orders" data-account-panel="orders" hidden>
+                    <div class="panel-heading"><div><p class="eyebrow">Đơn hàng</p><h2>Lịch sử mua sắm</h2><p>Theo dõi trạng thái và chủ động xử lý đơn hợp lệ.</p></div><select id="orderFilter" class="compact-select" aria-label="Lọc trạng thái"><option value="all">Tất cả trạng thái</option><option value="CHO_XAC_NHAN">Chờ xác nhận</option><option value="DANG_GIAO">Đang giao</option><option value="HOAN_THANH">Hoàn thành</option><option value="DA_HUY">Đã hủy</option></select></div>
+                    <div class="account-card table-card"><div class="responsive-table"><table><thead><tr><th>Mã đơn</th><th>Ngày đặt</th><th>Thanh toán</th><th>Tổng tiền</th><th>Trạng thái</th><th><span class="bs-visually-hidden">Thao tác</span></th></tr></thead><tbody id="orderRows"><tr><td colspan="6" class="empty-cell">Đang tải đơn hàng…</td></tr></tbody></table></div><div class="pagination" id="orderPagination" hidden><button type="button" id="orderPrev">← Trước</button><span id="orderPageInfo">Trang 1</span><button type="button" id="orderNext">Sau →</button></div></div>
+                </section>
+
+                <section class="account-panel" id="panel-wallet" role="tabpanel" aria-labelledby="tab-wallet" data-account-panel="wallet" hidden>
+                    <div class="panel-heading"><div><p class="eyebrow">Ví tài khoản</p><h2>Số dư & giao dịch</h2><p>Số dư chỉ được cộng sau khi quản trị viên đối soát yêu cầu.</p></div><div class="balance-chip"><span>Khả dụng</span><strong id="walletBalance">0 ₫</strong></div></div>
+                    <div class="wallet-grid">
+                        <form id="depositForm" class="account-card account-form" novalidate><div class="card-heading"><div><p class="eyebrow">Yêu cầu mới</p><h3>Nạp tiền vào ví</h3></div></div><div class="field"><label for="depositAmount">Số tiền</label><div class="money-field"><input id="depositAmount" type="number" min="10000" max="50000000" step="10000" inputmode="numeric" required placeholder="500000"><span>₫</span></div><span class="field__hint">Từ 10.000 ₫ đến 50.000.000 ₫.</span></div><div class="amount-presets" aria-label="Chọn nhanh số tiền"><button type="button" data-amount="100000">100K</button><button type="button" data-amount="200000">200K</button><button type="button" data-amount="500000">500K</button><button type="button" data-amount="1000000">1 triệu</button></div><p class="secure-callout"><span aria-hidden="true">✓</span>Yêu cầu sẽ ở trạng thái chờ duyệt; hệ thống không tự cộng tiền.</p><p id="depositStatus" class="form-status" role="alert" aria-live="polite"></p><button id="depositSubmit" class="primary-button" type="submit">Gửi yêu cầu nạp tiền</button></form>
+                        <div class="account-card"><div class="card-heading"><div><p class="eyebrow">Đối soát</p><h3>Yêu cầu gần đây</h3></div><button type="button" id="refreshWallet">Làm mới</button></div><div class="activity-list" id="depositRequests"><p class="empty-state">Đang tải yêu cầu…</p></div></div>
+                    </div>
+                    <div class="account-card wallet-history"><div class="card-heading"><div><p class="eyebrow">Dòng tiền</p><h3>Lịch sử giao dịch</h3></div></div><div class="activity-list activity-list--transactions" id="transactionList"><p class="empty-state">Đang tải giao dịch…</p></div></div>
+                </section>
+
+                <section class="account-panel" id="panel-security" role="tabpanel" aria-labelledby="tab-security" data-account-panel="security" hidden>
+                    <div class="panel-heading"><div><p class="eyebrow">Bảo mật</p><h2>Mật khẩu & thiết bị</h2><p>Kiểm soát những nơi đang đăng nhập vào tài khoản của bạn.</p></div></div>
+                    <div class="security-grid">
+                        <form id="passwordForm" class="account-card account-form" novalidate><div class="card-heading"><div><p class="eyebrow">Mật khẩu</p><h3>Đổi mật khẩu</h3></div></div><div class="field"><label for="currentPassword">Mật khẩu hiện tại</label><div class="password-field"><input id="currentPassword" type="password" autocomplete="current-password" required maxlength="128"><button class="password-toggle" type="button" data-password-toggle="currentPassword" aria-label="Hiện mật khẩu">Hiện</button></div></div><div class="field"><label for="newPassword">Mật khẩu mới</label><div class="password-field"><input id="newPassword" type="password" autocomplete="new-password" required minlength="8" maxlength="128"><button class="password-toggle" type="button" data-password-toggle="newPassword" aria-label="Hiện mật khẩu">Hiện</button></div><span class="field__hint">Ít nhất 8 ký tự, có chữ và số.</span></div><div class="field"><label for="confirmNewPassword">Nhập lại mật khẩu mới</label><input id="confirmNewPassword" type="password" autocomplete="new-password" required maxlength="128"></div><p id="passwordStatus" class="form-status" role="alert" aria-live="polite"></p><button id="passwordSubmit" class="primary-button" type="submit">Cập nhật mật khẩu</button></form>
+                        <div class="account-card"><div class="card-heading"><div><p class="eyebrow">Phiên đăng nhập</p><h3>Thiết bị đang hoạt động</h3></div><button type="button" id="logoutAll">Đăng xuất tất cả</button></div><div class="session-list" id="sessionList"><p class="empty-state">Đang tải phiên đăng nhập…</p></div></div>
+                    </div>
+                </section>
             </div>
         </div>
-    </div>
+    </main>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const tkDaLuu = localStorage.getItem('username');
-
-            // Nếu chưa đăng nhập, đuổi về trang đăng nhập
-            if (!tkDaLuu) {
-                alert("Vui lòng đăng nhập để xem trang cá nhân!");
-                window.location.href = 'dangnhap.html';
-                return;
-            }
-
-            // Gọi API lấy thông tin
-            fetch('http://127.0.0.1:5000/api/thong-tin-user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: tkDaLuu })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.isLoggedIn) {
-                    // Tắt chữ Loading, bật khu vực nội dung
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('noiDungHoSo').style.display = 'block';
-
-                    // Điền dữ liệu
-                    document.getElementById('maKH').innerText = "#" + data.id;
-                    document.getElementById('hoTen').innerText = data.fullname || "Chưa cập nhật";
-                    document.getElementById('tenDN').innerText = data.username;
-                    document.getElementById('soDu').innerText = data.balance.toLocaleString('vi-VN') + " VND";
-                    document.getElementById('ngayTao').innerText = data.created_at;
-                }
-            })
-            .catch(error => console.error('Lỗi:', error));
-        });
-
-        function dangXuat() {
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('username');
-            window.location.href = 'trangchu.html';
-        }
-    </script>
+    <dialog class="account-dialog" id="orderDialog" aria-labelledby="orderDialogTitle"><form method="dialog"><button class="dialog-close" value="close" aria-label="Đóng">×</button></form><div id="orderDialogContent"><h2 id="orderDialogTitle">Chi tiết đơn hàng</h2></div></dialog>
+    <dialog class="account-dialog avatar-crop-dialog" id="avatarCropDialog" aria-labelledby="avatarCropTitle"><div class="avatar-crop-heading"><div><p class="eyebrow">Ảnh đại diện</p><h2 id="avatarCropTitle">Chọn vùng ảnh</h2><p>Kéo ảnh để căn vị trí, dùng thanh bên dưới để phóng to.</p></div><button type="button" class="dialog-close" id="closeAvatarCrop" aria-label="Đóng">×</button></div><div class="avatar-crop-stage"><canvas id="avatarCropCanvas" width="512" height="512" aria-label="Khu vực cắt ảnh đại diện"></canvas><span class="avatar-crop-guide" aria-hidden="true"></span></div><label class="avatar-zoom" for="avatarZoom"><span>Thu nhỏ</span><input id="avatarZoom" type="range" min="1" max="3" value="1" step="0.01"><span>Phóng to</span></label><div class="avatar-crop-actions"><button type="button" class="soft-button" id="cancelAvatarCrop">Hủy</button><button type="button" class="primary-button primary-button--compact" id="confirmAvatarCrop">Dùng vùng ảnh này</button></div></dialog>
+    <div id="cuoitrang"></div>
 </body>
 </html>

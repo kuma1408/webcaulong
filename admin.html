@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Trung tâm quản trị Badminton Store.">
+    <meta name="theme-color" content="#b82410">
+    <title>Quản trị website | Badminton Store</title>
+    <link rel="stylesheet" href="css/account.css">
+    <link rel="stylesheet" href="css/admin.css?v=20260810-6">
+    <script src="css/auth.js?v=20260815-1" defer></script>
+    <script src="css/admin.js?v=20260810-3" defer></script>
+</head>
+<body class="account-body admin-body">
+    <a class="skip-link" href="#adminMain">Bỏ qua điều hướng</a>
+    <div class="header"></div>
+    <div id="menu"></div>
+
+    <main class="admin-app" id="adminMain" aria-busy="true">
+        <div class="admin-loading" id="adminLoading" role="status"><span class="spinner" aria-hidden="true"></span>Đang kiểm tra quyền quản trị…</div>
+        <div class="admin-shell" id="adminShell" hidden>
+            <aside class="admin-sidebar">
+                <div class="admin-sidebar__heading"><span class="admin-emblem" aria-hidden="true">A</span><div><p>Badminton Store</p><strong>Admin Center</strong></div></div>
+                <nav class="admin-nav" aria-label="Chức năng quản trị">
+                    <button class="is-active" type="button" data-admin-view="overview"><span aria-hidden="true">⌂</span>Tổng quan</button>
+                    <button type="button" data-admin-view="products"><span aria-hidden="true">◇</span>Sản phẩm</button>
+                    <button type="button" data-admin-view="orders"><span aria-hidden="true">□</span>Đơn hàng <em id="navPendingOrders" hidden>0</em></button>
+                    <button type="button" data-admin-view="users"><span aria-hidden="true">◎</span>Người dùng</button>
+                    <button type="button" data-admin-view="content"><span aria-hidden="true">✎</span>Nội dung</button>
+                    <button type="button" data-admin-view="vouchers"><span aria-hidden="true">%</span>Voucher</button>
+                    <button type="button" data-admin-view="deposits"><span aria-hidden="true">₫</span>Nạp tiền <em id="navPendingDeposits" hidden>0</em></button>
+                    <button type="button" data-admin-view="approvals" id="approvalNav" hidden><span aria-hidden="true">✓</span>Phê duyệt <em id="navPendingApprovals" hidden>0</em></button>
+                    <button type="button" data-admin-view="audit"><span aria-hidden="true">≡</span>Nhật ký</button>
+                </nav>
+                <div class="admin-sidebar__account"><div class="admin-mini-avatar" id="adminAvatar">A</div><div><strong id="adminName">Quản trị viên</strong><span id="adminUsername">@admin</span></div></div>
+                <a class="admin-store-link" href="trangchu.html">← Xem cửa hàng</a>
+            </aside>
+
+            <div class="admin-workspace">
+                <header class="admin-topbar"><div><p class="eyebrow">Trung tâm điều hành</p><h1 id="adminPageTitle">Tổng quan</h1></div><div class="admin-topbar__actions"><span class="admin-live"><i></i>Hệ thống trực tuyến</span><button type="button" id="adminRefresh" aria-label="Làm mới dữ liệu">↻ <span>Làm mới</span></button></div></header>
+
+                <section class="admin-view" data-admin-panel="overview" aria-labelledby="adminPageTitle">
+                    <div class="admin-metrics">
+                        <article><span>Doanh thu hoàn tất</span><strong id="adminRevenue">0 ₫</strong><small>Từ đơn đã hoàn thành</small><i class="metric-spark metric-spark--red"></i></article>
+                        <article><span>Tổng đơn hàng</span><strong id="adminOrders">0</strong><small><b id="adminPendingOrders">0</b> đang chờ xác nhận</small><i class="metric-spark metric-spark--orange"></i></article>
+                        <article><span>Người dùng</span><strong id="adminUsers">0</strong><small><b id="adminActiveUsers">0</b> tài khoản hoạt động</small><i class="metric-spark metric-spark--warm"></i></article>
+                        <article><span>Cần xử lý</span><strong id="adminAttention">0</strong><small>Sắp hết hàng & yêu cầu nạp</small><i class="metric-spark metric-spark--deep"></i></article>
+                    </div>
+                    <div class="admin-overview-grid">
+                        <article class="admin-card"><div class="admin-card__heading"><div><p class="eyebrow">Mới nhất</p><h2>Đơn hàng gần đây</h2></div><button type="button" data-jump-view="orders">Xem tất cả →</button></div><div class="admin-list" id="recentOrders"><p class="admin-empty">Đang tải dữ liệu…</p></div></article>
+                        <article class="admin-card"><div class="admin-card__heading"><div><p class="eyebrow">Tồn kho</p><h2>Sản phẩm cần chú ý</h2></div><button type="button" data-jump-view="products">Quản lý →</button></div><div class="admin-list" id="lowStockProducts"><p class="admin-empty">Đang tải dữ liệu…</p></div></article>
+                    </div>
+                </section>
+
+                <section class="admin-view" data-admin-panel="products" hidden>
+                    <div class="admin-toolbar"><form class="admin-search" id="productSearch"><label class="bs-visually-hidden" for="productQuery">Tìm sản phẩm</label><input id="productQuery" type="search" placeholder="Tìm tên hoặc mã #164…"><button type="submit">Tìm</button></form><select id="productStatus" aria-label="Lọc trạng thái"><option value="all">Tất cả trạng thái</option><option value="active">Đang bán</option><option value="hidden">Đã ẩn</option></select><button class="admin-primary" type="button" id="addProduct">+ Thêm sản phẩm</button></div>
+                    <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Sản phẩm</th><th>Danh mục</th><th>Giá bán</th><th>Tồn kho</th><th>Trạng thái</th><th><span class="bs-visually-hidden">Thao tác</span></th></tr></thead><tbody id="productRows"><tr><td colspan="6" class="admin-empty-cell">Chọn mục để tải sản phẩm.</td></tr></tbody></table></div><div class="admin-pagination" id="productPagination"><button type="button" id="productPrev">← Trước</button><span id="productPageInfo">Trang 1</span><button type="button" id="productNext">Sau →</button></div></div>
+                </section>
+
+                <section class="admin-view" data-admin-panel="orders" hidden>
+                    <div class="admin-toolbar"><form class="admin-search" id="orderSearch"><label class="bs-visually-hidden" for="adminOrderQuery">Tìm đơn hàng</label><input id="adminOrderQuery" type="search" placeholder="Mã đơn, tên khách hàng…"><button type="submit">Tìm</button></form><select id="adminOrderStatus" aria-label="Lọc trạng thái đơn"><option value="all">Tất cả trạng thái</option><option value="CHO_XAC_NHAN">Chờ xác nhận</option><option value="DANG_GIAO">Đang giao</option><option value="HOAN_THANH">Hoàn thành</option><option value="DA_HUY">Đã hủy</option></select></div>
+                    <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Ngày đặt</th><th>Tổng tiền</th><th>Thanh toán</th><th>Trạng thái</th><th>Chuyển trạng thái</th></tr></thead><tbody id="adminOrderRows"><tr><td colspan="7" class="admin-empty-cell">Chọn mục để tải đơn hàng.</td></tr></tbody></table></div><div class="admin-pagination"><button type="button" id="adminOrderPrev">← Trước</button><span id="adminOrderPageInfo">Trang 1</span><button type="button" id="adminOrderNext">Sau →</button></div></div>
+                </section>
+
+                <section class="admin-view" data-admin-panel="users" hidden>
+                    <div class="admin-toolbar"><form class="admin-search" id="userSearch"><label class="bs-visually-hidden" for="userQuery">Tìm người dùng</label><input id="userQuery" type="search" placeholder="Tên, email, tài khoản…"><button type="submit">Tìm</button></form><select id="userRole" aria-label="Lọc vai trò"><option value="all">Mọi vai trò</option><option value="user">Khách hàng</option><option value="admin">Quản trị viên</option></select><button class="admin-primary" type="button" id="addUser">+ Thêm người dùng</button></div>
+                    <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Người dùng</th><th>Liên hệ</th><th>Số dư</th><th>Vai trò</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="userRows"><tr><td colspan="6" class="admin-empty-cell">Chọn mục để tải người dùng.</td></tr></tbody></table></div><div class="admin-pagination"><button type="button" id="userPrev">← Trước</button><span id="userPageInfo">Trang 1</span><button type="button" id="userNext">Sau →</button></div></div>
+                </section>
+
+                <section class="admin-view" data-admin-panel="content" hidden>
+                    <div class="admin-toolbar"><div class="admin-toolbar__copy"><p>Quản lý Tin tức và Hướng dẫn đang hiển thị trên website.</p></div><select id="contentTypeFilter"><option value="all">Tất cả nội dung</option><option value="TIN_TUC">Tin tức</option><option value="HUONG_DAN">Hướng dẫn</option></select><button class="admin-primary" type="button" id="addContent">+ Thêm nội dung</button></div>
+                    <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Tiêu đề</th><th>Loại</th><th>Ngày đăng</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="contentRows"><tr><td colspan="5" class="admin-empty-cell">Chọn mục để tải nội dung.</td></tr></tbody></table></div></div>
+                </section>
+
+                <section class="admin-view" data-admin-panel="vouchers" hidden>
+                    <div class="admin-toolbar"><div class="admin-toolbar__copy"><p>Tạo mã giảm theo phần trăm hoặc số tiền, giới hạn đơn tối thiểu, số lượt và thời hạn.</p></div><button class="admin-primary" type="button" id="addVoucher">+ Thêm voucher</button></div>
+                    <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Mã</th><th>Mức giảm</th><th>Đơn tối thiểu</th><th>Đã dùng</th><th>Thời hạn</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="voucherRows"><tr><td colspan="7" class="admin-empty-cell">Chọn mục để tải voucher.</td></tr></tbody></table></div></div>
+                </section>
+
+                <section class="admin-view" data-admin-panel="deposits" hidden>
+                    <div class="admin-toolbar"><div class="admin-toolbar__copy"><p>Đối soát trước khi duyệt. Mỗi yêu cầu chỉ được xử lý một lần.</p></div><select id="depositAdminStatus" aria-label="Lọc yêu cầu nạp"><option value="CHO_DUYET">Đang chờ duyệt</option><option value="DA_DUYET">Đã duyệt</option><option value="TU_CHOI">Đã từ chối</option><option value="all">Tất cả</option></select></div>
+                    <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Mã tham chiếu</th><th>Người yêu cầu</th><th>Thời gian</th><th>Số tiền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="depositAdminRows"><tr><td colspan="6" class="admin-empty-cell">Chọn mục để tải yêu cầu.</td></tr></tbody></table></div></div>
+                </section>
+
+                <section class="admin-view" data-admin-panel="audit" hidden>
+                    <div class="admin-toolbar"><div class="admin-toolbar__copy"><p>Nhật ký chỉ đọc giúp truy vết các thao tác quản trị quan trọng.</p></div></div>
+                    <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Thời gian</th><th>Quản trị viên</th><th>Hành động</th><th>Đối tượng</th><th>Chi tiết</th><th>IP</th></tr></thead><tbody id="auditRows"><tr><td colspan="6" class="admin-empty-cell">Chọn mục để tải nhật ký.</td></tr></tbody></table></div></div>
+                </section>
+
+                <section class="admin-view" data-admin-panel="approvals" hidden>
+                    <div class="admin-toolbar"><div class="admin-toolbar__copy"><p>Thông báo thao tác của admin thường. Super Admin có thể xác nhận hoặc hoàn tác các thay đổi hỗ trợ khôi phục.</p></div><select id="approvalStatus" aria-label="Lọc phê duyệt"><option value="CHO_XEM">Chờ xem</option><option value="DA_XAC_NHAN">Đã xác nhận</option><option value="DA_HOAN_TAC">Đã hoàn tác</option><option value="all">Tất cả</option></select></div>
+                    <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Thời gian</th><th>Admin</th><th>Thay đổi</th><th>Đối tượng</th><th>Nội dung</th><th>Quyết định</th></tr></thead><tbody id="approvalRows"><tr><td colspan="6" class="admin-empty-cell">Chỉ Super Admin được xem mục này.</td></tr></tbody></table></div></div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <dialog class="admin-dialog" id="productDialog" aria-labelledby="productDialogTitle">
+        <form class="admin-dialog__form" id="productForm" method="dialog">
+            <div class="admin-dialog__heading"><div><p class="eyebrow">Danh mục sản phẩm</p><h2 id="productDialogTitle">Thêm sản phẩm</h2></div><button type="button" data-close-dialog="productDialog" aria-label="Đóng">×</button></div>
+            <input id="productId" type="hidden">
+            <div class="field-grid"><div class="field"><label for="productName">Tên sản phẩm</label><input id="productName" required minlength="3" maxlength="200"></div><div class="field"><label for="productCategory">Danh mục</label><select id="productCategory" required><option value="">Chọn danh mục</option></select></div></div>
+            <div class="field-grid field-grid--three"><div class="field"><label for="productPrice">Giá bán</label><input id="productPrice" type="number" min="0" step="1000" required></div><div class="field"><label for="productOriginalPrice">Giá gốc</label><input id="productOriginalPrice" type="number" min="0" step="1000"></div><div class="field"><label for="productStock">Tồn kho</label><input id="productStock" type="number" min="0" step="1" required></div></div>
+            <label class="admin-switch"><input id="productSale" type="checkbox"><span></span>Đưa sản phẩm vào Sale Off</label>
+            <div class="field-grid"><div class="field"><label for="productBrand">Thương hiệu</label><input id="productBrand" maxlength="100"></div><div class="field"><label for="productImage">Ảnh đại diện</label><input id="productImage" maxlength="500" placeholder="HA/ten-anh.jpg"></div></div>
+            <div class="field"><label for="productDetailImages">Ảnh chi tiết</label><textarea id="productDetailImages" rows="2" placeholder="Mỗi đường dẫn một dòng"></textarea></div>
+            <div class="field-grid"><div class="field"><label for="productSourceName">Tên nguồn</label><input id="productSourceName" maxlength="120" placeholder="ShopVNB, HVShop..."></div><div class="field"><label for="productSourceUrl">URL nguồn tham khảo</label><input id="productSourceUrl" type="url" maxlength="700"></div></div>
+            <div class="field"><label for="productDescription">Mô tả</label><textarea id="productDescription" rows="4" maxlength="5000"></textarea></div>
+            <label class="admin-switch"><input id="productActive" type="checkbox" checked><span></span>Hiển thị sản phẩm trên cửa hàng</label>
+            <p class="form-status" id="productFormStatus" role="alert" aria-live="polite"></p>
+            <div class="admin-dialog__actions"><button type="button" data-close-dialog="productDialog">Hủy</button><button class="admin-primary" id="productSave" type="submit">Lưu sản phẩm</button></div>
+        </form>
+    </dialog>
+
+    <dialog class="admin-dialog" id="userDialog" aria-labelledby="userDialogTitle">
+        <form class="admin-dialog__form" id="userForm" method="dialog">
+            <div class="admin-dialog__heading"><div><p class="eyebrow">Hồ sơ và phân quyền</p><h2 id="userDialogTitle">Thêm người dùng</h2></div><button type="button" data-close-dialog="userDialog" aria-label="Đóng">×</button></div>
+            <input id="editUserId" type="hidden">
+            <div class="admin-user-avatar-editor" id="adminUserAvatarEditor" hidden><div class="admin-user-avatar-preview" id="editUserAvatarPreview">U</div><div><strong>Ảnh đại diện người dùng</strong><p>Quản trị viên có thể thay ảnh JPG, PNG hoặc WebP, tối đa 2 MB.</p><input id="editUserAvatar" type="file" accept="image/jpeg,image/png,image/webp" hidden><button type="button" id="chooseUserAvatar">Chọn ảnh mới</button><span id="editUserAvatarName">Chưa chọn ảnh mới</span></div></div>
+            <div class="field-grid"><div class="field"><label for="editUsername">Tên đăng nhập</label><input id="editUsername" required minlength="3" maxlength="30" autocomplete="off"></div><div class="field"><label for="editFullname">Họ và tên</label><input id="editFullname" required maxlength="100"></div></div>
+            <div class="field-grid"><div class="field"><label for="editEmail">Email</label><input id="editEmail" type="email" maxlength="150"></div><div class="field"><label for="editPhone">Số điện thoại</label><input id="editPhone" maxlength="20" placeholder="0912345678"></div></div>
+            <div class="field"><label for="editAddress">Địa chỉ</label><textarea id="editAddress" rows="2" maxlength="500"></textarea></div>
+            <div class="field-grid field-grid--three"><div class="field"><label for="editBalance">Số dư</label><input id="editBalance" type="number" min="0" step="1000" value="0"></div><div class="field"><label for="editRole">Vai trò</label><select id="editRole"><option value="user">Khách hàng</option><option value="admin">Quản trị viên</option></select></div><div class="field"><label for="editPassword">Mật khẩu <span id="passwordHint">bắt buộc</span></label><input id="editPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Có chữ và số"></div></div>
+            <label class="admin-switch"><input id="editUserActive" type="checkbox" checked><span></span>Tài khoản hoạt động</label>
+            <p class="form-status" id="userFormStatus" role="alert" aria-live="polite"></p>
+            <div class="admin-dialog__actions"><button type="button" data-close-dialog="userDialog">Hủy</button><button class="admin-primary" id="userSave" type="submit">Lưu người dùng</button></div>
+        </form>
+    </dialog>
+
+    <dialog class="account-dialog avatar-crop-dialog" id="adminAvatarCropDialog" aria-labelledby="adminAvatarCropTitle">
+        <div class="avatar-crop-heading"><div><p class="eyebrow">Ảnh đại diện người dùng</p><h2 id="adminAvatarCropTitle">Chọn vùng ảnh</h2><p>Giữ chuột và kéo ảnh để căn vị trí; dùng thanh bên dưới để phóng to.</p></div><button type="button" class="dialog-close" id="closeAdminAvatarCrop" aria-label="Đóng">×</button></div>
+        <div class="avatar-crop-stage"><canvas id="adminAvatarCropCanvas" width="512" height="512" aria-label="Khu vực cắt ảnh đại diện"></canvas><span class="avatar-crop-guide" aria-hidden="true"></span></div>
+        <label class="avatar-zoom" for="adminAvatarZoom"><span>Thu nhỏ</span><input id="adminAvatarZoom" type="range" min="1" max="3" value="1" step="0.01"><span>Phóng to</span></label>
+        <div class="avatar-crop-actions"><button type="button" class="soft-button" id="cancelAdminAvatarCrop">Hủy</button><button type="button" class="primary-button primary-button--compact" id="confirmAdminAvatarCrop">Dùng vùng ảnh này</button></div>
+    </dialog>
+
+    <dialog class="admin-dialog admin-dialog--small" id="depositDialog" aria-labelledby="depositDialogTitle">
+        <form class="admin-dialog__form" id="depositDecisionForm" method="dialog"><div class="admin-dialog__heading"><div><p class="eyebrow">Đối soát nạp tiền</p><h2 id="depositDialogTitle">Xử lý yêu cầu</h2></div><button type="button" data-close-dialog="depositDialog" aria-label="Đóng">×</button></div><input id="depositDecisionId" type="hidden"><input id="depositDecisionStatus" type="hidden"><div class="deposit-confirm" id="depositDecisionSummary"></div><div class="field"><label for="depositDecisionNote">Ghi chú quản trị</label><textarea id="depositDecisionNote" rows="3" maxlength="500" placeholder="Nội dung đối soát (không bắt buộc)"></textarea></div><p class="form-status" id="depositDecisionFormStatus" role="alert" aria-live="polite"></p><div class="admin-dialog__actions"><button type="button" data-close-dialog="depositDialog">Hủy</button><button class="admin-primary" id="depositDecisionSubmit" type="submit">Xác nhận</button></div></form>
+    </dialog>
+    <dialog class="admin-dialog admin-dialog--detail" id="changeDetailDialog" aria-labelledby="changeDetailTitle">
+        <div class="admin-dialog__form"><div class="admin-dialog__heading"><div><p class="eyebrow" id="changeDetailEyebrow">Chi tiết hoạt động</p><h2 id="changeDetailTitle">Thông tin thay đổi</h2></div><button type="button" data-close-dialog="changeDetailDialog" aria-label="Đóng">×</button></div><div class="change-product-card" id="changeProductCard" hidden></div><div class="change-detail-meta" id="changeDetailMeta"></div><div class="change-detail-list" id="changeDetailBody"></div><div class="admin-dialog__actions"><button type="button" data-close-dialog="changeDetailDialog">Đóng</button></div></div>
+    </dialog>
+    <dialog class="admin-dialog" id="contentDialog" aria-labelledby="contentDialogTitle"><form class="admin-dialog__form" id="contentForm" method="dialog"><div class="admin-dialog__heading"><div><p class="eyebrow">Kho nội dung</p><h2 id="contentDialogTitle">Thêm nội dung</h2></div><button type="button" data-close-dialog="contentDialog" aria-label="Đóng">×</button></div><input id="contentId" type="hidden"><div class="field-grid"><div class="field"><label for="contentType">Loại</label><select id="contentType"><option value="TIN_TUC">Tin tức</option><option value="HUONG_DAN">Hướng dẫn</option></select></div><div class="field"><label for="contentImage">Ảnh đại diện</label><input id="contentImage" maxlength="500" placeholder="HA/ảnh tin tức/..."></div></div><div class="field"><label for="contentTitle">Tiêu đề</label><input id="contentTitle" required minlength="5" maxlength="220"></div><div class="field"><label for="contentSummary">Tóm tắt</label><textarea id="contentSummary" rows="2" maxlength="500"></textarea></div><div class="field"><label for="contentBody">Nội dung</label><textarea id="contentBody" rows="9" required></textarea></div><div class="field"><label for="contentSource">URL nguồn tham khảo</label><input id="contentSource" type="url" maxlength="700"></div><label class="admin-switch"><input id="contentActive" type="checkbox" checked><span></span>Đang xuất bản</label><p class="form-status" id="contentFormStatus" role="alert"></p><div class="admin-dialog__actions"><button type="button" data-close-dialog="contentDialog">Hủy</button><button class="admin-primary" id="contentSave" type="submit">Lưu nội dung</button></div></form></dialog>
+    <dialog class="admin-dialog" id="voucherDialog" aria-labelledby="voucherDialogTitle"><form class="admin-dialog__form" id="voucherForm" method="dialog"><div class="admin-dialog__heading"><div><p class="eyebrow">Khuyến mãi</p><h2 id="voucherDialogTitle">Thêm voucher</h2></div><button type="button" data-close-dialog="voucherDialog" aria-label="Đóng">×</button></div><div class="field-grid"><div class="field"><label for="voucherCode">Mã voucher</label><input id="voucherCode" required minlength="3" maxlength="20" placeholder="CHAOMUNG20"></div><div class="field"><label for="voucherType">Loại giảm</label><select id="voucherType"><option value="PHAN_TRAM">Phần trăm (%)</option><option value="SO_TIEN">Số tiền (₫)</option></select></div></div><div class="field-grid field-grid--three"><div class="field"><label for="voucherValue">Giá trị giảm</label><input id="voucherValue" type="number" min="1" required></div><div class="field"><label for="voucherMaximum">Giảm tối đa</label><input id="voucherMaximum" type="number" min="0"></div><div class="field"><label for="voucherMinimum">Đơn tối thiểu</label><input id="voucherMinimum" type="number" min="0" value="0"></div></div><div class="field-grid field-grid--three"><div class="field"><label for="voucherQuantity">Số lượt</label><input id="voucherQuantity" type="number" min="1" value="100" required></div><div class="field"><label for="voucherStarts">Bắt đầu</label><input id="voucherStarts" type="datetime-local"></div><div class="field"><label for="voucherExpires">Hết hạn</label><input id="voucherExpires" type="datetime-local"></div></div><label class="admin-switch"><input id="voucherActive" type="checkbox" checked><span></span>Voucher đang hoạt động</label><p class="form-status" id="voucherFormStatus" role="alert"></p><div class="admin-dialog__actions"><button type="button" data-close-dialog="voucherDialog">Hủy</button><button class="admin-primary" id="voucherSave" type="submit">Tạo voucher</button></div></form></dialog>
+</body>
+</html>

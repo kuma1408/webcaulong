@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Đặt lại mật khẩu Badminton Store bằng liên kết bảo mật một lần.">
+    <meta name="theme-color" content="#e9381b">
+    <title>Đặt lại mật khẩu | Badminton Store</title>
+    <link rel="stylesheet" href="css/tutaoo.css?v=20260808-8">
+    <link rel="stylesheet" href="css/account.css?v=20260816-1">
+    <script src="css/auth.js?v=20260815-1" defer></script>
+    <script src="css/password-reset.js?v=20260816-1" defer></script>
+    <link rel="stylesheet" href="css/site-refresh.css?v=20260815-1">
+</head>
+<body class="account-body" data-password-page="reset">
+    <a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+    <div class="header"></div><div id="menu"></div>
+    <main id="main-content" class="auth-stage">
+        <section class="auth-layout" aria-labelledby="reset-title">
+            <div class="auth-story">
+                <a class="auth-story__back" href="dangnhap.html">← Trở lại đăng nhập</a>
+                <p class="eyebrow">Mật khẩu mới</p>
+                <h1>Bắt đầu lại thật an toàn.</h1>
+                <p>Chọn mật khẩu riêng cho Badminton Store, tối thiểu 8 ký tự và có cả chữ lẫn số.</p>
+            </div>
+            <div class="auth-card">
+                <div class="auth-card__heading"><span class="auth-card__mark" aria-hidden="true">B</span><div><p class="eyebrow">Bảo mật</p><h2 id="reset-title">Đặt lại mật khẩu</h2></div></div>
+                <form id="resetPasswordForm" class="account-form" novalidate>
+                    <div class="field"><label for="resetPassword">Mật khẩu mới</label><div class="password-field"><input id="resetPassword" type="password" autocomplete="new-password" maxlength="128" required placeholder="Ít nhất 8 ký tự"><button class="password-toggle" type="button" data-reset-toggle="resetPassword">Hiện</button></div><span class="field__error" id="resetPasswordError"></span></div>
+                    <div class="field"><label for="resetPasswordConfirm">Nhập lại mật khẩu</label><div class="password-field"><input id="resetPasswordConfirm" type="password" autocomplete="new-password" maxlength="128" required placeholder="Nhập lại mật khẩu"><button class="password-toggle" type="button" data-reset-toggle="resetPasswordConfirm">Hiện</button></div><span class="field__error" id="resetPasswordConfirmError"></span></div>
+                    <p id="passwordResetStatus" class="form-status" role="alert" aria-live="polite"></p>
+                    <button id="resetPasswordSubmit" class="primary-button" type="submit"><span>Lưu mật khẩu mới</span><span aria-hidden="true">→</span></button>
+                </form>
+                <p class="auth-switch"><a href="dangnhap.html">Quay lại đăng nhập</a></p>
+            </div>
+        </section>
+    </main>
+    <div id="cuoitrang"></div>
+</body>
+</html>

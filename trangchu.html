@@ -1,376 +1,298 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
     <meta charset="utf-8">
-    <title>Shop Cầu Lông</title>
-
-    <!-- CSS -->
-    <link href="css/tutaoo.css" rel="stylesheet" style="text/css" />
-    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Trang thiết bị cầu lông dành cho mọi lối chơi: vợt, giày, trang phục, túi và phụ kiện.">
+    <meta name="theme-color" content="#d9361e">
+    <meta name="api-base" content="">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:title" content="Badminton Store | Đúng gear, đúng chất">
+    <meta property="og:description" content="Tìm đúng trang bị để tự tin trong từng pha cầu.">
+    <meta property="og:image" content="/HA/og-badminton.png">
+    <meta property="og:image:width" content="1731">
+    <meta property="og:image:height" content="909">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Badminton Store | Đúng gear, đúng chất">
+    <meta name="twitter:description" content="Tìm đúng trang bị để tự tin trong từng pha cầu.">
+    <meta name="twitter:image" content="/HA/og-badminton.png">
+    <title>Badminton Store | Đúng gear, đúng chất</title>
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem('badminton_theme') || localStorage.getItem('theme');
+                document.documentElement.dataset.theme = savedTheme === 'dark' ? 'dark' : 'light';
+            } catch (error) {
+                document.documentElement.dataset.theme = 'light';
+            }
+        }());
+    </script>
+    <link rel="stylesheet" href="css/home.css?v=20260809-2">
+    <script src="css/auth.js?v=20260815-1" defer></script>
+    <script src="css/home.js?v=20260809-2" defer></script>
 </head>
 
 <body>
-    <div class="baotrang">
-       <div class="header">
-            <!-- Logo đăng nhập -->
-            <div class="logo-small">
-                <a href="trangchu.html">
-                    <img src="HA/cc-removebg-preview.png" width="45" height="50">
-                </a>
-            </div>
+    <a class="skip-link" href="#noi-dung-chinh">Chuyển đến nội dung chính</a>
 
-            <!-- Logo lớn -->
-            <div class="logo-large" style="float:left">
-                <a href="trangchu.html">
-                    <img src="HA/dcm.png" width="160" height="55">
-                </a>
-            </div>
+    <div class="topline" aria-label="Thông tin mua hàng">
+        <div class="shell topline__inner">
+            <p>Giao hàng toàn quốc · Thanh toán khi nhận hàng</p>
+            <a href="hướng dẫn.html">Hướng dẫn chọn vợt <span aria-hidden="true">↗</span></a>
+        </div>
+    </div>
 
-            <div style="width:100%">
-                <center>
-                    <!-- Thanh tìm kiếm -->
-                    <div class="search-container">
-                        <input type="text" class="search-input" placeholder="Tìm kiếm sản phẩm...">
-                        <button class="search-button" onclick="searchProduct()">Tìm kiếm</button>
+    <header class="site-header" id="siteHeader">
+        <div class="shell header__inner">
+            <a class="brand" href="trangchu.html" aria-label="Badminton Store - Trang chủ">
+                <span class="brand__mark" aria-hidden="true">B</span>
+                <span class="brand__text">
+                    <strong>BADMINTON</strong>
+                    <small>STORE · SINCE 2024</small>
+                </span>
+            </a>
+
+            <button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="primaryNav">
+                <span></span><span></span><span></span>
+                <span class="sr-only">Mở trình đơn</span>
+            </button>
+
+            <nav class="primary-nav" id="primaryNav" aria-label="Điều hướng chính">
+                <a class="is-active" href="trangchu.html" aria-current="page">Trang chủ</a>
+                <details class="primary-nav__products">
+                    <summary>Sản phẩm</summary>
+                    <div class="primary-nav__catalog">
+                        <div class="primary-nav__catalog-header"><strong>Mua sắm theo danh mục</strong><a href="sanpham.html">Xem tất cả →</a></div>
+                        <div class="primary-nav__catalog-grid">
+                            <a href="sanpham.html?danh_muc=1">Vợt cầu lông</a>
+                            <a href="sanpham.html?danh_muc=2">Giày cầu lông</a>
+                            <a href="sanpham.html?danh_muc=3">Áo cầu lông</a>
+                            <a href="sanpham.html?danh_muc=4">Váy cầu lông</a>
+                            <a href="sanpham.html?danh_muc=5">Quần cầu lông</a>
+                            <a href="sanpham.html?danh_muc=6">Túi vợt</a>
+                            <a href="sanpham.html?danh_muc=7">Balo</a>
+                            <a href="sanpham.html?danh_muc=8">Phụ kiện</a>
+                        </div>
                     </div>
-                </center>
-            </div>
+                </details>
+                <a href="sanpham.html?sale=true">Sale off</a>
+                <a href="tin tức.html">Tin tức</a>
+                <a href="hướng dẫn.html">Hướng dẫn</a>
+                <a href="lienhe.html">Liên hệ</a>
+            </nav>
 
-            <!-- Icon đăng nhập -->
-            <div class="login-icon" id="loginIconContainer">
-                <a href="dangnhap.html" id="loginLink">
-                    <img id="loginIcon" src="HA/lop.png" width="50" height="50">
+            <div class="header__actions">
+                <button class="icon-button theme-toggle" id="themeToggle" type="button" aria-label="Chuyển sang giao diện tối">
+                    <span class="theme-toggle__sun" aria-hidden="true">☀</span>
+                    <span class="theme-toggle__moon" aria-hidden="true">☾</span>
+                </button>
+                <a class="account-link" id="accountLink" href="dangnhap.html">
+                    <span class="account-link__avatar" id="accountAvatar" aria-hidden="true">T</span>
+                    <span id="accountLabel">Tài khoản</span>
                 </a>
-                <!-- Thông tin người dùng -->
-                <div class="user-info" id="userInfo">
-                    <p><strong>Tài khoản:</strong> <span id="username"></span></p>
-                    <p><strong>ID:</strong> <span id="userId"></span></p>
-                    <p><strong>Số dư:</strong> <span id="userBalance">0</span> VND</p>
-                    <p><strong>Sản phẩm đã mua:</strong></p>
-                    <ul id="purchasedProducts"></ul>
+                <a class="cart-link" href="giohang.html" aria-label="Xem giỏ hàng">
+                    <span aria-hidden="true">Giỏ</span>
+                    <span class="cart-link__count" id="cartCount" hidden>0</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="shell search-row">
+            <form class="site-search" role="search">
+                <label class="sr-only" for="mainSearch">Tìm kiếm sản phẩm</label>
+                <span class="site-search__icon" aria-hidden="true">⌕</span>
+                <input id="mainSearch" name="q" type="search" autocomplete="off" placeholder="Tìm vợt, giày, áo hoặc phụ kiện...">
+                <button type="submit">Tìm kiếm</button>
+            </form>
+            <div class="quick-links" aria-label="Tìm kiếm phổ biến">
+                <span>Phổ biến:</span>
+                <a href="sanpham.html?q=Yonex">Yonex</a>
+                <a href="sanpham.html?q=Lining">Lining</a>
+                <a href="sanpham.html?q=Victor">Victor</a>
+            </div>
+        </div>
+    </header>
+
+    <main id="noi-dung-chinh">
+        <section class="hero shell" aria-labelledby="heroTitle">
+            <div class="hero__content">
+                <p class="eyebrow"><span></span> Bộ sưu tập tuyển chọn 2026</p>
+                <h1 id="heroTitle">Đánh đúng chất.<br><em>Chọn đúng gear.</em></h1>
+                <p class="hero__lead">Từ cây vợt đầu tiên đến bộ trang bị thi đấu, tìm đúng món đồ giúp bạn tự tin trong từng pha cầu.</p>
+                <div class="hero__actions">
+                    <a class="button button--accent" href="sanpham.html">Khám phá sản phẩm <span aria-hidden="true">→</span></a>
+                    <a class="button button--ghost" href="hướng dẫn.html">Tư vấn chọn vợt</a>
+                </div>
+                <dl class="hero__facts">
+                    <div><dt>8+</dt><dd>Danh mục</dd></div>
+                    <div><dt>COD</dt><dd>Toàn quốc</dd></div>
+                    <div><dt>7 ngày</dt><dd>Đổi sản phẩm lỗi</dd></div>
+                </dl>
+            </div>
+            <div class="hero__visual">
+                <img src="HA/Banner1.jpg" alt="Vận động viên cầu lông cùng vợt Victor Thruster Ryuga Metallic" fetchpriority="high">
+                <div class="hero__tag">
+                    <span>Featured</span>
+                    <strong>Victor Thruster Ryuga</strong>
                 </div>
             </div>
-        </div>
-        <script src="css/auth.js"></script>
-        <div id="menu">
-            <ul>
-                <li><a href="trangchu.html">TRANG CHỦ</a></li>
-                <li><a href="#sanpham">SẢN PHẨM</a>
-                    <ul class="sub-menu">
-                        <li><a href="Vợt cầu lông.html">Vợt Cầu Lông</a></li>
-                        <li><a href="Giày cầu lông.html">Giày Cầu Lông</a></li>
-                        <li><a href="Áo cầu lông.html">Áo Cầu Lông</a></li>
-                        <li><a href="Váy cầu lông.html">Váy Cầu Lông</a></li>
-                        <li><a href="Quần cầu lông.html">Quần Cầu Lông</a></li>
-                        <li><a href="Túi cầu lông.html">Túi Vợt</a></li>
-                        <li><a href="Balo cầu lông.html">Balo </a></li>
-                        <li><a href="Phụ kiện cầu lông.html">Phụ Kiện</a></li>
-                    </ul>
-                </li>
-                <li><a href="sale off.html">SALE OFF</a></li>
-                <li><a href="tin tức.html">TIN TỨC</a></li>
-                <li><a href="hướng dẫn.html">HƯỚNG DẪN</a></li>
-                <li><a href="lienhe.html">LIÊN HỆ</a></li>
-            </ul>
-        </div>
+        </section>
 
-<div class="slideshow-container">
-    <!-- Các hình ảnh -->
-    <div class="mySlides fade">
-        <img src="HA/Banner1.jpg" alt="Banner 1">
-    </div>
-    <div class="mySlides fade">
-        <img src="HA/Banner2.png" alt="Banner 2">
-    </div>
-    <div class="mySlides fade">
-        <img src="HA/1000z-launch-website-banner_1695.jpg" alt="Banner 3">
-    </div>
-    <div class="mySlides fade">
-        <img src="HA/65z3ltd-launch-website_1695177820.webp" alt="Banner 4">
-    </div>
-    <div class="mySlides fade">
-        <img src="HA/ynx-eclp-banner_1695178004.webp" alt="Banner 5">
-    </div>
+        <section class="brand-strip" aria-label="Thương hiệu nổi bật">
+            <div class="shell brand-strip__inner">
+                <span class="brand-strip__label">Thương hiệu nổi bật</span>
+                <div class="brand-strip__list" aria-label="Yonex, Victor, Lining, Mizuno và Kawasaki">
+                    <strong>YONEX</strong><i></i><strong>VICTOR</strong><i></i><strong>LI-NING</strong><i></i><strong>MIZUNO</strong><i></i><strong>KAWASAKI</strong>
+                </div>
+            </div>
+        </section>
 
-</div>
-<div class="thanhduoibaner">
-           <div class="muc">
-            <img src="HA/logo vận chuyển.png" alt="Vận Chuyển">
-            <div class="noi-dung">
-                <div class="tieu-de">Vận chuyển TOÀN QUỐC</div>
-                <div class="mo-ta">Thanh toán khi nhận hàng</div>
+        <section class="section shell" aria-labelledby="categoryTitle">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow eyebrow--dark"><span></span> Mua sắm theo danh mục</p>
+                    <h2 id="categoryTitle">Sẵn sàng cho mọi trận đấu</h2>
+                </div>
+                <a class="text-link" href="sanpham.html">Xem tất cả sản phẩm <span aria-hidden="true">↗</span></a>
+            </div>
+
+            <div class="category-grid">
+                <a class="category-card category-card--wide category-card--green" href="sanpham.html?danh_muc=1">
+                    <span class="category-card__index">01</span>
+                    <span class="category-card__copy"><small>Tâm điểm sân đấu</small><strong>Vợt cầu lông</strong><span>Khám phá ngay →</span></span>
+                    <img src="HA/anh vot/Vợt Cầu Lông Lining Axforce 10 950.000 ₫.png" alt="Vợt cầu lông Lining Axforce 10" loading="lazy">
+                </a>
+                <a class="category-card category-card--wide category-card--lilac" href="sanpham.html?danh_muc=2">
+                    <span class="category-card__index">02</span>
+                    <span class="category-card__copy"><small>Êm chân, bám sân</small><strong>Giày cầu lông</strong><span>Khám phá ngay →</span></span>
+                    <img src="HA/Giày/Giày cầu lông Lining AYAT005-6 chính hãng 2.330.000 ₫.png" alt="Giày cầu lông Lining AYAT005-6" loading="lazy">
+                </a>
+                <a class="category-card category-card--cream" href="sanpham.html?danh_muc=3">
+                    <span class="category-card__index">03</span>
+                    <span class="category-card__copy"><small>Nhẹ và thoáng</small><strong>Áo cầu lông</strong><span>Xem bộ sưu tập →</span></span>
+                    <img src="HA/Áo/Áo Cầu Lông Lining A320 Nam - Hồng Đen 130.000 ₫ .png" alt="Áo cầu lông Lining A320" loading="lazy">
+                </a>
+                <a class="category-card category-card--sand" href="sanpham.html?danh_muc=7">
+                    <span class="category-card__index">04</span>
+                    <span class="category-card__copy"><small>Mang cả trận đấu</small><strong>Túi &amp; balo</strong><span>Chọn kiểu phù hợp →</span></span>
+                    <img src="HA/balo/Balo cầu lông Kawasaki 8245 750.000 ₫ .png" alt="Balo cầu lông Kawasaki 8245" loading="lazy">
+                </a>
+                <a class="category-card category-card--blue" href="sanpham.html?danh_muc=8">
+                    <span class="category-card__index">05</span>
+                    <span class="category-card__copy"><small>Hoàn thiện bộ gear</small><strong>Phụ kiện</strong><span>Khám phá ngay →</span></span>
+                    <img src="HA/phụ kien/Dây cước căng vợt Lining L9 60.000 ₫.png" alt="Dây cước căng vợt Lining L9" loading="lazy">
+                </a>
+                <a class="category-card category-card--coral" href="sanpham.html?danh_muc=5">
+                    <span class="category-card__index">06</span>
+                    <span class="category-card__copy"><small>Thoải mái di chuyển</small><strong>Quần cầu lông</strong><span>Xem bộ sưu tập →</span></span>
+                    <img src="HA/quần/Quần cầu lông Kamito Galaxy 2 KMPS242550F nữ - Trắng chính hãng 189.000 ₫.png" alt="Quần cầu lông Kamito Galaxy 2" loading="lazy">
+                </a>
+                <a class="category-card category-card--blue" href="sanpham.html?danh_muc=4">
+                    <span class="category-card__index">07</span>
+                    <span class="category-card__copy"><small>Năng động và nữ tính</small><strong>Váy cầu lông</strong><span>Xem bộ sưu tập →</span></span>
+                    <img src="HA/váy/Váy cầu lông Kamito Galaxy 1 KMVS240223 - Navy chính hãng 350.000 ₫.png" alt="Váy cầu lông Kamito Galaxy 1" loading="lazy">
+                </a>
+                <a class="category-card category-card--coral" href="sanpham.html?sale=true">
+                    <span class="category-card__index">08</span>
+                    <span class="category-card__copy"><small>Ưu đãi đang diễn ra</small><strong>Sale off</strong><span>Săn ưu đãi →</span></span>
+                    <img src="HA/imported-products/product-158-detail-1.jpg" alt="Sản phẩm cầu lông đang giảm giá" loading="lazy">
+                </a>
+            </div>
+        </section>
+
+        <section class="section section--products" aria-labelledby="productTitle">
+            <div class="shell">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow eyebrow--dark"><span></span> Dành riêng cho bạn</p>
+                        <h2 id="productTitle">Gợi ý hôm nay</h2>
+                    </div>
+                    <div class="slider-actions" aria-label="Điều khiển danh sách sản phẩm">
+                        <button id="productPrev" type="button" aria-label="Xem sản phẩm trước">←</button>
+                        <button id="productNext" type="button" aria-label="Xem sản phẩm tiếp theo">→</button>
+                    </div>
+                </div>
+
+                <div class="product-track" id="newProducts" aria-live="polite" aria-busy="true">
+                    <div class="product-skeleton"></div><div class="product-skeleton"></div><div class="product-skeleton"></div><div class="product-skeleton"></div>
+                </div>
+                <noscript><p class="notice">Vui lòng bật JavaScript để xem gợi ý sản phẩm.</p></noscript>
+            </div>
+        </section>
+
+        <section class="section shell" aria-labelledby="styleTitle">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow eyebrow--dark"><span></span> Chọn theo lối chơi</p>
+                    <h2 id="styleTitle">Bạn làm chủ sân theo cách nào?</h2>
+                </div>
+            </div>
+
+            <div class="playstyle-grid">
+                <article class="playstyle-card">
+                    <span class="playstyle-card__number">01</span>
+                    <div class="playstyle-card__line" aria-hidden="true"></div>
+                    <h3>Tấn công uy lực</h3>
+                    <p>Ưu tiên cảm giác đầm đầu, truyền lực tốt cho những cú smash dứt khoát.</p>
+                    <a href="sanpham.html?q=vợt tấn công">Tìm vợt tấn công <span aria-hidden="true">→</span></a>
+                </article>
+                <article class="playstyle-card playstyle-card--accent">
+                    <span class="playstyle-card__number">02</span>
+                    <div class="playstyle-card__line" aria-hidden="true"></div>
+                    <h3>Công thủ toàn diện</h3>
+                    <p>Cân bằng giữa sức mạnh, tốc độ xoay vợt và khả năng kiểm soát trên lưới.</p>
+                    <a href="sanpham.html?q=vợt cân bằng">Tìm vợt cân bằng <span aria-hidden="true">→</span></a>
+                </article>
+                <article class="playstyle-card">
+                    <span class="playstyle-card__number">03</span>
+                    <div class="playstyle-card__line" aria-hidden="true"></div>
+                    <h3>Tốc độ phản tạt</h3>
+                    <p>Thân vợt linh hoạt, xoay trở nhanh cho nhịp cầu tốc độ và phòng thủ bền bỉ.</p>
+                    <a href="sanpham.html?q=vợt nhẹ đầu">Tìm vợt tốc độ <span aria-hidden="true">→</span></a>
+                </article>
+            </div>
+        </section>
+
+        <section class="guide shell" aria-labelledby="guideTitle">
+            <div class="guide__visual">
+                <img src="HA/Banner2.png" alt="Vợt cầu lông Yonex Nanoflare 800" loading="lazy">
+            </div>
+            <div class="guide__content">
+                <p class="eyebrow"><span></span> Badminton Lab</p>
+                <h2 id="guideTitle">Chưa chắc cây vợt nào hợp tay?</h2>
+                <p>Hiểu trọng lượng, điểm cân bằng và độ cứng thân vợt trước khi chọn. Một quyết định đúng giúp bạn chơi thoải mái hơn ngay từ buổi đầu.</p>
+                <a class="button button--accent" href="hướng dẫn.html">Đọc hướng dẫn chọn vợt <span aria-hidden="true">→</span></a>
+            </div>
+        </section>
+
+        <section class="service-strip shell" aria-label="Cam kết dịch vụ">
+            <article><span aria-hidden="true">01</span><div><strong>Giao hàng toàn quốc</strong><p>Nhận hàng rồi thanh toán</p></div></article>
+            <article><span aria-hidden="true">02</span><div><strong>Sản phẩm tuyển chọn</strong><p>Thông tin rõ ràng, dễ so sánh</p></div></article>
+            <article><span aria-hidden="true">03</span><div><strong>Nhiều cách thanh toán</strong><p>Linh hoạt theo nhu cầu</p></div></article>
+            <article><span aria-hidden="true">04</span><div><strong>Hỗ trợ đổi sản phẩm lỗi</strong><p>An tâm sau khi mua</p></div></article>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="shell site-footer__top">
+            <div class="site-footer__intro">
+                <a class="brand brand--footer" href="trangchu.html">
+                    <span class="brand__mark" aria-hidden="true">B</span>
+                    <span class="brand__text"><strong>BADMINTON</strong><small>STORE · SINCE 2024</small></span>
+                </a>
+                <p>Trang bị đúng để mỗi buổi ra sân đều đáng nhớ.</p>
+            </div>
+            <div class="site-footer__links">
+                <div><h2>Sản phẩm</h2><a href="sanpham.html?danh_muc=1">Vợt cầu lông</a><a href="sanpham.html?danh_muc=2">Giày cầu lông</a><a href="sanpham.html?danh_muc=3">Trang phục</a><a href="sanpham.html?danh_muc=8">Phụ kiện</a></div>
+                <div><h2>Hỗ trợ</h2><a href="hướng dẫn.html">Hướng dẫn chọn vợt</a><a href="lienhe.html">Liên hệ tư vấn</a><a href="giohang.html">Giỏ hàng</a><a href="dangnhap.html">Tài khoản</a></div>
+                <div><h2>Khám phá</h2><a href="tin tức.html">Tin tức cầu lông</a><a href="sanpham.html?sale=true">Sản phẩm ưu đãi</a><a href="trangchu.html">Về Badminton Store</a></div>
             </div>
         </div>
-        <div class="muc">
-            <img src="HA/logo bảo đảm.png" alt="Bảo Đảm">
-            <div class="noi-dung">
-                <div class="tieu-de">Bảo đảm chất lượng</div>
-                <div class="mo-ta">Sản phẩm bảo đảm chất lượng</div>
-            </div>
+        <div class="shell site-footer__bottom">
+            <p>© <span id="currentYear">2026</span> Badminton Store. Tất cả quyền được bảo lưu.</p>
+            <p>Thiết kế cho cộng đồng yêu cầu lông Việt Nam.</p>
         </div>
-        <div class="muc">
-            <img src="HA/logo thanh toán.png" alt="Thanh Toán">
-            <div class="noi-dung">
-                <div class="tieu-de">Tiến hành THANH TOÁN</div>
-                <div class="mo-ta">Với nhiều PHƯƠNG THỨC</div>
-            </div>
-        </div>
-        <div class="muc">
-            <img src="HA/logo đổi mới.png" alt="Đổi Trả">
-            <div class="noi-dung">
-                <div class="tieu-de">Đổi sản phẩm mới</div>
-                <div class="mo-ta">Nếu sản phẩm lỗi</div>
-            </div>
-        </div>
-    </div>
-     <center><font size="5px"><font color="#FF6600"><h2>Sản Phẩm Mới</h2></font></font></center>
-    <!-- Phần trình chiếu sản phẩm -->
-    <div class="khung-trinh-chieu swiper">
-        <div class="swiper-wrapper">
-
-            <!-- Sản phẩm 1 -->
-
-            <div class="trinh-chieu-slide swiper-slide"><a href="a chi tiết vợt 3.html" style="text-decoration: none; color: inherit;">
-                <center><img src="HA/anh vot/Vợt Cầu Lông Lining Axforce 10 950.000 ₫.png" alt="Vợt Cầu Lông Lining Axforce 10 950.000 ₫"></center> 
-                <div class="ten-san-pham">Vợt Cầu Lông Lining Axforce </div>
-                <div class="gia-san-pham">950.000 VND</div></a>
-            </div>
-            <!-- Sản phẩm 2 -->
-            <div class="trinh-chieu-slide swiper-slide"><a href="f chi tiết quần 1.html" style="text-decoration: none; color: inherit;">
-               <center> <img src="HA/quần/Quần cầu lông Kamito Galaxy 2 KMPS242550F nữ - Trắng chính hãng 189.000 ₫.png" alt="Quần cầu lông Kamito Galaxy 2 KMPS242550F nữ - Trắng chính hãng"></center> 
-                <div class="ten-san-pham">Quần cầu lông Kamito Galaxy 2 KMPS242550F nữ Trắng chính hãng </div>
-				<div class="gia-san-pham">189.000 VND</div></a>
-            </div>
-            <!-- Sản phẩm 3 -->
-            <div class="trinh-chieu-slide swiper-slide"><a href="h chi tiết balo 1.html" style="text-decoration: none; color: inherit;">
-              <center>  <img src="HA/balo/Balo cầu lông Kawasaki 8245 750.000 ₫ .png " alt="Balo cầu lông Kawasaki 8245 "></center> 
-                <div class="ten-san-pham">Balo cầu lông Kawasaki 8245 </div>
-				<div class="gia-san-pham">750,000 VND</div></a>
-            </div>
-            <!-- Thêm sản phẩm khác -->
-            <div class="trinh-chieu-slide swiper-slide"><a href="g chi tiết túi 1.html" style="text-decoration: none; color: inherit;">
-             <center>   <img src="HA/túi/Túi cầu lông Kumpoo KB463 820.000 ₫.png" alt="Túi cầu lông Kumpoo KB463" ></center> 
-                <div class="ten-san-pham">Túi cầu lông Kumpoo KB463</div>
-				<div class="gia-san-pham">820.000 VND</div></a>
-
-            </div>
-            <div class="trinh-chieu-slide swiper-slide"><a href="a chi tiết vợt 11.html" style="text-decoration: none; color: inherit;">
-            <center>    <img src="HA/anh vot/Set Vợt Cầu Lông Victor Spider Man Limited 5.500.000 ₫.png" alt="Set Vợt Cầu Lông Victor Spider Man Limited"></center> 
-                <div class="ten-san-pham">Set Vợt Cầu Lông Victor Spider Man Limited</div>
-				<div class="gia-san-pham">5.500.000 VND</div></a>
-            </div>
-
-            <div class="trinh-chieu-slide swiper-slide">
-				<a href="c chi tiết áo 1.html" style="text-decoration: none; color: inherit;">
-             <center>   <img src="HA/Áo/Áo Cầu Lông Lining A320 Nam - Hồng Đen 130.000 ₫ .png" alt="Áo Cầu Lông Lining A320 Nam - Hồng Đen "></center> 
-
-                <div class="ten-san-pham">Áo Cầu Lông Lining A320 Nam Hồng Đen </div>
-					<div class="gia-san-pham">130.000 VND</div></a>
-            </div>
-        </div>
-        <!-- Nút điều hướng -->
-        <div class="nut-tiep swiper-button-next"></div>
-        <div class="nut-lui swiper-button-prev"></div>
-        <!-- Phân trang -->
-        <div class="phan-trang swiper-pagination"></div>
-    </div>
-   <center><font size="5px"><font color="#FF6600"><h2>Sản Phẩm Cầu Lông</h2></font></font></center>
- <center>
-  <table width="95%" style="border-spacing: 10px;">
-    <tr>
-      <td class="product-container">
-        <a href="Vợt cầu lông.html" class="product-link">
-          <div class="product-image-container">
-            <div class="product-image1"></div>
-            <div class="overlay">
-              <img src="HA/vot cau long.png" alt="Vợt cầu lông" width="500px" height="auto">
-            </div>
-          </div>
-        </a>
-      </td>
-
-      <td class="product-container">
-        <a href="Giày cầu lông.html" class="product-link">
-          <div class="product-image-container">
-            <div class="product-image2"></div>
-            <div class="overlay">
-              <img src="HA/giaycaulong.png" alt="Giày cầu lông" width="500px" height="auto">
-            </div>
-          </div>
-        </a>
-      </td>
-
-      <td class="product-container">
-        <a href="Áo cầu lông.html" class="product-link">
-          <div class="product-image-container">
-            <div class="product-image3"></div>
-            <div class="overlay">
-              <img src="HA/áocaulong.png" alt="Áo cầu lông" width="500px" height="auto">
-            </div>
-          </div>
-        </a>
-      </td>
-
-      <td class="product-container">
-        <a href="Váy cầu lông.html" class="product-link">
-          <div class="product-image-container">
-            <div class="product-image4"></div>
-            <div class="overlay">
-              <img src="HA/vayscaulong.png" alt="Váy cầu lông" width="500px" height="auto">
-            </div>
-          </div>
-        </a>
-      </td>
-    </tr>
-    <tr>
-      <td class="product-container">
-        <a href="Quần cầu lông.html" class="product-link">
-          <div class="product-image-container">
-            <div class="product-image5"></div>
-            <div class="overlay">
-              <img src="HA/quancaulong.png" alt="Quần cầu lông" width="500px" height="auto">
-            </div>
-          </div>
-        </a>
-      </td>
-
-      <td class="product-container">
-        <a href="Túi cầu lông.html" class="product-link">
-          <div class="product-image-container">
-            <div class="product-image6"></div>
-            <div class="overlay">
-              <img src="HA/tuivotcaulong.png" alt="Túi vợt cầu lông" width="500px" height="auto">
-            </div>
-          </div>
-        </a>
-      </td>
-
-      <td class="product-container">
-        <a href="Balo cầu lông.html" class="product-link">
-          <div class="product-image-container">
-            <div class="product-image7"></div>
-            <div class="overlay">
-              <img src="HA/balo caulong.png" alt="Balo cầu lông" width="500px" height="auto">
-            </div>
-          </div>
-        </a>
-      </td>
-
-      <td class="product-container">
-        <a href="Phụ kiện cầu lông.html" class="product-link">
-          <div class="product-image-container">
-            <div class="product-image8"></div>
-            <div class="overlay">
-              <img src="HA/phukiencaulong.png" alt="Phụ kiện cầu lông" width="500px" height="auto">
-            </div>
-          </div>
-        </a>
-      </td>
-    </tr>
-  </table>
-</center>
-
- 
-
-
-<div id="cuoitrang">
-   <footer>
-  <div class="footer-container">
-    <div class="footer-section">
-      <h3>Thông tin công ty</h3>
-      <ul>
-        <li><a href="#">Giới thiệu</a></li>
-        <li><a href="#">Chính sách bảo mật</a></li>
-        <li><a href="#">Chính sách đổi trả</a></li>
-        <li><a href="#">Điều khoản dịch vụ</a></li>
-      </ul>
-    </div>
-    
-    <div class="footer-section">
-      <h3>Sản phẩm</h3>
-      <ul>
-        <li><a href="#">Vợt cầu lông</a></li>
-        <li><a href="#">Lưới cầu lông</a></li>
-        <li><a href="#">Quần áo cầu lông</a></li>
-        <li><a href="#">Phụ kiện cầu lông</a></li>
-      </ul>
-    </div>
-    
-    <div class="footer-section">
-      <h3>Liên hệ</h3>
-      <ul>
-        <li><a href="tel:+123456789">Hotline: +123456789</a></li>
-        <li><a href="mailto:support@thethao.com">Email: support@thethao.com</a></li>
-        <li><a href="#">Địa chỉ: Số 123, Đường ABC, TP. HCM</a></li>
-      </ul>
-    </div>
-
-    <div class="footer-section social-media">
-      <h3>Follow Us</h3>
-      <a href="https://www.facebook.com" target="_blank" class="social-icon facebook"><img src="HA/FB.png" width="80" height="80"></a>
-      <a href="https://www.instagram.com" target="_blank" class="social-icon instagram"><img src="HA/ISG.png" width="40" height="40"></a>
-      <a href="https://www.youtube.com" target="_blank" class="social-icon youtube"><img src="HA/YT.png" width="60" height="60"></a>
-    </div>
-  </div>
-
-  <div class="footer-bottom">
-    <p>&copy; 2024 Cửa Hàng Cầu Lông | Tất cả quyền được bảo lưu</p>
-  </div>
-</footer>
-</div>        
-
-   
+    </footer>
 </body>
-
-<script>
-    let slideIndex = 0; // Bắt đầu từ slide đầu tiên
-    let slideInterval; // Lưu trữ ID của setTimeout
-
-    function showSlides() {
-        let slides = document.getElementsByClassName("mySlides");
-
-        // Ẩn tất cả các slide
-        for (let i = 0; i < slides.length; i++) {
-            slides[i].style.display = "none";
-        }
-
-        // Chuyển đến slide tiếp theo
-        slideIndex++;
-        if (slideIndex > slides.length) {
-            slideIndex = 1; // Quay lại slide đầu tiên
-        }
-
-        // Hiển thị slide hiện tại
-        slides[slideIndex - 1].style.display = "block";
-
-        // Tự động chuyển slide sau 3 giây
-        slideInterval = setTimeout(showSlides, 3000);
-    }
-
-    // Khởi động slideshow
-    showSlides();
-</script>
-     <!-- Swiper JS -->
-    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-    <script>
-        const swiper = new Swiper('.khung-trinh-chieu', {
-            slidesPerView: 4, // Hiển thị 4 sản phẩm trên một dòng
-            spaceBetween: 20, // Khoảng cách giữa các sản phẩm
-            loop: true, // Lặp lại slide
-            navigation: {
-                nextEl: '.nut-tiep',
-                prevEl: '.nut-lui',
-            },
-            pagination: {
-                el: '.phan-trang',
-                clickable: true,
-            },
-            autoplay: {
-                delay: 3000, // Tự động chuyển slide sau 3 giây
-                disableOnInteraction: false,
-            },
-        });
-    </script>
-
 </html>

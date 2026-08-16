@@ -1,0 +1,90 @@
+name: Deploy Alwaysdata
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply_migration:
+        description: "Áp dụng migration additive sau khi bạn đã sao lưu MySQL"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alwaysdata-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    env:
+      SSH_HOST: ${{ secrets.ALWAYSDATA_SSH_HOST }}
+      SSH_USER: ${{ secrets.ALWAYSDATA_SSH_USER }}
+      APP_PATH: ${{ secrets.ALWAYSDATA_APP_PATH }}
+      SSH_PRIVATE_KEY: ${{ secrets.ALWAYSDATA_SSH_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.ALWAYSDATA_KNOWN_HOSTS }}
+      APPLY_MIGRATION: ${{ inputs.apply_migration }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Verify release
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m compileall -q HA wsgi.py
+          python -m unittest HA.smoke_test -v
+          npm run check
+          npm run build
+
+      - name: Validate deployment settings
+        run: |
+          test -n "$SSH_HOST" && test -n "$SSH_USER" && test -n "$APP_PATH"
+          test -n "$SSH_PRIVATE_KEY" && test -n "$SSH_KNOWN_HOSTS"
+          [[ "$SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
+          [[ "$SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]]
+          [[ "$APP_PATH" =~ ^/home/[A-Za-z0-9._-]+/www/[A-Za-z0-9._/-]+$ ]]
+
+      - name: Configure SSH
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Package release
+        run: |
+          tar \
+            --exclude=.git \
+            --exclude=.github \
+            --exclude=.env \
+            --exclude=.venv \
+            --exclude=node_modules \
+            --exclude=dist \
+            --exclude=HA/avatars \
+            --exclude='*.sql' \
+            --exclude='*.tar.gz' \
+            -czf webcaulong-release.tar.gz .
+
+      - name: Upload and activate
+        run: |
+          target="$SSH_USER@$SSH_HOST"
+          scp webcaulong-release.tar.gz "$target:~/webcaulong-release.tar.gz"
+          scp .github/scripts/deploy-alwaysdata.sh "$target:~/deploy-alwaysdata.sh"
+          ssh "$target" "bash ~/deploy-alwaysdata.sh '$APP_PATH' '$APPLY_MIGRATION'"

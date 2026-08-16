@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chi tiết sản phẩm - Shop Cầu Lông</title>
+    <!-- CSS -->
+    <link href="css/tutaoo.css?v=20260808-8" rel="stylesheet" style="text/css" />
+    <link href="https://unpkg.com/swiper/swiper-bundle.min.css" rel="stylesheet">
+    <style>
+        .detail-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .payment-safety-note {
+            margin: 0;
+            padding: 12px 14px;
+            border: 1px solid #f4c9b8;
+            border-radius: 14px;
+            background: #fff6f1;
+            color: #6e2a16;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+        [data-theme="dark"] .payment-safety-note {
+            border-color: #7f351d;
+            background: #2d1009;
+            color: #ffd7c5;
+        }
+    </style>
+    <link rel="stylesheet" href="css/site-refresh.css?v=20260815-1">
+</head>
+<body>
+    <div class="baotrang">
+        <!-- Header chèn tự động -->
+        <div class="header"></div>
+
+        <!-- Menu chèn tự động -->
+        <div id="menu"></div>
+
+        <div class="detail-container">
+            <!-- Layout Chi tiết chính -->
+            <div class="product-detail-layout">
+                <!-- Cột hình ảnh sản phẩm (Trái) -->
+                <div class="detail-img-box">
+                    <div class="detail-img-main" id="mainImgContainer">
+                        <img id="mainProductImage" src="HA/cc-removebg-preview.png" alt="Ảnh sản phẩm">
+                    </div>
+                    <div class="detail-img-thumbnails swiper" id="thumbnailsContainer">
+                        <div class="swiper-wrapper" id="thumbnailsWrapper"><!-- Thumbnails được chèn động --></div>
+                    </div>
+                </div>
+
+                <!-- Cột thông tin chi tiết (Phải) -->
+                <div class="detail-info-box">
+                    <span id="productBrand" style="font-size:12px; color:var(--text-muted); text-transform:uppercase; font-weight:700; letter-spacing:1px;">Lining</span>
+                    <h2 id="productName" style="margin-top:6px; margin-bottom:10px;">Đang tải...</h2>
+                    
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:15px;">
+                        <span id="productStars" style="color:#ffb300; font-size:16px; font-weight:bold;">⭐ 5.0</span>
+                        <span style="color:var(--text-muted); font-size:13px;">| Status: <span id="productStock" style="color:#4CAF50; font-weight:bold;">Còn hàng</span></span>
+                    </div>
+
+                    <div class="detail-price-card">
+                        <div class="price" id="productPrice">0 ₫</div>
+                        <div class="detail-price-meta"><del id="productOriginalPrice" hidden></del><span id="productDiscount" hidden></span></div>
+                    </div>
+                    <div class="product-facts" aria-label="Thông tin sản phẩm">
+                        <div><span>Mã sản phẩm</span><strong id="productCode">—</strong></div>
+                        <div><span>Danh mục</span><strong id="productCategoryName">—</strong></div>
+                        <div><span>Đã bán</span><strong id="productSold">0</strong></div>
+                        <div><span>Lượt xem</span><strong id="productViews">0</strong></div>
+                    </div>
+                    <div class="detail-wallet-card">
+                        <div><span>Số dư tài khoản</span><strong id="detailWalletBalance">Đăng nhập để xem</strong></div>
+                        <a href="canhan.html#wallet" id="detailDepositLink">Nạp tiền vào tài khoản →</a>
+                    </div>
+                    
+                    <!-- Nhóm nút tác vụ -->
+                    <div style="display:flex; flex-direction:column; gap:12px; margin:20px 0;">
+                        <div style="display:flex; gap:12px;">
+                            <button class="btn-buy-now" style="flex:1;" onclick="triggerBuyNow()">MUA NGAY</button>
+                            <button class="btn-add-cart" style="flex:1;" onclick="triggerAddToCart()">THÊM GIỎ HÀNG</button>
+                        </div>
+                        <button class="btn-add-cart" id="wishlistDetailButton" type="button" onclick="saveToWishlist()">♡ LƯU SẢN PHẨM YÊU THÍCH</button>
+                        <p class="payment-safety-note">🔒 Thanh toán an toàn bằng số dư tài khoản hoặc COD tại bước giỏ hàng. Website không thu thập số thẻ hay mã CVV.</p>
+                    </div>
+
+                    <!-- Box Khuyến Mãi / Ưu đãi cào từ database -->
+                    <div class="uu-dai" id="promotionContainer" style="margin-top:20px;">
+                        <!-- Ưu đãi tự động chèn ở đây -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab mô tả & Đánh giá -->
+            <div class="tabs-container">
+                <div class="tabs-headers">
+                    <div class="tab-header active-tab" onclick="switchTab('tab-description')">MÔ TẢ & ƯU ĐÃI</div>
+                    <div class="tab-header" id="reviewsTabHeader" onclick="switchTab('tab-reviews')">ĐÁNH GIÁ (0)</div>
+                </div>
+
+                <!-- Nội dung Tab Mô tả -->
+                <div class="tab-content active-tab-content" id="tab-description">
+                    <div class="product-description" id="productFullDescription"><p>Đang tải thông tin sản phẩm…</p></div>
+                    <div class="uu-dai">
+                        <h4>🎁 Ưu đãi thêm khi mua sản phẩm tại VNB Premium</h4>
+                        <ul>
+                            <li>Sơn logo mặt vợt miễn phí trọn đời sản phẩm.</li>
+                            <li>Bảo hành lưới đan trong vòng 72 giờ đầu tiên.</li>
+                            <li>Thay thế gen vợt miễn phí trọn đời (đối với vợt cầu lông).</li>
+                            <li>Tích lũy điểm thành viên đổi voucher giảm giá.</li>
+                            <li>Bao đựng vợt hoặc bao nhung đi kèm miễn phí.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Nội dung Tab Đánh giá -->
+                <div class="tab-content" id="tab-reviews">
+                    <div class="review-layout">
+                        <section class="review-feed"><div class="review-section-heading"><div><span>Ý kiến thực tế</span><h3>Đánh giá từ khách hàng</h3></div><div class="review-summary"><strong id="reviewAverage">0.0</strong><span id="reviewAverageStars">☆☆☆☆☆</span><small id="reviewCountLabel">Chưa có đánh giá</small></div></div><div id="reviewsList" class="review-list"><p class="review-empty">Chưa có đánh giá nào cho sản phẩm này.</p></div></section>
+                        <section class="review-compose"><span class="review-compose__eyebrow">Chia sẻ trải nghiệm</span><h3>Viết đánh giá của bạn</h3><p id="reviewLoginHint">Đăng nhập để gửi nhận xét. Khách đã mua sẽ có dấu “Đã mua hàng”.</p><form id="formReview" onsubmit="submitReview(event)"><fieldset><legend>Chọn số sao</legend><div class="stars-selector" id="starsSelector" role="radiogroup" aria-label="Điểm đánh giá"><button type="button" onclick="setReviewRating(1)" aria-label="1 sao">★</button><button type="button" onclick="setReviewRating(2)" aria-label="2 sao">★</button><button type="button" onclick="setReviewRating(3)" aria-label="3 sao">★</button><button type="button" onclick="setReviewRating(4)" aria-label="4 sao">★</button><button type="button" onclick="setReviewRating(5)" aria-label="5 sao">★</button></div><output id="ratingLabel">Tuyệt vời · 5 sao</output></fieldset><label for="reviewComment">Nhận xét của bạn</label><textarea id="reviewComment" rows="5" minlength="5" maxlength="1000" required placeholder="Sản phẩm có đúng mô tả không? Cảm giác sử dụng như thế nào?"></textarea><div class="review-form-footer"><small><span id="reviewChars">0</span>/1000 ký tự</small><button type="submit" class="review-submit" id="reviewSubmit">Gửi đánh giá <span>→</span></button></div></form></section>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sản phẩm liên quan gợi ý -->
+            <div style="margin-top:60px;">
+                <center><h2 style="color:orange;">Sản phẩm bạn có thể thích</h2></center>
+                <div class="danh-sach-san-pham-grid" id="relatedProductsGrid" style="margin-top:20px;">
+                    <!-- Đề xuất động -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer chèn tự động -->
+        <div id="cuoitrang"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="css/auth.js?v=20260815-1"></script>
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script>
+        let currentProductId = null;
+        let selectedRating = 5;
+        let productPriceVal = 0;
+        let productDetails = null;
+        let thumbnailSwiper = null;
+
+        async function initProductDetail() {
+            const params = new URLSearchParams(window.location.search);
+            if (!params.has('id')) {
+                showToast("Không tìm thấy mã sản phẩm!", "error");
+                setTimeout(() => window.location.href = 'trangchu.html', 1500);
+                return;
+            }
+
+            currentProductId = parseInt(params.get('id'));
+
+            try {
+                const res = await fetch(`${API_BASE}/api/san-pham/${currentProductId}`);
+                const data = await res.json();
+
+                if (data.success) {
+                    productDetails = data.product;
+                    productPriceVal = productDetails.GiaBan;
+
+                    // Bind thông tin cơ bản
+                    document.title = `${productDetails.TenSP} - Shop Cầu Lông`;
+                    document.getElementById('productName').textContent = productDetails.TenSP;
+                    document.getElementById('productBrand').textContent = productDetails.ThuongHieu || 'Chính hãng';
+                    document.getElementById('productPrice').textContent = `${productDetails.GiaBan.toLocaleString('vi-VN')} ₫`;
+                    document.getElementById('productStars').textContent = `⭐ ${Number(productDetails.DanhGiaTrungBinh || 0).toFixed(1)}`;
+                    document.getElementById('productCode').textContent = `#${productDetails.MaSP}`;
+                    document.getElementById('productCategoryName').textContent = productDetails.TenDM || `Danh mục ${productDetails.MaDM}`;
+                    document.getElementById('productSold').textContent = Number(productDetails.SoLuotMua || 0).toLocaleString('vi-VN');
+                    document.getElementById('productViews').textContent = Number(productDetails.SoLuotXem || 0).toLocaleString('vi-VN');
+                    const originalPrice = Number(productDetails.GiaGoc || 0);
+                    if (originalPrice > Number(productDetails.GiaBan)) {
+                        const originalNode = document.getElementById('productOriginalPrice');
+                        const discountNode = document.getElementById('productDiscount');
+                        originalNode.textContent = `${originalPrice.toLocaleString('vi-VN')} ₫`;
+                        originalNode.hidden = false;
+                        discountNode.textContent = `Tiết kiệm ${Math.round((1 - productDetails.GiaBan / originalPrice) * 100)}%`;
+                        discountNode.hidden = false;
+                    }
+                    
+                    // Trạng thái kho
+                    const stock = productDetails.TonKho;
+                    const stockLabel = document.getElementById('productStock');
+                    if (stock <= 0) {
+                        stockLabel.textContent = "Hết hàng";
+                        stockLabel.style.color = "red";
+                    } else {
+                        stockLabel.textContent = `Còn hàng (${stock} chiếc)`;
+                        stockLabel.style.color = "#4CAF50";
+                    }
+
+                    // Ưu đãi khuyến mãi
+                    document.getElementById('promotionContainer').innerHTML = productDetails.MoTa;
+                    document.getElementById('productFullDescription').innerHTML = productDetails.MoTa || '<p>Thông tin sản phẩm đang được cập nhật.</p>';
+
+                    // Load Hình ảnh
+                    initGallery(productDetails.HinhAnh, productDetails.AnhChiTiet);
+
+                    // Load Đánh giá
+                    initReviews(data.reviews);
+
+                    // Load Sản phẩm liên quan
+                    loadRelatedProducts(productDetails.MaDM, productDetails.MaSP);
+                    loadDetailWallet();
+                } else {
+                    showToast(data.message, "error");
+                }
+            } catch (e) {
+                console.error("Lỗi cào API:", e);
+                showToast("Lỗi kết nối tới máy chủ backend!", "error");
+            }
+        }
+
+        async function loadDetailWallet() {
+            const balance = document.getElementById('detailWalletBalance');
+            const link = document.getElementById('detailDepositLink');
+            try {
+                const user = await window.BadmintonAuth.me();
+                if (!user) {
+                    balance.textContent = 'Chưa đăng nhập';
+                    link.href = `dangnhap.html?next=${encodeURIComponent(location.pathname + location.search)}`;
+                    link.textContent = 'Đăng nhập để nạp tiền →';
+                    return;
+                }
+                balance.textContent = `${Number(user.balance || 0).toLocaleString('vi-VN')} ₫`;
+            } catch (_) {
+                balance.textContent = 'Chưa đăng nhập';
+            }
+        }
+
+        // --- Gallery hình ảnh ---
+        function initGallery(mainImg, detailImgs) {
+            const mainImgEl = document.querySelector('#mainProductImage');
+            const fallbackImage = 'HA/cc-removebg-preview.png';
+            const safeMainImage = window.BadmintonAuth.safeUrl(mainImg, fallbackImage);
+            mainImgEl.src = safeMainImage;
+            mainImgEl.alt = "Main product image";
+            mainImgEl.onerror = () => { mainImgEl.onerror = null; mainImgEl.src = fallbackImage; };
+
+            const container = document.getElementById('thumbnailsContainer');
+            const wrapper = document.getElementById('thumbnailsWrapper');
+            wrapper.innerHTML = '';
+
+            const addThumbnail = (imageUrl, active = false) => {
+                const safeImageUrl = window.BadmintonAuth.safeUrl(imageUrl, '');
+                if (!safeImageUrl) return;
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+                const thumb = document.createElement('img');
+                thumb.src = safeImageUrl;
+                thumb.dataset.fullImage = safeImageUrl;
+                thumb.draggable = false;
+                thumb.alt = 'Ảnh sản phẩm thu nhỏ';
+                if (active) thumb.classList.add('active-thumbnail');
+                thumb.addEventListener('click', () => selectThumbnail(thumb, safeImageUrl));
+                slide.appendChild(thumb);
+                wrapper.appendChild(slide);
+            };
+
+            // Thumbnail chính
+            addThumbnail(safeMainImage, true);
+
+            // Thumbnail con
+            if (Array.isArray(detailImgs)) {
+                [...new Set(detailImgs.filter(imgUrl => imgUrl && imgUrl !== mainImg))].forEach(imgUrl => {
+                    addThumbnail(imgUrl);
+                });
+            }
+
+            // Khôi phục Swiper thật giống các trang chi tiết ban đầu.
+            if (thumbnailSwiper) thumbnailSwiper.destroy(true, true);
+            if (window.Swiper) {
+                thumbnailSwiper = new Swiper(container, {
+                    slidesPerView: 3.35,
+                    spaceBetween: 12,
+                    freeMode: { enabled: true, momentum: true },
+                    grabCursor: true,
+                    watchOverflow: false,
+                    resistanceRatio: 0.72,
+                    observer: true,
+                    observeParents: true,
+                    breakpoints: {
+                        520: { slidesPerView: 4.25 },
+                        900: { slidesPerView: 4.6 }
+                    }
+                });
+                container.classList.remove('native-gallery');
+            } else {
+                // Hoạt động ngay cả khi CDN Swiper bị chặn hoặc mất mạng.
+                container.classList.add('native-gallery');
+                let dragging = false;
+                let startX = 0;
+                let startScroll = 0;
+                container.onpointerdown = event => {
+                    dragging = true;
+                    startX = event.clientX;
+                    startScroll = container.scrollLeft;
+                    container.classList.add('is-dragging');
+                    container.setPointerCapture?.(event.pointerId);
+                };
+                container.onpointermove = event => {
+                    if (!dragging) return;
+                    container.scrollLeft = startScroll - (event.clientX - startX);
+                };
+                container.onpointerup = container.onpointercancel = event => {
+                    dragging = false;
+                    container.classList.remove('is-dragging');
+                    container.releasePointerCapture?.(event.pointerId);
+                };
+            }
+
+            // Hiệu ứng Hover Phóng to Zoom ảnh chính
+            const imgBox = document.getElementById('mainImgContainer');
+            imgBox.addEventListener('mousemove', e => {
+                const img = imgBox.querySelector('img');
+                const rect = imgBox.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                img.style.transformOrigin = `${x}px ${y}px`;
+                img.style.transform = 'scale(1.8)';
+            });
+
+            imgBox.addEventListener('mouseleave', () => {
+                const img = imgBox.querySelector('img');
+                img.style.transformOrigin = 'center';
+                img.style.transform = 'scale(1)';
+            });
+        }
+
+        function selectThumbnail(thumbEl, imgUrl) {
+            document.querySelectorAll('#thumbnailsContainer img').forEach(t => t.classList.remove('active-thumbnail'));
+            thumbEl.classList.add('active-thumbnail');
+            
+            const mainImg = document.querySelector('#mainProductImage');
+            mainImg.style.opacity = '0.3';
+            mainImg.style.transition = 'opacity 0.2s';
+            setTimeout(() => {
+                mainImg.src = imgUrl;
+                mainImg.style.opacity = '1';
+            }, 200);
+        }
+
+        // --- Tải Đánh giá sản phẩm ---
+        function initReviews(reviews) {
+            const header = document.getElementById('reviewsTabHeader');
+            header.textContent = `ĐÁNH GIÁ (${reviews.length})`;
+            const list = document.getElementById('reviewsList');
+            const average = reviews.length ? reviews.reduce((sum, item) => sum + Number(item.Diem || 0), 0) / reviews.length : 0;
+            document.getElementById('reviewAverage').textContent = average.toFixed(1);
+            document.getElementById('reviewAverageStars').textContent = `${'★'.repeat(Math.round(average))}${'☆'.repeat(5 - Math.round(average))}`;
+            document.getElementById('reviewCountLabel').textContent = reviews.length ? `${reviews.length} nhận xét` : 'Chưa có đánh giá';
+            if (reviews.length === 0) {
+                list.innerHTML = '<div class="review-empty"><span>☆</span><strong>Chưa có nhận xét</strong><p>Hãy chia sẻ cảm nhận đầu tiên về sản phẩm này.</p></div>';
+                return;
+            }
+            list.innerHTML = '';
+            reviews.forEach(r => {
+                const card = document.createElement('div');
+                card.className = 'review-card';
+                const top = document.createElement('div'); top.className = 'review-header';
+                const identity = document.createElement('div'); identity.className = 'review-identity';
+                const avatar = document.createElement('span'); avatar.className = 'review-avatar'; avatar.textContent = String(r.HoTen || r.TenDangNhap || 'K').charAt(0).toUpperCase();
+                const copy = document.createElement('div'); const name = document.createElement('strong'); name.textContent = r.HoTen || r.TenDangNhap;
+                const meta = document.createElement('span'); meta.textContent = `@${r.TenDangNhap}`; copy.append(name, meta);
+                identity.append(avatar, copy); top.appendChild(identity);
+                const date = document.createElement('time'); date.className = 'review-date'; date.textContent = new Date(String(r.NgayDanhGia).replace(' ', 'T')).toLocaleDateString('vi-VN'); top.appendChild(date);
+                const rating = document.createElement('div'); rating.className = 'review-rating'; rating.textContent = `${'★'.repeat(Number(r.Diem))}${'☆'.repeat(5 - Number(r.Diem))}`;
+                if (r.DaMuaXacThuc) { const verified = document.createElement('span'); verified.className = 'review-verified'; verified.textContent = '✓ Đã mua hàng'; rating.appendChild(verified); }
+                const content = document.createElement('p'); content.textContent = r.NoiDung || '';
+                card.append(top, rating, content);
+                list.appendChild(card);
+            });
+        }
+
+        // Form viết đánh giá
+        function setReviewRating(rating) {
+            selectedRating = rating;
+            const stars = document.querySelectorAll('#starsSelector button');
+            stars.forEach((s, idx) => {
+                if (idx < rating) {
+                    s.classList.add('active-star');
+                } else {
+                    s.classList.remove('active-star');
+                }
+                s.setAttribute('aria-checked', idx + 1 === rating ? 'true' : 'false');
+            });
+            document.getElementById('ratingLabel').textContent = `${['','Rất tệ','Chưa tốt','Bình thường','Hài lòng','Tuyệt vời'][rating]} · ${rating} sao`;
+        }
+
+        async function submitReview(event) {
+            event.preventDefault();
+            if (!window.BadmintonAuth?.getToken?.()) {
+                showToast("Vui lòng đăng nhập để đánh giá!", "warning");
+                const next = encodeURIComponent(`chitiet.html?id=${currentProductId}#reviews`);
+                setTimeout(() => window.location.href = `dangnhap.html?next=${next}`, 800);
+                return;
+            }
+
+            const comment = document.getElementById('reviewComment').value.trim();
+            if (comment.length < 5) return showToast('Nhận xét cần ít nhất 5 ký tự.', 'warning');
+            const button = document.getElementById('reviewSubmit');
+            button.disabled = true; button.textContent = 'Đang gửi…';
+
+            try {
+                const data = await window.BadmintonAuth.request('/api/danh-gia', { method: 'POST', json: { ma_san_pham: currentProductId, diem: selectedRating, noi_dung: comment } });
+                showToast(data.message || "Cảm ơn bạn đã viết đánh giá!", "success");
+                document.getElementById('reviewComment').value = ''; document.getElementById('reviewChars').textContent = '0';
+                const fresh = await fetch(`${API_BASE}/api/san-pham/${currentProductId}`).then(response => response.json());
+                initReviews(fresh.reviews || []);
+            } catch (e) {
+                showToast(e.message || "Không thể gửi đánh giá.", "error");
+            } finally {
+                button.disabled = false; button.innerHTML = 'Gửi đánh giá <span>→</span>';
+            }
+        }
+
+        // --- Tabs ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-header').forEach(h => h.classList.remove('active-tab'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active-tab-content'));
+
+            event.target.classList.add('active-tab');
+            document.getElementById(tabId).classList.add('active-tab-content');
+        }
+
+        // --- Tác vụ Mua hàng ---
+        function triggerAddToCart() {
+            themVaoGioHang(currentProductId);
+        }
+
+        function triggerBuyNow() {
+            muaNgay(currentProductId);
+        }
+
+        async function saveToWishlist() {
+            if (!window.BadmintonAuth?.getToken?.()) {
+                const next = encodeURIComponent(`chitiet.html?id=${currentProductId}`);
+                window.location.href = `dangnhap.html?next=${next}`;
+                return;
+            }
+            const button = document.getElementById('wishlistDetailButton');
+            button.disabled = true;
+            try {
+                const data = await window.BadmintonAuth.request(`/api/yeu-thich/${currentProductId}`, { method: 'POST' });
+                button.textContent = '♥ ĐÃ LƯU VÀO YÊU THÍCH';
+                showToast(data.message || 'Đã lưu sản phẩm yêu thích.', 'success');
+            } catch (error) {
+                showToast(error.message || 'Không thể lưu sản phẩm.', 'error');
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        // --- Tải Sản phẩm liên quan gợi ý ---
+        async function loadRelatedProducts(danhMucId, maSp) {
+            const grid = document.getElementById('relatedProductsGrid');
+            grid.innerHTML = '<div style="color:var(--text-muted); padding:20px; text-align:center; grid-column:1/-1;">Đang tải sản phẩm liên quan...</div>';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/san-pham/goi-y?danh_muc=${danhMucId}&ma_sp=${maSp}&limit=4`);
+                const data = await res.json();
+
+                if (data.success && data.products.length > 0) {
+                    grid.innerHTML = '';
+                    data.products.forEach(p => {
+                        const productId = Number(p.MaSP);
+                        if (!Number.isInteger(productId) || productId <= 0) return;
+                        const relatedSale = Number(p.GiaGoc || 0) > Number(p.GiaBan || 0);
+                        const card = document.createElement('div');
+                        card.className = 'product-card-upgraded';
+                        const href = `chitiet.html?id=${productId}`;
+                        const media = document.createElement('a'); media.href = href; media.className = 'img-container';
+                        const image = document.createElement('img'); image.src = window.BadmintonAuth.safeUrl(p.HinhAnh, 'HA/cc-removebg-preview.png'); image.alt = String(p.TenSP || 'Sản phẩm cầu lông'); image.loading = 'lazy'; image.decoding = 'async'; media.appendChild(image);
+                        const info = document.createElement('div'); info.className = 'card-info';
+                        const brand = document.createElement('span'); brand.className = 'brand-tag'; brand.textContent = p.ThuongHieu || 'Chính hãng';
+                        const title = document.createElement('h3'); title.className = 'title'; const link = document.createElement('a'); link.href = href; link.textContent = p.TenSP || 'Sản phẩm cầu lông'; link.style.textDecoration = 'none'; link.style.color = 'inherit'; title.appendChild(link);
+                        const priceRow = document.createElement('div'); priceRow.className = 'price-row'; const stack = document.createElement('span'); stack.className = 'price-stack';
+                        if (relatedSale) { const original = document.createElement('span'); original.className = 'original-price'; original.textContent = `${Number(p.GiaGoc).toLocaleString('vi-VN')} ₫`; stack.appendChild(original); }
+                        const price = document.createElement('span'); price.className = 'price'; price.textContent = `${Number(p.GiaBan || 0).toLocaleString('vi-VN')} ₫`; stack.appendChild(price);
+                        const rating = document.createElement('span'); rating.className = 'rating'; rating.textContent = `⭐ ${Number(p.DanhGiaTrungBinh || 5).toFixed(1)}`;
+                        priceRow.append(stack, rating); info.append(brand, title, priceRow); card.append(media, info);
+                        grid.appendChild(card);
+                    });
+                } else {
+                    grid.innerHTML = '<div style="color:var(--text-muted); padding:20px; text-align:center; grid-column:1/-1;">Không có sản phẩm liên quan.</div>';
+                }
+            } catch(e) {
+                console.error("Lỗi liên quan:", e);
+            }
+        }
+
+        // Khởi động trang chi tiết sản phẩm
+        document.addEventListener('DOMContentLoaded', () => {
+            setReviewRating(5);
+            const comment = document.getElementById('reviewComment');
+            comment.addEventListener('input', () => { document.getElementById('reviewChars').textContent = String(comment.value.length); });
+            window.BadmintonAuth.me().then(user => {
+                document.getElementById('reviewLoginHint').textContent = user
+                    ? `Bạn đang đánh giá với tài khoản @${user.username}. Một tài khoản có thể cập nhật một đánh giá cho mỗi sản phẩm.`
+                    : 'Bạn cần đăng nhập để gửi đánh giá. Khách đã mua sẽ có dấu “Đã mua hàng”.';
+            });
+            initProductDetail();
+        });
+    </script>
+</body>
+</html>

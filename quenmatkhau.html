@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Khôi phục mật khẩu tài khoản Badminton Store an toàn qua email.">
+    <meta name="theme-color" content="#e9381b">
+    <title>Quên mật khẩu | Badminton Store</title>
+    <link rel="stylesheet" href="css/tutaoo.css?v=20260808-8">
+    <link rel="stylesheet" href="css/account.css?v=20260816-1">
+    <script src="css/auth.js?v=20260815-1" defer></script>
+    <script src="css/password-reset.js?v=20260816-1" defer></script>
+    <link rel="stylesheet" href="css/site-refresh.css?v=20260815-1">
+</head>
+<body class="account-body" data-password-page="forgot">
+    <a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+    <div class="header"></div><div id="menu"></div>
+    <main id="main-content" class="auth-stage">
+        <section class="auth-layout" aria-labelledby="forgot-title">
+            <div class="auth-story">
+                <a class="auth-story__back" href="dangnhap.html">← Trở lại đăng nhập</a>
+                <p class="eyebrow">Khôi phục an toàn</p>
+                <h1>Lấy lại quyền truy cập.</h1>
+                <p>Nhập email đã đăng ký. Liên kết đặt lại chỉ dùng một lần và tự hết hạn sau thời gian ngắn.</p>
+                <div class="auth-benefits" aria-label="Bảo vệ tài khoản">
+                    <div><span aria-hidden="true">01</span><p><strong>Không tiết lộ tài khoản</strong>Phản hồi giống nhau với mọi email.</p></div>
+                    <div><span aria-hidden="true">02</span><p><strong>Liên kết một lần</strong>Token được lưu dưới dạng hash.</p></div>
+                    <div><span aria-hidden="true">03</span><p><strong>Thu hồi phiên cũ</strong>Sau khi đổi mật khẩu, thiết bị cũ sẽ đăng xuất.</p></div>
+                </div>
+            </div>
+            <div class="auth-card">
+                <div class="auth-card__heading"><span class="auth-card__mark" aria-hidden="true">B</span><div><p class="eyebrow">Tài khoản</p><h2 id="forgot-title">Quên mật khẩu</h2></div></div>
+                <form id="forgotPasswordForm" class="account-form" novalidate>
+                    <div class="field"><label for="forgotEmail">Email đã đăng ký</label><input id="forgotEmail" name="email" type="email" autocomplete="email" maxlength="120" required placeholder="vidu@email.com"><span class="field__error" id="forgotEmailError"></span></div>
+                    <p id="passwordResetStatus" class="form-status" role="alert" aria-live="polite"></p>
+                    <button id="forgotPasswordSubmit" class="primary-button" type="submit"><span>Gửi liên kết</span><span aria-hidden="true">→</span></button>
+                </form>
+                <p class="auth-switch">Đã nhớ mật khẩu? <a href="dangnhap.html">Đăng nhập</a></p>
+            </div>
+        </section>
+    </main>
+    <div id="cuoitrang"></div>
+</body>
+</html>

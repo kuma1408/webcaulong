@@ -1,0 +1,13 @@
+{
+  "name": "badminton-store-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node scripts/check-home.mjs && node scripts/check-site.mjs && node scripts/modernize-html.mjs --check",
+    "check:home": "node scripts/check-home.mjs",
+    "check:site": "node scripts/check-site.mjs",
+    "modernize:check": "node scripts/modernize-html.mjs --check",
+    "build": "node scripts/build-site.mjs"
+  }
+}

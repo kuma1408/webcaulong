@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Python dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+
+      - name: Compile Python
+        run: python -m compileall -q HA wsgi.py
+
+      - name: Backend smoke tests
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_NAME: shop_caulong_ci
+          DB_USER: shop_ci
+          DB_PASSWORD: not-used-by-mocked-tests
+          CORS_ORIGINS: http://127.0.0.1:8000
+        run: python -m unittest HA.smoke_test -v
+
+      - name: Frontend checks
+        run: npm run check
+
+      - name: Production frontend build
+        run: npm run build
