@@ -12,7 +12,8 @@ Flask + MySQL.
   chung, gallery kéo/thả, yêu thích, đánh giá của khách đã mua.
 - Bán hàng: giỏ hàng, kiểm tra tồn kho trong transaction, voucher một lần mỗi
   tài khoản, COD hoặc số dư, hủy/hoàn tiền và lịch sử đơn.
-- Quản trị: sản phẩm, ảnh, sale, đơn hàng và mặt hàng trong đơn, người dùng,
+- Quản trị: sản phẩm, tải/nén ảnh và nhiều ảnh Swiper trực tiếp từ máy, sale,
+  đơn hàng và mặt hàng trong đơn, người dùng,
   nội dung tin tức/hướng dẫn, voucher, nạp tiền, nhật ký trước/sau và cơ chế
   Super Admin xác nhận/hoàn tác.
 - Vận hành: migration additive, WSGI, header bảo mật, rate limit, kiểm tra upload,
@@ -70,3 +71,8 @@ Hướng dẫn từng bước cho tài khoản GitHub Student và Alwaysdata n�
 [`docs/GITHUB_STUDENT_DEPLOY.md`](docs/GITHUB_STUDENT_DEPLOY.md). GitHub Pages
 không chạy được API Flask/MySQL; trong kiến trúc này GitHub giữ mã nguồn và
 chạy CI/CD, còn Alwaysdata chạy ứng dụng thật.
+
+Với phương án hiện tại, GitHub Student được dùng cho repository riêng, Actions,
+Dependabot và ưu đãi domain; Alwaysdata chạy Flask/MySQL. Không cần đăng ký Azure
+và không có cơ chế tự tiêu 100 USD credit. Một nền tảng cloud khác chỉ là phương
+án tùy chọn trong tương lai, không phải điều kiện để website hoạt động.

@@ -4,6 +4,7 @@ dist/
 .sites-release/
 .idea/
 HA/avatars/
+HA/uploads/
 *.tar.gz
 *.sql
 *.sqlite

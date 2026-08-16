@@ -78,6 +78,7 @@ jobs:
             --exclude=node_modules \
             --exclude=dist \
             --exclude=HA/avatars \
+            --exclude=HA/uploads \
             --exclude='*.sql' \
             --exclude='*.tar.gz' \
             -czf webcaulong-release.tar.gz .

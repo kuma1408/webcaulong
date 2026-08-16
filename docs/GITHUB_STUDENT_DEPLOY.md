@@ -149,10 +149,23 @@ nhật ký và phê duyệt quản trị mà không xóa dữ liệu bán hàng.
 5. Mở `https://haianh.alwaysdata.net/api/health`, sau đó thử đăng nhập, giỏ hàng,
    đặt đơn, admin và tải ảnh.
 
-Workflow tạo bản sao code cũ trong `~/backups`, giữ nguyên `.env`, `.venv` và
-`HA/avatars`, chạy smoke test rồi chạm `wsgi.py` để ứng dụng nạp phiên bản mới.
+Workflow giải nén vào thư mục tạm và chạy kiểm thử trước khi thay website đang
+hoạt động. Nó giữ nguyên `.env`, `.venv`, `HA/avatars`, `HA/uploads`, chỉ lưu ba
+bản sao code gần nhất và sẽ dừng nếu database còn migration chưa áp dụng.
 
-## 9. Khi đăng nhập báo “Không thể đăng nhập lúc này”
+## 9. Tạo bảo trì tự động miễn phí
+
+Vào Alwaysdata > **Advanced > Scheduled tasks**, tạo tác vụ chạy mỗi ngày một
+lần với lệnh:
+
+```bash
+cd /home/haianh/www/webcaulong && .venv/bin/python -m HA.maintenance --apply
+```
+
+Tác vụ chỉ dọn phiên đăng nhập và token đặt lại mật khẩu đã vô hiệu ít nhất 7
+ngày. Nó không xóa tài khoản, đơn hàng, giao dịch hoặc nhật ký quản trị.
+
+## 10. Khi đăng nhập báo “Không thể đăng nhập lúc này”
 
 SSH vào server và chạy:
 

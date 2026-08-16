@@ -38,13 +38,20 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 
 load_dotenv()
+from HA.media_storage import (
+    MediaStorageError,
+    delete_avatar,
+    save_avatar,
+    save_public_image,
+)
+
 app = Flask(__name__)
 app.json.ensure_ascii = False
 app.config.update(
     JSON_SORT_KEYS=False,
-    # Chừa phần header multipart nhưng từng ảnh vẫn bị giới hạn đúng 2 MB.
-    MAX_CONTENT_LENGTH=3 * 1024 * 1024,
-    MAX_FORM_MEMORY_SIZE=3 * 1024 * 1024,
+    # Chừa phần header multipart; từng ảnh vẫn được kiểm tra riêng ở backend.
+    MAX_CONTENT_LENGTH=4 * 1024 * 1024,
+    MAX_FORM_MEMORY_SIZE=4 * 1024 * 1024,
     MAX_FORM_PARTS=20,
 )
 
@@ -89,6 +96,19 @@ DB_CONFIG = {
     "connection_timeout": 8,
 }
 
+# Khi MySQL cloud yêu cầu TLS, CA được dùng để xác minh cả certificate và
+# hostname, tránh kết nối tới máy chủ giả mạo.
+DB_SSL_CA = os.getenv("DB_SSL_CA", "").strip()
+if DB_SSL_CA:
+    if not os.path.isfile(DB_SSL_CA):
+        raise RuntimeError("DB_SSL_CA không trỏ tới một tệp CA hợp lệ.")
+    DB_CONFIG.update(
+        ssl_ca=DB_SSL_CA,
+        ssl_verify_cert=True,
+        ssl_verify_identity=True,
+        tls_versions=["TLSv1.2", "TLSv1.3"],
+    )
+
 SESSION_DAYS = max(1, min(int(os.getenv("SESSION_DAYS", "7")), 30))
 PASSWORD_RESET_MINUTES = max(10, min(int(os.getenv("PASSWORD_RESET_MINUTES", "30")), 120))
 LOGIN_MAX_ATTEMPTS = 5
@@ -103,6 +123,8 @@ PRODUCT_PRICE_MAX = Decimal("9999999999.99")
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AVATAR_MAX_BYTES = 2 * 1024 * 1024
 AVATAR_SIZE = (512, 512)
+PUBLIC_IMAGE_MAX_BYTES = 3 * 1024 * 1024
+PUBLIC_IMAGE_MAX_SIZE = (1800, 1800)
 PUBLIC_FILE_EXTENSIONS = {
     ".html", ".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".avif"
 }
@@ -339,20 +361,52 @@ def normalized_avatar(uploaded) -> bytes:
         raise ValueError("avatar_invalid") from exc
 
 
-def write_private_file(path: str, data: bytes) -> None:
-    """Ghi nguyên tử để tránh tệp ảnh dở dang khi tiến trình bị ngắt."""
-    temporary_path = f"{path}.{secrets.token_hex(6)}.tmp"
+def normalized_public_image(uploaded) -> bytes:
+    """Xác thực và nén ảnh admin tải lên, giữ nguyên tỉ lệ sản phẩm."""
+    if not uploaded or not getattr(uploaded, "filename", ""):
+        raise ValueError("image_missing")
+    raw = uploaded.read(PUBLIC_IMAGE_MAX_BYTES + 1)
+    if len(raw) > PUBLIC_IMAGE_MAX_BYTES:
+        raise ValueError("image_too_large")
+    if not raw:
+        raise ValueError("image_invalid")
     try:
-        with open(temporary_path, "xb") as handle:
-            handle.write(data)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary_path, path)
-    finally:
-        try:
-            os.remove(temporary_path)
-        except OSError:
-            pass
+        Image.MAX_IMAGE_PIXELS = 24_000_000
+        with Image.open(io.BytesIO(raw)) as probe:
+            if (probe.format or "").upper() not in {"JPEG", "PNG", "WEBP"}:
+                raise ValueError("image_type")
+            probe.verify()
+        with Image.open(io.BytesIO(raw)) as source:
+            source = ImageOps.exif_transpose(source)
+            if source.width < 64 or source.height < 64:
+                raise ValueError("image_too_small")
+            frame = source.convert("RGBA")
+            frame.thumbnail(PUBLIC_IMAGE_MAX_SIZE, Image.Resampling.LANCZOS)
+            background = Image.new("RGB", frame.size, "white")
+            background.paste(frame, mask=frame.getchannel("A"))
+            output = io.BytesIO()
+            background.save(output, "WEBP", quality=86, method=6, exif=b"")
+            result = output.getvalue()
+            if not result or len(result) > PUBLIC_IMAGE_MAX_BYTES:
+                raise ValueError("image_invalid")
+            return result
+    except ValueError:
+        raise
+    except (UnidentifiedImageError, Image.DecompressionBombError, OSError, SyntaxError) as exc:
+        raise ValueError("image_invalid") from exc
+
+
+def public_image_validation_error(error: ValueError):
+    code = str(error)
+    messages = {
+        "image_missing": ("Vui lòng chọn ảnh cần tải lên.", 400),
+        "image_too_large": ("Ảnh không được vượt quá 3 MB.", 413),
+        "image_type": ("Chỉ chấp nhận ảnh JPG, PNG hoặc WebP.", 415),
+        "image_too_small": ("Ảnh cần có kích thước tối thiểu 64×64 px.", 400),
+        "image_invalid": ("Tệp đã chọn không phải ảnh hợp lệ.", 415),
+    }
+    message, status = messages.get(code, messages["image_invalid"])
+    return api_error(message, status, code if code in messages else "image_invalid")
 
 
 def avatar_validation_error(error: ValueError):
@@ -1138,12 +1192,11 @@ def update_avatar():
         image_data = normalized_avatar(uploaded)
     except ValueError as error:
         return avatar_validation_error(error)
-    avatar_folder = os.path.join(PROJECT_ROOT, "HA", "avatars")
-    os.makedirs(avatar_folder, exist_ok=True)
-    filename = f"user-{g.current_user['MaND']}-{secrets.token_hex(8)}.webp"
-    relative_path = f"HA/avatars/{filename}"
-    disk_path = os.path.join(avatar_folder, filename)
-    write_private_file(disk_path, image_data)
+    try:
+        relative_path = save_avatar(g.current_user["MaND"], image_data)
+    except MediaStorageError:
+        app.logger.exception("Không thể lưu ảnh đại diện")
+        return api_error("Kho ảnh đang tạm thời không khả dụng.", 503, "media_storage_unavailable")
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
@@ -1153,21 +1206,12 @@ def update_avatar():
         conn.commit()
     except Exception:
         conn.rollback()
-        try:
-            os.remove(disk_path)
-        except OSError:
-            pass
+        delete_avatar(relative_path)
         raise
     finally:
         cursor.close()
         conn.close()
-    if old_avatar and old_avatar.startswith("HA/avatars/"):
-        old_path = os.path.abspath(os.path.join(PROJECT_ROOT, old_avatar.replace("/", os.sep)))
-        if old_path.startswith(os.path.abspath(avatar_folder) + os.sep):
-            try:
-                os.remove(old_path)
-            except OSError:
-                pass
+    delete_avatar(old_avatar)
     return jsonify({"success": True, "message": "Đã cập nhật ảnh đại diện.", "avatar": relative_path})
 
 
@@ -2095,6 +2139,43 @@ def review_product():
 # ---------------------------------------------------------------------------
 
 
+@app.post("/api/admin/media")
+@admin_required
+def admin_upload_media():
+    """Tải một ảnh sản phẩm/nội dung lên kho bền vững của website."""
+    limited = enforce_rate_limit(
+        "admin-media", str(g.current_user["MaND"]), 80, 60 * 60
+    )
+    if limited:
+        return limited
+    purpose = str(request.form.get("purpose", "products")).strip().lower()
+    if purpose not in {"products", "content"}:
+        return api_error("Nhóm ảnh không hợp lệ.", 400, "invalid_media_purpose")
+    try:
+        image_data = normalized_public_image(request.files.get("image"))
+    except ValueError as error:
+        return public_image_validation_error(error)
+    try:
+        public_path = save_public_image(purpose, image_data)
+    except MediaStorageError:
+        app.logger.exception("Không thể lưu ảnh quản trị tải lên")
+        return api_error(
+            "Kho ảnh đang tạm thời không khả dụng.",
+            503,
+            "media_storage_unavailable",
+        )
+    return (
+        jsonify(
+            {
+                "success": True,
+                "message": "Đã tải và tối ưu ảnh.",
+                "path": public_path,
+            }
+        ),
+        201,
+    )
+
+
 @app.get("/api/admin/tong-quan")
 @app.get("/api/admin/dashboard")
 @admin_required
@@ -2691,11 +2772,7 @@ def admin_update_user_avatar(user_id):
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    avatar_folder = os.path.join(PROJECT_ROOT, "HA", "avatars")
-    os.makedirs(avatar_folder, exist_ok=True)
-    filename = f"user-{user_id}-{secrets.token_hex(8)}.webp"
-    relative_path = f"HA/avatars/{filename}"
-    disk_path = os.path.join(avatar_folder, filename)
+    relative_path = None
     try:
         conn.start_transaction()
         cursor.execute(
@@ -2710,7 +2787,12 @@ def admin_update_user_avatar(user_id):
         if target.get("VaiTro") == "superadmin" or (target.get("VaiTro") == "admin" and not is_superadmin()):
             conn.rollback()
             return api_error("Bạn không có quyền đổi ảnh của quản trị viên này.", 403, "protected_admin")
-        write_private_file(disk_path, image_data)
+        try:
+            relative_path = save_avatar(user_id, image_data)
+        except MediaStorageError:
+            conn.rollback()
+            app.logger.exception("Không thể lưu ảnh đại diện do quản trị viên tải lên")
+            return api_error("Kho ảnh đang tạm thời không khả dụng.", 503, "media_storage_unavailable")
         cursor.execute("UPDATE NguoiDung SET Avatar=%s WHERE MaND=%s", (relative_path, user_id))
         current = dict(target)
         current["Avatar"] = relative_path
@@ -2718,10 +2800,7 @@ def admin_update_user_avatar(user_id):
         conn.commit()
     except Exception:
         conn.rollback()
-        try:
-            os.remove(disk_path)
-        except OSError:
-            pass
+        delete_avatar(relative_path)
         raise
     finally:
         cursor.close()

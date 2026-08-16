@@ -7,6 +7,7 @@ import pathlib
 import unittest
 
 from PIL import Image
+from werkzeug.datastructures import FileStorage
 
 from HA.app import (
     SlidingWindowLimiter,
@@ -14,6 +15,7 @@ from HA.app import (
     normalize_public_url,
     normalize_sql_table_names,
     normalized_avatar,
+    normalized_public_image,
     sanitize_rich_text,
     verify_password,
 )
@@ -68,7 +70,7 @@ class ApiSmokeTest(unittest.TestCase):
 
         oversized = self.client.post(
             "/api/dang-nhap",
-            data=b'{"payload":"' + b"x" * (3 * 1024 * 1024 + 1) + b'"}',
+            data=b'{"payload":"' + b"x" * (4 * 1024 * 1024 + 1) + b'"}',
             content_type="application/json",
         )
         self.assertEqual(oversized.status_code, 413)
@@ -145,6 +147,20 @@ class ApiSmokeTest(unittest.TestCase):
     def test_fake_image_signature_is_rejected(self):
         with self.assertRaises(ValueError):
             normalized_avatar(io.BytesIO(b"\xff\xd8\xff" + b"not-a-real-image"))
+
+    def test_admin_media_requires_bearer_token(self):
+        response = self.client.post("/api/admin/media")
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.get_json()["code"], "unauthorized")
+
+    def test_product_image_is_reencoded_without_square_crop(self):
+        source = io.BytesIO()
+        Image.new("RGB", (2400, 1200), (250, 90, 30)).save(source, format="PNG")
+        source.seek(0)
+        output = normalized_public_image(FileStorage(stream=source, filename="product.png"))
+        with Image.open(io.BytesIO(output)) as image:
+            self.assertEqual(image.format, "WEBP")
+            self.assertEqual(image.size, (1800, 900))
 
     def test_rate_limiter_rejects_after_limit(self):
         limiter = SlidingWindowLimiter()

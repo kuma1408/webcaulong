@@ -722,6 +722,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Thực thi thay đổi. Nếu bỏ qua, script chỉ kiểm tra và in kế hoạch.",
     )
+    parser.add_argument(
+        "--require-current",
+        action="store_true",
+        help="Thoát với mã lỗi nếu còn migration chưa áp dụng; phù hợp bước kiểm tra trước deploy.",
+    )
     return parser.parse_args(argv)
 
 
@@ -734,11 +739,19 @@ def main(argv: list[str] | None = None) -> int:
         conn = mysql.connector.connect(**config)
         cursor = conn.cursor()
         plan = build_plan(cursor, config["database"])
+        if args.apply and args.require_current:
+            raise ValueError("Không dùng đồng thời --apply và --require-current.")
         if args.apply:
             print("Lưu ý: MySQL tự commit từng câu DDL. Script có thể chạy lại an toàn nếu bị gián đoạn.")
             apply_plan(conn, cursor, config["database"])
         else:
             print_plan(plan, apply=False)
+            if args.require_current and plan:
+                print(
+                    "Database chưa ở schema hiện hành; hãy sao lưu rồi chạy migration với --apply.",
+                    file=sys.stderr,
+                )
+                return 3
         return 0
     except (Error, RuntimeError, ValueError) as exc:
         print(f"Lỗi migration: {exc}", file=sys.stderr)

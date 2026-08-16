@@ -80,6 +80,47 @@
         const source = String(value || '').trim();
         return !source || /^(?:javascript|data):/i.test(source) ? 'HA/cc-removebg-preview.png' : source;
     }
+    function renderProductMediaPreviews() {
+        const main = $('#productImagePreview');
+        if (main) main.src = safeImage($('#productImage').value);
+        const gallery = $('#productDetailPreview');
+        if (!gallery) return;
+        gallery.innerHTML = '';
+        const images = $('#productDetailImages').value
+            .split(/\r?\n|,/).map((value) => value.trim()).filter(Boolean);
+        images.slice(0, 12).forEach((source, index) => {
+            const image = document.createElement('img');
+            image.src = safeImage(source);
+            image.alt = `Ảnh chi tiết ${index + 1}`;
+            image.loading = 'lazy';
+            gallery.appendChild(image);
+        });
+    }
+    function renderContentImagePreview() {
+        const preview = $('#contentImagePreview');
+        if (preview) preview.src = safeImage($('#contentImage').value);
+    }
+    async function uploadAdminImage(file, purpose, button, statusTarget) {
+        if (!file) return '';
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 3 * 1024 * 1024) {
+            throw new Error('Ảnh phải là JPG, PNG hoặc WebP và không quá 3 MB.');
+        }
+        const form = new FormData();
+        form.append('image', file);
+        form.append('purpose', purpose);
+        setBusy(button, true, 'Đang tải ảnh…');
+        if (statusTarget) statusTarget.textContent = 'Đang nén và tải ảnh lên máy chủ…';
+        try {
+            const response = await fetch(`${window.API_BASE}/api/admin/media`, {
+                method: 'POST', headers: { Authorization: `Bearer ${Auth.getToken()}` }, body: form
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || data.success === false) throw new Error(data.message || 'Không thể tải ảnh lên máy chủ.');
+            if (!data.path) throw new Error('Máy chủ không trả về đường dẫn ảnh.');
+            if (statusTarget) statusTarget.textContent = 'Tải ảnh thành công.';
+            return data.path;
+        } finally { setBusy(button, false); }
+    }
     function userAvatar(user = {}) {
         const name = user.HoTen || user.TenDangNhap || user.fullname || user.username || 'U';
         const avatar = element('i', 'admin-user-avatar', name.charAt(0).toUpperCase());
@@ -298,6 +339,8 @@
         $('#productSourceUrl').value = product?.NguonURL || '';
         $('#productDescription').value = product?.MoTa || '';
         $('#productActive').checked = product ? Boolean(product.TrangThai) : true;
+        $('#productDetailUploadStatus').textContent = 'Có thể chọn nhiều ảnh, hệ thống sẽ tự nén và thêm vào Swiper.';
+        renderProductMediaPreviews();
         setStatus($('#productFormStatus'));
         $('#productDialog').showModal();
     }
@@ -534,7 +577,7 @@
 
     async function loadContent(){const tbody=$('#contentRows');emptyRow(tbody,5,'Đang tải nội dung…');try{const data=await Auth.request(`/api/admin/noi-dung?loai=${encodeURIComponent($('#contentTypeFilter').value)}`);state.content=data.items||[];renderContent();}catch(error){emptyRow(tbody,5,error.message);}}
     function renderContent(){const tbody=$('#contentRows');tbody.innerHTML='';if(!state.content.length)emptyRow(tbody,5,'Chưa có nội dung.');state.content.forEach((item)=>{const row=element('tr');row.append(element('td','',item.TieuDe),element('td','',item.Loai==='TIN_TUC'?'Tin tức':'Hướng dẫn'),element('td','',formatDate(item.NgayDang)));const status=element('td');status.appendChild(element('span',`admin-badge ${item.TrangThai?'admin-badge--success':'admin-badge--danger'}`,item.TrangThai?'Đang đăng':'Đã ẩn'));row.appendChild(status);const action=element('td');const actions=element('div','admin-row-actions');const edit=element('button','','Sửa');edit.type='button';edit.addEventListener('click',()=>openContentDialog(item));const toggle=element('button',item.TrangThai?'danger':'',item.TrangThai?'Ẩn':'Đăng lại');toggle.type='button';toggle.addEventListener('click',()=>saveContentStatus(item,!Boolean(item.TrangThai)));actions.append(edit,toggle);action.appendChild(actions);row.appendChild(action);tbody.appendChild(row);});}
-    function openContentDialog(item=null){$('#contentForm').reset();$('#contentId').value=item?.MaBV||'';$('#contentDialogTitle').textContent=item?'Chỉnh sửa nội dung':'Thêm nội dung';$('#contentType').value=item?.Loai||'TIN_TUC';$('#contentTitle').value=item?.TieuDe||'';$('#contentSummary').value=item?.TomTat||'';$('#contentBody').value=item?.NoiDung||'';$('#contentImage').value=item?.HinhAnh||'';$('#contentSource').value=item?.NguonURL||'';$('#contentActive').checked=item?Boolean(item.TrangThai):true;setStatus($('#contentFormStatus'));$('#contentDialog').showModal();}
+    function openContentDialog(item=null){$('#contentForm').reset();$('#contentId').value=item?.MaBV||'';$('#contentDialogTitle').textContent=item?'Chỉnh sửa nội dung':'Thêm nội dung';$('#contentType').value=item?.Loai||'TIN_TUC';$('#contentTitle').value=item?.TieuDe||'';$('#contentSummary').value=item?.TomTat||'';$('#contentBody').value=item?.NoiDung||'';$('#contentImage').value=item?.HinhAnh||'';renderContentImagePreview();$('#contentSource').value=item?.NguonURL||'';$('#contentActive').checked=item?Boolean(item.TrangThai):true;setStatus($('#contentFormStatus'));$('#contentDialog').showModal();}
     async function saveContent(event){event.preventDefault();const id=Number($('#contentId').value)||0;const payload={type:$('#contentType').value,title:$('#contentTitle').value.trim(),summary:$('#contentSummary').value.trim(),content:$('#contentBody').value.trim(),image:$('#contentImage').value.trim(),source_url:$('#contentSource').value.trim(),active:$('#contentActive').checked};const button=$('#contentSave');setBusy(button,true,'Đang lưu…');try{const data=await Auth.request(id?`/api/admin/noi-dung/${id}`:'/api/admin/noi-dung',{method:id?'PATCH':'POST',json:payload});$('#contentDialog').close();showToast(data.message,'success');loadContent();}catch(error){setStatus($('#contentFormStatus'),error.message);}finally{setBusy(button,false);}}
     async function saveContentStatus(item,active){try{const data=await Auth.request(`/api/admin/noi-dung/${item.MaBV}`,{method:'PATCH',json:{active}});showToast(data.message,'success');loadContent();}catch(error){showToast(error.message,'error');}}
 
@@ -551,6 +594,12 @@
         $('#productStatus').addEventListener('change',()=>{state.productPage=1;loadProducts();});
         $('#productSale').addEventListener('change',()=>{const enabled=$('#productSale').checked;$('#productOriginalPrice').disabled=!enabled;if(enabled)$('#productOriginalPrice').focus();else $('#productOriginalPrice').value='';});
         $('#addProduct').addEventListener('click',()=>openProductDialog());$('#productForm').addEventListener('submit',saveProduct);
+        $('#productImage').addEventListener('input', renderProductMediaPreviews);
+        $('#productDetailImages').addEventListener('input', renderProductMediaPreviews);
+        $('#uploadProductImage').addEventListener('click',()=>$('#productImageFile').click());
+        $('#productImageFile').addEventListener('change',async(event)=>{const file=event.target.files?.[0];if(!file)return;const button=$('#uploadProductImage');try{$('#productImage').value=await uploadAdminImage(file,'products',button);renderProductMediaPreviews();showToast('Đã tải ảnh đại diện sản phẩm.','success');}catch(error){setStatus($('#productFormStatus'),error.message);}finally{event.target.value='';}});
+        $('#uploadProductDetailImages').addEventListener('click',()=>$('#productDetailImageFiles').click());
+        $('#productDetailImageFiles').addEventListener('change',async(event)=>{const files=[...(event.target.files||[])];if(!files.length)return;const button=$('#uploadProductDetailImages');const status=$('#productDetailUploadStatus');button.disabled=true;const uploaded=[];try{for(let index=0;index<files.length;index+=1){status.textContent=`Đang tải ảnh ${index+1}/${files.length}…`;uploaded.push(await uploadAdminImage(files[index],'products',button,status));}const existing=$('#productDetailImages').value.trim();$('#productDetailImages').value=[existing,...uploaded].filter(Boolean).join('\n');renderProductMediaPreviews();status.textContent=`Đã thêm ${uploaded.length} ảnh vào Swiper.`;showToast(`Đã tải ${uploaded.length} ảnh chi tiết.`,'success');}catch(error){status.textContent=error.message;setStatus($('#productFormStatus'),error.message);}finally{button.disabled=false;event.target.value='';}});
         $('#productPrev').addEventListener('click',()=>{if(state.productPage>1){state.productPage-=1;loadProducts();}});$('#productNext').addEventListener('click',()=>{if(state.productPage*20<state.productTotal){state.productPage+=1;loadProducts();}});
         $('#orderSearch').addEventListener('submit',(event)=>{event.preventDefault();state.orderPage=1;loadOrders();});$('#adminOrderStatus').addEventListener('change',()=>{state.orderPage=1;loadOrders();});
         $('#adminOrderPrev').addEventListener('click',()=>{if(state.orderPage>1){state.orderPage-=1;loadOrders();}});$('#adminOrderNext').addEventListener('click',()=>{if(state.orderPage*20<state.orderTotal){state.orderPage+=1;loadOrders();}});
@@ -567,6 +616,7 @@
         $('#confirmAdminAvatarCrop').addEventListener('click',()=>{$('#adminAvatarCropCanvas').toBlob((blob)=>{if(!blob){setStatus($('#userFormStatus'),'Không thể tạo ảnh đại diện.');return;}pendingUserAvatar=new File([blob],'avatar.jpg',{type:'image/jpeg'});const url=URL.createObjectURL(blob);const preview=$('#editUserAvatarPreview');preview.textContent='';preview.style.backgroundImage=`url("${url}")`;preview.classList.add('has-image');$('#editUserAvatarName').textContent='Đã chọn và cắt vùng ảnh · nhấn “Lưu người dùng” để hoàn tất';$('#adminAvatarCropDialog').close();$('#editUserAvatar').value='';adminCropImage=null;},'image/jpeg',0.9);});
         $('#userPrev').addEventListener('click',()=>{if(state.userPage>1){state.userPage-=1;loadUsers();}});$('#userNext').addEventListener('click',()=>{if(state.userPage*20<state.userTotal){state.userPage+=1;loadUsers();}});
         $('#contentTypeFilter').addEventListener('change',loadContent);$('#addContent').addEventListener('click',()=>openContentDialog());$('#contentForm').addEventListener('submit',saveContent);
+        $('#contentImage').addEventListener('input',renderContentImagePreview);$('#uploadContentImage').addEventListener('click',()=>$('#contentImageFile').click());$('#contentImageFile').addEventListener('change',async(event)=>{const file=event.target.files?.[0];if(!file)return;try{$('#contentImage').value=await uploadAdminImage(file,'content',$('#uploadContentImage'));renderContentImagePreview();showToast('Đã tải ảnh bài viết.','success');}catch(error){setStatus($('#contentFormStatus'),error.message);}finally{event.target.value='';}});
         $('#addVoucher').addEventListener('click',openVoucherDialog);$('#voucherForm').addEventListener('submit',saveVoucher);
         $('#depositAdminStatus').addEventListener('change',loadDeposits);$('#depositDecisionForm').addEventListener('submit',saveDepositDecision);
         $('#approvalStatus').addEventListener('change',loadApprovals);
