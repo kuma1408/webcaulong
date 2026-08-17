@@ -90,22 +90,36 @@ jobs:
             --exclude='*.tar.gz' \
             -czf "$RUNNER_TEMP/webcaulong-release.tar.gz" .
 
-      - name: Debug SSH destination
+      - name: Upload and activate
         run: |
-          echo "SSH_USER=$SSH_USER"
-          echo "SSH_HOST=$SSH_HOST"
+          target="$SSH_USER@$SSH_HOST"
 
-
-
-      
-      - name: Test SSH connection
-        run: |
-          ssh \
-            -vvv \
+          scp \
             -i "$HOME/.ssh/id_ed25519" \
             -o IdentitiesOnly=yes \
             -o PreferredAuthentications=publickey \
             -o PasswordAuthentication=no \
             -o KbdInteractiveAuthentication=no \
-            "$SSH_USER@$SSH_HOST" \
-            "echo SSH_CONNECTION_OK"
+            -o BatchMode=yes \
+            "$RUNNER_TEMP/webcaulong-release.tar.gz" \
+            "$target:~/webcaulong-release.tar.gz"
+
+          scp \
+            -i "$HOME/.ssh/id_ed25519" \
+            -o IdentitiesOnly=yes \
+            -o PreferredAuthentications=publickey \
+            -o PasswordAuthentication=no \
+            -o KbdInteractiveAuthentication=no \
+            -o BatchMode=yes \
+            .github/scripts/deploy-alwaysdata.sh \
+            "$target:~/deploy-alwaysdata.sh"
+
+          ssh \
+            -i "$HOME/.ssh/id_ed25519" \
+            -o IdentitiesOnly=yes \
+            -o PreferredAuthentications=publickey \
+            -o PasswordAuthentication=no \
+            -o KbdInteractiveAuthentication=no \
+            -o BatchMode=yes \
+            "$target" \
+            "bash ~/deploy-alwaysdata.sh '$APP_PATH' '$APPLY_MIGRATION'"
