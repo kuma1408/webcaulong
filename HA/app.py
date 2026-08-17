@@ -3045,6 +3045,13 @@ def admin_support_requests():
             "total": total,
             "page": page,
         })
+    except mysql.connector.Error:
+        app.logger.exception("Không thể đọc hộp thư hỗ trợ")
+        return api_error(
+            "Hộp thư hỗ trợ chưa được đồng bộ. Hãy áp dụng migration mới trên máy chủ.",
+            503,
+            "support_schema_unavailable",
+        )
     finally:
         cursor.close()
         conn.close()

@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-MIGRATION_VERSION = "2026-08-17-search-content-theme-v5"
+MIGRATION_VERSION = "2026-08-17-support-contact-theme-v6"
 LOCK_NAME = "shop_caulong_schema_migration"
 BASE_TABLES = {
     "nguoidung": {
@@ -643,6 +643,25 @@ def build_plan(cursor, database: str) -> list[Operation]:
             )
         )
     else:
+        # Database import từ bản thử nghiệm có thể đã có tên bảng nhưng thiếu
+        # cột, khiến khách gửi liên hệ thất bại và admin không nhận được phiếu.
+        for column, definition in (
+            ("HoTen", "VARCHAR(120) NOT NULL DEFAULT 'Khách hàng'"),
+            ("Email", "VARCHAR(150) NOT NULL DEFAULT 'unknown@example.invalid'"),
+            ("SoDienThoai", "VARCHAR(20) NULL"),
+            ("ChuDe", "ENUM('TU_VAN_SAN_PHAM','DON_HANG','THANH_TOAN','TAI_KHOAN','BAO_LOI','KHAC') NOT NULL DEFAULT 'KHAC'"),
+            ("MaDonHang", "VARCHAR(32) NULL"),
+            ("KenhPhanHoi", "ENUM('EMAIL','DIEN_THOAI') NOT NULL DEFAULT 'EMAIL'"),
+            ("NoiDung", "TEXT NULL"),
+            ("TrangThai", "ENUM('MOI','DANG_XU_LY','DA_PHAN_HOI','DA_DONG') NOT NULL DEFAULT 'MOI'"),
+            ("GhiChuAdmin", "VARCHAR(1000) NULL"),
+            ("MaAdminXuLy", f"{user_id_type} NULL"),
+            ("DiaChiIP", "VARCHAR(45) NULL"),
+            ("UserAgent", "VARCHAR(255) NULL"),
+            ("NgayTao", "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"),
+            ("NgayCapNhat", "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+        ):
+            add_column_if_missing(operations, tables, actual("YeuCauHoTro"), column, definition)
         add_index_if_missing(
             operations, indexes, actual("YeuCauHoTro"),
             "idx_hotro_status_date", "`TrangThai`, `NgayTao`",
@@ -731,7 +750,7 @@ def build_plan(cursor, database: str) -> list[Operation]:
                 f"version:{MIGRATION_VERSION}",
                 f"Ghi nhận migration {MIGRATION_VERSION}",
                 f"INSERT IGNORE INTO {migration_table_sql} (`Version`, `Description`) "
-                f"VALUES ('{MIGRATION_VERSION}', 'Category-aware search, content compatibility va dark theme fixes')",
+                f"VALUES ('{MIGRATION_VERSION}', 'Support inbox compatibility, contact UX va order contrast fixes')",
             )
         )
     return operations
