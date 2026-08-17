@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-MIGRATION_VERSION = "2026-08-17-support-contact-theme-v6"
+MIGRATION_VERSION = "2026-08-17-support-schema-compat-v7"
 LOCK_NAME = "shop_caulong_schema_migration"
 BASE_TABLES = {
     "nguoidung": {
@@ -622,11 +622,11 @@ def build_plan(cursor, database: str) -> list[Operation]:
                     `HoTen` VARCHAR(120) NOT NULL,
                     `Email` VARCHAR(150) NOT NULL,
                     `SoDienThoai` VARCHAR(20) NULL,
-                    `ChuDe` ENUM('TU_VAN_SAN_PHAM','DON_HANG','THANH_TOAN','TAI_KHOAN','BAO_LOI','KHAC') NOT NULL,
+                    `ChuDe` VARCHAR(32) NOT NULL DEFAULT 'KHAC',
                     `MaDonHang` VARCHAR(32) NULL,
-                    `KenhPhanHoi` ENUM('EMAIL','DIEN_THOAI') NOT NULL DEFAULT 'EMAIL',
+                    `KenhPhanHoi` VARCHAR(20) NOT NULL DEFAULT 'EMAIL',
                     `NoiDung` TEXT NOT NULL,
-                    `TrangThai` ENUM('MOI','DANG_XU_LY','DA_PHAN_HOI','DA_DONG') NOT NULL DEFAULT 'MOI',
+                    `TrangThai` VARCHAR(24) NOT NULL DEFAULT 'MOI',
                     `GhiChuAdmin` VARCHAR(1000) NULL,
                     `MaAdminXuLy` {user_id_type} NULL,
                     `DiaChiIP` VARCHAR(45) NULL,
@@ -649,11 +649,11 @@ def build_plan(cursor, database: str) -> list[Operation]:
             ("HoTen", "VARCHAR(120) NOT NULL DEFAULT 'Khách hàng'"),
             ("Email", "VARCHAR(150) NOT NULL DEFAULT 'unknown@example.invalid'"),
             ("SoDienThoai", "VARCHAR(20) NULL"),
-            ("ChuDe", "ENUM('TU_VAN_SAN_PHAM','DON_HANG','THANH_TOAN','TAI_KHOAN','BAO_LOI','KHAC') NOT NULL DEFAULT 'KHAC'"),
+            ("ChuDe", "VARCHAR(32) NOT NULL DEFAULT 'KHAC'"),
             ("MaDonHang", "VARCHAR(32) NULL"),
-            ("KenhPhanHoi", "ENUM('EMAIL','DIEN_THOAI') NOT NULL DEFAULT 'EMAIL'"),
+            ("KenhPhanHoi", "VARCHAR(20) NOT NULL DEFAULT 'EMAIL'"),
             ("NoiDung", "TEXT NULL"),
-            ("TrangThai", "ENUM('MOI','DANG_XU_LY','DA_PHAN_HOI','DA_DONG') NOT NULL DEFAULT 'MOI'"),
+            ("TrangThai", "VARCHAR(24) NOT NULL DEFAULT 'MOI'"),
             ("GhiChuAdmin", "VARCHAR(1000) NULL"),
             ("MaAdminXuLy", f"{user_id_type} NULL"),
             ("DiaChiIP", "VARCHAR(45) NULL"),
@@ -662,6 +662,41 @@ def build_plan(cursor, database: str) -> list[Operation]:
             ("NgayCapNhat", "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
         ):
             add_column_if_missing(operations, tables, actual("YeuCauHoTro"), column, definition)
+
+        # Các bản thử nghiệm từng dùng ENUM khác nhau. Chuyển ba trường mã sang
+        # VARCHAR để dữ liệu hợp lệ do API kiểm soát không bị MariaDB từ chối.
+        # Chỉ chạy một lần theo phiên bản migration để kế hoạch hội tụ.
+        support_v7_recorded = False
+        if "schemamigration" in tables:
+            cursor.execute(
+                f"SELECT 1 FROM {migration_table_sql} WHERE `Version`=%s LIMIT 1",
+                (MIGRATION_VERSION,),
+            )
+            support_v7_recorded = cursor.fetchone() is not None
+        if not support_v7_recorded:
+            support_table_sql = identifier(actual("YeuCauHoTro"))
+            operations.extend([
+                Operation(
+                    "support:subject-type-v7",
+                    "Mở rộng kiểu chủ đề hộp thư hỗ trợ",
+                    f"ALTER TABLE {support_table_sql} MODIFY COLUMN `ChuDe` VARCHAR(32) NOT NULL DEFAULT 'KHAC'",
+                ),
+                Operation(
+                    "support:channel-type-v7",
+                    "Mở rộng kiểu kênh phản hồi hộp thư hỗ trợ",
+                    f"ALTER TABLE {support_table_sql} MODIFY COLUMN `KenhPhanHoi` VARCHAR(20) NOT NULL DEFAULT 'EMAIL'",
+                ),
+                Operation(
+                    "support:status-type-v7",
+                    "Mở rộng kiểu trạng thái hộp thư hỗ trợ",
+                    f"ALTER TABLE {support_table_sql} MODIFY COLUMN `TrangThai` VARCHAR(24) NOT NULL DEFAULT 'MOI'",
+                ),
+                Operation(
+                    "support:message-type-v7",
+                    "Chuẩn hóa nội dung hộp thư hỗ trợ",
+                    f"ALTER TABLE {support_table_sql} MODIFY COLUMN `NoiDung` TEXT NOT NULL",
+                ),
+            ])
         add_index_if_missing(
             operations, indexes, actual("YeuCauHoTro"),
             "idx_hotro_status_date", "`TrangThai`, `NgayTao`",
@@ -750,7 +785,7 @@ def build_plan(cursor, database: str) -> list[Operation]:
                 f"version:{MIGRATION_VERSION}",
                 f"Ghi nhận migration {MIGRATION_VERSION}",
                 f"INSERT IGNORE INTO {migration_table_sql} (`Version`, `Description`) "
-                f"VALUES ('{MIGRATION_VERSION}', 'Support inbox compatibility, contact UX va order contrast fixes')",
+                f"VALUES ('{MIGRATION_VERSION}', 'Support schema compatibility for legacy MariaDB tables')",
             )
         )
     return operations
