@@ -63,10 +63,17 @@ jobs:
       - name: Configure SSH
         run: |
           install -d -m 700 ~/.ssh
+
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
+
           printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
+
+      - name: Verify SSH key fingerprint
+        run: |
+          echo "GitHub Actions SSH key fingerprint:"
+          ssh-keygen -y -f ~/.ssh/id_ed25519 | ssh-keygen -lf -
 
       - name: Package release
         run: |
@@ -116,17 +123,3 @@ jobs:
             -o BatchMode=yes \
             "$target" \
             "bash ~/deploy-alwaysdata.sh '$APP_PATH' '$APPLY_MIGRATION'"
-
-      - name: Configure SSH
-        run: |
-          install -d -m 700 ~/.ssh
-          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-
-
-      - name: Verify SSH key fingerprint
-        run: |
-          echo "GitHub SSH key fingerprint:"
-          ssh-keygen -y -f ~/.ssh/id_ed25519 | ssh-keygen -lf -
