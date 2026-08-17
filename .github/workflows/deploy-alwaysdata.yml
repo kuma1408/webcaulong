@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       apply_migration:
-        description: "Áp dụng migration additive sau khi bạn đã sao lưu MySQL"
+        description: "Áp dụng migration additive an toàn (nên bật để API và database đồng bộ)"
         required: true
         type: boolean
-        default: false
+        default: true
 
 permissions:
   contents: read

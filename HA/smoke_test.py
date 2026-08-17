@@ -77,6 +77,16 @@ class ApiSmokeTest(unittest.TestCase):
         self.assertEqual(product_category_intent("vợt lining", racket), 2)
         self.assertEqual(product_category_intent("vợt lining", string), 0)
 
+    def test_grip_search_is_not_confused_with_shorts(self):
+        grip = {"TenSP": "Quấn cán vợt Yonex AC102", "TenDM": "Phụ Kiện"}
+        shorts = {"TenSP": "Quần cầu lông Yonex Q33", "TenDM": "Quần Cầu Lông"}
+        self.assertEqual(product_category_intent("quấn cán", grip), 2)
+        self.assertEqual(product_category_intent("quấn cán", shorts), 0)
+
+    def test_support_table_name_is_linux_safe(self):
+        statement = normalize_sql_table_names("SELECT * FROM YeuCauHoTro")
+        self.assertIn("`yeucauhotro`", statement)
+
     def test_support_validation_does_not_touch_database(self):
         response = self.client.post(
             "/api/lien-he",

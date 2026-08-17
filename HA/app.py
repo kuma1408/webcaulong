@@ -192,7 +192,7 @@ DATABASE_TABLE_NAMES = {
     "baiviet", "chitietdonhang", "danhgia", "danhmuc", "donhang", "giohang",
     "lichsugiaodich", "nhatkyquantri", "nguoidung", "pheduyetthaydoi",
     "phiendangnhap", "sanpham", "schemamigration", "voucher", "yeucaunaptien",
-    "datlaimatkhau", "sudungvoucher", "yeuthich",
+    "datlaimatkhau", "sudungvoucher", "yeuthich", "yeucauhotro",
 }
 _TABLE_REFERENCE_RE = re.compile(
     r"\b(FROM|JOIN|UPDATE|INTO|TABLE|REFERENCES)\s+`?("
@@ -549,6 +549,13 @@ def product_category_intent(keyword: str, product: dict) -> int:
     name = normalize_search_text(product.get("TenSP"))
     if not query:
         return 0
+
+    # Sau khi bỏ dấu, "quấn cán" và "quần cán" đều gần thành "quan can".
+    # Cụm hai từ này trong ngữ cảnh cầu lông luôn chỉ phụ kiện quấn cán;
+    # không được diễn giải từ đầu tiên thành danh mục quần áo.
+    if "quan can" in query:
+        is_grip = "phu kien" in category or "quan can" in name or "cuon can" in name
+        return 2 if is_grip else 0
     matched_aliases = []
     for alias, category_names in SEARCH_CATEGORY_ALIASES.items():
         if alias in query.split() or (" " in alias and alias in query):
