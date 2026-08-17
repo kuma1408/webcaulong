@@ -14,16 +14,17 @@
 
     function card(product){
         const id=Number(product.MaSP); const article=document.createElement('article'); article.className='wish-card'; article.dataset.id=id;
-        const href=`chitiet.html?id=${id}`; const media=document.createElement('a'); media.className='wish-media'; media.href=href;
+        const href=`chitiet.html?id=${encodeURIComponent(id)}`; const media=document.createElement('a'); media.className='wish-media'; media.href=href; media.setAttribute('aria-label',`Xem chi tiết ${product.TenSP||'sản phẩm'}`);
         const image=document.createElement('img'); image.src=Auth.safeUrl(product.HinhAnh,'HA/cc-removebg-preview.png'); image.alt=String(product.TenSP||'Sản phẩm cầu lông'); image.loading='lazy'; image.decoding='async'; media.appendChild(image);
         const body=document.createElement('div'); body.className='wish-body'; const brand=document.createElement('span'); brand.className='wish-brand'; brand.textContent=product.ThuongHieu||product.TenDM||'Chính hãng';
         const heading=document.createElement('h3'); const link=document.createElement('a'); link.href=href; link.textContent=product.TenSP||'Sản phẩm'; heading.appendChild(link);
         const price=document.createElement('div'); price.className='wish-price'; const current=document.createElement('strong'); current.textContent=money(product.GiaBan); price.appendChild(current);
         if(Number(product.GiaGoc)>Number(product.GiaBan)){const old=document.createElement('del');old.textContent=money(product.GiaGoc);price.appendChild(old)}
         const actions=document.createElement('div'); actions.className='wish-actions';
+        const detail=document.createElement('a'); detail.className='wish-detail'; detail.href=href; detail.textContent='Xem chi tiết'; detail.setAttribute('aria-label',`Xem chi tiết ${product.TenSP||'sản phẩm'}`);
         const remove=document.createElement('button'); remove.type='button'; remove.className='wish-remove'; remove.textContent='Bỏ lưu'; remove.addEventListener('click',()=>removeItem(article,id));
         const cart=document.createElement('button'); cart.type='button'; cart.className='wish-cart'; cart.textContent='Thêm giỏ'; cart.addEventListener('click',()=>addCart(cart,id));
-        actions.append(remove,cart); body.append(brand,heading,price,actions); article.append(media,body); return article;
+        actions.append(detail,remove,cart); body.append(brand,heading,price,actions); article.append(media,body); return article;
     }
 
     async function load(){

@@ -15,10 +15,11 @@ const EXCLUDED_FILES = new Set([
   "canhan.html",
   "admin.html",
   "giohang.html",
+  "lienhe.html",
 ]);
 
 const VIEWPORT_TAG = '<meta name="viewport" content="width=device-width, initial-scale=1">';
-const ASSET_VERSION = "20260815-1";
+const ASSET_VERSION = "20260817-1";
 const REFRESH_LINK = `<link rel="stylesheet" href="css/site-refresh.css?v=${ASSET_VERSION}">`;
 const AUTH_SCRIPT = `<script src="css/auth.js?v=${ASSET_VERSION}"></script>`;
 

@@ -7,9 +7,9 @@
     <meta name="theme-color" content="#b82410">
     <title>Quản trị website | Badminton Store</title>
     <link rel="stylesheet" href="css/account.css">
-    <link rel="stylesheet" href="css/admin.css?v=20260810-6">
-    <script src="css/auth.js?v=20260815-1" defer></script>
-    <script src="css/admin.js?v=20260810-3" defer></script>
+    <link rel="stylesheet" href="css/admin.css?v=20260817-1">
+    <script src="css/auth.js?v=20260817-1" defer></script>
+    <script src="css/admin.js?v=20260817-1" defer></script>
 </head>
 <body class="account-body admin-body">
     <a class="skip-link" href="#adminMain">Bỏ qua điều hướng</a>
@@ -27,6 +27,7 @@
                     <button type="button" data-admin-view="orders"><span aria-hidden="true">□</span>Đơn hàng <em id="navPendingOrders" hidden>0</em></button>
                     <button type="button" data-admin-view="users"><span aria-hidden="true">◎</span>Người dùng</button>
                     <button type="button" data-admin-view="content"><span aria-hidden="true">✎</span>Nội dung</button>
+                    <button type="button" data-admin-view="support"><span aria-hidden="true">✉</span>Hỗ trợ <em id="navPendingSupport" hidden>0</em></button>
                     <button type="button" data-admin-view="vouchers"><span aria-hidden="true">%</span>Voucher</button>
                     <button type="button" data-admin-view="deposits"><span aria-hidden="true">₫</span>Nạp tiền <em id="navPendingDeposits" hidden>0</em></button>
                     <button type="button" data-admin-view="approvals" id="approvalNav" hidden><span aria-hidden="true">✓</span>Phê duyệt <em id="navPendingApprovals" hidden>0</em></button>
@@ -70,6 +71,11 @@
                 <section class="admin-view" data-admin-panel="content" hidden>
                     <div class="admin-toolbar"><div class="admin-toolbar__copy"><p>Quản lý Tin tức và Hướng dẫn đang hiển thị trên website.</p></div><select id="contentTypeFilter"><option value="all">Tất cả nội dung</option><option value="TIN_TUC">Tin tức</option><option value="HUONG_DAN">Hướng dẫn</option></select><button class="admin-primary" type="button" id="addContent">+ Thêm nội dung</button></div>
                     <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Tiêu đề</th><th>Loại</th><th>Ngày đăng</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="contentRows"><tr><td colspan="5" class="admin-empty-cell">Chọn mục để tải nội dung.</td></tr></tbody></table></div></div>
+                </section>
+
+                <section class="admin-view" data-admin-panel="support" hidden>
+                    <div class="admin-toolbar"><form class="admin-search" id="supportSearch"><label class="bs-visually-hidden" for="supportQuery">Tìm phiếu hỗ trợ</label><input id="supportQuery" type="search" placeholder="Mã phiếu, tên, email, mã đơn…"><button type="submit">Tìm</button></form><select id="supportStatus" aria-label="Lọc phiếu hỗ trợ"><option value="all">Tất cả trạng thái</option><option value="MOI">Mới tiếp nhận</option><option value="DANG_XU_LY">Đang xử lý</option><option value="DA_PHAN_HOI">Đã phản hồi</option><option value="DA_DONG">Đã đóng</option></select></div>
+                    <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Mã phiếu</th><th>Người gửi</th><th>Chủ đề</th><th>Nội dung</th><th>Thời gian</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="supportRows"><tr><td colspan="7" class="admin-empty-cell">Chọn mục để tải yêu cầu hỗ trợ.</td></tr></tbody></table></div><div class="admin-pagination"><button type="button" id="supportPrev">← Trước</button><span id="supportPageInfo">Trang 1</span><button type="button" id="supportNext">Sau →</button></div></div>
                 </section>
 
                 <section class="admin-view" data-admin-panel="vouchers" hidden>
@@ -137,6 +143,7 @@
     <dialog class="admin-dialog admin-dialog--small" id="depositDialog" aria-labelledby="depositDialogTitle">
         <form class="admin-dialog__form" id="depositDecisionForm" method="dialog"><div class="admin-dialog__heading"><div><p class="eyebrow">Đối soát nạp tiền</p><h2 id="depositDialogTitle">Xử lý yêu cầu</h2></div><button type="button" data-close-dialog="depositDialog" aria-label="Đóng">×</button></div><input id="depositDecisionId" type="hidden"><input id="depositDecisionStatus" type="hidden"><div class="deposit-confirm" id="depositDecisionSummary"></div><div class="field"><label for="depositDecisionNote">Ghi chú quản trị</label><textarea id="depositDecisionNote" rows="3" maxlength="500" placeholder="Nội dung đối soát (không bắt buộc)"></textarea></div><p class="form-status" id="depositDecisionFormStatus" role="alert" aria-live="polite"></p><div class="admin-dialog__actions"><button type="button" data-close-dialog="depositDialog">Hủy</button><button class="admin-primary" id="depositDecisionSubmit" type="submit">Xác nhận</button></div></form>
     </dialog>
+    <dialog class="admin-dialog" id="supportDialog" aria-labelledby="supportDialogTitle"><form class="admin-dialog__form" id="supportForm" method="dialog"><div class="admin-dialog__heading"><div><p class="eyebrow">Hộp thư hỗ trợ</p><h2 id="supportDialogTitle">Xử lý yêu cầu</h2></div><button type="button" data-close-dialog="supportDialog" aria-label="Đóng">×</button></div><input id="supportId" type="hidden"><div class="support-detail" id="supportDetail"></div><div class="field-grid"><div class="field"><label for="supportDialogStatus">Trạng thái</label><select id="supportDialogStatus"><option value="MOI">Mới tiếp nhận</option><option value="DANG_XU_LY">Đang xử lý</option><option value="DA_PHAN_HOI">Đã phản hồi</option><option value="DA_DONG">Đã đóng</option></select></div><div class="field"><label for="supportAdminNote">Ghi chú xử lý</label><textarea id="supportAdminNote" rows="4" maxlength="1000" placeholder="Nội dung đã tư vấn hoặc việc cần làm tiếp theo"></textarea></div></div><p class="form-status" id="supportFormStatus" role="alert"></p><div class="admin-dialog__actions"><button type="button" data-close-dialog="supportDialog">Hủy</button><button class="admin-primary" id="supportSave" type="submit">Lưu xử lý</button></div></form></dialog>
     <dialog class="admin-dialog admin-dialog--detail" id="changeDetailDialog" aria-labelledby="changeDetailTitle">
         <div class="admin-dialog__form"><div class="admin-dialog__heading"><div><p class="eyebrow" id="changeDetailEyebrow">Chi tiết hoạt động</p><h2 id="changeDetailTitle">Thông tin thay đổi</h2></div><button type="button" data-close-dialog="changeDetailDialog" aria-label="Đóng">×</button></div><div class="change-product-card" id="changeProductCard" hidden></div><div class="change-detail-meta" id="changeDetailMeta"></div><div class="change-detail-list" id="changeDetailBody"></div><div class="admin-dialog__actions"><button type="button" data-close-dialog="changeDetailDialog">Đóng</button></div></div>
     </dialog>

@@ -12,6 +12,8 @@ from werkzeug.datastructures import FileStorage
 from HA.app import (
     SlidingWindowLimiter,
     app,
+    fuzzy_product_score,
+    normalize_search_text,
     normalize_public_url,
     normalize_sql_table_names,
     normalized_avatar,
@@ -49,6 +51,39 @@ class ApiSmokeTest(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 400)
         self.assertFalse(response.get_json()["success"])
+
+    def test_fuzzy_search_handles_vietnamese_accents_and_typo(self):
+        product = {
+            "TenSP": "Vợt Cầu Lông Lining Axforce 90",
+            "ThuongHieu": "Lining",
+            "TenDM": "Vợt cầu lông",
+        }
+        unrelated = {
+            "TenSP": "Balo Kawasaki 8245",
+            "ThuongHieu": "Kawasaki",
+            "TenDM": "Balo",
+        }
+        self.assertEqual(normalize_search_text("Vợt Lining"), "vot lining")
+        self.assertGreater(fuzzy_product_score("vot lning", product), 0.7)
+        self.assertGreater(
+            fuzzy_product_score("vot lning", product),
+            fuzzy_product_score("vot lning", unrelated),
+        )
+
+    def test_support_validation_does_not_touch_database(self):
+        response = self.client.post(
+            "/api/lien-he",
+            json={
+                "fullname": "A",
+                "email": "khong-hop-le",
+                "subject": "KHAC",
+                "reply_channel": "EMAIL",
+                "message": "quá ngắn",
+                "privacy_accepted": True,
+            },
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["code"], "invalid_contact")
 
     def test_password_recovery_validation_is_enumeration_safe(self):
         forgot = self.client.post("/api/quen-mat-khau", json={"email": "khong-hop-le"})

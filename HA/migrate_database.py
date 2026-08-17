@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-MIGRATION_VERSION = "2026-08-16-commerce-features-v3"
+MIGRATION_VERSION = "2026-08-17-support-search-v4"
 LOCK_NAME = "shop_caulong_schema_migration"
 BASE_TABLES = {
     "nguoidung": {
@@ -78,6 +78,12 @@ OPTIONAL_MANAGED_TABLES = {
         "mathaydoi", "manhatky", "maadmin", "hanhdong", "doituong",
         "madoituong", "dulieutruoc", "dulieusau", "trangthai",
         "masuperadmin", "ghichu", "ngaytao", "ngayxuly",
+    },
+    "yeucauhotro": {
+        "mayeucau", "hoten", "email", "sodienthoai", "chude",
+        "madonhang", "kenhphanhoi", "noidung", "trangthai",
+        "ghichuadmin", "maadminxuly", "diachiip", "useragent",
+        "ngaytao", "ngaycapnhat",
     },
 }
 
@@ -590,6 +596,47 @@ def build_plan(cursor, database: str) -> list[Operation]:
             "idx_pheduyet_nhatky", "`MaNhatKy`",
         )
 
+    if "yeucauhotro" not in tables:
+        operations.append(
+            Operation(
+                "table:yeucauhotro",
+                "Tạo hộp thư tiếp nhận và xử lý yêu cầu khách hàng",
+                f"""
+                CREATE TABLE `yeucauhotro` (
+                    `MaYeuCau` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                    `HoTen` VARCHAR(120) NOT NULL,
+                    `Email` VARCHAR(150) NOT NULL,
+                    `SoDienThoai` VARCHAR(20) NULL,
+                    `ChuDe` ENUM('TU_VAN_SAN_PHAM','DON_HANG','THANH_TOAN','TAI_KHOAN','BAO_LOI','KHAC') NOT NULL,
+                    `MaDonHang` VARCHAR(32) NULL,
+                    `KenhPhanHoi` ENUM('EMAIL','DIEN_THOAI') NOT NULL DEFAULT 'EMAIL',
+                    `NoiDung` TEXT NOT NULL,
+                    `TrangThai` ENUM('MOI','DANG_XU_LY','DA_PHAN_HOI','DA_DONG') NOT NULL DEFAULT 'MOI',
+                    `GhiChuAdmin` VARCHAR(1000) NULL,
+                    `MaAdminXuLy` {user_id_type} NULL,
+                    `DiaChiIP` VARCHAR(45) NULL,
+                    `UserAgent` VARCHAR(255) NULL,
+                    `NgayTao` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    `NgayCapNhat` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    PRIMARY KEY (`MaYeuCau`),
+                    KEY `idx_hotro_status_date` (`TrangThai`, `NgayTao`),
+                    KEY `idx_hotro_email_date` (`Email`, `NgayTao`),
+                    CONSTRAINT `fk_hotro_admin`
+                        FOREIGN KEY (`MaAdminXuLy`) REFERENCES {user_table_sql} (`MaND`) ON DELETE SET NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                """,
+            )
+        )
+    else:
+        add_index_if_missing(
+            operations, indexes, actual("YeuCauHoTro"),
+            "idx_hotro_status_date", "`TrangThai`, `NgayTao`",
+        )
+        add_index_if_missing(
+            operations, indexes, actual("YeuCauHoTro"),
+            "idx_hotro_email_date", "`Email`, `NgayTao`",
+        )
+
     add_index_if_missing(
         operations,
         indexes,
@@ -669,7 +716,7 @@ def build_plan(cursor, database: str) -> list[Operation]:
                 f"version:{MIGRATION_VERSION}",
                 f"Ghi nhận migration {MIGRATION_VERSION}",
                 f"INSERT IGNORE INTO {migration_table_sql} (`Version`, `Description`) "
-                f"VALUES ('{MIGRATION_VERSION}', 'Commerce features, password reset, wishlist va hardening')",
+                f"VALUES ('{MIGRATION_VERSION}', 'Fuzzy search, customer support inbox va secure admin bootstrap')",
             )
         )
     return operations

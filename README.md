@@ -76,3 +76,18 @@ Với phương án hiện tại, GitHub Student được dùng cho repository ri
 Dependabot và ưu đãi domain; Alwaysdata chạy Flask/MySQL. Không cần đăng ký Azure
 và không có cơ chế tự tiêu 100 USD credit. Một nền tảng cloud khác chỉ là phương
 án tùy chọn trong tương lai, không phải điều kiện để website hoạt động.
+
+### Cấp Super Admin an toàn
+
+Không có mã bí mật hoặc cửa hậu trong thanh tìm kiếm. Khi thật sự cần khởi tạo
+quản trị cấp cao, đăng nhập SSH vào máy chủ rồi chạy một lần:
+
+```bash
+cd ~/www/webcaulong
+. .venv/bin/activate
+ALLOW_SUPERADMIN_BOOTSTRAP=1 flask --app HA.app promote-superadmin TEN_DANG_NHAP
+```
+
+Lệnh yêu cầu mật khẩu hiện tại của chính tài khoản đích, xác nhận lần cuối,
+thu hồi mọi phiên đăng nhập cũ và ghi nhật ký `BOOTSTRAP_SUPERADMIN`. Biến môi
+trường chỉ tồn tại trong câu lệnh trên, không lưu vào `.env`.

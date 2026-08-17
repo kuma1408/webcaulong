@@ -215,16 +215,17 @@
         style.textContent = `
             .bs-search,.site-search{position:relative}
             .bs-search{overflow:visible!important}
-            .bs-search-suggestions{position:absolute;z-index:1200;top:calc(100% + 9px);left:0;right:0;overflow:hidden;border:1px solid rgba(213,77,42,.22);border-radius:16px;background:#fff;box-shadow:0 18px 45px rgba(74,25,13,.18);color:#2d1914;text-align:left}
+            .bs-search-suggestions{position:absolute;z-index:1200;top:calc(100% + 9px);left:50%;width:min(680px,calc(100vw - 28px));max-height:min(72vh,620px);overflow:auto;transform:translateX(-50%);border:1px solid rgba(213,77,42,.22);border-radius:18px;background:#fff;box-shadow:0 24px 60px rgba(74,25,13,.22);color:#2d1914;text-align:left;overscroll-behavior:contain}
             .bs-search-suggestions[hidden]{display:none!important}
-            .bs-search-suggestion{width:100%;min-height:72px;display:grid;grid-template-columns:54px minmax(0,1fr) auto;align-items:center;gap:12px;padding:9px 12px;border:0;border-bottom:1px solid #f2ddd5;background:#fff;color:inherit;text-decoration:none;cursor:pointer}
+            .bs-search-suggestion{width:100%;min-height:92px;display:grid;grid-template-columns:76px minmax(0,1fr) minmax(105px,auto);align-items:center;gap:14px;padding:10px 14px;border:0;border-bottom:1px solid #f2ddd5;background:#fff;color:inherit;text-decoration:none;cursor:pointer}
             .bs-search-suggestion:last-of-type{border-bottom:0}
             .bs-search-suggestion:hover,.bs-search-suggestion.is-active{background:#fff2ec}
-            .bs-search-suggestion img{width:54px;height:54px;padding:4px;border-radius:11px;background:#fff;object-fit:contain}
-            .bs-search-suggestion__copy{min-width:0;display:grid;gap:4px}
-            .bs-search-suggestion__copy strong{overflow:hidden;color:#2d1914;font-size:13px;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
-            .bs-search-suggestion__copy small{color:#88645a;font-size:10px;font-weight:700;text-transform:uppercase}
-            .bs-search-suggestion__price{color:#d52f16;font-size:12px;font-weight:850;white-space:nowrap}
+            .bs-search-suggestion img{width:76px;height:70px;padding:5px;border:1px solid #f4e3dc;border-radius:13px;background:#fff;object-fit:contain}
+            .bs-search-suggestion__copy{min-width:0;display:grid;gap:5px}
+            .bs-search-suggestion__copy strong{display:-webkit-box;overflow:hidden;color:#2d1914;font-size:14px;line-height:1.4;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+            .bs-search-suggestion__copy small{color:#88645a;font-size:10px;font-weight:750;text-transform:uppercase}
+            .bs-search-suggestion__meta{display:flex;align-items:center;flex-wrap:wrap;gap:6px;color:#7c5b52;font-size:10px}.bs-search-suggestion__meta b{padding:3px 6px;border-radius:999px;background:#eef8f2;color:#17844c}.bs-search-suggestion__meta b.is-out{background:#fff0ec;color:#cf321d}
+            .bs-search-suggestion__price{display:grid;justify-items:end;gap:3px;color:#d52f16;font-size:13px;font-weight:850;white-space:nowrap}.bs-search-suggestion__price del{color:#9a7970;font-size:10px;font-weight:650}.bs-search-suggestion__price em{padding:3px 6px;border-radius:999px;background:#ffe6dc;color:#cf321d;font-size:9px;font-style:normal}
             .bs-search-suggestions__status,.bs-search-suggestions__all{display:block;padding:13px 15px;color:#79584f;font-size:12px;text-align:center}
             .bs-search-suggestions__all{border-top:1px solid #f2ddd5;background:#fff9f6;color:#c72d16;font-weight:800;text-decoration:none}
             .bs-search-suggestions__all:hover{background:#ffede5}
@@ -232,7 +233,7 @@
             html[data-theme="dark"] .bs-search-suggestion:hover,html[data-theme="dark"] .bs-search-suggestion.is-active,html[data-theme="dark"] .bs-search-suggestions__all{background:#38211a}
             html[data-theme="dark"] .bs-search-suggestion__copy strong{color:#fff4ef}
             html[data-theme="dark"] .bs-search-suggestion__copy small,html[data-theme="dark"] .bs-search-suggestions__status{color:#c9aaa0}
-            @media(max-width:680px){.bs-search-suggestion{grid-template-columns:46px minmax(0,1fr);min-height:64px}.bs-search-suggestion img{width:46px;height:46px}.bs-search-suggestion__price{grid-column:2}.bs-search-suggestions{max-height:min(68vh,430px);overflow-y:auto}}
+            @media(max-width:680px){.bs-search-suggestion{grid-template-columns:58px minmax(0,1fr);min-height:78px;padding:9px 10px}.bs-search-suggestion img{width:58px;height:58px}.bs-search-suggestion__price{grid-column:2;justify-items:start;display:flex;align-items:center;gap:7px}.bs-search-suggestions{max-height:min(68vh,500px)}}
         `;
         document.head.appendChild(style);
     }
@@ -304,12 +305,34 @@
                     const name = document.createElement('strong');
                     name.textContent = product.TenSP || 'Sản phẩm';
                     const category = document.createElement('small');
-                    category.textContent = product.ThuongHieu || product.TenDM || 'Chính hãng';
-                    copy.append(name, category);
+                    category.textContent = [product.ThuongHieu, product.TenDM].filter(Boolean).join(' · ') || 'Sản phẩm chính hãng';
+                    const meta = document.createElement('span');
+                    meta.className = 'bs-search-suggestion__meta';
+                    const stock = document.createElement('b');
+                    const stockNumber = Number(product.TonKho || 0);
+                    stock.className = stockNumber > 0 ? '' : 'is-out';
+                    stock.textContent = stockNumber > 0 ? `Còn ${stockNumber} sản phẩm` : 'Tạm hết hàng';
+                    const relevance = document.createElement('span');
+                    relevance.textContent = Number(product.DoPhuHop) < .9 ? 'Kết quả gần đúng' : 'Phù hợp cao';
+                    meta.append(stock, relevance);
+                    copy.append(name, category, meta);
                     const price = document.createElement('span');
                     price.className = 'bs-search-suggestion__price';
-                    price.textContent = money(product.GiaBan);
+                    const currentPrice = document.createElement('span');
+                    currentPrice.textContent = money(product.GiaBan);
+                    price.appendChild(currentPrice);
+                    if (Number(product.GiaGoc) > Number(product.GiaBan)) {
+                        const original = document.createElement('del');
+                        original.textContent = money(product.GiaGoc);
+                        const discount = document.createElement('em');
+                        discount.textContent = `-${Math.round((1 - Number(product.GiaBan) / Number(product.GiaGoc)) * 100)}%`;
+                        price.append(original, discount);
+                    }
                     link.append(image, copy, price);
+                    link.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        window.location.assign(link.href);
+                    });
                     panel.appendChild(link);
                 });
                 const all = document.createElement('a');
@@ -327,7 +350,7 @@
                 controller = new AbortController();
                 showStatus('Đang tìm sản phẩm…');
                 try {
-                    const response = await fetch(`${window.API_BASE}/api/tim-kiem?q=${encodeURIComponent(keyword)}&limit=6&sap_xep=ten_asc`, { signal: controller.signal });
+                    const response = await fetch(`${window.API_BASE}/api/tim-kiem?q=${encodeURIComponent(keyword)}&limit=8&sap_xep=ten_asc`, { signal: controller.signal });
                     if (!response.ok) throw new Error('search_failed');
                     const data = await response.json();
                     render(data.success && Array.isArray(data.products) ? data.products : [], keyword);

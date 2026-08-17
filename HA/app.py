@@ -21,6 +21,7 @@ import unicodedata
 from collections import defaultdict, deque
 from datetime import datetime, timedelta
 from decimal import Decimal
+from difflib import SequenceMatcher
 from email.message import EmailMessage
 from functools import wraps
 from urllib.parse import urlsplit
@@ -478,6 +479,48 @@ def serialize_product(row: dict) -> dict:
     product["NguonURL"] = normalize_public_url(row.get("NguonURL"), allow_relative=False, max_length=700)
     product["MoTa"] = sanitize_rich_text(row.get("MoTa"))
     return product
+
+
+def normalize_search_text(value) -> str:
+    """Chuẩn hóa tiếng Việt để tìm không dấu và so khớp gần đúng."""
+    text = str(value or "").strip().lower().replace("đ", "d")
+    text = "".join(
+        character for character in unicodedata.normalize("NFD", text)
+        if unicodedata.category(character) != "Mn"
+    )
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", text).split())
+
+
+def fuzzy_product_score(keyword: str, product: dict) -> float:
+    """Điểm 0..1 cho tên, thương hiệu và danh mục; chịu được lỗi gõ ngắn."""
+    query = normalize_search_text(keyword)
+    if not query:
+        return 1.0
+    name = normalize_search_text(product.get("TenSP"))
+    brand = normalize_search_text(product.get("ThuongHieu"))
+    category = normalize_search_text(product.get("TenDM"))
+    searchable = " ".join(part for part in (name, brand, category) if part)
+    if not searchable:
+        return 0.0
+    if query == name:
+        return 1.0
+    exact_score = 0.96 if query in name else 0.9 if query in searchable else 0.0
+    sequence_score = SequenceMatcher(None, query, name or searchable).ratio() * 0.9
+    field_tokens = searchable.split()
+    token_scores = []
+    for token in query.split():
+        best = 0.0
+        for candidate in field_tokens:
+            ratio = SequenceMatcher(None, token, candidate).ratio()
+            if candidate.startswith(token) or token.startswith(candidate):
+                ratio = max(ratio, 0.92)
+            elif token in candidate or candidate in token:
+                ratio = max(ratio, 0.86)
+            best = max(best, ratio)
+        token_scores.append(best)
+    token_score = (sum(token_scores) / len(token_scores) * 0.94) if token_scores else 0.0
+    prefix_score = 0.88 if name.startswith(query) else 0.0
+    return round(min(1.0, max(exact_score, sequence_score, token_score, prefix_score)), 4)
 
 
 def validate_password(password: str) -> tuple[bool, str]:
@@ -1924,6 +1967,65 @@ def confirm_received():
 # ---------------------------------------------------------------------------
 
 
+@app.post("/api/lien-he")
+def create_support_request():
+    limited = enforce_rate_limit("support-ip", client_ip(), 5, 10 * 60)
+    if limited:
+        return limited
+    data = body_json()
+    fullname = str(data.get("fullname", "")).strip()[:120]
+    email = str(data.get("email", "")).strip().lower()[:150]
+    phone = re.sub(r"[\s.()-]+", "", str(data.get("phone", "")).strip())[:20]
+    subject = str(data.get("subject", "")).strip().upper()
+    order_code = str(data.get("order_code", "")).strip().upper()[:32]
+    reply_channel = str(data.get("reply_channel", "EMAIL")).strip().upper()
+    message = str(data.get("message", "")).strip()[:2000]
+    allowed_subjects = {"TU_VAN_SAN_PHAM", "DON_HANG", "THANH_TOAN", "TAI_KHOAN", "BAO_LOI", "KHAC"}
+    if len(fullname) < 2 or not EMAIL_RE.fullmatch(email):
+        return api_error("Họ tên hoặc email chưa hợp lệ.", 400, "invalid_contact")
+    if phone and not PHONE_RE.fullmatch(phone):
+        return api_error("Số điện thoại chưa đúng định dạng Việt Nam.", 400, "invalid_phone")
+    if subject not in allowed_subjects or reply_channel not in {"EMAIL", "DIEN_THOAI"}:
+        return api_error("Chủ đề hoặc kênh phản hồi chưa hợp lệ.", 400, "invalid_support_type")
+    if reply_channel == "DIEN_THOAI" and not phone:
+        return api_error("Vui lòng nhập số điện thoại để được gọi lại.", 400, "phone_required")
+    if order_code and not re.fullmatch(r"#?[A-Z0-9_-]{1,31}", order_code):
+        return api_error("Mã đơn hàng chưa hợp lệ.", 400, "invalid_order_code")
+    if len(message) < 20:
+        return api_error("Nội dung cần có ít nhất 20 ký tự.", 400, "message_too_short")
+    if data.get("privacy_accepted") is not True:
+        return api_error("Bạn cần đồng ý để cửa hàng xử lý thông tin liên hệ.", 400, "privacy_required")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            INSERT INTO YeuCauHoTro
+                (HoTen,Email,SoDienThoai,ChuDe,MaDonHang,KenhPhanHoi,NoiDung,DiaChiIP,UserAgent)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """,
+            (
+                fullname, email, phone or None, subject, order_code.lstrip("#") or None,
+                reply_channel, message, client_ip(), str(request.user_agent)[:255] or None,
+            ),
+        )
+        support_id = cursor.lastrowid
+        conn.commit()
+        return jsonify({
+            "success": True,
+            "message": "Cửa hàng đã tiếp nhận yêu cầu của bạn.",
+            "ticket": f"HT-{support_id:06d}",
+        }), 201
+    except mysql.connector.Error:
+        conn.rollback()
+        app.logger.exception("Không thể lưu yêu cầu hỗ trợ")
+        return api_error("Chưa thể tiếp nhận yêu cầu lúc này.", 503, "support_unavailable")
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.get("/api/tim-kiem")
 def search_products():
     keyword = request.args.get("q", "").strip()[:120]
@@ -1941,8 +2043,8 @@ def search_products():
         "gia_desc": "sp.GiaBan DESC",
         "moi_nhat": "sp.NgayTao DESC",
     }
-    where = ["sp.TenSP LIKE %s", "sp.GiaBan BETWEEN %s AND %s", "sp.TrangThai = 1"]
-    params = [f"%{keyword}%", min_price, max_price]
+    where = ["sp.GiaBan BETWEEN %s AND %s", "sp.TrangThai = 1"]
+    params = [min_price, max_price]
     if category:
         if category.isdigit():
             where.append("sp.MaDM = %s")
@@ -1957,6 +2059,38 @@ def search_products():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
+        if keyword:
+            # Danh mục cửa hàng nhỏ: xếp hạng tập ứng viên đã lọc tại ứng dụng
+            # chính xác hơn LIKE, đồng thời giới hạn để bảo vệ tài nguyên host.
+            cursor.execute(
+                f"""
+                SELECT sp.*, dm.TenDM FROM SanPham sp
+                LEFT JOIN DanhMuc dm ON dm.MaDM = sp.MaDM
+                WHERE {where_sql}
+                ORDER BY sp.NgayTao DESC LIMIT 2000
+                """,
+                params,
+            )
+            ranked = []
+            threshold = 0.5 if len(normalize_search_text(keyword)) <= 3 else 0.36
+            for row in cursor.fetchall():
+                score = fuzzy_product_score(keyword, row)
+                if score >= threshold:
+                    product = serialize_product(row)
+                    product["DoPhuHop"] = score
+                    ranked.append((score, product))
+
+            if sort in {"gia_asc", "gia_desc"}:
+                ranked.sort(key=lambda item: float(item[1].get("GiaBan") or 0), reverse=sort == "gia_desc")
+            elif sort == "moi_nhat":
+                ranked.sort(key=lambda item: str(item[1].get("NgayTao") or ""), reverse=True)
+            else:
+                ranked.sort(key=lambda item: normalize_search_text(item[1].get("TenSP")), reverse=sort == "ten_desc")
+            ranked.sort(key=lambda item: item[0], reverse=True)
+            total = len(ranked)
+            products = [item[1] for item in ranked[offset:offset + limit]]
+            return jsonify({"success": True, "products": products, "total": total, "trang_hien_tai": page, "tim_kiem_gan_dung": True})
+
         cursor.execute(
             f"""
             SELECT sp.*, dm.TenDM FROM SanPham sp
@@ -2809,6 +2943,92 @@ def admin_update_user_avatar(user_id):
     return jsonify({"success": True, "message": "Đã cập nhật ảnh đại diện người dùng.", "avatar": relative_path})
 
 
+@app.get("/api/admin/ho-tro")
+@admin_required
+def admin_support_requests():
+    status = str(request.args.get("status", "all")).strip().upper()
+    query = str(request.args.get("q", "")).strip()[:120]
+    page = clamp_int(request.args.get("page"), 1, 1, 100000)
+    limit = clamp_int(request.args.get("limit"), 20, 1, 50)
+    allowed_statuses = {"MOI", "DANG_XU_LY", "DA_PHAN_HOI", "DA_DONG"}
+    where, params = [], []
+    if status in allowed_statuses:
+        where.append("ht.TrangThai=%s")
+        params.append(status)
+    if query:
+        where.append("(ht.HoTen LIKE %s OR ht.Email LIKE %s OR ht.MaDonHang LIKE %s OR ht.NoiDung LIKE %s)")
+        pattern = f"%{query}%"
+        params.extend([pattern, pattern, pattern, pattern])
+    where_sql = f"WHERE {' AND '.join(where)}" if where else ""
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(f"SELECT COUNT(*) AS total FROM YeuCauHoTro ht {where_sql}", params)
+        total = int(cursor.fetchone()["total"])
+        cursor.execute(
+            f"""
+            SELECT ht.*, nd.TenDangNhap AS AdminXuLy
+            FROM YeuCauHoTro ht
+            LEFT JOIN NguoiDung nd ON nd.MaND=ht.MaAdminXuLy
+            {where_sql}
+            ORDER BY FIELD(ht.TrangThai,'MOI','DANG_XU_LY','DA_PHAN_HOI','DA_DONG'), ht.NgayTao DESC
+            LIMIT %s OFFSET %s
+            """,
+            params + [limit, (page - 1) * limit],
+        )
+        return jsonify({
+            "success": True,
+            "requests": [serialize_row(row) for row in cursor.fetchall()],
+            "total": total,
+            "page": page,
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.patch("/api/admin/ho-tro/<int:support_id>")
+@admin_required
+def admin_update_support_request(support_id):
+    data = body_json()
+    status = str(data.get("status", "")).strip().upper()
+    note = str(data.get("note", "")).strip()[:1000]
+    if status not in {"MOI", "DANG_XU_LY", "DA_PHAN_HOI", "DA_DONG"}:
+        return api_error("Trạng thái hỗ trợ chưa hợp lệ.", 400, "invalid_support_status")
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM YeuCauHoTro WHERE MaYeuCau=%s FOR UPDATE", (support_id,))
+        before = cursor.fetchone()
+        if not before:
+            conn.rollback()
+            return api_error("Không tìm thấy yêu cầu hỗ trợ.", 404, "support_not_found")
+        cursor.execute(
+            """
+            UPDATE YeuCauHoTro
+            SET TrangThai=%s,GhiChuAdmin=%s,MaAdminXuLy=%s
+            WHERE MaYeuCau=%s
+            """,
+            (status, note or None, g.current_user["MaND"], support_id),
+        )
+        after = dict(before)
+        after.update({"TrangThai": status, "GhiChuAdmin": note or None, "MaAdminXuLy": g.current_user["MaND"]})
+        audit_admin(
+            cursor, "UPDATE", "YeuCauHoTro", support_id,
+            {"TrangThai": status, "GhiChuAdmin": note or None},
+            serialize_row(before), serialize_row(after),
+        )
+        conn.commit()
+        return jsonify({"success": True, "message": f"Đã cập nhật phiếu HT-{support_id:06d}."})
+    except mysql.connector.Error:
+        conn.rollback()
+        app.logger.exception("Không thể cập nhật yêu cầu hỗ trợ")
+        return api_error("Không thể cập nhật yêu cầu.", 409, "support_update_failed")
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.route("/api/admin/noi-dung", methods=["GET", "POST"])
 @admin_required
 def admin_content():
@@ -3274,6 +3494,72 @@ def promote_admin(username):
             raise click.ClickException("Không tìm thấy tài khoản.")
         conn.commit()
         click.echo("Đã cấp quyền admin.")
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.cli.command("promote-superadmin")
+@click.argument("username")
+def promote_superadmin(username):
+    """Cấp Super Admin qua SSH với cờ môi trường, mật khẩu và xác nhận."""
+    if not env_enabled("ALLOW_SUPERADMIN_BOOTSTRAP"):
+        raise click.ClickException(
+            "Lệnh đang khóa. Chỉ bật ALLOW_SUPERADMIN_BOOTSTRAP=1 cho đúng lần chạy này."
+        )
+    password = click.prompt("Mật khẩu hiện tại của tài khoản đích", hide_input=True)
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            "SELECT MaND,TenDangNhap,MatKhau,VaiTro,TrangThai FROM NguoiDung "
+            "WHERE TenDangNhap=%s FOR UPDATE",
+            (username,),
+        )
+        target = cursor.fetchone()
+        if not target:
+            conn.rollback()
+            raise click.ClickException("Không tìm thấy tài khoản.")
+        valid, _ = verify_password(target.get("MatKhau") or "", password)
+        if not valid:
+            conn.rollback()
+            raise click.ClickException("Mật khẩu tài khoản không chính xác.")
+        if target.get("VaiTro") == "superadmin" and bool(target.get("TrangThai")):
+            conn.rollback()
+            click.echo("Tài khoản đã là Super Admin đang hoạt động.")
+            return
+        if not click.confirm(
+            f"Cấp quyền CAO NHẤT cho @{target['TenDangNhap']} và đăng xuất mọi phiên hiện tại?",
+            default=False,
+        ):
+            conn.rollback()
+            click.echo("Đã hủy; không có dữ liệu nào thay đổi.")
+            return
+        before = {"VaiTro": target.get("VaiTro"), "TrangThai": bool(target.get("TrangThai"))}
+        after = {"VaiTro": "superadmin", "TrangThai": True}
+        cursor.execute(
+            "UPDATE NguoiDung SET VaiTro='superadmin',TrangThai=1 WHERE MaND=%s",
+            (target["MaND"],),
+        )
+        cursor.execute("UPDATE PhienDangNhap SET DaThuHoi=1 WHERE MaND=%s", (target["MaND"],))
+        cursor.execute(
+            """
+            INSERT INTO NhatKyQuanTri
+                (MaND,HanhDong,DoiTuong,MaDoiTuong,ChiTiet,DiaChiIP)
+            VALUES (%s,'BOOTSTRAP_SUPERADMIN','NguoiDung',%s,%s,'server-cli')
+            """,
+            (
+                target["MaND"], str(target["MaND"]),
+                json.dumps({"before": before, "after": after, "source": "authenticated-server-cli"}, ensure_ascii=False),
+            ),
+        )
+        conn.commit()
+        click.echo("Đã cấp Super Admin, thu hồi phiên cũ và ghi nhật ký. Hãy tắt biến môi trường ngay.")
+    except click.ClickException:
+        raise
+    except mysql.connector.Error as exc:
+        conn.rollback()
+        raise click.ClickException("Không thể cập nhật quyền trong cơ sở dữ liệu.") from exc
     finally:
         cursor.close()
         conn.close()
