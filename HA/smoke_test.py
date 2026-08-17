@@ -14,6 +14,7 @@ from HA.app import (
     app,
     fuzzy_product_score,
     normalize_search_text,
+    product_category_intent,
     normalize_public_url,
     normalize_sql_table_names,
     normalized_avatar,
@@ -69,6 +70,12 @@ class ApiSmokeTest(unittest.TestCase):
             fuzzy_product_score("vot lning", product),
             fuzzy_product_score("vot lning", unrelated),
         )
+
+    def test_search_category_intent_puts_rackets_before_accessories(self):
+        racket = {"TenSP": "Vợt Cầu Lông Lining Axforce 90", "TenDM": "Vợt Cầu Lông"}
+        string = {"TenSP": "Dây cước căng vợt Lining L9", "TenDM": "Phụ Kiện"}
+        self.assertEqual(product_category_intent("vợt lining", racket), 2)
+        self.assertEqual(product_category_intent("vợt lining", string), 0)
 
     def test_support_validation_does_not_touch_database(self):
         response = self.client.post(

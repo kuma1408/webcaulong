@@ -196,6 +196,8 @@
     let orderPage = 1;
     let orderTotal = 0;
     let orderItems = [];
+    let requestedOrderId = 0;
+    let requestedOrderOpened = false;
     const loadedPanels = new Set();
 
     function bindProfile(user) {
@@ -263,6 +265,10 @@
             orderItems = data.orders || [];
             orderTotal = Number(data.total) || 0;
             renderOrders();
+            if (requestedOrderId && !requestedOrderOpened) {
+                requestedOrderOpened = true;
+                await showOrderDetail(requestedOrderId);
+            }
         } catch (error) {
             tbody.innerHTML = '';
             const row = element('tr');
@@ -598,7 +604,8 @@
         $('#orderNext').addEventListener('click', () => { if (orderPage * 10 < orderTotal) { orderPage += 1; loadOrders(); } });
         installProfileForms();
 
-        const requestedTab = window.location.hash.slice(1);
+        requestedOrderId = Number(new URLSearchParams(window.location.search).get('order')) || 0;
+        const requestedTab = requestedOrderId ? 'orders' : window.location.hash.slice(1);
         activateTab(['overview', 'profile', 'orders', 'wallet', 'security'].includes(requestedTab) ? requestedTab : 'overview');
         if (new URLSearchParams(window.location.search).get('notice') === 'admin-only') showToast('Tài khoản của bạn không có quyền quản trị.', 'warning');
     }

@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-MIGRATION_VERSION = "2026-08-17-support-search-v4"
+MIGRATION_VERSION = "2026-08-17-search-content-theme-v5"
 LOCK_NAME = "shop_caulong_schema_migration"
 BASE_TABLES = {
     "nguoidung": {
@@ -545,6 +545,21 @@ def build_plan(cursor, database: str) -> list[Operation]:
             )
         )
     else:
+        # Một số database được import từ bản cũ đã có bảng BaiViet nhưng thiếu
+        # các trường mà API nội dung hiện đại sử dụng. Bổ sung từng cột theo
+        # kiểu additive để không xóa bài viết hiện có.
+        for column, definition in (
+            ("Loai", "ENUM('TIN_TUC','HUONG_DAN') NOT NULL DEFAULT 'TIN_TUC'"),
+            ("TieuDe", "VARCHAR(220) NOT NULL DEFAULT 'Nội dung chưa đặt tên'"),
+            ("TomTat", "VARCHAR(500) NULL"),
+            ("NoiDung", "LONGTEXT NULL"),
+            ("HinhAnh", "VARCHAR(500) NULL"),
+            ("NguonURL", "VARCHAR(700) NULL"),
+            ("TrangThai", "TINYINT(1) NOT NULL DEFAULT 1"),
+            ("NgayDang", "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"),
+            ("NgayCapNhat", "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+        ):
+            add_column_if_missing(operations, tables, actual("BaiViet"), column, definition)
         add_index_if_missing(
             operations, indexes, actual("BaiViet"),
             "idx_baiviet_type_status_date", "`Loai`, `TrangThai`, `NgayDang`",
@@ -716,7 +731,7 @@ def build_plan(cursor, database: str) -> list[Operation]:
                 f"version:{MIGRATION_VERSION}",
                 f"Ghi nhận migration {MIGRATION_VERSION}",
                 f"INSERT IGNORE INTO {migration_table_sql} (`Version`, `Description`) "
-                f"VALUES ('{MIGRATION_VERSION}', 'Fuzzy search, customer support inbox va secure admin bootstrap')",
+                f"VALUES ('{MIGRATION_VERSION}', 'Category-aware search, content compatibility va dark theme fixes')",
             )
         )
     return operations

@@ -523,6 +523,45 @@ def fuzzy_product_score(keyword: str, product: dict) -> float:
     return round(min(1.0, max(exact_score, sequence_score, token_score, prefix_score)), 4)
 
 
+SEARCH_CATEGORY_ALIASES = {
+    "vot": ("vot cau long",),
+    "racket": ("vot cau long",),
+    "giay": ("giay cau long",),
+    "shoe": ("giay cau long",),
+    "ao": ("ao cau long", "trang phuc"),
+    "quan": ("quan cau long", "trang phuc"),
+    "vay": ("vay cau long", "trang phuc"),
+    "balo": ("balo", "tui va balo"),
+    "tui": ("tui vot", "tui va balo"),
+    "phu kien": ("phu kien",),
+}
+
+
+def product_category_intent(keyword: str, product: dict) -> int:
+    """Ưu tiên danh mục người dùng gọi tên rõ ràng trong truy vấn.
+
+    Ví dụ ``vợt lining`` phải xếp vợt Lining trước dây cước có chữ "vợt".
+    Hàm trả về 2 cho khớp danh mục rõ ràng, 1 cho khớp tên và 0 nếu không có
+    ý định danh mục. Điểm này đứng trước điểm fuzzy khi sắp xếp.
+    """
+    query = normalize_search_text(keyword)
+    category = normalize_search_text(product.get("TenDM"))
+    name = normalize_search_text(product.get("TenSP"))
+    if not query:
+        return 0
+    matched_aliases = []
+    for alias, category_names in SEARCH_CATEGORY_ALIASES.items():
+        if alias in query.split() or (" " in alias and alias in query):
+            matched_aliases.extend(category_names)
+    if not matched_aliases:
+        return 0
+    if any(expected in category or category in expected for expected in matched_aliases if category):
+        return 2
+    if any(name.startswith(expected) or f" {expected} " in f" {name} " for expected in matched_aliases):
+        return 1
+    return 0
+
+
 def validate_password(password: str) -> tuple[bool, str]:
     if len(password) < 8:
         return False, "Mật khẩu phải có ít nhất 8 ký tự."
@@ -2032,7 +2071,7 @@ def search_products():
     category = request.args.get("danh_muc", "").strip()
     min_price = max(0, request.args.get("gia_min", 0, type=float))
     max_price = max(min_price, request.args.get("gia_max", 999_999_999, type=float))
-    sort = request.args.get("sap_xep", "ten_asc")
+    sort = request.args.get("sap_xep", "phu_hop")
     page = clamp_int(request.args.get("trang"), 1, 1, 100000)
     limit = clamp_int(request.args.get("limit"), 20, 1, 50)
     sale_only = str(request.args.get("sale", "")).lower() in {"1", "true", "yes"}
@@ -2078,17 +2117,27 @@ def search_products():
                 if score >= threshold:
                     product = serialize_product(row)
                     product["DoPhuHop"] = score
-                    ranked.append((score, product))
+                    product["UuTienDanhMuc"] = product_category_intent(keyword, row)
+                    ranked.append((product["UuTienDanhMuc"], score, product))
 
             if sort in {"gia_asc", "gia_desc"}:
-                ranked.sort(key=lambda item: float(item[1].get("GiaBan") or 0), reverse=sort == "gia_desc")
-            elif sort == "moi_nhat":
-                ranked.sort(key=lambda item: str(item[1].get("NgayTao") or ""), reverse=True)
+                ranked.sort(key=lambda item: float(item[2].get("GiaBan") or 0), reverse=sort == "gia_desc")
+                ranked.sort(key=lambda item: (item[0], item[1]), reverse=True)
             else:
-                ranked.sort(key=lambda item: normalize_search_text(item[1].get("TenSP")), reverse=sort == "ten_desc")
-            ranked.sort(key=lambda item: item[0], reverse=True)
+                # Trong cùng mức khớp danh mục và từ khóa, sản phẩm vừa được
+                # cập nhật sẽ đứng trước. Điều này giúp gợi ý luôn phản ánh dữ
+                # liệu quản trị mới nhất thay vì phá hòa bằng A-Z.
+                ranked.sort(
+                    key=lambda item: (
+                        item[0],
+                        item[1],
+                        str(item[2].get("NgayCapNhat") or item[2].get("NgayTao") or ""),
+                        int(item[2].get("MaSP") or 0),
+                    ),
+                    reverse=True,
+                )
             total = len(ranked)
-            products = [item[1] for item in ranked[offset:offset + limit]]
+            products = [item[2] for item in ranked[offset:offset + limit]]
             return jsonify({"success": True, "products": products, "total": total, "trang_hien_tai": page, "tim_kiem_gan_dung": True})
 
         cursor.execute(
@@ -2165,6 +2214,13 @@ def public_content_list():
             (kind, limit),
         )
         return jsonify({"success": True, "items": [serialize_row(row) for row in cursor.fetchall()]})
+    except mysql.connector.Error:
+        app.logger.exception("Không thể tải danh sách nội dung")
+        return api_error(
+            "Kho nội dung đang được đồng bộ. Quản trị viên cần áp dụng migration mới.",
+            503,
+            "content_schema_unavailable",
+        )
     finally:
         cursor.close()
         conn.close()
@@ -2180,6 +2236,13 @@ def public_content_detail(content_id):
         if not item:
             return api_error("Không tìm thấy nội dung.", 404, "content_not_found")
         return jsonify({"success": True, "item": serialize_row(item)})
+    except mysql.connector.Error:
+        app.logger.exception("Không thể tải chi tiết nội dung")
+        return api_error(
+            "Kho nội dung đang được đồng bộ. Vui lòng thử lại sau.",
+            503,
+            "content_schema_unavailable",
+        )
     finally:
         cursor.close()
         conn.close()
@@ -3042,6 +3105,13 @@ def admin_content():
             else:
                 cursor.execute("SELECT * FROM BaiViet ORDER BY NgayDang DESC")
             return jsonify({"success": True, "items": [serialize_row(row) for row in cursor.fetchall()]})
+        except mysql.connector.Error:
+            app.logger.exception("Không thể tải nội dung quản trị")
+            return api_error(
+                "Không thể tải Nội dung vì schema máy chủ chưa đồng bộ. Hãy chạy migration v5.",
+                503,
+                "content_schema_unavailable",
+            )
         finally:
             cursor.close()
             conn.close()
@@ -3069,6 +3139,10 @@ def admin_content():
         audit_admin(cursor, "CREATE", "BaiViet", content_id, {"title": title, "type": kind})
         conn.commit()
         return jsonify({"success": True, "message": "Đã tạo nội dung.", "id": content_id}), 201
+    except mysql.connector.Error:
+        conn.rollback()
+        app.logger.exception("Không thể tạo nội dung")
+        return api_error("Không thể lưu nội dung lúc này.", 503, "content_save_failed")
     finally:
         cursor.close()
         conn.close()
@@ -3119,6 +3193,10 @@ def admin_update_content(content_id):
         audit_admin(cursor, "UPDATE", "BaiViet", content_id, changed)
         conn.commit()
         return jsonify({"success": True, "message": "Đã cập nhật nội dung."})
+    except mysql.connector.Error:
+        conn.rollback()
+        app.logger.exception("Không thể cập nhật nội dung %s", content_id)
+        return api_error("Không thể cập nhật nội dung lúc này.", 503, "content_update_failed")
     finally:
         cursor.close()
         conn.close()

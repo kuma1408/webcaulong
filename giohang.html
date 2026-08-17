@@ -304,7 +304,7 @@
                 Cảm ơn bạn đã mua sắm tại Shop Cầu Lông Premium. Đơn hàng của bạn đã được tiếp nhận thành công và đang được chờ duyệt.
             </p>
             <div style="margin-top:30px; display:flex; gap:16px; justify-content:center;">
-                <a href="canhan.html" class="btn-filter-apply" style="width:auto; text-decoration:none; padding:12px 24px; margin:0;">Xem đơn hàng</a>
+                <a href="canhan.html#orders" id="viewPlacedOrder" class="btn-filter-apply" style="width:auto; text-decoration:none; padding:12px 24px; margin:0;">Xem chi tiết đơn hàng</a>
                 <a href="trangchu.html" class="btn-secondary" style="border-radius:24px; display:flex; align-items:center; padding:0 24px; text-decoration:none; font-weight:bold;">Quay lại Trang chủ</a>
             </div>
         </div>
@@ -543,6 +543,7 @@
                 const paidTotal = Number(data.tong_tien || 0);
                 const methodLabel = paymentMethod === 'SO_DU' ? 'Số dư tài khoản' : 'Thanh toán khi nhận hàng (COD)';
                 document.getElementById('successMessage').textContent = `Cửa hàng đã tiếp nhận đơn hàng #${data.ma_don_hang}. Tổng thanh toán ${formatMoney(paidTotal)} qua ${methodLabel}. Chúng tôi sẽ liên hệ xác nhận sớm nhất.`;
+                document.getElementById('viewPlacedOrder').href = `canhan.html?order=${encodeURIComponent(data.ma_don_hang)}#orders`;
                 document.getElementById('cartLayout').style.display = 'none';
                 const successPanel = document.getElementById('successPanel');
                 successPanel.style.display = 'block';

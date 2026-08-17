@@ -350,7 +350,7 @@
                 controller = new AbortController();
                 showStatus('Đang tìm sản phẩm…');
                 try {
-                    const response = await fetch(`${window.API_BASE}/api/tim-kiem?q=${encodeURIComponent(keyword)}&limit=8&sap_xep=ten_asc`, { signal: controller.signal });
+                    const response = await fetch(`${window.API_BASE}/api/tim-kiem?q=${encodeURIComponent(keyword)}&limit=10&sap_xep=phu_hop`, { signal: controller.signal });
                     if (!response.ok) throw new Error('search_failed');
                     const data = await response.json();
                     render(data.success && Array.isArray(data.products) ? data.products : [], keyword);
