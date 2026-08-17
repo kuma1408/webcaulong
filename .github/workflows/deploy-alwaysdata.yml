@@ -90,6 +90,14 @@ jobs:
             --exclude='*.tar.gz' \
             -czf "$RUNNER_TEMP/webcaulong-release.tar.gz" .
 
+      - name: Debug SSH destination
+        run: |
+          echo "SSH_USER=$SSH_USER"
+          echo "SSH_HOST=$SSH_HOST"
+
+
+
+      
       - name: Upload and activate
         run: |
           target="$SSH_USER@$SSH_HOST"
