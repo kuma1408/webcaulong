@@ -86,6 +86,16 @@ jobs:
       - name: Upload and activate
         run: |
           target="$SSH_USER@$SSH_HOST"
-          scp "$RUNNER_TEMP/webcaulong-release.tar.gz" "$target:~/webcaulong-release.tar.gz"
-          scp .github/scripts/deploy-alwaysdata.sh "$target:~/deploy-alwaysdata.sh"
-          ssh "$target" "bash ~/deploy-alwaysdata.sh '$APP_PATH' '$APPLY_MIGRATION'"
+      
+          SSH_OPTS="-i $HOME/.ssh/id_ed25519 -o IdentitiesOnly=yes"
+      
+          scp $SSH_OPTS \
+            "$RUNNER_TEMP/webcaulong-release.tar.gz" \
+            "$target:~/webcaulong-release.tar.gz"
+      
+          scp $SSH_OPTS \
+            .github/scripts/deploy-alwaysdata.sh \
+            "$target:~/deploy-alwaysdata.sh"
+      
+          ssh $SSH_OPTS "$target" \
+            "bash ~/deploy-alwaysdata.sh '$APP_PATH' '$APPLY_MIGRATION'"
