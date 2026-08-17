@@ -98,36 +98,14 @@ jobs:
 
 
       
-      - name: Upload and activate
+      - name: Test SSH connection
         run: |
-          target="$SSH_USER@$SSH_HOST"
-
-          scp \
-            -i "$HOME/.ssh/id_ed25519" \
-            -o IdentitiesOnly=yes \
-            -o PreferredAuthentications=publickey \
-            -o PasswordAuthentication=no \
-            -o KbdInteractiveAuthentication=no \
-            -o BatchMode=yes \
-            "$RUNNER_TEMP/webcaulong-release.tar.gz" \
-            "$target:~/webcaulong-release.tar.gz"
-
-          scp \
-            -i "$HOME/.ssh/id_ed25519" \
-            -o IdentitiesOnly=yes \
-            -o PreferredAuthentications=publickey \
-            -o PasswordAuthentication=no \
-            -o KbdInteractiveAuthentication=no \
-            -o BatchMode=yes \
-            .github/scripts/deploy-alwaysdata.sh \
-            "$target:~/deploy-alwaysdata.sh"
-
           ssh \
+            -vvv \
             -i "$HOME/.ssh/id_ed25519" \
             -o IdentitiesOnly=yes \
             -o PreferredAuthentications=publickey \
             -o PasswordAuthentication=no \
             -o KbdInteractiveAuthentication=no \
-            -o BatchMode=yes \
-            "$target" \
-            "bash ~/deploy-alwaysdata.sh '$APP_PATH' '$APPLY_MIGRATION'"
+            "$SSH_USER@$SSH_HOST" \
+            "echo SSH_CONNECTION_OK"
