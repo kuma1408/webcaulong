@@ -154,7 +154,15 @@ class SlidingWindowLimiter:
         self._lock = threading.Lock()
         self._operations = 0
 
-    def check(self, bucket: str, identifier: str, limit: int, window_seconds: int) -> tuple[bool, int]:
+    def check(
+        self,
+        bucket: str,
+        identifier: str,
+        limit: int,
+        window_seconds: int,
+        *,
+        consume: bool = True,
+    ) -> tuple[bool, int]:
         now = time.monotonic()
         cutoff = now - window_seconds
         key = (bucket, identifier[:160])
@@ -165,6 +173,8 @@ class SlidingWindowLimiter:
             if len(events) >= limit:
                 retry_after = max(1, int(window_seconds - (now - events[0])) + 1)
                 return False, retry_after
+            if not consume:
+                return True, 0
             events.append(now)
             self._operations += 1
             if self._operations % 500 == 0:
@@ -2015,9 +2025,21 @@ def confirm_received():
 
 @app.post("/api/lien-he")
 def create_support_request():
-    limited = enforce_rate_limit("support-ip", client_ip(), 5, 10 * 60)
-    if limited:
-        return limited
+    # Chỉ kiểm tra ở đây; lượt chỉ được ghi nhận sau khi database đã lưu thành
+    # công. Dữ liệu nhập sai hoặc lỗi schema không được phép khóa khách hàng.
+    allowed, retry_after = RATE_LIMITER.check(
+        "support-ip", client_ip(), 5, 10 * 60, consume=False
+    )
+    if not allowed:
+        response = jsonify({
+            "success": False,
+            "message": "Bạn thao tác quá nhanh. Vui lòng thử lại sau.",
+            "code": "rate_limited",
+            "retry_after": retry_after,
+        })
+        response.status_code = 429
+        response.headers["Retry-After"] = str(retry_after)
+        return response
     data = body_json()
     fullname = str(data.get("fullname", "")).strip()[:120]
     email = str(data.get("email", "")).strip().lower()[:150]
@@ -2058,6 +2080,7 @@ def create_support_request():
         )
         support_id = cursor.lastrowid
         conn.commit()
+        RATE_LIMITER.check("support-ip", client_ip(), 5, 10 * 60)
         return jsonify({
             "success": True,
             "message": "Cửa hàng đã tiếp nhận yêu cầu của bạn.",

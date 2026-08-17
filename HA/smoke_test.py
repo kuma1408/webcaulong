@@ -222,6 +222,13 @@ class ApiSmokeTest(unittest.TestCase):
         self.assertFalse(allowed)
         self.assertGreaterEqual(retry_after, 1)
 
+    def test_rate_limiter_preview_does_not_consume_attempt(self):
+        limiter = SlidingWindowLimiter()
+        for _ in range(10):
+            self.assertEqual(limiter.check("support", "127.0.0.1", 1, 60, consume=False), (True, 0))
+        self.assertEqual(limiter.check("support", "127.0.0.1", 1, 60), (True, 0))
+        self.assertFalse(limiter.check("support", "127.0.0.1", 1, 60)[0])
+
     def test_detail_page_does_not_collect_card_or_cvv(self):
         detail_path = pathlib.Path(__file__).resolve().parent.parent / "chitiet.html"
         content = detail_path.read_text(encoding="utf-8")
