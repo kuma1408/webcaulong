@@ -81,11 +81,11 @@ jobs:
             --exclude=HA/uploads \
             --exclude='*.sql' \
             --exclude='*.tar.gz' \
-            -czf webcaulong-release.tar.gz .
+            -czf "$RUNNER_TEMP/webcaulong-release.tar.gz" .
 
       - name: Upload and activate
         run: |
           target="$SSH_USER@$SSH_HOST"
-          scp webcaulong-release.tar.gz "$target:~/webcaulong-release.tar.gz"
+          scp "$RUNNER_TEMP/webcaulong-release.tar.gz" "$target:~/webcaulong-release.tar.gz"
           scp .github/scripts/deploy-alwaysdata.sh "$target:~/deploy-alwaysdata.sh"
           ssh "$target" "bash ~/deploy-alwaysdata.sh '$APP_PATH' '$APPLY_MIGRATION'"
