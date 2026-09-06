@@ -11,13 +11,17 @@ Flask + MySQL.
 - Cửa hàng: danh mục động từ MySQL, tìm kiếm gợi ý, một trang chi tiết dùng
   chung, gallery kéo/thả, yêu thích, đánh giá của khách đã mua.
 - Bán hàng: giỏ hàng, kiểm tra tồn kho trong transaction, voucher một lần mỗi
-  tài khoản, COD hoặc số dư, hủy/hoàn tiền và lịch sử đơn.
+  tài khoản, COD hoặc số dư, VietQR nạp ví theo đúng số tiền/mã đối soát,
+  hủy/hoàn tiền và lịch sử đơn.
 - Quản trị: sản phẩm, tải/nén ảnh và nhiều ảnh Swiper trực tiếp từ máy, sale,
   đơn hàng và mặt hàng trong đơn, người dùng,
   nội dung tin tức/hướng dẫn, voucher, nạp tiền, nhật ký trước/sau và cơ chế
   Super Admin xác nhận/hoàn tác.
 - Vận hành: migration additive, WSGI, header bảo mật, rate limit, kiểm tra upload,
   CI GitHub và workflow triển khai Alwaysdata qua SSH.
+- Trải nghiệm: chế độ sáng/tối thống nhất, hiệu ứng sương có thể tắt, chuyển
+  cảnh khi cuộn, phản hồi nút bấm, dashboard quản trị và hạng thành viên dùng
+  số liệu thật từ MySQL.
 
 ## Chạy frontend
 

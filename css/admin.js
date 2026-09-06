@@ -72,6 +72,23 @@
         const parsed = new Date(String(value).replace(' ', 'T'));
         return Number.isNaN(parsed.getTime()) ? String(value) : dateTime.format(parsed);
     }
+    function animateMetric(node, target, formatter = (value) => String(Math.round(value))) {
+        if (!node) return;
+        const finalValue = Number(target) || 0;
+        if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+            node.textContent = formatter(finalValue);
+            return;
+        }
+        const started = performance.now();
+        const duration = 720;
+        const frame = (now) => {
+            const progress = Math.min((now - started) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            node.textContent = formatter(finalValue * eased);
+            if (progress < 1) requestAnimationFrame(frame);
+        };
+        requestAnimationFrame(frame);
+    }
     function element(tag, className, text) {
         const node = document.createElement(tag);
         if (className) node.className = className;
@@ -188,14 +205,27 @@
         try {
             const data = await Auth.request('/api/admin/dashboard');
             const metrics = data.metrics || {};
-            $('#adminRevenue').textContent = formatMoney(metrics.revenue);
-            $('#adminOrders').textContent = String(metrics.orders || 0);
+            animateMetric($('#adminRevenue'), metrics.revenue, formatMoney);
+            animateMetric($('#adminRevenueMonth'), metrics.revenue_month, formatMoney);
+            animateMetric($('#adminOrders'), metrics.orders);
             $('#adminPendingOrders').textContent = String(metrics.pending_orders || 0);
-            $('#adminUsers').textContent = String(metrics.users || 0);
+            animateMetric($('#adminAov'), metrics.average_order, formatMoney);
+            $('#adminTodayOrders').textContent = String(metrics.orders_today || 0);
+            animateMetric($('#adminUsers'), metrics.users);
             $('#adminActiveUsers').textContent = String(metrics.active_users || 0);
-            $('#adminAttention').textContent = String((metrics.low_stock || 0) + (metrics.pending_deposits || 0));
+            animateMetric($('#adminProducts'), metrics.products);
+            $('#adminLowStock').textContent = String(metrics.low_stock || 0);
+            const attention = (metrics.low_stock || 0) + (metrics.pending_deposits || 0) + (metrics.pending_support || 0);
+            animateMetric($('#adminAttention'), attention);
+            $('#healthProducts').textContent = String(metrics.active_products || 0);
+            $('#healthUsers').textContent = String(metrics.active_users || 0);
+            $('#healthSupport').textContent = String(metrics.pending_support || 0);
             updateNavBadge($('#navPendingOrders'), metrics.pending_orders);
             updateNavBadge($('#navPendingDeposits'), metrics.pending_deposits);
+            updateNavBadge($('#navPendingSupport'), metrics.pending_support);
+            renderTrend(data.trend || []);
+            renderOrderStatus(data.order_status || []);
+            renderFunnel(metrics);
             renderRecentOrders(data.recent_orders || []);
             renderLowStock(data.low_stock_products || []);
             if(state.admin?.role==='superadmin'){
@@ -206,6 +236,59 @@
             $('#recentOrders').innerHTML = '';
             $('#recentOrders').appendChild(element('p', 'admin-empty', error.message));
         }
+    }
+
+    function renderTrend(items) {
+        const chart = $('#adminTrendChart');
+        chart.innerHTML = '';
+        if (!items.length) { chart.appendChild(element('p', 'admin-empty', 'Chưa có dữ liệu biểu đồ.')); return; }
+        const maxOrders = Math.max(1, ...items.map((item) => Number(item.orders) || 0));
+        items.forEach((item) => {
+            const orders = Number(item.orders) || 0;
+            const bar = element('div', `admin-trend-bar${orders ? '' : ' is-empty'}`);
+            bar.style.setProperty('--bar-height', `${Math.max(3, orders / maxOrders * 165)}px`);
+            const labelDate = new Date(`${item.date}T00:00:00`);
+            bar.append(
+                element('em', '', `${orders} đơn · ${formatMoney(item.revenue)}`),
+                element('span', '', `${labelDate.getDate()}/${labelDate.getMonth() + 1}`)
+            );
+            chart.appendChild(bar);
+        });
+    }
+
+    function renderOrderStatus(items) {
+        const colors = { CHO_XAC_NHAN: '#ff9f1c', DANG_GIAO: '#3d78c5', HOAN_THANH: '#28a966', DA_HUY: '#d94b3d' };
+        const normalized = items.map((item) => ({ status: item.TrangThai, count: Number(item.SoLuong) || 0 })).filter((item) => item.count > 0);
+        const total = normalized.reduce((sum, item) => sum + item.count, 0);
+        $('#adminStatusTotal').textContent = String(total);
+        let cursor = 0;
+        const segments = normalized.map((item) => {
+            const start = cursor;
+            cursor += total ? item.count / total * 100 : 0;
+            return `${colors[item.status] || '#9b776a'} ${start}% ${cursor}%`;
+        });
+        $('#adminStatusDonut').style.setProperty('--donut', segments.length ? `conic-gradient(${segments.join(',')})` : 'conic-gradient(var(--bs-line) 0 100%)');
+        const legend = $('#adminStatusLegend');
+        legend.innerHTML = '';
+        normalized.forEach((item) => {
+            const row = element('div');
+            const dot = element('i'); dot.style.setProperty('--legend-color', colors[item.status] || '#9b776a');
+            row.append(dot, element('span', '', statusMeta[item.status]?.[0] || item.status), element('strong', '', item.count));
+            legend.appendChild(row);
+        });
+        if (!normalized.length) legend.appendChild(element('p', 'admin-empty', 'Chưa có đơn hàng.'));
+    }
+
+    function renderFunnel(metrics) {
+        const total = Math.max(1, Number(metrics.orders) || 0);
+        const processing = Number(metrics.pending_orders) || 0;
+        const completed = Number(metrics.completed_orders) || 0;
+        const cancelled = Number(metrics.cancelled_orders) || 0;
+        [['#funnelOrders', metrics.orders], ['#funnelProcessing', processing], ['#funnelCompleted', completed], ['#funnelCancelled', cancelled]]
+            .forEach(([selector, value]) => animateMetric($(selector), value));
+        $('#funnelProcessingBar').style.setProperty('--funnel-width', `${processing / total * 100}%`);
+        $('#funnelCompletedBar').style.setProperty('--funnel-width', `${completed / total * 100}%`);
+        $('#funnelCancelledBar').style.setProperty('--funnel-width', `${cancelled / total * 100}%`);
     }
 
     function updateNavBadge(node, value) {

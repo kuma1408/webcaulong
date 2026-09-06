@@ -28,6 +28,19 @@
         return Number.isNaN(parsed.getTime()) ? String(value) : dateTime.format(parsed);
     }
 
+    function animateMetric(node, target, formatter = (value) => String(Math.round(value))) {
+        if (!node) return;
+        const finalValue = Number(target) || 0;
+        if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { node.textContent = formatter(finalValue); return; }
+        const started = performance.now();
+        const frame = (now) => {
+            const progress = Math.min((now - started) / 680, 1);
+            node.textContent = formatter(finalValue * (1 - Math.pow(1 - progress, 3)));
+            if (progress < 1) requestAnimationFrame(frame);
+        };
+        requestAnimationFrame(frame);
+    }
+
     function element(tag, className, text) {
         const node = document.createElement(tag);
         if (className) node.className = className;
@@ -207,11 +220,26 @@
         $('#profileName').textContent = name;
         $('#profileHandle').textContent = `@${user.username}`;
         $('#welcomeName').textContent = name.split(/\s+/).pop();
-        $('#metricBalance').textContent = formatMoney(user.balance);
-        $('#metricOrders').textContent = String(user.stats?.orders || 0);
-        $('#metricProcessing').textContent = String(user.stats?.processing || 0);
-        $('#metricSpent').textContent = formatMoney(user.stats?.spent);
+        animateMetric($('#metricBalance'), user.balance, formatMoney);
+        animateMetric($('#metricOrders'), user.stats?.orders);
+        animateMetric($('#metricProcessing'), user.stats?.processing);
+        animateMetric($('#metricSpent'), user.stats?.spent, formatMoney);
         $('#walletBalance').textContent = formatMoney(user.balance);
+        animateMetric($('#loyaltyPoints'), user.stats?.points);
+        $('#loyaltyTier').textContent = user.stats?.tier || 'Đồng';
+        const tierProgress = Math.max(0, Math.min(100, Number(user.stats?.tier_progress) || 0));
+        $('#loyaltyProgress').style.width = `${tierProgress}%`;
+        $('#loyaltyProgress').parentElement.setAttribute('aria-valuenow', String(Math.round(tierProgress)));
+        $('#loyaltyNext').textContent = user.stats?.next_target
+            ? `Còn ${formatMoney(Math.max(0, Number(user.stats.next_target) - Number(user.stats.spent || 0)))} để lên hạng tiếp theo.`
+            : 'Bạn đã đạt hạng thành viên cao nhất.';
+        animateMetric($('#metricCompleted'), user.stats?.completed);
+        animateMetric($('#metricFavorites'), user.stats?.favorites);
+        animateMetric($('#metricCancelled'), user.stats?.cancelled);
+        const completionRate = user.stats?.orders ? Math.round((Number(user.stats.completed) || 0) / Number(user.stats.orders) * 100) : 0;
+        $('#accountCompletionRate').textContent = `${completionRate}%`;
+        $('#accountCompletion').style.setProperty('--completion', `${completionRate}%`);
+        $('#memberSince').textContent = user.created_at ? formatDate(user.created_at).split(' ')[0] : '—';
         $('#summaryEmail').textContent = user.email || 'Chưa cập nhật';
         $('#summaryPhone').textContent = user.phone || 'Chưa cập nhật';
         $('#summaryAddress').textContent = user.address || 'Chưa cập nhật';
@@ -414,6 +442,25 @@
         else transactionList.innerHTML = `<p class="empty-state"></p>`, transactionList.firstChild.textContent = transactionsResult.reason.message;
     }
 
+    function showDepositQr(payment) {
+        const dialog = $('#depositQrDialog');
+        if (!dialog) return;
+        $('#depositBank').textContent = [payment.bank_name, payment.bank_code].filter(Boolean).join(' · ') || '—';
+        $('#depositAccount').textContent = payment.account_no || '—';
+        $('#depositOwner').textContent = payment.account_name || '—';
+        $('#depositQrAmount').textContent = formatMoney(payment.amount);
+        $('#depositQrAmount').dataset.copyValue = String(Math.round(Number(payment.amount) || 0));
+        $('#depositReference').textContent = payment.reference || '—';
+        $('#depositQrUnavailable').textContent = payment.configured ? '' : 'Quản trị viên chưa cấu hình tài khoản nhận chuyển khoản.';
+        if (payment.configured && payment.qr_url) {
+            $('#depositQrImage').src = `${window.API_BASE || ''}${payment.qr_url}`;
+            $('#depositQrImage').hidden = false;
+        } else {
+            $('#depositQrImage').hidden = true;
+        }
+        dialog.showModal();
+    }
+
     function renderDepositRequests(items) {
         const list = $('#depositRequests');
         list.innerHTML = '';
@@ -551,12 +598,24 @@
                 const data = await Auth.request('/api/nap-tien/tao-yeu-cau', { method: 'POST', json: { amount } });
                 showStatus(status, `${data.message} Mã: ${data.request.reference}`, true);
                 $('#depositForm').reset();
+                showDepositQr(data.payment || { configured: false, amount, reference: data.request.reference });
                 await loadWallet();
             } catch (error) { showStatus(status, error.message); }
             finally { setBusy(submit, false); }
         });
 
         $$('[data-amount]').forEach((button) => button.addEventListener('click', () => { $('#depositAmount').value = button.dataset.amount; }));
+        const closeDepositQr = () => $('#depositQrDialog')?.close();
+        $('#closeDepositQr')?.addEventListener('click', closeDepositQr);
+        $('#doneDepositQr')?.addEventListener('click', closeDepositQr);
+        $$('[data-copy-target]').forEach((button) => button.addEventListener('click', async () => {
+            const target = document.getElementById(button.dataset.copyTarget);
+            const value = target?.dataset.copyValue || target?.textContent?.trim() || '';
+            try {
+                await navigator.clipboard.writeText(value);
+                showToast('Đã sao chép thông tin chuyển khoản.', 'success');
+            } catch (_) { showToast('Không thể sao chép tự động. Vui lòng chọn và sao chép thủ công.', 'error'); }
+        }));
         $('#refreshWallet').addEventListener('click', loadWallet);
 
         $('#passwordForm').addEventListener('submit', async (event) => {

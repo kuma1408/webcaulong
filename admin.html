@@ -8,9 +8,10 @@
     <title>Quản trị website | Badminton Store</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="css/account.css?v=20260906-1">
-    <link rel="stylesheet" href="css/admin.css?v=20260817-2">
-    <script src="css/auth.js?v=20260906-1" defer></script>
-    <script src="css/admin.js?v=20260817-1" defer></script>
+    <link rel="stylesheet" href="css/admin.css?v=20260906-2">
+    <link rel="stylesheet" href="css/dashboard-fx.css?v=20260906-2">
+    <script src="css/auth.js?v=20260906-2" defer></script>
+    <script src="css/admin.js?v=20260906-2" defer></script>
 </head>
 <body class="account-body admin-body">
     <a class="skip-link" href="#adminMain">Bỏ qua điều hướng</a>
@@ -42,12 +43,30 @@
                 <header class="admin-topbar"><div><p class="eyebrow">Trung tâm điều hành</p><h1 id="adminPageTitle">Tổng quan</h1></div><div class="admin-topbar__actions"><span class="admin-live"><i></i>Hệ thống trực tuyến</span><button type="button" id="adminRefresh" aria-label="Làm mới dữ liệu">↻ <span>Làm mới</span></button></div></header>
 
                 <section class="admin-view" data-admin-panel="overview" aria-labelledby="adminPageTitle">
-                    <div class="admin-metrics">
-                        <article><span>Doanh thu hoàn tất</span><strong id="adminRevenue">0 ₫</strong><small>Từ đơn đã hoàn thành</small><i class="metric-spark metric-spark--red"></i></article>
-                        <article><span>Tổng đơn hàng</span><strong id="adminOrders">0</strong><small><b id="adminPendingOrders">0</b> đang chờ xác nhận</small><i class="metric-spark metric-spark--orange"></i></article>
-                        <article><span>Người dùng</span><strong id="adminUsers">0</strong><small><b id="adminActiveUsers">0</b> tài khoản hoạt động</small><i class="metric-spark metric-spark--warm"></i></article>
-                        <article><span>Cần xử lý</span><strong id="adminAttention">0</strong><small>Sắp hết hàng & yêu cầu nạp</small><i class="metric-spark metric-spark--deep"></i></article>
+                    <div class="admin-health" aria-label="Tình trạng vận hành">
+                        <div class="admin-health__status"><span class="admin-health__pulse" aria-hidden="true"></span><div><strong>Cửa hàng đang vận hành</strong><small>Dữ liệu trực tiếp từ hệ thống</small></div></div>
+                        <div><span>Sản phẩm đang bán</span><strong id="healthProducts">0</strong></div>
+                        <div><span>Tài khoản hoạt động</span><strong id="healthUsers">0</strong></div>
+                        <div><span>Phiếu cần trả lời</span><strong id="healthSupport">0</strong></div>
                     </div>
+                    <div class="admin-metrics">
+                        <article data-tone="red"><span class="admin-metric-icon" aria-hidden="true">₫</span><span>Doanh thu tháng</span><strong id="adminRevenueMonth">0 ₫</strong><small>Từ đơn hoàn thành trong tháng</small><i class="metric-spark metric-spark--red"></i></article>
+                        <article data-tone="orange"><span class="admin-metric-icon" aria-hidden="true">□</span><span>Tổng đơn hàng</span><strong id="adminOrders">0</strong><small><b id="adminPendingOrders">0</b> đang chờ xác nhận</small><i class="metric-spark metric-spark--orange"></i></article>
+                        <article data-tone="gold"><span class="admin-metric-icon" aria-hidden="true">◇</span><span>Giá trị đơn trung bình</span><strong id="adminAov">0 ₫</strong><small><b id="adminTodayOrders">0</b> đơn phát sinh hôm nay</small><i class="metric-spark metric-spark--warm"></i></article>
+                        <article data-tone="violet"><span class="admin-metric-icon" aria-hidden="true">◎</span><span>Người dùng</span><strong id="adminUsers">0</strong><small><b id="adminActiveUsers">0</b> tài khoản hoạt động</small><i class="metric-spark metric-spark--deep"></i></article>
+                        <article data-tone="green"><span class="admin-metric-icon" aria-hidden="true">▦</span><span>Sản phẩm</span><strong id="adminProducts">0</strong><small><b id="adminLowStock">0</b> sản phẩm sắp hết</small><i class="metric-spark metric-spark--green"></i></article>
+                        <article data-tone="blue"><span class="admin-metric-icon" aria-hidden="true">!</span><span>Cần xử lý</span><strong id="adminAttention">0</strong><small>Nạp tiền, hỗ trợ và tồn kho</small><i class="metric-spark metric-spark--blue"></i></article>
+                    </div>
+                    <div class="admin-analytics-grid">
+                        <article class="admin-card admin-chart-card"><div class="admin-card__heading"><div><p class="eyebrow">14 ngày gần nhất</p><h2>Nhịp đơn hàng</h2></div><strong id="adminRevenue">0 ₫</strong></div><div class="admin-trend-chart" id="adminTrendChart" aria-label="Biểu đồ đơn hàng 14 ngày"><p class="admin-empty">Đang tải biểu đồ…</p></div></article>
+                        <article class="admin-card admin-status-card"><div class="admin-card__heading"><div><p class="eyebrow">Cơ cấu xử lý</p><h2>Trạng thái đơn</h2></div></div><div class="admin-status-visual"><div class="admin-donut" id="adminStatusDonut"><span id="adminStatusTotal">0</span><small>đơn</small></div><div class="admin-status-legend" id="adminStatusLegend"></div></div></article>
+                    </div>
+                    <article class="admin-card admin-funnel"><div class="admin-card__heading"><div><p class="eyebrow">Luồng vận hành</p><h2>Tiến độ xử lý đơn</h2></div><span>Tự cập nhật theo dữ liệu thật</span></div><div class="admin-funnel__steps">
+                        <div><span>Tất cả đơn</span><strong id="funnelOrders">0</strong><i style="--funnel-width:100%"></i></div>
+                        <div><span>Đang xử lý</span><strong id="funnelProcessing">0</strong><i id="funnelProcessingBar"></i></div>
+                        <div><span>Hoàn thành</span><strong id="funnelCompleted">0</strong><i id="funnelCompletedBar"></i></div>
+                        <div><span>Đã hủy</span><strong id="funnelCancelled">0</strong><i id="funnelCancelledBar"></i></div>
+                    </div></article>
                     <div class="admin-overview-grid">
                         <article class="admin-card"><div class="admin-card__heading"><div><p class="eyebrow">Mới nhất</p><h2>Đơn hàng gần đây</h2></div><button type="button" data-jump-view="orders">Xem tất cả →</button></div><div class="admin-list" id="recentOrders"><p class="admin-empty">Đang tải dữ liệu…</p></div></article>
                         <article class="admin-card"><div class="admin-card__heading"><div><p class="eyebrow">Tồn kho</p><h2>Sản phẩm cần chú ý</h2></div><button type="button" data-jump-view="products">Quản lý →</button></div><div class="admin-list" id="lowStockProducts"><p class="admin-empty">Đang tải dữ liệu…</p></div></article>

@@ -23,6 +23,7 @@ from HA.app import (
     verify_password,
 )
 from werkzeug.security import generate_password_hash
+from HA.vietqr import build_payload as build_vietqr_payload, make_png as make_vietqr_png, transfer_content
 
 
 class ApiSmokeTest(unittest.TestCase):
@@ -82,6 +83,15 @@ class ApiSmokeTest(unittest.TestCase):
         shorts = {"TenSP": "Quần cầu lông Yonex Q33", "TenDM": "Quần Cầu Lông"}
         self.assertEqual(product_category_intent("quấn cán", grip), 2)
         self.assertEqual(product_category_intent("quấn cán", shorts), 0)
+
+    def test_vietqr_payload_has_valid_shape_and_png(self):
+        content = transfer_content("NAP-21-ABC123", 500000)
+        payload = build_vietqr_payload("970422", "0123456789", 500000, content)
+        self.assertTrue(payload.startswith("000201010212"))
+        self.assertIn("5406500000", payload)
+        self.assertRegex(payload, r"6304[0-9A-F]{4}$")
+        png = make_vietqr_png(payload)
+        self.assertTrue(png.startswith(b"\x89PNG\r\n\x1a\n"))
 
     def test_support_table_name_is_linux_safe(self):
         statement = normalize_sql_table_names("SELECT * FROM YeuCauHoTro")

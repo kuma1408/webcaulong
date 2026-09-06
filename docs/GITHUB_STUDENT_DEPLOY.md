@@ -111,6 +111,22 @@ TRUST_PROXY_HOPS=1
 FLASK_DEBUG=0
 ```
 
+Để trang Ví tạo VietQR đúng số tiền và mã đối soát, điền thêm thông tin nhận
+chuyển khoản công khai. `BANK_BIN` là mã BIN 6 chữ số của ngân hàng (tra trên
+danh sách NAPAS), không phải số thẻ:
+
+```dotenv
+BANK_BIN=970422
+BANK_CODE=MB
+BANK_NAME=Ngân hàng TMCP Quân đội
+BANK_ACCOUNT_NO=so-tai-khoan-nhan-tien
+BANK_ACCOUNT_NAME=NGUYEN VAN A
+```
+
+Thay toàn bộ giá trị ví dụ bằng tài khoản của bạn. Không nhập mật khẩu ngân
+hàng, mã OTP, mã PIN hoặc số CVV vào `.env`. Những dữ liệu bí mật đó không cần
+thiết cho VietQR và website không được phép thu thập chúng.
+
 Điền SMTP nếu muốn chức năng quên mật khẩu gửi email. Không có SMTP, API vẫn
 trả thông báo chung để tránh lộ tài khoản nhưng email sẽ không được gửi.
 

@@ -508,6 +508,8 @@
             .bs-back-to-top{position:fixed;right:22px;bottom:22px;z-index:9000;width:50px;height:50px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.32);border-radius:50%;background:linear-gradient(135deg,var(--bs-red),var(--bs-orange));color:#fff;font-size:22px;font-weight:900;box-shadow:0 14px 30px rgba(143,34,12,.3);cursor:pointer;opacity:0;visibility:hidden;transform:translateY(14px) scale(.88);transition:opacity .28s,transform .34s cubic-bezier(.2,.8,.2,1),visibility .28s,box-shadow .28s}.bs-back-to-top::before{content:"";position:absolute;inset:-5px;z-index:-1;border-radius:50%;background:conic-gradient(var(--bs-orange) calc(var(--bs-scroll-progress) * 1turn),color-mix(in srgb,var(--bs-line) 78%,transparent) 0)}.bs-back-to-top.is-visible{opacity:1;visibility:visible;transform:none}.bs-back-to-top:hover{transform:translateY(-5px) scale(1.06);box-shadow:0 18px 38px rgba(143,34,12,.4)}
             .bs-reveal{opacity:0;transform:translate3d(0,28px,0) scale(.985);filter:blur(3px);transition:opacity .62s cubic-bezier(.2,.8,.2,1),transform .62s cubic-bezier(.2,.8,.2,1),filter .62s ease;transition-delay:var(--bs-reveal-delay,0ms);will-change:opacity,transform}.bs-reveal.bs-reveal--left{transform:translate3d(-28px,0,0)}.bs-reveal.is-revealed{opacity:1;transform:none;filter:none}
             .bs-ripple-host{position:relative!important;overflow:hidden!important}.bs-ripple-ink{position:absolute;z-index:10;width:12px;height:12px;border-radius:50%;pointer-events:none;background:rgba(255,255,255,.48);transform:translate(-50%,-50%) scale(0);animation:bsRipple .62s ease-out forwards}.bs-ripple-host--soft .bs-ripple-ink{background:rgba(233,56,27,.2)}
+            .bs-ambient-layer{position:fixed;inset:0;z-index:940;pointer-events:none;opacity:.72;transition:opacity .35s}.bs-ambient-layer[hidden]{display:none}.bs-ambient-action.is-active{border-color:color-mix(in srgb,var(--bs-orange) 55%,var(--bs-line));background:color-mix(in srgb,var(--bs-orange) 12%,var(--bs-bg));color:var(--bs-red)}
+            :where(.primary-button,.soft-button,.admin-primary,.admin-topbar__actions button,.account-tabs button,.admin-nav button,.bs-nav__links>li>a,.bs-nav__products summary){transition:transform .22s ease,box-shadow .28s ease,background-color .22s ease,border-color .22s ease!important}:where(.primary-button,.soft-button,.admin-primary,.admin-topbar__actions button,.account-tabs button,.admin-nav button):hover{transform:translateY(-2px);box-shadow:0 11px 25px rgba(203,52,19,.18)}
             @keyframes bsRipple{to{opacity:0;transform:translate(-50%,-50%) scale(18)}}
             @media(hover:hover) and (pointer:fine){.bs-depth-card{transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .32s ease,border-color .32s ease}.bs-depth-card:hover{transform:translateY(-5px);box-shadow:0 20px 42px rgba(90,25,10,.16);border-color:color-mix(in srgb,var(--bs-line) 45%,var(--bs-orange))!important}}
             /* Styling cho Chi tiết sản phẩm & Breadcrumb */
@@ -518,7 +520,7 @@
             .bs-detail-tabs-section{margin-top:38px;padding-top:24px;border-top:1px solid var(--bs-line)}.bs-detail-tabs{display:flex;gap:8px;border-bottom:2px solid var(--bs-line);margin-bottom:24px;overflow-x:auto}.bs-tab-btn{padding:12px 20px;border:0;background:transparent;color:var(--bs-muted);font-size:14px;font-weight:750;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:.2s}.bs-tab-btn:hover,.bs-tab-btn.active{color:var(--bs-red);border-bottom-color:var(--bs-red)}.bs-tab-content{display:none;padding:10px 4px;line-height:1.75;color:var(--bs-ink)}.bs-tab-content.active{display:block}.bs-specs-table{width:100%;border-collapse:collapse;margin-top:12px}.bs-specs-table td{padding:12px 16px;border-bottom:1px solid var(--bs-line);font-size:13px}.bs-specs-table td:first-child{font-weight:750;width:30%;color:var(--bs-muted);background:var(--bs-bg);border-radius:8px 0 0 8px}.bs-warranty-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-top:16px}.bs-warranty-card{padding:20px;border:1px solid var(--bs-line);border-radius:16px;background:var(--bs-bg);text-align:left}.bs-warranty-icon{font-size:28px;display:block;margin-bottom:10px}.bs-reviews-overview{display:flex;gap:32px;align-items:center;padding:24px;background:var(--bs-bg);border-radius:20px;margin-bottom:24px;flex-wrap:wrap}.bs-reviews-score{text-align:center}.bs-reviews-score strong{font-size:3rem;line-height:1;color:var(--bs-red)}.bs-stars{color:#ffb400;font-size:18px;margin:4px 0}.bs-reviews-bars{flex:1;min-width:240px;display:grid;gap:6px}.bs-bar-row{display:flex;align-items:center;gap:10px;font-size:12px}.bs-bar-track{flex:1;height:8px;background:var(--bs-line);border-radius:10px;overflow:hidden}.bs-bar-fill{height:100%;background:var(--bs-red);border-radius:10px}.bs-review-item{padding:18px 0;border-bottom:1px solid var(--bs-line)}.bs-review-user{display:flex;align-items:center;gap:10px;margin-bottom:6px}.bs-verified{font-size:11px;color:#27945c;font-weight:750;background:rgba(39,148,92,.1);padding:2px 8px;border-radius:10px}.bs-review-date{font-size:11px;color:var(--bs-muted);margin-top:6px;display:block}
             @media(max-width:820px){.bs-header{grid-template-columns:1fr auto;gap:8px;padding:9px 14px}.bs-brand__text{display:none}.bs-search{grid-row:2;grid-column:1/-1}.bs-nav{padding:0 14px;display:block}.bs-mobile-toggle{display:block;margin:7px 0 7px auto}.bs-nav__links{display:none;flex-direction:column;align-items:stretch;padding-bottom:9px!important}.bs-nav.is-open .bs-nav__links{display:flex}.bs-nav__links>li{width:100%}.bs-nav__links>li>a,.bs-nav__products>details>summary{min-height:42px!important;border-radius:9px;justify-content:space-between!important}.bs-nav__catalog{position:static;width:100%;margin:5px 0 9px;padding:12px;box-shadow:none}.bs-nav__catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.bs-nav__catalog-grid a{min-height:42px!important}.bs-footer__grid{grid-template-columns:1fr 1fr}.bs-footer__bottom{display:block}.bs-footer__bottom span{display:block;margin-top:8px}}
             @media(max-width:520px){.bs-header__actions .bs-theme-action{display:none}.bs-footer__grid{grid-template-columns:1fr}.bs-footer{padding-top:36px}.bs-user-menu{position:fixed;right:12px;top:70px;width:calc(100vw - 24px)}}
-            @media(prefers-reduced-motion:reduce){.bs-toast,.bs-search,.bs-reveal,.bs-depth-card,.bs-back-to-top{transition:none!important}.bs-reveal{opacity:1!important;transform:none!important;filter:none!important}.bs-scroll-progress{transition:none!important}.bs-ripple-ink{display:none!important}}
+            @media(prefers-reduced-motion:reduce){.bs-toast,.bs-search,.bs-reveal,.bs-depth-card,.bs-back-to-top{transition:none!important}.bs-reveal{opacity:1!important;transform:none!important;filter:none!important}.bs-scroll-progress{transition:none!important}.bs-ripple-ink,.bs-ambient-layer{display:none!important}}
         `;
         document.head.appendChild(style);
     }
@@ -558,6 +560,73 @@
         }
     }
 
+    function setupAmbientEffect() {
+        const buttons = document.querySelectorAll('[data-ambient-toggle]');
+        const saved = localStorage.getItem('badminton_ambient');
+        const enabled = saved === null ? true : saved === 'true';
+        if (window.__badmintonAmbient) {
+            window.__badmintonAmbient.setEnabled(enabled);
+            buttons.forEach((button) => window.__badmintonAmbient.bind(button));
+            return;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.className = 'bs-ambient-layer';
+        canvas.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(canvas);
+        const context = canvas.getContext('2d');
+        const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        let active = enabled && !reduceMotion;
+        let particles = [];
+        let frame = 0;
+        const resize = () => {
+            const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
+            canvas.width = Math.round(innerWidth * ratio);
+            canvas.height = Math.round(innerHeight * ratio);
+            canvas.style.width = `${innerWidth}px`;
+            canvas.style.height = `${innerHeight}px`;
+            context.setTransform(ratio, 0, 0, ratio, 0, 0);
+            const count = Math.max(24, Math.min(58, Math.round(innerWidth / 28)));
+            particles = Array.from({ length: count }, () => ({
+                x: Math.random() * innerWidth, y: Math.random() * innerHeight,
+                r: 1.2 + Math.random() * 3.8, speed: .12 + Math.random() * .42,
+                drift: -.12 + Math.random() * .24, alpha: .12 + Math.random() * .3
+            }));
+        };
+        const draw = () => {
+            context.clearRect(0, 0, innerWidth, innerHeight);
+            if (active && !document.hidden) {
+                const dark = document.documentElement.dataset.theme === 'dark';
+                particles.forEach((particle) => {
+                    particle.y += particle.speed; particle.x += particle.drift;
+                    if (particle.y > innerHeight + 8) { particle.y = -8; particle.x = Math.random() * innerWidth; }
+                    context.beginPath(); context.arc(particle.x, particle.y, particle.r, 0, Math.PI * 2);
+                    context.fillStyle = dark ? `rgba(255,221,201,${particle.alpha})` : `rgba(255,137,82,${particle.alpha * .64})`;
+                    context.fill();
+                });
+            }
+            frame = requestAnimationFrame(draw);
+        };
+        const syncButtons = () => document.querySelectorAll('[data-ambient-toggle]').forEach((button) => {
+            button.classList.toggle('is-active', active);
+            button.setAttribute('aria-pressed', String(active));
+            button.title = active ? 'Tắt hiệu ứng sương' : 'Bật hiệu ứng sương';
+        });
+        const setEnabled = (next) => { active = Boolean(next) && !reduceMotion; canvas.hidden = !active; syncButtons(); };
+        const bind = (button) => {
+            if (button.dataset.ambientReady) return;
+            button.dataset.ambientReady = 'true';
+            button.addEventListener('click', () => {
+                localStorage.setItem('badminton_ambient', String(!active));
+                setEnabled(!active);
+            });
+            syncButtons();
+        };
+        window.__badmintonAmbient = { bind, setEnabled };
+        buttons.forEach(bind);
+        resize(); setEnabled(enabled); window.addEventListener('resize', resize, { passive: true }); draw();
+        window.addEventListener('pagehide', () => cancelAnimationFrame(frame), { once: true });
+    }
+
     function setupExperienceEffects() {
         const root = document.documentElement;
         const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -567,6 +636,7 @@
             document.body?.classList.toggle('dark-theme', dark);
         };
         syncLegacyThemeClass();
+        setupAmbientEffect();
         if (!root.dataset.bsThemeObserverReady) {
             root.dataset.bsThemeObserverReady = 'true';
             new MutationObserver(syncLegacyThemeClass).observe(root, {
@@ -933,6 +1003,7 @@
                         <button class="bs-search__button" type="submit" aria-label="Tìm kiếm">${icons.search}</button>
                     </form>
                     <div class="bs-header__actions">
+                        <button class="bs-icon-button bs-ambient-action" type="button" data-ambient-toggle aria-label="Bật hoặc tắt hiệu ứng sương" aria-pressed="true"><span aria-hidden="true">✦</span></button>
                         <button class="bs-icon-button bs-theme-action" type="button" data-theme-toggle aria-label="Đổi giao diện"><span data-theme-icon aria-hidden="true">☾</span></button>
                         <a class="bs-icon-button" href="giohang.html" aria-label="Giỏ hàng">${icons.cart}<span class="bs-cart-count" data-cart-count hidden>0</span></a>
                         <details class="bs-user">

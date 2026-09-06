@@ -46,6 +46,9 @@ from HA.media_storage import (
     save_avatar,
     save_public_image,
 )
+from HA.vietqr import build_payload as build_vietqr_payload
+from HA.vietqr import make_png as make_vietqr_png
+from HA.vietqr import transfer_content
 
 app = Flask(__name__)
 app.json.ensure_ascii = False
@@ -134,6 +137,47 @@ PUBLIC_FILE_EXTENSIONS = {
 # robots.txt và sitemap.xml có route riêng; mọi tệp .txt/.json/.yaml khác ở thư mục
 # gốc (requirements.txt, package.json, pnpm-lock.yaml...) không được phục vụ.
 PRIVATE_PUBLIC_FILES = {"requirements.txt", "package.json", "pnpm-lock.yaml", ".env"}
+
+BANK_TRANSFER = {
+    "bin": os.getenv("BANK_BIN", "").strip(),
+    "code": os.getenv("BANK_CODE", "").strip().upper(),
+    "name": os.getenv("BANK_NAME", "").strip(),
+    "account_no": os.getenv("BANK_ACCOUNT_NO", "").strip(),
+    "account_name": os.getenv("BANK_ACCOUNT_NAME", "").strip().upper(),
+}
+
+
+def bank_transfer_configured() -> bool:
+    return bool(
+        re.fullmatch(r"\d{6}", BANK_TRANSFER["bin"])
+        and re.fullmatch(r"\d{6,20}", BANK_TRANSFER["account_no"])
+        and 2 <= len(BANK_TRANSFER["account_name"]) <= 100
+        and 2 <= len(BANK_TRANSFER["name"]) <= 100
+    )
+
+
+def bank_transfer_payload(amount: int | float = 0, reference: str = "") -> dict:
+    configured = bank_transfer_configured()
+    amount_number = max(0, int(round(float(amount or 0))))
+    safe_reference = re.sub(r"[^A-Za-z0-9-]", "", str(reference or "").upper())[:32]
+    content = transfer_content(safe_reference, amount_number) if safe_reference else ""
+    qr_url = ""
+    if configured and amount_number and content:
+        qr_url = (
+            "/api/thanh-toan/ma-qr.png?amount="
+            f"{amount_number}&reference={quote(safe_reference)}"
+        )
+    return {
+        "configured": configured,
+        "bank_code": BANK_TRANSFER["code"],
+        "bank_name": BANK_TRANSFER["name"],
+        "account_no": BANK_TRANSFER["account_no"],
+        "account_name": BANK_TRANSFER["account_name"],
+        "amount": amount_number,
+        "reference": safe_reference,
+        "content": content,
+        "qr_url": qr_url,
+    }
 
 RICH_TEXT_TAGS = {
     "p", "br", "ul", "ol", "li", "strong", "b", "em", "i", "u",
@@ -1010,6 +1054,32 @@ def health():
             conn.close()
 
 
+@app.get("/api/thanh-toan/cau-hinh")
+def public_bank_transfer_config():
+    """Trả về thông tin nhận tiền công khai, tuyệt đối không chứa khóa bí mật."""
+    return jsonify({"success": True, "payment": bank_transfer_payload()})
+
+
+@app.get("/api/thanh-toan/ma-qr.png")
+def public_bank_transfer_qr():
+    if not bank_transfer_configured():
+        return api_error("Chuyển khoản QR chưa được cấu hình.", 503, "bank_transfer_unavailable")
+
+    amount = decimal_number(request.args.get("amount"))
+    if amount is None or amount < Decimal("10000") or amount > Decimal("50000000"):
+        return api_error("Số tiền QR phải từ 10.000 ₫ đến 50.000.000 ₫.")
+    reference = re.sub(r"[^A-Za-z0-9-]", "", request.args.get("reference", "").upper())[:50]
+    if len(reference) < 3:
+        return api_error("Mã tham chiếu không hợp lệ.")
+
+    content = transfer_content(reference, amount)
+    payload = build_vietqr_payload(BANK_TRANSFER["bin"], BANK_TRANSFER["account_no"], amount, content)
+    png = make_vietqr_png(payload)
+    response = app.response_class(png, mimetype="image/png")
+    response.headers["Content-Disposition"] = 'inline; filename="ma-chuyen-khoan.png"'
+    return response
+
+
 # ---------------------------------------------------------------------------
 # Xác thực và tài khoản
 # ---------------------------------------------------------------------------
@@ -1331,13 +1401,26 @@ def current_user_info():
             """
             SELECT COUNT(*) AS TongDon,
                    SUM(TrangThai IN ('CHO_XAC_NHAN','DANG_GIAO')) AS DonDangXuLy,
+                   SUM(TrangThai = 'HOAN_THANH') AS DonHoanThanh,
+                   SUM(TrangThai = 'DA_HUY') AS DonDaHuy,
                    COALESCE(SUM(CASE WHEN TrangThai = 'HOAN_THANH' THEN TongTien ELSE 0 END), 0) AS TongDaMua
             FROM DonHang WHERE MaND = %s
             """,
             (user_id,),
         )
         stats = cursor.fetchone()
+        cursor.execute("SELECT COUNT(*) AS TongYeuThich FROM YeuThich WHERE MaND = %s", (user_id,))
+        favorites = cursor.fetchone()
         user = g.current_user
+        spent = float(stats.get("TongDaMua") or 0)
+        loyalty_tiers = (
+            ("Kim cương", 30000000, None),
+            ("Vàng", 15000000, 30000000),
+            ("Bạc", 5000000, 15000000),
+            ("Đồng", 0, 5000000),
+        )
+        tier, tier_floor, next_target = next(item for item in loyalty_tiers if spent >= item[1])
+        tier_progress = 100 if next_target is None else round((spent - tier_floor) / (next_target - tier_floor) * 100, 1)
         payload = {
             "isLoggedIn": True,
             "id": user_id,
@@ -1353,7 +1436,14 @@ def current_user_info():
             "stats": {
                 "orders": int(stats.get("TongDon") or 0),
                 "processing": int(stats.get("DonDangXuLy") or 0),
-                "spent": float(stats.get("TongDaMua") or 0),
+                "completed": int(stats.get("DonHoanThanh") or 0),
+                "cancelled": int(stats.get("DonDaHuy") or 0),
+                "favorites": int(favorites.get("TongYeuThich") or 0),
+                "spent": spent,
+                "points": int(spent // 10000),
+                "tier": tier,
+                "next_target": next_target,
+                "tier_progress": max(0, min(100, tier_progress)),
             },
         }
         return jsonify({"success": True, **payload, "user": payload})
@@ -1555,6 +1645,7 @@ def create_deposit_request():
                     "success": True,
                     "message": "Đã gửi yêu cầu. Số dư chỉ được cộng sau khi admin đối soát.",
                     "request": {"id": request_id, "reference": reference, "amount": float(amount), "status": "CHO_DUYET"},
+                    "payment": bank_transfer_payload(amount, reference),
                 }
             ),
             201,
@@ -2532,17 +2623,51 @@ def admin_dashboard():
             """
             SELECT COUNT(*) AS TongDon,
                    SUM(TrangThai = 'CHO_XAC_NHAN') AS DonCho,
+                   SUM(TrangThai = 'HOAN_THANH') AS DonHoanThanh,
+                   SUM(TrangThai = 'DA_HUY') AS DonDaHuy,
+                   SUM(DATE(NgayDat) = CURDATE()) AS DonHomNay,
+                   COALESCE(AVG(CASE WHEN TrangThai <> 'DA_HUY' THEN TongTien END), 0) AS GiaTriTrungBinh,
+                   COALESCE(SUM(CASE WHEN TrangThai = 'HOAN_THANH' AND NgayDat >= DATE_FORMAT(CURDATE(), '%Y-%m-01') THEN TongTien ELSE 0 END), 0) AS DoanhThuThang,
                    COALESCE(SUM(CASE WHEN TrangThai = 'HOAN_THANH' THEN TongTien ELSE 0 END), 0) AS DoanhThu
             FROM DonHang
             """
         )
         orders = cursor.fetchone()
-        cursor.execute("SELECT COUNT(*) AS TongUser, SUM(TrangThai = 1) AS UserHoatDong FROM NguoiDung")
+        cursor.execute(
+            "SELECT COUNT(*) AS TongUser, SUM(TrangThai = 1) AS UserHoatDong, "
+            "SUM(NgayTaoTaiKhoan >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS UserMoi FROM NguoiDung"
+        )
         users = cursor.fetchone()
-        cursor.execute("SELECT COUNT(*) AS SapHet FROM SanPham WHERE TrangThai = 1 AND TonKho <= 5")
+        cursor.execute(
+            "SELECT COUNT(*) AS TongSanPham, SUM(TrangThai = 1) AS DangBan, "
+            "SUM(TrangThai = 1 AND TonKho <= 5) AS SapHet, SUM(TrangThai = 1 AND TonKho = 0) AS HetHang FROM SanPham"
+        )
         stock = cursor.fetchone()
         cursor.execute("SELECT COUNT(*) AS ChoDuyet FROM YeuCauNapTien WHERE TrangThai = 'CHO_DUYET'")
         deposits = cursor.fetchone()
+        cursor.execute("SELECT COUNT(*) AS ChoXuLy FROM YeuCauHoTro WHERE TrangThai IN ('MOI','DANG_XU_LY')")
+        support = cursor.fetchone()
+        cursor.execute("SELECT TrangThai, COUNT(*) AS SoLuong FROM DonHang GROUP BY TrangThai")
+        order_status = [serialize_row(row) for row in cursor.fetchall()]
+        cursor.execute(
+            """
+            SELECT DATE(NgayDat) AS Ngay, COUNT(*) AS DonHang,
+                   COALESCE(SUM(CASE WHEN TrangThai = 'HOAN_THANH' THEN TongTien ELSE 0 END), 0) AS DoanhThu
+            FROM DonHang
+            WHERE NgayDat >= CURDATE() - INTERVAL 13 DAY
+            GROUP BY DATE(NgayDat) ORDER BY Ngay ASC
+            """
+        )
+        trend_rows = {str(row["Ngay"]): row for row in cursor.fetchall()}
+        trend = []
+        for offset in range(13, -1, -1):
+            day = datetime.now().date() - timedelta(days=offset)
+            row = trend_rows.get(str(day), {})
+            trend.append({
+                "date": day.isoformat(),
+                "orders": int(row.get("DonHang") or 0),
+                "revenue": float(row.get("DoanhThu") or 0),
+            })
         cursor.execute(
             """
             SELECT dh.MaDH, dh.TongTien, dh.TrangThai, dh.NgayDat,
@@ -2562,12 +2687,24 @@ def admin_dashboard():
                 "metrics": {
                     "orders": int(orders.get("TongDon") or 0),
                     "pending_orders": int(orders.get("DonCho") or 0),
+                    "completed_orders": int(orders.get("DonHoanThanh") or 0),
+                    "cancelled_orders": int(orders.get("DonDaHuy") or 0),
+                    "orders_today": int(orders.get("DonHomNay") or 0),
+                    "average_order": float(orders.get("GiaTriTrungBinh") or 0),
+                    "revenue_month": float(orders.get("DoanhThuThang") or 0),
                     "revenue": float(orders.get("DoanhThu") or 0),
                     "users": int(users.get("TongUser") or 0),
                     "active_users": int(users.get("UserHoatDong") or 0),
+                    "new_users_month": int(users.get("UserMoi") or 0),
+                    "products": int(stock.get("TongSanPham") or 0),
+                    "active_products": int(stock.get("DangBan") or 0),
                     "low_stock": int(stock.get("SapHet") or 0),
+                    "out_of_stock": int(stock.get("HetHang") or 0),
                     "pending_deposits": int(deposits.get("ChoDuyet") or 0),
+                    "pending_support": int(support.get("ChoXuLy") or 0),
                 },
+                "trend": trend,
+                "order_status": order_status,
                 "recent_orders": recent,
                 "low_stock_products": low_stock,
             }
