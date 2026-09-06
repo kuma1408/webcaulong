@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Trang bạn tìm không tồn tại tại Badminton Store. Quay lại trang chủ hoặc tiếp tục mua sắm.">
+    <meta name="theme-color" content="#d9361e">
+    <meta name="robots" content="noindex, follow">
+    <title>Không tìm thấy trang | Badminton Store</title>
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem('badminton_theme') || localStorage.getItem('theme');
+                document.documentElement.dataset.theme = savedTheme === 'dark' ? 'dark' : 'light';
+            } catch (error) {
+                document.documentElement.dataset.theme = 'light';
+            }
+        }());
+    </script>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="css/home.css?v=20260906-1">
+    <link rel="stylesheet" href="css/error-page.css?v=20260825-1">
+</head>
+<body>
+    <main class="error-page" id="noi-dung-chinh">
+        <div class="error-page__inner">
+            <p class="error-page__code" aria-hidden="true">404</p>
+            <h1>Đường cầu này ra ngoài sân</h1>
+            <p class="error-page__lead">Trang bạn tìm không còn tồn tại hoặc đã được đổi địa chỉ. Hãy quay lại trang chủ hoặc tiếp tục khám phá sản phẩm.</p>
+
+            <form class="error-page__search" role="search" action="sanpham.html" method="get">
+                <label class="sr-only" for="errorSearch">Tìm kiếm sản phẩm</label>
+                <input id="errorSearch" name="q" type="search" autocomplete="off" placeholder="Tìm vợt, giày, áo hoặc phụ kiện...">
+                <button type="submit">Tìm kiếm</button>
+            </form>
+
+            <div class="error-page__actions">
+                <a class="button button--accent" href="trangchu.html">Về trang chủ <span aria-hidden="true">→</span></a>
+                <a class="button button--ghost" href="sanpham.html">Xem tất cả sản phẩm</a>
+            </div>
+
+            <nav class="error-page__links" aria-label="Liên kết hữu ích">
+                <a href="sanpham.html?danh_muc=1">Vợt cầu lông</a>
+                <a href="sanpham.html?danh_muc=2">Giày cầu lông</a>
+                <a href="sanpham.html?sale=true">Sản phẩm ưu đãi</a>
+                <a href="hướng dẫn.html">Hướng dẫn chọn vợt</a>
+                <a href="lienhe.html">Liên hệ hỗ trợ</a>
+            </nav>
+        </div>
+    </main>
+</body>
+</html>

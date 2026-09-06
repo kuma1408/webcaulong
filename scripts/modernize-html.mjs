@@ -16,10 +16,13 @@ const EXCLUDED_FILES = new Set([
   "admin.html",
   "giohang.html",
   "lienhe.html",
+  // Trang lỗi tĩnh không có header/menu nên không cần site-refresh.css lẫn auth.js.
+  "404.html",
+  "500.html",
 ]);
 
 const VIEWPORT_TAG = '<meta name="viewport" content="width=device-width, initial-scale=1">';
-const ASSET_VERSION = "20260817-3";
+const ASSET_VERSION = "20260906-1";
 const REFRESH_LINK = `<link rel="stylesheet" href="css/site-refresh.css?v=${ASSET_VERSION}">`;
 const AUTH_SCRIPT = `<script src="css/auth.js?v=${ASSET_VERSION}"></script>`;
 

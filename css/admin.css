@@ -1,4 +1,4 @@
-.admin-body { background: #f9f3ef; }
+.admin-body { background: #f8e9e1; }
 :root[data-theme="dark"] .admin-body { background: #140a07; }
 .admin-app { min-height: 820px; padding: 22px; background: radial-gradient(circle at 90% 0, rgba(255,122,26,.09), transparent 30rem), var(--bs-bg); }
 .admin-loading { min-height: 520px; display: flex; align-items: center; justify-content: center; gap: 12px; color: var(--bs-muted); font-size: 12px; }

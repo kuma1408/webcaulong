@@ -236,6 +236,56 @@ class ApiSmokeTest(unittest.TestCase):
         self.assertNotIn('id="cardCvvInput"', content)
         self.assertIn("Website không thu thập số thẻ hay mã CVV", content)
 
+    def test_api_errors_stay_json_even_for_browser_accept_header(self):
+        response = self.client.get(
+            "/api/khong-co-that",
+            headers={"Accept": "text/html,application/xhtml+xml,*/*;q=0.8"},
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.mimetype, "application/json")
+        self.assertEqual(response.get_json()["code"], "not_found")
+
+    def test_browser_navigation_receives_html_error_page(self):
+        response = self.client.get(
+            "/trang-khong-ton-tai",
+            headers={"Accept": "text/html,application/xhtml+xml,*/*;q=0.8"},
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.mimetype, "text/html")
+        self.assertIn("error-page", response.get_data(as_text=True))
+
+    def test_robots_and_sitemap_are_served(self):
+        robots = self.client.get("/robots.txt")
+        self.assertEqual(robots.status_code, 200)
+        self.assertEqual(robots.mimetype, "text/plain")
+        robots_body = robots.get_data(as_text=True)
+        self.assertIn("Disallow: /api/", robots_body)
+        self.assertIn("Sitemap:", robots_body)
+
+        sitemap = self.client.get("/sitemap.xml")
+        self.assertEqual(sitemap.status_code, 200)
+        self.assertEqual(sitemap.mimetype, "application/xml")
+        self.assertIn("trangchu.html", sitemap.get_data(as_text=True))
+
+    def test_favicon_is_available_for_browsers(self):
+        response = self.client.get("/favicon.ico")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, "image/svg+xml")
+
+    def test_sensitive_root_files_are_not_public(self):
+        for path in ("/requirements.txt", "/package.json", "/.env", "/HA/app.py", "/wsgi.py"):
+            with self.subTest(path=path):
+                self.assertEqual(self.client.get(path).status_code, 404)
+
+    def test_every_page_declares_favicon(self):
+        root = pathlib.Path(__file__).resolve().parent.parent
+        missing = [
+            page.name
+            for page in sorted(root.glob("*.html"))
+            if 'rel="icon"' not in page.read_text(encoding="utf-8")
+        ]
+        self.assertEqual(missing, [])
+
 
 if __name__ == "__main__":
     unittest.main()

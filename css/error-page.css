@@ -1,0 +1,129 @@
+@charset "utf-8";
+
+/* Trang lỗi 404/500: dùng lại biến màu và nút của css/home.css. */
+
+.error-page {
+    min-height: 100vh;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: 48px 20px;
+    background:
+        radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 46%),
+        radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--accent-deep) 14%, transparent), transparent 42%),
+        var(--paper);
+}
+
+.error-page__inner {
+    width: min(720px, 100%);
+    padding: clamp(28px, 5vw, 52px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-strong);
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+.error-page__code {
+    margin: 0 0 4px;
+    font: 900 clamp(64px, 16vw, 132px)/0.9 var(--font-display);
+    letter-spacing: -0.04em;
+    background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.error-page h1 {
+    margin: 0 0 12px;
+    font: 900 clamp(24px, 4.2vw, 34px)/1.18 var(--font-display);
+    color: var(--ink);
+}
+
+.error-page__lead {
+    margin: 0 auto 26px;
+    max-width: 52ch;
+    color: var(--ink-soft);
+}
+
+.error-page__search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: min(460px, 100%);
+    margin: 0 auto 24px;
+    padding: 4px 5px 4px 16px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+}
+
+.error-page__search input {
+    flex: 1;
+    min-width: 0;
+    min-height: 42px;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+}
+
+.error-page__search input:focus { outline: none; }
+
+.error-page__search button {
+    min-height: 42px;
+    padding-inline: 20px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--paper);
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.error-page__search button:hover { background: var(--accent-deep); color: #fff; }
+
+.error-page__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 26px;
+}
+
+.error-page__actions .button { cursor: pointer; }
+
+.error-page__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 10px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+}
+
+.error-page__links a {
+    padding: 8px 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.error-page__links a:hover {
+    border-color: var(--accent-deep);
+    color: var(--accent-deep);
+}
+
+.error-page__note {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.error-page__note a { color: var(--accent-deep); font-weight: 750; }
+
+@media (max-width: 480px) {
+    .error-page__actions .button { width: 100%; justify-content: center; }
+}

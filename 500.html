@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Badminton Store đang gặp sự cố tạm thời. Vui lòng thử lại sau ít phút.">
+    <meta name="theme-color" content="#d9361e">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Máy chủ đang gặp sự cố | Badminton Store</title>
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem('badminton_theme') || localStorage.getItem('theme');
+                document.documentElement.dataset.theme = savedTheme === 'dark' ? 'dark' : 'light';
+            } catch (error) {
+                document.documentElement.dataset.theme = 'light';
+            }
+        }());
+    </script>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="css/home.css?v=20260906-1">
+    <link rel="stylesheet" href="css/error-page.css?v=20260825-1">
+</head>
+<body>
+    <main class="error-page" id="noi-dung-chinh">
+        <div class="error-page__inner">
+            <p class="error-page__code" aria-hidden="true">500</p>
+            <h1>Máy chủ đang gặp sự cố</h1>
+            <p class="error-page__lead">Hệ thống tạm thời không phản hồi được yêu cầu của bạn. Đội ngũ kỹ thuật đã được ghi nhận sự cố; vui lòng thử lại sau ít phút.</p>
+
+            <div class="error-page__actions">
+                <button class="button button--accent" type="button" id="retryButton">Thử lại <span aria-hidden="true">↻</span></button>
+                <a class="button button--ghost" href="trangchu.html">Về trang chủ</a>
+            </div>
+
+            <p class="error-page__note">Nếu sự cố kéo dài, bạn có thể <a href="lienhe.html">gửi yêu cầu hỗ trợ</a> để cửa hàng liên hệ lại.</p>
+        </div>
+    </main>
+    <script src="css/error-page.js?v=20260825-1" defer></script>
+</body>
+</html>

@@ -24,7 +24,8 @@ from decimal import Decimal
 from difflib import SequenceMatcher
 from email.message import EmailMessage
 from functools import wraps
-from urllib.parse import urlsplit
+from html import escape
+from urllib.parse import quote, urlsplit
 
 import bleach
 import click
@@ -127,8 +128,12 @@ AVATAR_SIZE = (512, 512)
 PUBLIC_IMAGE_MAX_BYTES = 3 * 1024 * 1024
 PUBLIC_IMAGE_MAX_SIZE = (1800, 1800)
 PUBLIC_FILE_EXTENSIONS = {
-    ".html", ".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".avif"
+    ".html", ".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".avif",
+    ".svg", ".webmanifest",
 }
+# robots.txt và sitemap.xml có route riêng; mọi tệp .txt/.json/.yaml khác ở thư mục
+# gốc (requirements.txt, package.json, pnpm-lock.yaml...) không được phục vụ.
+PRIVATE_PUBLIC_FILES = {"requirements.txt", "package.json", "pnpm-lock.yaml", ".env"}
 
 RICH_TEXT_TAGS = {
     "p", "br", "ul", "ol", "li", "strong", "b", "em", "i", "u",
@@ -268,26 +273,62 @@ def api_error(message: str, status: int = 400, code: str = "bad_request"):
     return jsonify({"success": False, "message": message, "code": code}), status
 
 
+def wants_html_response() -> bool:
+    """Trình duyệt điều hướng cần trang HTML; API và fetch() cần JSON."""
+    if request.path.startswith("/api/"):
+        return False
+    accept = request.accept_mimetypes
+    return bool(accept["text/html"] >= accept["application/json"] and accept["text/html"])
+
+
+def error_response(status: int, message: str, code: str, *, heading: str | None = None):
+    """Trả JSON cho API và trang lỗi thân thiện cho người dùng cuối."""
+    if not wants_html_response():
+        return api_error(message, status, code)
+    page = os.path.join(PROJECT_ROOT, f"{status}.html")
+    if os.path.isfile(page):
+        response = send_from_directory(PROJECT_ROOT, f"{status}.html")
+        response.status_code = status
+        return response
+    body = (
+        '<!doctype html><html lang="vi"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        f"<title>{status} | Badminton Store</title></head><body>"
+        f"<h1>{heading or message}</h1><p>{message}</p>"
+        '<p><a href="/trangchu.html">Về trang chủ</a></p></body></html>'
+    )
+    return app.response_class(body, status=status, mimetype="text/html; charset=utf-8")
+
+
 @app.errorhandler(413)
 def request_too_large(_error):
-    if request.path.startswith("/api/"):
-        return api_error("Dữ liệu tải lên vượt quá giới hạn cho phép.", 413, "payload_too_large")
-    return "Dữ liệu tải lên vượt quá giới hạn cho phép.", 413
+    return error_response(
+        413,
+        "Dữ liệu tải lên vượt quá giới hạn cho phép.",
+        "payload_too_large",
+        heading="Tệp tải lên quá lớn",
+    )
 
 
 @app.errorhandler(405)
 def method_not_allowed(_error):
-    if request.path.startswith("/api/"):
-        return api_error("Phương thức yêu cầu không được hỗ trợ.", 405, "method_not_allowed")
-    return "Phương thức yêu cầu không được hỗ trợ.", 405
+    return error_response(
+        405,
+        "Phương thức yêu cầu không được hỗ trợ.",
+        "method_not_allowed",
+        heading="Yêu cầu không hợp lệ",
+    )
 
 
 @app.errorhandler(500)
 def internal_server_error(error):
     app.logger.error("Lỗi máy chủ chưa được xử lý: %s", error)
-    if request.path.startswith("/api/"):
-        return api_error("Máy chủ gặp lỗi tạm thời. Vui lòng thử lại sau.", 500, "internal_error")
-    return "Máy chủ gặp lỗi tạm thời. Vui lòng thử lại sau.", 500
+    return error_response(
+        500,
+        "Máy chủ gặp lỗi tạm thời. Vui lòng thử lại sau.",
+        "internal_error",
+        heading="Máy chủ đang gặp sự cố",
+    )
 
 
 def client_ip() -> str:
@@ -822,11 +863,88 @@ def storefront_index():
     return send_from_directory(PROJECT_ROOT, "trangchu.html")
 
 
+def public_base_url() -> str:
+    """URL gốc công khai dùng cho canonical, sitemap và liên kết trong email."""
+    configured = os.getenv("PUBLIC_BASE_URL", "").strip().rstrip("/")
+    if configured:
+        return configured
+    return request.url_root.rstrip("/")
+
+
+# Các trang đáng để công cụ tìm kiếm lập chỉ mục, kèm độ ưu tiên tương đối.
+SITEMAP_PAGES: tuple[tuple[str, str, str], ...] = (
+    ("trangchu.html", "daily", "1.0"),
+    ("sanpham.html", "daily", "0.9"),
+    ("sale off.html", "daily", "0.8"),
+    ("tin tức.html", "weekly", "0.7"),
+    ("hướng dẫn.html", "monthly", "0.7"),
+    ("lienhe.html", "monthly", "0.5"),
+    ("Vợt cầu lông.html", "weekly", "0.8"),
+    ("Giày cầu lông.html", "weekly", "0.8"),
+    ("Áo cầu lông.html", "weekly", "0.7"),
+    ("Quần cầu lông.html", "weekly", "0.7"),
+    ("Váy cầu lông.html", "weekly", "0.7"),
+    ("Túi cầu lông.html", "weekly", "0.7"),
+    ("Balo cầu lông.html", "weekly", "0.7"),
+    ("Phụ kiện cầu lông.html", "weekly", "0.7"),
+)
+
+# Khu vực riêng tư hoặc chỉ dùng nội bộ, không cho robot thu thập.
+ROBOTS_DISALLOW: tuple[str, ...] = (
+    "/api/",
+    "/admin.html",
+    "/canhan.html",
+    "/giohang.html",
+    "/yeuthich.html",
+    "/dangnhap.html",
+    "/dangky.html",
+    "/quenmatkhau.html",
+    "/datlaimatkhau.html",
+    "/HA/avatars/",
+)
+
+
+@app.get("/robots.txt")
+def robots_txt():
+    lines = ["User-agent: *"]
+    lines += [f"Disallow: {path}" for path in ROBOTS_DISALLOW]
+    lines += ["Allow: /", f"Sitemap: {public_base_url()}/sitemap.xml", ""]
+    return app.response_class("\n".join(lines), mimetype="text/plain")
+
+
+@app.get("/sitemap.xml")
+def sitemap_xml():
+    base = public_base_url()
+    today = datetime.now().strftime("%Y-%m-%d")
+    entries = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ]
+    for page, changefreq, priority in SITEMAP_PAGES:
+        if not os.path.isfile(os.path.join(PROJECT_ROOT, page)):
+            continue
+        location = f"{base}/{quote(page)}"
+        entries.append(
+            f"  <url><loc>{escape(location)}</loc><lastmod>{today}</lastmod>"
+            f"<changefreq>{changefreq}</changefreq><priority>{priority}</priority></url>"
+        )
+    entries.append("</urlset>")
+    return app.response_class("\n".join(entries), mimetype="application/xml")
+
+
+@app.get("/favicon.ico")
+def favicon():
+    # Trình duyệt tự yêu cầu /favicon.ico; trả logo SVG thay vì trang lỗi 404.
+    return send_from_directory(PROJECT_ROOT, "favicon.svg", mimetype="image/svg+xml")
+
+
 @app.get("/<path:public_path>")
 def storefront_file(public_path: str):
     normalized = public_path.replace("\\", "/").lstrip("/")
     extension = os.path.splitext(normalized)[1].lower()
     if extension not in PUBLIC_FILE_EXTENSIONS:
+        abort(404)
+    if normalized.lower() in PRIVATE_PUBLIC_FILES:
         abort(404)
     # Chỉ công khai trang HTML ở thư mục gốc và tài nguyên trong css/ hoặc HA/.
     if "/" in normalized and not normalized.startswith(("css/", "HA/")):
@@ -3682,23 +3800,23 @@ def promote_superadmin(username):
 
 @app.errorhandler(404)
 def not_found(_error):
-    return api_error("Không tìm thấy tài nguyên.", 404, "not_found")
-
-
-@app.errorhandler(405)
-def method_not_allowed(_error):
-    return api_error("Phương thức không được hỗ trợ.", 405, "method_not_allowed")
-
-
-@app.errorhandler(413)
-def payload_too_large(_error):
-    return api_error("Dữ liệu gửi lên quá lớn.", 413, "payload_too_large")
+    return error_response(
+        404,
+        "Không tìm thấy tài nguyên.",
+        "not_found",
+        heading="Không tìm thấy trang",
+    )
 
 
 @app.errorhandler(mysql.connector.Error)
 def unhandled_database_error(_error):
     app.logger.exception("Lỗi cơ sở dữ liệu chưa được xử lý")
-    return api_error("Cơ sở dữ liệu tạm thời không khả dụng.", 503, "database_error")
+    return error_response(
+        503,
+        "Cơ sở dữ liệu tạm thời không khả dụng.",
+        "database_error",
+        heading="Hệ thống đang bảo trì",
+    )
 
 
 if __name__ == "__main__":

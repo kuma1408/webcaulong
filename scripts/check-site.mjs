@@ -16,6 +16,9 @@ const customStyles = new Map([
   ["canhan.html", ["css/account.css"]],
   ["admin.html", ["css/admin.css"]],
   ["index.html", []],
+  // Trang lỗi đứng độc lập: dùng biến màu của home.css và giao diện riêng error-page.css.
+  ["404.html", ["css/home.css", "css/error-page.css"]],
+  ["500.html", ["css/home.css", "css/error-page.css"]],
 ]);
 
 const forbiddenFrontendExtensions = new Set([
