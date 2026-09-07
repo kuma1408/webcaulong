@@ -8,7 +8,7 @@
 
     const TOKEN_KEY = 'badminton_access_token';
     const THEME_KEY = 'badminton_theme';
-    const SPORT_ASSET_VERSION = '20260907-3';
+    const SPORT_ASSET_VERSION = '20260907-4';
     let racketAssetsPromise = null;
 
     function ensureSportDesignAssets() {
@@ -56,7 +56,7 @@
         });
 
         racketAssetsPromise = (async () => {
-            await loadScript('vendor/three.min.js?v=128', () => Boolean(window.THREE));
+            await loadScript('vendor/three.min.js?v=128-20260907-4', () => Boolean(window.THREE));
             document.dispatchEvent(new CustomEvent('badminton:three-ready'));
             await loadScript(`css/racket-studio.js?v=${SPORT_ASSET_VERSION}`, () => Boolean(window.BadmintonRacketStudio?.ready));
             return window.BadmintonRacketStudio;

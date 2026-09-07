@@ -1127,7 +1127,12 @@ def security_headers(response):
     response.headers.setdefault("Content-Security-Policy", csp)
 
     path = request.path.lower()
-    if path.startswith("/api/") or request.headers.get("Authorization"):
+    if response.status_code >= 400:
+        # Không lưu trang lỗi tài nguyên tĩnh: một file vừa được deploy phải có thể
+        # tải ngay, thay vì trình duyệt tiếp tục dùng phản hồi 404 cũ trong một giờ.
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Pragma"] = "no-cache"
+    elif path.startswith("/api/") or request.headers.get("Authorization"):
         # Không để proxy/trình duyệt lưu dữ liệu tài khoản, admin hoặc đơn hàng.
         response.headers["Cache-Control"] = "no-store"
         response.headers["Pragma"] = "no-cache"

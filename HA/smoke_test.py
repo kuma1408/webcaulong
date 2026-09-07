@@ -209,6 +209,7 @@ class ApiSmokeTest(unittest.TestCase):
 
         blocked_vendor_file = self.client.get("/vendor/not-public.js")
         self.assertEqual(blocked_vendor_file.status_code, 404)
+        self.assertEqual(blocked_vendor_file.headers["Cache-Control"], "no-store")
 
     def test_rich_text_sanitizer_removes_stored_xss(self):
         dirty = '<p onclick="steal()">Mô tả</p><script>alert(1)</script><a href="javascript:alert(2)">Mở</a>'
