@@ -64,8 +64,51 @@
                         <article data-tone="blue"><span class="admin-metric-icon" aria-hidden="true">!</span><span>Cần xử lý</span><strong id="adminAttention">0</strong><small>Nạp tiền, hỗ trợ và tồn kho</small><i class="metric-spark metric-spark--blue"></i></article>
                     </div>
                     <div class="admin-analytics-grid">
-                        <article class="admin-card admin-chart-card"><div class="admin-card__heading"><div><p class="eyebrow">14 ngày gần nhất</p><h2>Nhịp đơn hàng</h2></div><strong id="adminRevenue">0 ₫</strong></div><div class="admin-trend-chart" id="adminTrendChart" aria-label="Biểu đồ đơn hàng 14 ngày"><p class="admin-empty">Đang tải biểu đồ…</p></div></article>
-                        <article class="admin-card admin-status-card"><div class="admin-card__heading"><div><p class="eyebrow">Cơ cấu xử lý</p><h2>Trạng thái đơn</h2></div></div><div class="admin-status-visual"><div class="admin-donut" id="adminStatusDonut"><span id="adminStatusTotal">0</span><small>đơn</small></div><div class="admin-status-legend" id="adminStatusLegend"></div></div></article>
+                        <article class="admin-card admin-chart-card">
+                            <div class="admin-card__heading admin-chart-header">
+                                <div>
+                                    <p class="eyebrow">14 ngày gần nhất</p>
+                                    <h2>Nhịp độ kinh doanh</h2>
+                                </div>
+                                <div class="admin-chart-actions">
+                                    <div class="admin-chart-pills" role="tablist" aria-label="Chọn chỉ số biểu đồ">
+                                        <button type="button" class="admin-chart-pill is-active" id="btnTrendRevenue" data-metric="revenue">
+                                            <span class="pill-dot pill-dot--orange"></span>Doanh thu
+                                        </button>
+                                        <button type="button" class="admin-chart-pill" id="btnTrendOrders" data-metric="orders">
+                                            <span class="pill-dot pill-dot--blue"></span>Đơn hàng
+                                        </button>
+                                    </div>
+                                    <div class="admin-chart-total-stat">
+                                        <small id="adminTrendMetricLabel">Tổng 14 ngày</small>
+                                        <strong id="adminRevenue">0 ₫</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="admin-trend-chart-wrapper">
+                                <div class="admin-trend-chart" id="adminTrendChart" aria-label="Biểu đồ phân tích kinh doanh 14 ngày">
+                                    <p class="admin-empty">Đang tải biểu đồ…</p>
+                                </div>
+                            </div>
+                        </article>
+                        <article class="admin-card admin-status-card">
+                            <div class="admin-card__heading">
+                                <div>
+                                    <p class="eyebrow">Cơ cấu xử lý</p>
+                                    <h2>Trạng thái đơn</h2>
+                                </div>
+                                <span class="admin-status-badge-live" id="adminStatusLiveIndicator">● Trực tiếp</span>
+                            </div>
+                            <div class="admin-status-visual">
+                                <div class="admin-donut-wrap">
+                                    <div class="admin-donut" id="adminStatusDonut">
+                                        <span id="adminStatusTotal">0</span>
+                                        <small>đơn</small>
+                                    </div>
+                                </div>
+                                <div class="admin-status-legend" id="adminStatusLegend"></div>
+                            </div>
+                        </article>
                     </div>
                     <article class="admin-card admin-funnel"><div class="admin-card__heading"><div><p class="eyebrow">Phễu mua sắm</p><h2>Từ tài khoản đến đơn hoàn thành</h2></div><span>Số liệu thật, không dùng dữ liệu mẫu</span></div><div class="admin-funnel__steps">
                         <div><span>Tài khoản</span><strong id="funnelUsers">0</strong><i style="--funnel-width:100%"></i></div>

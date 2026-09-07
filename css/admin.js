@@ -219,21 +219,20 @@
         try {
             const data = await Auth.request('/api/admin/dashboard');
             const metrics = data.metrics || {};
-            animateMetric($('#adminRevenue'), metrics.revenue, formatMoney);
             animateMetric($('#adminRevenueMonth'), metrics.revenue_month, formatMoney);
             animateMetric($('#adminOrders'), metrics.orders);
-            $('#adminPendingOrders').textContent = String(metrics.pending_orders || 0);
+            animateMetric($('#adminPendingOrders'), metrics.pending_orders);
             animateMetric($('#adminAov'), metrics.average_order, formatMoney);
-            $('#adminTodayOrders').textContent = String(metrics.orders_today || 0);
+            animateMetric($('#adminTodayOrders'), metrics.orders_today);
             animateMetric($('#adminUsers'), metrics.users);
-            $('#adminActiveUsers').textContent = String(metrics.active_users || 0);
+            animateMetric($('#adminActiveUsers'), metrics.active_users);
             animateMetric($('#adminProducts'), metrics.products);
-            $('#adminLowStock').textContent = String(metrics.low_stock || 0);
+            animateMetric($('#adminLowStock'), metrics.low_stock);
             const attention = (metrics.low_stock || 0) + (metrics.pending_deposits || 0) + (metrics.pending_support || 0);
             animateMetric($('#adminAttention'), attention);
-            $('#healthProducts').textContent = String(metrics.active_products || 0);
-            $('#healthUsers').textContent = String(metrics.active_users || 0);
-            $('#healthSupport').textContent = String(metrics.pending_support || 0);
+            animateMetric($('#healthProducts'), metrics.active_products);
+            animateMetric($('#healthUsers'), metrics.active_users);
+            animateMetric($('#healthSupport'), metrics.pending_support);
             $('#adminDatabaseSize').textContent = formatBytes(metrics.database_bytes);
             animateMetric($('#adminStringingQueue'), metrics.pending_stringing);
             animateMetric($('#adminActiveVouchers'), metrics.active_vouchers);
@@ -257,31 +256,105 @@
         }
     }
 
-    function renderTrend(items) {
-        const chart = $('#adminTrendChart');
-        chart.innerHTML = '';
-        if (!items.length) { chart.appendChild(element('p', 'admin-empty', 'Chưa có dữ liệu biểu đồ.')); return; }
-        const maxOrders = Math.max(1, ...items.map((item) => Number(item.orders) || 0));
+    let currentTrendMode = 'revenue';
+    let cachedTrendData = [];
+    let trendTogglesBound = false;
 
-        // 1. Dựng SVG Area Curve mượt mà với stroke draw animation
-        const svgW = 600;
-        const svgH = 145;
-        const padX = 20;
-        const padTop = 18;
-        const padBottom = 16;
-        const plotW = svgW - 2 * padX;
+    function bindTrendTogglesOnce() {
+        if (trendTogglesBound) return;
+        const btnRev = $('#btnTrendRevenue');
+        const btnOrd = $('#btnTrendOrders');
+        if (btnRev && btnOrd) {
+            btnRev.addEventListener('click', () => {
+                if (currentTrendMode === 'revenue') return;
+                currentTrendMode = 'revenue';
+                btnRev.classList.add('is-active');
+                btnOrd.classList.remove('is-active');
+                renderTrend(cachedTrendData, 'revenue');
+            });
+            btnOrd.addEventListener('click', () => {
+                if (currentTrendMode === 'orders') return;
+                currentTrendMode = 'orders';
+                btnOrd.classList.add('is-active');
+                btnRev.classList.remove('is-active');
+                renderTrend(cachedTrendData, 'orders');
+            });
+            trendTogglesBound = true;
+        }
+    }
+
+    function formatShortMoney(value) {
+        const num = Number(value) || 0;
+        if (num >= 1000000000) return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + ' Tỷ';
+        if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + ' Tr';
+        if (num >= 1000) return (num / 1000).toFixed(0) + ' k';
+        return String(num) + ' đ';
+    }
+
+    function renderTrend(items, mode) {
+        bindTrendTogglesOnce();
+        if (Array.isArray(items)) cachedTrendData = items;
+        const dataItems = cachedTrendData || [];
+        const currentMode = mode || currentTrendMode;
+
+        const chart = $('#adminTrendChart');
+        if (!chart) return;
+        chart.innerHTML = '';
+
+        if (!dataItems.length) {
+            chart.appendChild(element('p', 'admin-empty', 'Chưa có dữ liệu biểu đồ.'));
+            return;
+        }
+
+        const isRev = currentMode === 'revenue';
+        const totalVal = dataItems.reduce((sum, item) => sum + (isRev ? (Number(item.revenue) || 0) : (Number(item.orders) || 0)), 0);
+        const metricLabel = $('#adminTrendMetricLabel');
+        if (metricLabel) metricLabel.textContent = isRev ? 'Tổng doanh thu 14 ngày' : 'Tổng số đơn 14 ngày';
+        const totalDisplay = $('#adminRevenue');
+        if (totalDisplay) {
+            animateMetric(totalDisplay, totalVal, isRev ? formatMoney : (v => String(Math.round(v)) + ' đơn'));
+        }
+
+        // Tinh gia tri max lam tran phu hop
+        const rawValues = dataItems.map(item => isRev ? (Number(item.revenue) || 0) : (Number(item.orders) || 0));
+        const maxRaw = Math.max(1, ...rawValues);
+        let niceMax = maxRaw;
+        if (isRev) {
+            const step = Math.pow(10, Math.floor(Math.log10(maxRaw)));
+            niceMax = Math.ceil((maxRaw * 1.15) / (step / 2)) * (step / 2);
+            if (niceMax < 500000) niceMax = 500000;
+        } else {
+            niceMax = Math.max(4, Math.ceil(maxRaw * 1.25));
+        }
+
+        // Thong so SVG Spline
+        const svgW = 760;
+        const svgH = 220;
+        const padLeft = 60;
+        const padRight = 24;
+        const padTop = 26;
+        const padBottom = 38;
+        const plotW = svgW - padLeft - padRight;
         const plotH = svgH - padTop - padBottom;
 
-        const points = items.map((item, index) => {
-            const orders = Number(item.orders) || 0;
-            const x = items.length > 1 ? padX + (index / (items.length - 1)) * plotW : padX + plotW / 2;
-            const y = padTop + (1 - (orders / maxOrders)) * plotH;
-            return { x, y, orders, revenue: item.revenue, date: item.date };
+        const points = dataItems.map((item, index) => {
+            const val = isRev ? (Number(item.revenue) || 0) : (Number(item.orders) || 0);
+            const x = dataItems.length > 1 ? padLeft + (index / (dataItems.length - 1)) * plotW : padLeft + plotW / 2;
+            const y = padTop + (1 - (val / niceMax)) * plotH;
+            return {
+                x,
+                y,
+                val,
+                revenue: Number(item.revenue) || 0,
+                orders: Number(item.orders) || 0,
+                date: item.date
+            };
         });
 
+        // Duong cong Bezier mươt ma
         let lineD = '';
         if (points.length === 1) {
-            lineD = `M ${points[0].x - 20} ${points[0].y} L ${points[0].x + 20} ${points[0].y}`;
+            lineD = `M ${points[0].x - 30} ${points[0].y} L ${points[0].x + 30} ${points[0].y}`;
         } else {
             lineD = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
             for (let i = 0; i < points.length - 1; i++) {
@@ -289,130 +362,327 @@
                 const p1 = points[i];
                 const p2 = points[i + 1];
                 const p3 = points[i + 2] || p2;
-                const cp1x = p1.x + (p2.x - p0.x) / 6;
-                const cp1y = p1.y + (p2.y - p0.y) / 6;
-                const cp2x = p2.x - (p3.x - p1.x) / 6;
-                const cp2y = p2.y - (p3.y - p1.y) / 6;
+                const cp1x = p1.x + (p2.x - p0.x) / 5.2;
+                const cp1y = p1.y + (p2.y - p0.y) / 5.2;
+                const cp2x = p2.x - (p3.x - p1.x) / 5.2;
+                const cp2y = p2.y - (p3.y - p1.y) / 5.2;
                 lineD += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
             }
         }
+
         const lastX = points[points.length - 1].x;
         const firstX = points[0].x;
-        const areaD = `${lineD} L ${lastX.toFixed(1)} ${svgH - padBottom} L ${firstX.toFixed(1)} ${svgH - padBottom} Z`;
+        const baseY = (padTop + plotH).toFixed(1);
+        const areaD = `${lineD} L ${lastX.toFixed(1)} ${baseY} L ${firstX.toFixed(1)} ${baseY} Z`;
 
-        const svgWrapper = document.createElement('div');
-        svgWrapper.className = 'admin-chart-svg-container';
-        svgWrapper.innerHTML = `
-            <svg class="admin-chart-svg" viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="none">
-                <defs>
-                    <linearGradient id="adminChartAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#ff7a1a" stop-opacity="0.35" />
-                        <stop offset="85%" stop-color="#e9381b" stop-opacity="0.05" />
-                        <stop offset="100%" stop-color="#e9381b" stop-opacity="0" />
-                    </linearGradient>
-                    <linearGradient id="adminChartLineGrad" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stop-color="#ff9b45" />
-                        <stop offset="50%" stop-color="#ff6a3d" />
-                        <stop offset="100%" stop-color="#e9381b" />
-                    </linearGradient>
-                </defs>
-                <path class="admin-svg-area" d="${areaD}" />
-                <path class="admin-svg-line" d="${lineD}" />
-                <g class="admin-svg-dots">
-                    ${points.map((p, i) => `<circle class="admin-svg-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" data-point-index="${i}"></circle>`).join('')}
+        // 4 luoi ngang voi nhan truc Y
+        const gridSteps = [0, 0.333, 0.666, 1];
+        const gridLines = gridSteps.map(step => {
+            const yVal = padTop + (1 - step) * plotH;
+            const labelVal = step * niceMax;
+            const text = isRev ? formatShortMoney(labelVal) : String(Math.round(labelVal));
+            return `
+                <g class="admin-grid-tier">
+                    <line class="admin-grid-line" x1="${padLeft}" y1="${yVal.toFixed(1)}" x2="${svgW - padRight}" y2="${yVal.toFixed(1)}" />
+                    <text class="admin-grid-label" x="${padLeft - 10}" y="${(yVal + 4).toFixed(1)}" text-anchor="end">${text}</text>
                 </g>
+            `;
+        }).join('');
+
+        // Nhan ngay truc X
+        const dateLabels = points.map((p) => {
+            const d = new Date(`${p.date}T00:00:00`);
+            const label = `${d.getDate()}/${d.getMonth() + 1}`;
+            return `<text class="admin-axis-date" x="${p.x.toFixed(1)}" y="${svgH - 12}" text-anchor="middle">${label}</text>`;
+        }).join('');
+
+        // Diem tron phan xa
+        const dotsMarkup = points.map((p, i) => `
+            <g class="admin-svg-dot-group" data-idx="${i}">
+                <circle class="admin-svg-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" />
+            </g>
+        `).join('');
+
+        // Mau gradient cong nghe
+        const gradTheme = isRev
+            ? {
+                stroke1: '#ff7a1a',
+                stroke2: '#e9381b',
+                fill1: 'rgba(255, 122, 26, 0.38)',
+                fill2: 'rgba(233, 56, 27, 0.03)',
+                dotGlow: 'rgba(233, 56, 27, 0.6)',
+                activeColor: '#ff7a1a'
+            }
+            : {
+                stroke1: '#38bdf8',
+                stroke2: '#2563eb',
+                fill1: 'rgba(56, 189, 248, 0.38)',
+                fill2: 'rgba(37, 99, 235, 0.03)',
+                dotGlow: 'rgba(37, 99, 235, 0.6)',
+                activeColor: '#38bdf8'
+            };
+
+        const chartWrapper = document.createElement('div');
+        chartWrapper.className = 'admin-spline-wrapper';
+        chartWrapper.innerHTML = `
+            <svg class="admin-spline-svg" viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="trendAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="${gradTheme.fill1}" />
+                        <stop offset="85%" stop-color="${gradTheme.fill2}" />
+                        <stop offset="100%" stop-color="transparent" />
+                    </linearGradient>
+                    <linearGradient id="trendLineGrad" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stop-color="${gradTheme.stroke1}" />
+                        <stop offset="100%" stop-color="${gradTheme.stroke2}" />
+                    </linearGradient>
+                    <filter id="neonSplineGlow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="${gradTheme.dotGlow}" flood-opacity="0.55" />
+                    </filter>
+                </defs>
+                <g class="admin-chart-grid">${gridLines}</g>
+                <path class="admin-spline-area" d="${areaD}" fill="url(#trendAreaGrad)" />
+                <path class="admin-spline-line" d="${lineD}" stroke="url(#trendLineGrad)" filter="url(#neonSplineGlow)" />
+                <line class="admin-svg-cursor-line" id="adminTrendCursorLine" x1="0" y1="${padTop}" x2="0" y2="${baseY}" style="display:none;" />
+                <circle class="admin-svg-active-dot" id="adminTrendActiveDot" cx="0" cy="0" r="7" style="display:none;" fill="#ffffff" stroke="${gradTheme.activeColor}" stroke-width="3.5" />
+                <g class="admin-svg-dots">${dotsMarkup}</g>
+                <g class="admin-chart-axis-x">${dateLabels}</g>
             </svg>
+            <div class="admin-chart-tooltip" id="adminChartTooltip" style="opacity:0;pointer-events:none;"></div>
+            <div class="admin-chart-interactive-cols" id="adminChartInteractiveCols"></div>
         `;
-        chart.appendChild(svgWrapper);
+        chart.appendChild(chartWrapper);
 
-        // 2. Dựng overlay các cột tương tác và nhãn ngày
-        const barsContainer = document.createElement('div');
-        barsContainer.style.cssText = 'display:flex;align-items:flex-end;gap:8px;position:absolute;inset:0;padding:24px 20px 16px;pointer-events:none;';
+        // Vung tuong tac hover mươt ma
+        const colsContainer = chartWrapper.querySelector('#adminChartInteractiveCols');
+        const tooltip = chartWrapper.querySelector('#adminChartTooltip');
+        const cursorLine = chartWrapper.querySelector('#adminTrendCursorLine');
+        const activeDot = chartWrapper.querySelector('#adminTrendActiveDot');
 
-        items.forEach((item, index) => {
-            const orders = Number(item.orders) || 0;
-            const bar = element('div', `admin-trend-bar${orders ? '' : ' is-empty'}`);
-            bar.style.pointerEvents = 'auto';
-            bar.style.setProperty('--bar-height', `${Math.max(4, orders / maxOrders * 165)}px`);
-            bar.style.animationDelay = `${index * 0.035}s`;
-            const labelDate = new Date(`${item.date}T00:00:00`);
-            const em = element('em', '', `${orders} đơn · ${formatMoney(item.revenue)}`);
-            const span = element('span', '', `${labelDate.getDate()}/${labelDate.getMonth() + 1}`);
-            bar.append(em, span);
+        points.forEach((p, idx) => {
+            const col = document.createElement('div');
+            col.className = 'admin-chart-col-zone';
+            const widthPct = 100 / points.length;
+            col.style.width = `${widthPct}%`;
 
-            bar.addEventListener('mouseenter', () => {
-                svgWrapper.querySelectorAll('.admin-svg-dot').forEach((dot, dotIdx) => {
-                    dot.classList.toggle('is-active', dotIdx === index);
+            col.addEventListener('mouseenter', () => {
+                cursorLine.style.display = 'block';
+                cursorLine.setAttribute('x1', p.x.toFixed(1));
+                cursorLine.setAttribute('x2', p.x.toFixed(1));
+                activeDot.style.display = 'block';
+                activeDot.setAttribute('cx', p.x.toFixed(1));
+                activeDot.setAttribute('cy', p.y.toFixed(1));
+
+                chartWrapper.querySelectorAll('.admin-svg-dot').forEach((d, i) => {
+                    d.classList.toggle('is-highlighted', i === idx);
                 });
-            });
-            bar.addEventListener('mouseleave', () => {
-                svgWrapper.querySelectorAll('.admin-svg-dot').forEach(dot => dot.classList.remove('is-active'));
+
+                const d = new Date(`${p.date}T00:00:00`);
+                const daysOfWeek = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+                const dayName = daysOfWeek[d.getDay()] || '';
+                const dateStr = `${dayName}, ${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+                const aov = p.orders > 0 ? Math.round(p.revenue / p.orders) : 0;
+
+                tooltip.innerHTML = `
+                    <div class="chart-tip-header">${dateStr}</div>
+                    <div class="chart-tip-row">
+                        <span class="tip-dot tip-dot--orange"></span>
+                        <span class="tip-label">Doanh thu:</span>
+                        <strong class="tip-val tip-val--rev">${formatMoney(p.revenue)}</strong>
+                    </div>
+                    <div class="chart-tip-row">
+                        <span class="tip-dot tip-dot--blue"></span>
+                        <span class="tip-label">Đơn hàng:</span>
+                        <strong class="tip-val">${p.orders} đơn</strong>
+                    </div>
+                    ${p.orders > 0 ? `
+                    <div class="chart-tip-row chart-tip-row--sub">
+                        <span class="tip-label">AOV trung bình:</span>
+                        <span class="tip-val">${formatMoney(aov)}</span>
+                    </div>` : ''}
+                `;
+
+                const wrapperRect = chartWrapper.getBoundingClientRect();
+                const tipX = (p.x / svgW) * wrapperRect.width;
+                const tipY = (p.y / svgH) * wrapperRect.height;
+
+                tooltip.style.opacity = '1';
+                tooltip.style.left = `${Math.max(105, Math.min(wrapperRect.width - 105, tipX))}px`;
+                tooltip.style.top = `${Math.max(16, tipY - 14)}px`;
             });
 
-            barsContainer.appendChild(bar);
+            col.addEventListener('mouseleave', () => {
+                cursorLine.style.display = 'none';
+                activeDot.style.display = 'none';
+                chartWrapper.querySelectorAll('.admin-svg-dot').forEach(d => d.classList.remove('is-highlighted'));
+                tooltip.style.opacity = '0';
+            });
+
+            colsContainer.appendChild(col);
         });
-        chart.appendChild(barsContainer);
     }
 
     function renderOrderStatus(items) {
-        const colors = { CHO_XAC_NHAN: '#ff9f1c', DANG_GIAO: '#3d78c5', HOAN_THANH: '#28a966', DA_HUY: '#d94b3d' };
-        const normalized = items.map((item) => ({ status: item.TrangThai, count: Number(item.SoLuong) || 0 })).filter((item) => item.count > 0);
+        const colors = {
+            CHO_XAC_NHAN: '#f59e0b',
+            DANG_GIAO: '#3b82f6',
+            HOAN_THANH: '#10b981',
+            DA_HUY: '#f43f5e'
+        };
+        const statusTitles = {
+            CHO_XAC_NHAN: 'Chờ xác nhận',
+            DANG_GIAO: 'Đang giao hàng',
+            HOAN_THANH: 'Đã hoàn thành',
+            DA_HUY: 'Đơn đã hủy'
+        };
+
+        const normalized = items
+            .map((item) => ({
+                status: item.TrangThai,
+                count: Number(item.SoLuong) || 0,
+                title: statusTitles[item.TrangThai] || statusMeta[item.TrangThai]?.[0] || item.TrangThai
+            }))
+            .filter((item) => item.count > 0);
+
         const total = normalized.reduce((sum, item) => sum + item.count, 0);
 
-        // 1. Dựng SVG Donut Ring tương tác động
         const donut = $('#adminStatusDonut');
+        if (!donut) return;
         donut.innerHTML = '';
 
-        const R = 54;
-        const C = 2 * Math.PI * R; // ~339.292
+        const R = 52;
+        const C = 2 * Math.PI * R; // ~326.73
         let accumulated = 0;
+        const hasMultiple = normalized.length > 1;
+        const gapPx = hasMultiple ? 5 : 0;
 
-        const svgSegments = normalized.map((item) => {
+        const svgSegments = normalized.map((item, idx) => {
             const fraction = total ? item.count / total : 0;
-            const dash = fraction * C;
-            const gap = C - dash;
+            const fullDash = fraction * C;
+            const actualDash = Math.max(0.1, fullDash - gapPx);
+            const gap = C - actualDash;
             const offset = - (accumulated / total) * C;
             accumulated += item.count;
             const color = colors[item.status] || '#9b776a';
-            return `<circle class="admin-donut-seg" cx="72" cy="72" r="${R}" stroke="${color}" stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" data-status="${item.status}"></circle>`;
+
+            return `
+                <circle class="admin-donut-seg" 
+                    cx="72" cy="72" r="${R}" 
+                    stroke="${color}" 
+                    stroke-dasharray="${actualDash.toFixed(2)} ${gap.toFixed(2)}" 
+                    stroke-dashoffset="${offset.toFixed(2)}" 
+                    data-status="${item.status}"
+                    data-count="${item.count}"
+                    data-title="${item.title}"
+                    data-pct="${Math.round(fraction * 100)}"
+                    style="--seg-color:${color}; animation-delay: ${idx * 0.12}s;"
+                ></circle>
+            `;
         });
 
         const svgHtml = `
             <svg class="admin-donut-svg" viewBox="0 0 144 144">
+                <defs>
+                    <filter id="donutGlow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="currentColor" flood-opacity="0.35" />
+                    </filter>
+                </defs>
                 <circle class="admin-donut-bg" cx="72" cy="72" r="${R}"></circle>
                 ${svgSegments.join('')}
             </svg>
         `;
-        donut.innerHTML = svgHtml + `<div style="position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;"><span id="adminStatusTotal">${total}</span><small>đơn</small></div>`;
 
-        // 2. Dựng Legend tương tác với hiệu ứng highlight
+        const centerKpi = document.createElement('div');
+        centerKpi.className = 'admin-donut-center';
+        centerKpi.innerHTML = `<span id="adminStatusTotal">${total}</span><small id="adminStatusLabel">Tổng đơn</small>`;
+
+        const donutContainer = document.createElement('div');
+        donutContainer.className = 'admin-donut-container';
+        donutContainer.innerHTML = svgHtml;
+        donutContainer.appendChild(centerKpi);
+        donut.appendChild(donutContainer);
+
+        animateMetric(centerKpi.querySelector('#adminStatusTotal'), total);
+
         const legend = $('#adminStatusLegend');
+        if (!legend) return;
         legend.innerHTML = '';
-        normalized.forEach((item) => {
-            const pct = total ? Math.round(item.count / total * 100) : 0;
-            const row = element('div');
-            row.style.setProperty('--legend-color', colors[item.status] || '#9b776a');
-            const dot = element('i');
-            row.append(
-                dot,
-                element('span', '', `${statusMeta[item.status]?.[0] || item.status} (${pct}%)`),
-                element('strong', '', item.count)
-            );
-            row.addEventListener('mouseenter', () => {
-                donut.querySelectorAll('.admin-donut-seg').forEach(seg => {
-                    seg.style.opacity = seg.dataset.status === item.status ? '1' : '0.35';
-                    if (seg.dataset.status === item.status) seg.style.strokeWidth = '20';
-                });
+
+        const setDonutFocus = (statusItem) => {
+            donut.querySelectorAll('.admin-donut-seg').forEach(seg => {
+                const isMatch = seg.dataset.status === statusItem.status;
+                seg.classList.toggle('is-focus', isMatch);
+                seg.classList.toggle('is-dimmed', !isMatch);
             });
-            row.addEventListener('mouseleave', () => {
-                donut.querySelectorAll('.admin-donut-seg').forEach(seg => {
-                    seg.style.opacity = '1';
-                    seg.style.strokeWidth = '16';
-                });
+            const totalSpan = centerKpi.querySelector('#adminStatusTotal');
+            const labelSmall = centerKpi.querySelector('#adminStatusLabel');
+            if (totalSpan && labelSmall) {
+                totalSpan.textContent = String(statusItem.count);
+                labelSmall.textContent = `${statusItem.title} (${Math.round((statusItem.count / total) * 100)}%)`;
+                totalSpan.style.color = colors[statusItem.status] || 'var(--bs-ink)';
+            }
+        };
+
+        const resetDonutFocus = () => {
+            donut.querySelectorAll('.admin-donut-seg').forEach(seg => {
+                seg.classList.remove('is-focus', 'is-dimmed');
             });
-            legend.appendChild(row);
+            const totalSpan = centerKpi.querySelector('#adminStatusTotal');
+            const labelSmall = centerKpi.querySelector('#adminStatusLabel');
+            if (totalSpan && labelSmall) {
+                totalSpan.textContent = String(total);
+                labelSmall.textContent = 'Tổng đơn';
+                totalSpan.style.color = 'var(--bs-ink)';
+            }
+        };
+
+        donut.querySelectorAll('.admin-donut-seg').forEach(seg => {
+            const sItem = normalized.find(n => n.status === seg.dataset.status);
+            if (sItem) {
+                seg.addEventListener('mouseenter', () => setDonutFocus(sItem));
+                seg.addEventListener('mouseleave', resetDonutFocus);
+            }
         });
-        if (!normalized.length) legend.appendChild(element('p', 'admin-empty', 'Chưa có đơn hàng.'));
+
+        normalized.forEach((item) => {
+            const pct = total ? Math.round((item.count / total) * 100) : 0;
+            const color = colors[item.status] || '#9b776a';
+
+            const card = document.createElement('div');
+            card.className = 'admin-legend-card';
+            card.style.setProperty('--legend-color', color);
+
+            card.innerHTML = `
+                <div class="legend-card-header">
+                    <div class="legend-title-group">
+                        <i class="legend-indicator" style="background:${color}"></i>
+                        <span class="legend-title">${item.title}</span>
+                    </div>
+                    <div class="legend-stat">
+                        <strong class="legend-count">${item.count}</strong>
+                        <span class="legend-pct">${pct}%</span>
+                    </div>
+                </div>
+                <div class="legend-track">
+                    <div class="legend-fill" style="width:${pct}%; background:${color};"></div>
+                </div>
+            `;
+
+            card.addEventListener('mouseenter', () => {
+                card.classList.add('is-active');
+                setDonutFocus(item);
+            });
+            card.addEventListener('mouseleave', () => {
+                card.classList.remove('is-active');
+                resetDonutFocus();
+            });
+
+            legend.appendChild(card);
+        });
+
+        if (!normalized.length) {
+            legend.appendChild(element('p', 'admin-empty', 'Chưa có đơn hàng phát sinh.'));
+        }
     }
 
     function renderFunnel(funnel) {

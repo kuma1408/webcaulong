@@ -5,20 +5,27 @@ from __future__ import annotations
 import io
 import pathlib
 import unittest
+from decimal import Decimal
 
 from PIL import Image
 from werkzeug.datastructures import FileStorage
 
 from HA.app import (
     SlidingWindowLimiter,
+    admin_content,
+    admin_vouchers,
     app,
+    checkout,
+    decimal_number,
     fuzzy_product_score,
+    integer_number,
     normalize_search_text,
     product_category_intent,
     normalize_public_url,
     normalize_sql_table_names,
     normalized_avatar,
     normalized_public_image,
+    optional_datetime_input,
     sanitize_rich_text,
     validate_racket_configuration,
     validated_product_specs,
@@ -36,6 +43,28 @@ class ApiSmokeTest(unittest.TestCase):
     def test_route_surface(self):
         api_rules = [rule for rule in app.url_map.iter_rules() if rule.rule.startswith("/api/")]
         self.assertGreaterEqual(len(api_rules), 45)
+        registered = {
+            (method, rule.rule)
+            for rule in api_rules
+            for method in rule.methods
+            if method not in {"HEAD", "OPTIONS"}
+        }
+        critical_routes = {
+            ("POST", "/api/dang-nhap"),
+            ("POST", "/api/dang-ky"),
+            ("GET", "/api/tim-kiem"),
+            ("GET", "/api/san-pham/<int:product_id>"),
+            ("POST", "/api/gio-hang/them"),
+            ("POST", "/api/mua-hang"),
+            ("GET", "/api/don-hang/<int:order_id>"),
+            ("POST", "/api/lien-he"),
+            ("GET", "/api/admin/dashboard"),
+            ("PATCH", "/api/admin/orders/<int:order_id>/status"),
+            ("PATCH", "/api/admin/orders/<int:order_id>/payment"),
+            ("GET", "/api/admin/noi-dung"),
+            ("POST", "/api/admin/noi-dung"),
+        }
+        self.assertEqual(critical_routes - registered, set())
 
     def test_login_validation_does_not_touch_database(self):
         response = self.client.post("/api/dang-nhap", json={})
@@ -55,6 +84,68 @@ class ApiSmokeTest(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 400)
         self.assertFalse(response.get_json()["success"])
+
+    def test_business_numbers_reject_non_finite_and_malformed_values(self):
+        self.assertIsNone(decimal_number("NaN"))
+        self.assertIsNone(decimal_number("Infinity"))
+        self.assertEqual(decimal_number("12.50"), Decimal("12.50"))
+        self.assertIsNone(integer_number("1.5", minimum=1, maximum=100))
+        self.assertIsNone(integer_number(True, minimum=1, maximum=100))
+        self.assertEqual(integer_number("25", minimum=1, maximum=100), 25)
+        self.assertEqual(optional_datetime_input("2026-09-08T10:30").isoformat(), "2026-09-08T10:30:00")
+        with self.assertRaises(ValueError):
+            optional_datetime_input("08/09/2026")
+
+    def test_admin_content_rejects_dangerous_source_before_database(self):
+        with app.test_request_context(
+            "/api/admin/noi-dung",
+            method="POST",
+            json={
+                "type": "TIN_TUC",
+                "title": "Tin tức hợp lệ",
+                "content": "Nội dung hợp lệ cho bài viết.",
+                "source_url": "javascript:alert(1)",
+                "active": True,
+            },
+        ):
+            response, status = admin_content.__wrapped__()
+            self.assertEqual(status, 400)
+            self.assertFalse(response.get_json()["success"])
+
+    def test_admin_voucher_rejects_invalid_quantity_before_database(self):
+        with app.test_request_context(
+            "/api/admin/vouchers",
+            method="POST",
+            json={
+                "code": "WELCOME",
+                "type": "PHAN_TRAM",
+                "value": 10,
+                "quantity": "không-phải-số",
+                "active": True,
+            },
+        ):
+            response, status = admin_vouchers.__wrapped__()
+            self.assertEqual(status, 400)
+            self.assertFalse(response.get_json()["success"])
+
+    def test_search_rejects_non_finite_price_before_database(self):
+        response = self.client.get("/api/tim-kiem?gia_min=NaN")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["code"], "invalid_price_range")
+
+    def test_checkout_rejects_malformed_voucher_before_database(self):
+        with app.test_request_context(
+            "/api/mua-hang",
+            method="POST",
+            json={
+                "dia_chi_giao": "Số 10, Hà Nội",
+                "phuong_thuc": "COD",
+                "voucher": "<script>",
+            },
+        ):
+            response, status = checkout.__wrapped__()
+            self.assertEqual(status, 400)
+            self.assertEqual(response.get_json()["code"], "invalid_voucher_code")
 
     def test_fuzzy_search_handles_vietnamese_accents_and_typo(self):
         product = {
@@ -293,9 +384,12 @@ class ApiSmokeTest(unittest.TestCase):
             "/trang-khong-ton-tai",
             headers={"Accept": "text/html,application/xhtml+xml,*/*;q=0.8"},
         )
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.mimetype, "text/html")
-        self.assertIn("error-page", response.get_data(as_text=True))
+        try:
+            self.assertEqual(response.status_code, 404)
+            self.assertEqual(response.mimetype, "text/html")
+            self.assertIn("error-page", response.get_data(as_text=True))
+        finally:
+            response.close()
 
     def test_robots_and_sitemap_are_served(self):
         robots = self.client.get("/robots.txt")
@@ -312,8 +406,11 @@ class ApiSmokeTest(unittest.TestCase):
 
     def test_favicon_is_available_for_browsers(self):
         response = self.client.get("/favicon.ico")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.mimetype, "image/svg+xml")
+        try:
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.mimetype, "image/svg+xml")
+        finally:
+            response.close()
 
     def test_sensitive_root_files_are_not_public(self):
         for path in ("/requirements.txt", "/package.json", "/.env", "/HA/app.py", "/wsgi.py"):

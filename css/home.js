@@ -163,8 +163,11 @@
                 entry.target.classList.add('is-revealed');
                 observer.unobserve(entry.target);
             });
-        }, { rootMargin: '0px 0px -12% 0px', threshold: 0.12 });
+        }, { threshold: 0.02 });
         targets.forEach(function (node) { observer.observe(node); });
+        window.setTimeout(function () {
+            targets.forEach(function (node) { node.classList.add('is-revealed'); });
+        }, 1500);
     }
 
     function setupTheme() {

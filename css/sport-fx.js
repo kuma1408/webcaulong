@@ -201,112 +201,6 @@
         }, { passive: true });
     }
 
-    function setupScrollReveal() {
-        if (reducedMotion?.matches || typeof IntersectionObserver !== 'function') return;
-        const revealSelector = [
-            '.service-strip article',
-            '.category-card',
-            '.playstyle-card',
-            '.guide__visual',
-            '.guide__content',
-            '.product-grid > *',
-            '.danh-sach-san-pham-grid > *'
-        ].join(',');
-
-        const nodes = document.querySelectorAll(revealSelector);
-        if (!nodes.length) return;
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('sport-reveal', 'is-revealed');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.12 });
-
-        nodes.forEach((node, idx) => {
-            node.classList.add('sport-reveal');
-            node.style.transitionDelay = `${(idx % 4) * 0.08}s`;
-            observer.observe(node);
-        });
-    }
-
-    function setupAmbientParticles() {
-        if (reducedMotion?.matches || window.innerWidth < 768) return;
-        if (document.querySelector('.sport-ambient-canvas')) return;
-
-        const canvas = document.createElement('canvas');
-        canvas.className = 'sport-ambient-canvas';
-        canvas.setAttribute('aria-hidden', 'true');
-        document.body.prepend(canvas);
-
-        const ctx = canvas.getContext('2d', { alpha: true });
-        if (!ctx) return;
-
-        let width = (canvas.width = window.innerWidth);
-        let height = (canvas.height = window.innerHeight);
-
-        window.addEventListener('resize', () => {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-        }, { passive: true });
-
-        const particleCount = 28;
-        const particles = Array.from({ length: particleCount }, () => ({
-            x: Math.random() * width,
-            y: Math.random() * height,
-            radius: Math.random() * 2.2 + 0.8,
-            speedY: -(Math.random() * 0.45 + 0.15),
-            speedX: (Math.random() - 0.5) * 0.35,
-            opacity: Math.random() * 0.45 + 0.15,
-            glow: Math.random() > 0.6,
-            hue: Math.random() > 0.4 ? 'rgba(255, 107, 61,' : 'rgba(245, 184, 75,'
-        }));
-
-        let animFrame = 0;
-        let isVisible = true;
-
-        document.addEventListener('visibilitychange', () => {
-            isVisible = !document.hidden;
-            if (isVisible && !animFrame) animFrame = requestAnimationFrame(renderLoop);
-        });
-
-        const renderLoop = () => {
-            if (!isVisible) {
-                animFrame = 0;
-                return;
-            }
-            ctx.clearRect(0, 0, width, height);
-
-            particles.forEach((p) => {
-                p.x += p.speedX;
-                p.y += p.speedY;
-                if (p.y < -10) {
-                    p.y = height + 10;
-                    p.x = Math.random() * width;
-                }
-                if (p.x < -10) p.x = width + 10;
-                if (p.x > width + 10) p.x = -10;
-
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `${p.hue} ${p.opacity})`;
-                if (p.glow) {
-                    ctx.shadowColor = 'rgba(255, 107, 61, 0.6)';
-                    ctx.shadowBlur = 8;
-                } else {
-                    ctx.shadowBlur = 0;
-                }
-                ctx.fill();
-            });
-
-            animFrame = requestAnimationFrame(renderLoop);
-        };
-
-        animFrame = requestAnimationFrame(renderLoop);
-    }
-
     function setupCartBounceFeedback() {
         const bounceCart = () => {
             const badge = document.getElementById('cartCount') || document.querySelector('.cart-count, .cart-badge');
@@ -331,14 +225,11 @@
         setupDeclarativeCounters();
         setupBackToTop();
         setupPressFeedback();
-        setupScrollReveal();
-        setupAmbientParticles();
         setupCartBounceFeedback();
 
         if (typeof MutationObserver === 'function') {
             const observer = new MutationObserver((records) => {
                 records.forEach((record) => record.addedNodes.forEach((node) => {
-                    if (node.nodeType === Node.ELEMENT_NODE) upgradeCards(node);
                     if (node.nodeType === Node.ELEMENT_NODE) {
                         upgradeCards(node);
                     }

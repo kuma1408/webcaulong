@@ -34,6 +34,9 @@
 </head>
 <body>
     <div class="baotrang">
+</head>
+<body>
+    <div class="baotrang">
         <!-- Header chèn tự động -->
         <div class="header"></div>
 
@@ -41,120 +44,324 @@
         <div id="menu"></div>
 
         <div class="detail-container">
+            <!-- Breadcrumbs -->
+            <nav class="breadcrumb-nav" aria-label="Đường dẫn trang">
+                <a href="trangchu.html">Trang chủ</a>
+                <span>›</span>
+                <a href="sanpham.html" id="breadcrumbCategory">Sản phẩm</a>
+                <span>›</span>
+                <span class="breadcrumb-current" id="breadcrumbCurrent">Đang tải…</span>
+            </nav>
+
             <!-- Layout Chi tiết chính -->
             <div class="product-detail-layout">
                 <!-- Cột hình ảnh sản phẩm (Trái) -->
                 <div class="detail-img-box">
                     <div class="detail-img-main" id="mainImgContainer">
+                        <div class="detail-img-badge-overlay">
+                            <span class="detail-badge-pill detail-badge-pill--auth">✓ Chính hãng 100%</span>
+                            <span class="detail-badge-pill detail-badge-pill--hot" id="detailSaleBadge" hidden>Sale Giảm Giá</span>
+                        </div>
                         <img id="mainProductImage" src="HA/cc-removebg-preview.png" alt="Ảnh sản phẩm">
                     </div>
                     <div class="detail-img-thumbnails swiper" id="thumbnailsContainer">
                         <div class="swiper-wrapper" id="thumbnailsWrapper"><!-- Thumbnails được chèn động --></div>
                     </div>
+
+                    <!-- Thanh cam kết dịch vụ & bảo đảm -->
+                    <div class="trust-guarantee-strip">
+                        <div class="trust-item">
+                            <span class="trust-icon">🛡️</span>
+                            <div>
+                                <strong>100% Chính Hãng</strong>
+                                <small>Đền 200% nếu phát hiện giả</small>
+                            </div>
+                        </div>
+                        <div class="trust-item">
+                            <span class="trust-icon">⚡</span>
+                            <div>
+                                <strong>Căng Cước Chuẩn lbs</strong>
+                                <small>Máy điện tử 4 nút chuẩn BWF</small>
+                            </div>
+                        </div>
+                        <div class="trust-item">
+                            <span class="trust-icon">🔄</span>
+                            <div>
+                                <strong>Đổi Mới 7 Ngày</strong>
+                                <small>Lỗi 1 đổi 1 từ nhà sản xuất</small>
+                            </div>
+                        </div>
+                        <div class="trust-item">
+                            <span class="trust-icon">🚚</span>
+                            <div>
+                                <strong>Giao Toàn Quốc</strong>
+                                <small>Kiểm tra hàng trước khi trả</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Cột thông tin chi tiết (Phải) -->
                 <div class="detail-info-box">
-                    <span id="productBrand" style="font-size:12px; color:var(--text-muted); text-transform:uppercase; font-weight:700; letter-spacing:1px;">Lining</span>
-                    <h2 id="productName" style="margin-top:6px; margin-bottom:10px;">Đang tải...</h2>
-                    
-                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:15px;">
-                        <span id="productStars" style="color:#ffb300; font-size:16px; font-weight:bold;">⭐ 5.0</span>
-                        <span style="color:var(--text-muted); font-size:13px;">| Status: <span id="productStock" style="color:#4CAF50; font-weight:bold;">Còn hàng</span></span>
+                    <div class="brand-pill-row">
+                        <span class="brand-pill" id="productBrand">Thương hiệu</span>
+                        <span class="product-code-pill" id="productCode">Mã SP: #—</span>
                     </div>
 
+                    <h1 class="product-detail-title" id="productName">Đang tải thông tin sản phẩm…</h1>
+                    
+                    <div class="product-social-row">
+                        <span class="rating-pill" id="productStars">⭐ 5.0</span>
+                        <span class="social-divider">•</span>
+                        <span style="color:var(--text-muted);">Đã bán: <b id="productSold" style="color:var(--text-color);">0</b></span>
+                        <span class="social-divider">•</span>
+                        <span style="color:var(--text-muted);">Lượt xem: <b id="productViews" style="color:var(--text-color);">0</b></span>
+                        <span class="social-divider">•</span>
+                        <span class="stock-status-badge" id="productStock">Còn hàng</span>
+                    </div>
+
+                    <!-- Hộp giá bán nổi bật -->
                     <div class="detail-price-card">
-                        <div class="price" id="productPrice">0 ₫</div>
-                        <div class="detail-price-meta"><del id="productOriginalPrice" hidden></del><span id="productDiscount" hidden></span></div>
+                        <div class="price-main-wrap">
+                            <div class="price" id="productPrice">0 ₫</div>
+                            <del class="price-original-del" id="productOriginalPrice" hidden></del>
+                            <span class="price-discount-tag" id="productDiscount" hidden>Tiết kiệm 0%</span>
+                        </div>
+                        <div class="price-incentive-line">
+                            <span class="incentive-icon">🎁</span>
+                            <span>Tặng 02 quấn cán + Miễn phí công đan cước máy điện tử cho mọi dòng vợt</span>
+                        </div>
                     </div>
-                    <div class="product-facts" aria-label="Thông tin sản phẩm">
-                        <div><span>Mã sản phẩm</span><strong id="productCode">—</strong></div>
-                        <div><span>Danh mục</span><strong id="productCategoryName">—</strong></div>
-                        <div><span>Đã bán</span><strong id="productSold">0</strong></div>
-                        <div><span>Lượt xem</span><strong id="productViews">0</strong></div>
-                        <div class="racket-product-fact" hidden><span>Trọng lượng / cán</span><strong id="productWeightFact">—</strong></div>
-                        <div class="racket-product-fact" hidden><span>Lối chơi</span><strong id="productPlayFact">—</strong></div>
-                        <div class="racket-product-fact" hidden><span>Điểm cân bằng</span><strong id="productBalanceFact">—</strong></div>
-                        <div class="racket-product-fact" hidden><span>Lực căng tối đa</span><strong id="productTensionFact">—</strong></div>
+
+                    <!-- Ma trận thông số kỹ thuật trực quan -->
+                    <div class="specs-matrix" id="specsMatrix" aria-label="Thông số kỹ thuật nổi bật">
+                        <!-- Được render động bởi JS -->
                     </div>
+
                     <div class="detail-wallet-card">
-                        <div><span>Số dư tài khoản</span><strong id="detailWalletBalance">Đăng nhập để xem</strong></div>
+                        <div>
+                            <span>Số dư ví của bạn</span>
+                            <strong id="detailWalletBalance">Đăng nhập để kiểm tra</strong>
+                        </div>
                         <a href="canhan.html#wallet" id="detailDepositLink">Nạp tiền vào tài khoản →</a>
                     </div>
 
+                    <!-- Cấu hình cây vợt chuyên nghiệp -->
                     <section class="racket-configurator" id="racketConfigurator" aria-labelledby="racketConfigTitle" hidden>
-                        <div class="racket-configurator__heading"><div><h3 id="racketConfigTitle">Cấu hình cây vợt của bạn</h3><span>Lựa chọn được lưu cùng đơn hàng để bộ phận kỹ thuật xử lý chính xác.</span></div><span>BADMINTON LAB</span></div>
-                        <div class="racket-configurator__grid">
-                            <label class="racket-option"><span>Trọng lượng &amp; chu vi cán</span><select id="racketWeight"><option value="3U-G5">3U-G5 · Đầm tay</option><option value="4U-G5" selected>4U-G5 · Cân bằng phổ biến</option><option value="4U-G6">4U-G6 · Cán nhỏ</option><option value="5U-G5">5U-G5 · Siêu nhẹ</option></select></label>
-                            <label class="racket-option"><span>Loại cước căng kèm</span><select id="racketString"><option value="KHONG_CANG" selected>Không căng cước</option><option value="YONEX_BG65">Yonex BG65</option><option value="YONEX_BG65TI">Yonex BG65Ti</option><option value="YONEX_NANOGY98">Yonex Nanogy 98</option><option value="YONEX_AEROBITE">Yonex Aerobite</option><option value="LINING_NO1">Lining No.1</option></select></label>
-                            <label class="racket-option"><span>Lực căng máy điện tử</span><select id="racketTension"><option value="">Không áp dụng</option><option value="21">9.5 kg · 21 lbs</option><option value="22">10.0 kg · 22 lbs</option><option value="23">10.5 kg · 23 lbs</option><option value="24">11.0 kg · 24 lbs</option><option value="25">11.5 kg · 25 lbs</option><option value="26">12.0 kg · 26 lbs</option><option value="27">12.5 kg · 27 lbs</option><option value="28">12.7 kg · 28 lbs</option><option value="29">13.2 kg · 29 lbs</option><option value="30">13.5 kg · 30 lbs</option></select></label>
-                            <label class="racket-option"><span>Số lượng</span><select id="racketQuantity"><option value="1">1 cây</option><option value="2">2 cây</option><option value="3">3 cây</option><option value="4">4 cây</option><option value="5">5 cây</option></select></label>
-                            <div class="racket-option racket-option--full"><span>Yêu cầu phụ kiện kèm theo</span><div class="racket-addon-list"><label class="racket-addon"><input type="checkbox" value="QUAN_CAN_CAO_SU"><span>Quấn cán cao su</span></label><label class="racket-addon"><input type="checkbox" value="TUI_CACH_NHIET"><span>Túi vợt cách nhiệt</span></label><label class="racket-addon"><input type="checkbox" value="HOP_CAU_LONG"><span>Hộp cầu lông</span></label></div><small>Nhân viên sẽ xác nhận loại và phụ phí (nếu có) trước khi xử lý; hệ thống chưa tự cộng phụ kiện vào tổng tiền.</small></div>
+                        <div class="racket-configurator__heading">
+                            <div>
+                                <h3 id="racketConfigTitle">Cấu hình cây vợt của bạn</h3>
+                                <span>Lựa chọn sẽ được lưu vào đơn hàng để kỹ thuật viên căng đúng yêu cầu.</span>
+                            </div>
+                            <span class="racket-lab-badge">BADMINTON LAB</span>
                         </div>
-                        <div class="racket-config-summary"><span>Tóm tắt cấu hình</span><strong id="racketConfigSummary">4U-G5 · Khung vợt chưa căng</strong></div>
+                        <div class="racket-configurator__grid">
+                            <label class="racket-option">
+                                <span>Trọng lượng &amp; chu vi cán</span>
+                                <select id="racketWeight">
+                                    <option value="3U-G5">3U-G5 · Đầm tay (Tấn công)</option>
+                                    <option value="4U-G5" selected>4U-G5 · Cân bằng phổ biến nhất</option>
+                                    <option value="4U-G6">4U-G6 · Cán nhỏ linh hoạt</option>
+                                    <option value="5U-G5">5U-G5 · Siêu nhẹ trợ lực</option>
+                                </select>
+                            </label>
+                            <label class="racket-option">
+                                <span>Loại cước căng kèm</span>
+                                <select id="racketString">
+                                    <option value="KHONG_CANG" selected>Không căng cước (Khung vợt)</option>
+                                    <option value="YONEX_BG65">Yonex BG65 (Bền bỉ, phổ thông)</option>
+                                    <option value="YONEX_BG65TI">Yonex BG65Ti (Nổ cầu, âm vang)</option>
+                                    <option value="YONEX_NANOGY98">Yonex Nanogy 98 (Trợ lực, nảy cầu)</option>
+                                    <option value="YONEX_AEROBITE">Yonex Aerobite (Xoáy cầu, kiểm soát)</option>
+                                    <option value="LINING_NO1">Lining No.1 (Độ nảy cao, tiếng vang)</option>
+                                </select>
+                            </label>
+                            <label class="racket-option">
+                                <span>Lực căng máy điện tử</span>
+                                <select id="racketTension">
+                                    <option value="">Khung chưa căng</option>
+                                    <option value="21">9.5 kg · 21 lbs (Mới chơi)</option>
+                                    <option value="22">10.0 kg · 22 lbs (Mới chơi)</option>
+                                    <option value="23">10.5 kg · 23 lbs (Phong trào)</option>
+                                    <option value="24">11.0 kg · 24 lbs (Phong trào chuẩn)</option>
+                                    <option value="25">11.5 kg · 25 lbs (Tay khỏe)</option>
+                                    <option value="26">12.0 kg · 26 lbs (Bán chuyên)</option>
+                                    <option value="27">12.5 kg · 27 lbs (Bán chuyên)</option>
+                                    <option value="28">12.7 kg · 28 lbs (Chuyên nghiệp)</option>
+                                    <option value="29">13.2 kg · 29 lbs (Chuyên nghiệp)</option>
+                                    <option value="30">13.5 kg · 30 lbs (Vận động viên)</option>
+                                </select>
+                            </label>
+                            <label class="racket-option">
+                                <span>Số lượng đặt</span>
+                                <select id="racketQuantity">
+                                    <option value="1">1 cây</option>
+                                    <option value="2">2 cây</option>
+                                    <option value="3">3 cây</option>
+                                    <option value="4">4 cây</option>
+                                    <option value="5">5 cây</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="racket-config-summary">
+                            <span>Tóm tắt cấu hình:</span>
+                            <strong id="racketConfigSummary">4U-G5 · Khung vợt chưa căng</strong>
+                        </div>
                     </section>
                     
-                    <!-- Nhóm nút tác vụ -->
-                    <div style="display:flex; flex-direction:column; gap:12px; margin:20px 0;">
-                        <div style="display:flex; gap:12px;">
-                            <button class="btn-buy-now" style="flex:1;" onclick="triggerBuyNow()">MUA NGAY</button>
-                            <button class="btn-add-cart" style="flex:1;" onclick="triggerAddToCart()">THÊM GIỎ HÀNG</button>
+                    <!-- Nhóm nút tác vụ mua sắm -->
+                    <div class="detail-actions-panel">
+                        <div class="cta-buttons-row">
+                            <button class="btn-buy-now" type="button" onclick="triggerBuyNow()">
+                                ⚡ MUA NGAY
+                            </button>
+                            <button class="btn-add-cart" type="button" onclick="triggerAddToCart()">
+                                🛒 THÊM GIỎ HÀNG
+                            </button>
                         </div>
-                        <button class="btn-add-cart" id="wishlistDetailButton" type="button" onclick="saveToWishlist()">♡ LƯU SẢN PHẨM YÊU THÍCH</button>
-                        <p class="payment-safety-note">🔒 Thanh toán bằng số dư, COD hoặc VietQR đúng mã đơn. Website không thu thập số thẻ, mật khẩu ngân hàng, CVV hay OTP.</p>
+                        <button class="btn-wishlist-toggle" id="wishlistDetailButton" type="button" onclick="saveToWishlist()">
+                            ♡ Lưu vào danh sách yêu thích
+                        </button>
+                        <p class="payment-safety-note">
+                            🔒 Bảo mật thanh toán: Hỗ trợ Số dư tài khoản, COD khi nhận hàng hoặc VietQR tự động. Website không thu thập số thẻ tín dụng hay mã OTP của bạn.
+                        </p>
                     </div>
 
-                    <!-- Box Khuyến Mãi / Ưu đãi cào từ database -->
-                    <div class="uu-dai" id="promotionContainer" style="margin-top:20px;">
+                    <!-- Box Khuyến Mãi / Ưu đãi -->
+                    <div class="uu-dai" id="promotionContainer" style="margin-top:10px;">
                         <!-- Ưu đãi tự động chèn ở đây -->
                     </div>
                 </div>
             </div>
 
-            <!-- Tab mô tả & Đánh giá -->
+            <!-- Hệ thống 4 Tab chuyên sâu: Mô tả, Thông số, Hướng dẫn, Đánh giá -->
             <div class="tabs-container">
-                <div class="tabs-headers">
-                    <button type="button" class="tab-header active-tab" onclick="switchTab(event, 'tab-description')">MÔ TẢ &amp; ƯU ĐÃI</button>
-                    <button type="button" class="tab-header" id="reviewsTabHeader" onclick="switchTab(event, 'tab-reviews')">ĐÁNH GIÁ (0)</button>
+                <div class="tabs-headers" role="tablist">
+                    <button type="button" class="tab-header active-tab" id="tabBtnDesc" onclick="switchTab(event, 'tab-description')">ĐẶC ĐIỂM NỔI BẬT &amp; CÔNG NGHỆ</button>
+                    <button type="button" class="tab-header" id="tabBtnSpecs" onclick="switchTab(event, 'tab-specs')">THÔNG SỐ KỸ THUẬT ĐẦY ĐỦ</button>
+                    <button type="button" class="tab-header" id="tabBtnGuide" onclick="switchTab(event, 'tab-guide')">HƯỚNG DẪN CHỌN &amp; BẢO QUẢN</button>
+                    <button type="button" class="tab-header" id="reviewsTabHeader" onclick="switchTab(event, 'tab-reviews')">ĐÁNH GIÁ TỪ NGƯỜI CHƠI (0)</button>
                 </div>
 
-                <!-- Nội dung Tab Mô tả -->
+                <!-- Tab 1: Mô tả & Công nghệ -->
                 <div class="tab-content active-tab-content" id="tab-description">
                     <div class="product-description" id="productFullDescription"><p>Đang tải thông tin sản phẩm…</p></div>
                     <div class="uu-dai">
-                        <h4>🎁 Ưu đãi thêm khi mua sản phẩm tại VNB Premium</h4>
+                        <h4>🎁 Đặc quyền độc quyền tại Badminton Store</h4>
                         <ul>
                             <li>Sơn logo mặt vợt miễn phí trọn đời sản phẩm.</li>
                             <li>Bảo hành lưới đan trong vòng 72 giờ đầu tiên.</li>
                             <li>Thay thế gen vợt miễn phí trọn đời (đối với vợt cầu lông).</li>
-                            <li>Tích lũy điểm thành viên đổi voucher giảm giá.</li>
-                            <li>Bao đựng vợt hoặc bao nhung đi kèm miễn phí.</li>
+                            <li>Tích lũy điểm thành viên đổi voucher giảm giá đơn hàng sau.</li>
+                            <li>Tặng kèm bao đựng vợt hoặc bao nhung chống sốc chuyên dụng.</li>
                         </ul>
                     </div>
                 </div>
 
-                <!-- Nội dung Tab Đánh giá -->
+                <!-- Tab 2: Bảng thông số kỹ thuật đầy đủ -->
+                <div class="tab-content" id="tab-specs">
+                    <table class="full-specs-table" id="fullSpecsTable">
+                        <!-- Được render động bởi JS -->
+                    </table>
+                </div>
+
+                <!-- Tab 3: Hướng dẫn chọn cước & bảo quản -->
+                <div class="tab-content" id="tab-guide">
+                    <h3>🏸 Hướng dẫn chọn lực căng cước phù hợp lực cổ tay</h3>
+                    <p>Căng cước quá nặng so với lực tay sẽ làm giảm độ nảy, gây đau cổ tay và tăng nguy cơ chấn thương vai. Dưới đây là khuyến nghị từ các chuyên gia:</p>
+                    
+                    <div class="tension-guide-grid">
+                        <div class="tension-card">
+                            <h4>Người mới tập chơi</h4>
+                            <div class="tension-value">9.0 – 10.0 kg (20 – 22 lbs)</div>
+                            <p>Mặt cước võng sâu hơn, trợ lực tối đa giúp cầu đi xa mà không tốn nhiều sức.</p>
+                        </div>
+                        <div class="tension-card">
+                            <h4>Người chơi phong trào</h4>
+                            <div class="tension-value">10.5 – 11.5 kg (23 – 25 lbs)</div>
+                            <p>Cân bằng tuyệt vời giữa lực nảy cầu và độ chính xác khi điều cầu, bỏ nhỏ.</p>
+                        </div>
+                        <div class="tension-card">
+                            <h4>Bán chuyên &amp; Tay khỏe</h4>
+                            <div class="tension-value">11.8 – 12.5 kg (26 – 27.5 lbs)</div>
+                            <p>Cảm giác cầu đầm, smash cầu đi cực cắm, yêu cầu cổ tay phát lực tốt.</p>
+                        </div>
+                        <div class="tension-card">
+                            <h4>Vận động viên chuyên nghiệp</h4>
+                            <div class="tension-value">12.7 – 13.5+ kg (28 – 30+ lbs)</div>
+                            <p>Kiểm soát cầu tuyệt đối ở tốc độ cao, chỉ dành cho người tập luyện bài bản.</p>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top:28px;">🛡️ Quy tắc vàng bảo quản vợt và trang phục cầu lông</h3>
+                    <ul style="line-height:1.8;">
+                        <li><strong>Không để vợt trong cốp xe máy hoặc cốp ô tô</strong> đỗ ngoài trời nắng: Nhiệt độ cao làm giãn nở carbon và biến dạng khung vợt dưới sức căng của cước.</li>
+                        <li><strong>Cắt cước ngay khi bị đứt:</strong> Cắt nhanh các dây đối xứng để lực căng không bị kéo lệch một bên làm cong sụp khung vợt.</li>
+                        <li><strong>Thay quấn cán định kỳ (2-3 tuần/lần):</strong> Tránh mồ hôi ngấm làm mục cốt gỗ bên trong cán vợt.</li>
+                        <li><strong>Giày và túi:</strong> Để nơi thoáng khí sau mỗi trận cầu, dùng túi hút ẩm để giữ form và chống bong keo.</li>
+                    </ul>
+                </div>
+
+                <!-- Tab 4: Đánh giá & Nhận xét -->
                 <div class="tab-content" id="tab-reviews">
                     <div class="review-layout">
-                        <section class="review-feed"><div class="review-section-heading"><div><span>Ý kiến thực tế</span><h3>Đánh giá từ khách hàng</h3></div><div class="review-summary"><strong id="reviewAverage">0.0</strong><span id="reviewAverageStars">☆☆☆☆☆</span><small id="reviewCountLabel">Chưa có đánh giá</small></div></div><div id="reviewsList" class="review-list"><p class="review-empty">Chưa có đánh giá nào cho sản phẩm này.</p></div></section>
-                        <section class="review-compose"><span class="review-compose__eyebrow">Chia sẻ trải nghiệm</span><h3>Viết đánh giá của bạn</h3><p id="reviewLoginHint">Đăng nhập để gửi nhận xét. Khách đã mua sẽ có dấu “Đã mua hàng”.</p><form id="formReview" onsubmit="submitReview(event)"><fieldset><legend>Chọn số sao</legend><div class="stars-selector" id="starsSelector" role="radiogroup" aria-label="Điểm đánh giá"><button type="button" onclick="setReviewRating(1)" aria-label="1 sao">★</button><button type="button" onclick="setReviewRating(2)" aria-label="2 sao">★</button><button type="button" onclick="setReviewRating(3)" aria-label="3 sao">★</button><button type="button" onclick="setReviewRating(4)" aria-label="4 sao">★</button><button type="button" onclick="setReviewRating(5)" aria-label="5 sao">★</button></div><output id="ratingLabel">Tuyệt vời · 5 sao</output></fieldset><label for="reviewComment">Nhận xét của bạn</label><textarea id="reviewComment" rows="5" minlength="5" maxlength="1000" required placeholder="Sản phẩm có đúng mô tả không? Cảm giác sử dụng như thế nào?"></textarea><div class="review-form-footer"><small><span id="reviewChars">0</span>/1000 ký tự</small><button type="submit" class="review-submit" id="reviewSubmit">Gửi đánh giá <span>→</span></button></div></form></section>
+                        <section class="review-feed">
+                            <div class="review-section-heading">
+                                <div>
+                                    <span>Ý kiến thực tế</span>
+                                    <h3>Đánh giá từ khách hàng</h3>
+                                </div>
+                                <div class="review-summary">
+                                    <strong id="reviewAverage">0.0</strong>
+                                    <span id="reviewAverageStars">☆☆☆☆☆</span>
+                                    <small id="reviewCountLabel">Chưa có đánh giá</small>
+                                </div>
+                            </div>
+                            <div id="reviewsList" class="review-list">
+                                <p class="review-empty">Chưa có đánh giá nào cho sản phẩm này.</p>
+                            </div>
+                        </section>
+                        <section class="review-compose">
+                            <span class="review-compose__eyebrow">Chia sẻ trải nghiệm</span>
+                            <h3>Viết đánh giá của bạn</h3>
+                            <p id="reviewLoginHint">Đăng nhập để gửi nhận xét. Khách đã mua sẽ có dấu “Đã mua hàng”.</p>
+                            <form id="formReview" onsubmit="submitReview(event)">
+                                <fieldset>
+                                    <legend>Chọn số sao</legend>
+                                    <div class="stars-selector" id="starsSelector" role="radiogroup" aria-label="Điểm đánh giá">
+                                        <button type="button" onclick="setReviewRating(1)" aria-label="1 sao">★</button>
+                                        <button type="button" onclick="setReviewRating(2)" aria-label="2 sao">★</button>
+                                        <button type="button" onclick="setReviewRating(3)" aria-label="3 sao">★</button>
+                                        <button type="button" onclick="setReviewRating(4)" aria-label="4 sao">★</button>
+                                        <button type="button" onclick="setReviewRating(5)" aria-label="5 sao">★</button>
+                                    </div>
+                                    <output id="ratingLabel">Tuyệt vời · 5 sao</output>
+                                </fieldset>
+                                <label for="reviewComment">Nhận xét của bạn</label>
+                                <textarea id="reviewComment" rows="5" minlength="5" maxlength="1000" required placeholder="Sản phẩm có đúng mô tả không? Cảm giác sử dụng như thế nào?"></textarea>
+                                <div class="review-form-footer">
+                                    <small><span id="reviewChars">0</span>/1000 ký tự</small>
+                                    <button type="submit" class="review-submit" id="reviewSubmit">Gửi đánh giá <span>→</span></button>
+                                </div>
+                            </form>
+                        </section>
                     </div>
                 </div>
             </div>
 
             <!-- Sản phẩm liên quan gợi ý -->
             <div style="margin-top:60px;">
-                <center><h2 style="color:orange;">Sản phẩm bạn có thể thích</h2></center>
-                <div class="danh-sach-san-pham-grid" id="relatedProductsGrid" style="margin-top:20px;">
+                <div style="text-align:center;margin-bottom:24px;">
+                    <span style="font-size:12px;font-weight:800;letter-spacing:0.08em;color:var(--primary-color);text-transform:uppercase;">Gợi ý phù hợp</span>
+                    <h2 style="font-size:24px;font-weight:800;margin:6px 0 0;color:var(--text-color);">Sản phẩm tương tự bạn có thể thích</h2>
+                </div>
+                <div class="danh-sach-san-pham-grid" id="relatedProductsGrid">
                     <!-- Đề xuất động -->
                 </div>
             </div>
         </div>
 
         <!-- Footer chèn tự động -->
-        <div id="cuoitrang"></div>
-    </div>
-
     <!-- Scripts -->
     <script src="css/auth.js?v=20260907-5"></script>
     <script>
@@ -163,6 +370,182 @@
         let productPriceVal = 0;
         let productDetails = null;
         let thumbnailSwiper = null;
+
+        // Hàm suy luận và hoàn thiện thông số kỹ thuật chuẩn cầu lông
+        function inferProductSpecs(p) {
+            const name = String(p.TenSP || '').toLowerCase();
+            const brand = String(p.ThuongHieu || 'Chính hãng');
+            const categoryId = Number(p.MaDM || 1);
+            const categoryName = String(p.TenDM || 'Vợt Cầu Lông');
+            const categorySlug = categoryName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase();
+            const isRacket = categoryId === 1 || categorySlug.includes('vot');
+
+            if (isRacket) {
+                let weight = p.TrongLuongCan;
+                if (!weight) {
+                    if (name.includes('3u')) weight = '3U-G5';
+                    else if (name.includes('5u')) weight = '5U-G5';
+                    else if (name.includes('6u')) weight = '6U-G5';
+                    else weight = '4U-G5';
+                }
+
+                let play = p.LoiChoi;
+                if (!play) {
+                    if (/halbertec|astrox|ryuga|axforce|thrust|iron man|spider man|1000z/.test(name)) play = 'TAN_CONG';
+                    else if (/windstorm|nanoflare|auraspeed|light|speed/.test(name)) play = 'PHONG_THU';
+                    else play = 'CAN_BANG';
+                }
+
+                let balance = p.DiemCanBang;
+                if (!balance) {
+                    if (play === 'TAN_CONG') balance = 'NANG_DAU';
+                    else if (play === 'PHONG_THU') balance = 'NHE_DAU';
+                    else balance = 'CAN_BANG';
+                }
+
+                let stiffness = p.DoCungDua || (play === 'TAN_CONG' ? 'CUNG' : 'TRUNG_BINH');
+                let maxTension = Number(p.LucCangToiDa) || (play === 'TAN_CONG' ? 30 : 28);
+
+                const playLabels = {
+                    'TAN_CONG': 'Tấn công áp đảo & Smash uy lực',
+                    'CAN_BANG': 'Công thủ toàn diện & Kiểm soát trận đấu',
+                    'PHONG_THU': 'Phản tạt tốc độ & Thủ cầu linh hoạt'
+                };
+                const balanceLabels = {
+                    'NANG_DAU': 'Nặng đầu (~300 ± 3mm) · Trợ lực đập',
+                    'CAN_BANG': 'Cân bằng (~295 ± 3mm) · Linh hoạt công thủ',
+                    'NHE_DAU': 'Nhẹ đầu (~285 ± 3mm) · Tốc độ vung nhanh'
+                };
+                const stiffnessLabels = {
+                    'CUNG': 'Cứng · Kiểm soát và truyền lực tối đa',
+                    'TRUNG_BINH': 'Trung bình · Cân bằng lực và độ nảy',
+                    'MEM': 'Dẻo · Dễ thuần, trợ lực tối đa cổ tay'
+                };
+
+                return {
+                    isRacket: true,
+                    brand,
+                    category: categoryName,
+                    weight,
+                    weightDetail: `${weight} · Trọng lượng ~${weight.startsWith('3U') ? '88g' : weight.startsWith('5U') ? '78g' : '83g'}`,
+                    play: playLabels[play] || 'Công thủ toàn diện',
+                    balance: balanceLabels[balance] || 'Cân bằng (~295mm)',
+                    stiffness: stiffnessLabels[stiffness] || 'Trung bình',
+                    maxTension: `${maxTension} lbs (~${(maxTension * 0.4536).toFixed(1)} kg)`,
+                    materialFrame: `${brand} High Modulus Ultra-Rigid Carbon Graphite + Nano Fortify TR`,
+                    materialShaft: 'High Resilient Slim Shaft 6.8mm + Dynamic-Optimum Frame',
+                    length: '675 mm (Tiêu chuẩn thi đấu quốc tế BWF)',
+                    gripSize: weight.split('-')[1] || 'G5 (Chuẩn cỡ tay người Châu Á)',
+                    targetPlayer: 'Người chơi phong trào, bán chuyên đến VĐV thi đấu chuyên nghiệp',
+                    warranty: '90 ngày chính hãng 1 đổi 1 nếu phát sinh lỗi nhà sản xuất'
+                };
+            }
+
+            // Danh mục khác
+            return {
+                isRacket: false,
+                brand,
+                category: categoryName,
+                materialFrame: categorySlug.includes('giay') ? 'Da tổng hợp PU cao cấp + Lưới thoáng khí Breathable Mesh + Đế cao su non chống mài mòn' :
+                               categorySlug.includes('ao') || categorySlug.includes('quan') || categorySlug.includes('vay') ? '100% Polyester Thể thao Dry-Ex thấm hút mồ hôi, co giãn 4 chiều' :
+                               categorySlug.includes('tui') || categorySlug.includes('balo') ? 'Vải Oxford 900D chống thấm nước + Lớp tráng bạc cách nhiệt chống nóng cho vợt' :
+                               'Vật liệu chuyên dụng đạt tiêu chuẩn tập luyện & thi đấu',
+                feature: categorySlug.includes('giay') ? 'Đệm giảm chấn Power Cushion, bọc gót TPU bảo vệ cổ chân khi di chuyển bật nhảy' :
+                         categorySlug.includes('ao') || categorySlug.includes('quan') || categorySlug.includes('vay') ? 'Công nghệ làm mát tức thì, chống tia UV, kháng khuẩn ngăn mùi' :
+                         categorySlug.includes('tui') || categorySlug.includes('balo') ? 'Ngăn vợt riêng biệt, ngăn đựng giày độc lập có lỗ thông khí, quai đeo êm ái' :
+                         'Chất lượng hoàn thiện cao, độ bền xuất sắc',
+                origin: `Chính hãng ${brand}`,
+                warranty: '30 - 90 ngày bảo hành theo quy chuẩn chính hãng',
+                targetPlayer: 'Mọi đối tượng người chơi thể thao & vận động viên cầu lông'
+            };
+        }
+
+        function renderSpecs(specs) {
+            const matrix = document.getElementById('specsMatrix');
+            const table = document.getElementById('fullSpecsTable');
+            matrix.innerHTML = '';
+            table.innerHTML = '';
+
+            if (specs.isRacket) {
+                // Render Quick Matrix
+                const tiles = [
+                    { icon: '⚖️', label: 'Trọng lượng / Cán', value: specs.weightDetail },
+                    { icon: '🎯', label: 'Điểm cân bằng', value: specs.balance },
+                    { icon: '📏', label: 'Độ cứng đũa', value: specs.stiffness },
+                    { icon: '⚡', label: 'Lực căng tối đa', value: specs.maxTension },
+                    { icon: '🏸', label: 'Lối chơi tối ưu', value: specs.play },
+                    { icon: '📐', label: 'Chiều dài vợt', value: specs.length }
+                ];
+                tiles.forEach(t => {
+                    const el = document.createElement('div');
+                    el.className = 'spec-tile';
+                    el.innerHTML = `
+                        <span class="spec-tile-icon">${t.icon}</span>
+                        <div class="spec-tile-body">
+                            <span class="spec-tile-label">${t.label}</span>
+                            <strong class="spec-tile-value">${t.value}</strong>
+                        </div>
+                    `;
+                    matrix.appendChild(el);
+                });
+
+                // Render Full Specs Table
+                const fullSpecs = [
+                    ['Thương hiệu', specs.brand],
+                    ['Danh mục sản phẩm', specs.category],
+                    ['Trọng lượng & Chu vi cán', specs.weightDetail],
+                    ['Điểm cân bằng', specs.balance],
+                    ['Độ cứng thân vợt', specs.stiffness],
+                    ['Sức căng cước khuyến nghị', specs.maxTension],
+                    ['Vật liệu cấu tạo khung vợt', specs.materialFrame],
+                    ['Vật liệu & Đường kính đũa', specs.materialShaft],
+                    ['Chiều dài tổng thể', specs.length],
+                    ['Cỡ tay cầm (Grip Size)', specs.gripSize],
+                    ['Đối tượng người chơi phù hợp', specs.targetPlayer],
+                    ['Chính sách bảo hành', specs.warranty]
+                ];
+                fullSpecs.forEach(([k, v]) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td class="spec-title">${k}</td><td class="spec-desc">${v}</td>`;
+                    table.appendChild(row);
+                });
+            } else {
+                // Non-racket specs
+                const tiles = [
+                    { icon: '🏷️', label: 'Thương hiệu', value: specs.brand },
+                    { icon: '📁', label: 'Danh mục', value: specs.category },
+                    { icon: '🧵', label: 'Chất liệu cấu tạo', value: specs.materialFrame },
+                    { icon: '🛡️', label: 'Bảo hành chính hãng', value: specs.warranty }
+                ];
+                tiles.forEach(t => {
+                    const el = document.createElement('div');
+                    el.className = 'spec-tile';
+                    el.innerHTML = `
+                        <span class="spec-tile-icon">${t.icon}</span>
+                        <div class="spec-tile-body">
+                            <span class="spec-tile-label">${t.label}</span>
+                            <strong class="spec-tile-value">${t.value}</strong>
+                        </div>
+                    `;
+                    matrix.appendChild(el);
+                });
+
+                const fullSpecs = [
+                    ['Thương hiệu', specs.brand],
+                    ['Danh mục sản phẩm', specs.category],
+                    ['Chất liệu', specs.materialFrame],
+                    ['Tính năng nổi bật', specs.feature],
+                    ['Xuất xứ', specs.origin],
+                    ['Đối tượng sử dụng', specs.targetPlayer],
+                    ['Chính sách bảo hành', specs.warranty]
+                ];
+                fullSpecs.forEach(([k, v]) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td class="spec-title">${k}</td><td class="spec-desc">${v}</td>`;
+                    table.appendChild(row);
+                });
+            }
+        }
 
         async function initProductDetail() {
             const params = new URLSearchParams(window.location.search);
@@ -186,20 +569,38 @@
                     document.title = `${productDetails.TenSP} - Shop Cầu Lông`;
                     document.getElementById('productName').textContent = productDetails.TenSP;
                     document.getElementById('productBrand').textContent = productDetails.ThuongHieu || 'Chính hãng';
-                    document.getElementById('productPrice').textContent = `${productDetails.GiaBan.toLocaleString('vi-VN')} ₫`;
-                    document.getElementById('productStars').textContent = `⭐ ${Number(productDetails.DanhGiaTrungBinh || 0).toFixed(1)}`;
-                    document.getElementById('productCode').textContent = `#${productDetails.MaSP}`;
-                    document.getElementById('productCategoryName').textContent = productDetails.TenDM || `Danh mục ${productDetails.MaDM}`;
+                    document.getElementById('productPrice').textContent = `${Number(productDetails.GiaBan || 0).toLocaleString('vi-VN')} ₫`;
+                    document.getElementById('productStars').textContent = `⭐ ${Number(productDetails.DanhGiaTrungBinh || 5).toFixed(1)}`;
+                    document.getElementById('productCode').textContent = `Mã SP: #${productDetails.MaSP}`;
                     document.getElementById('productSold').textContent = Number(productDetails.SoLuotMua || 0).toLocaleString('vi-VN');
                     document.getElementById('productViews').textContent = Number(productDetails.SoLuotXem || 0).toLocaleString('vi-VN');
+
+                    // Breadcrumb
+                    const catLink = document.getElementById('breadcrumbCategory');
+                    if (catLink) {
+                        catLink.textContent = productDetails.TenDM || 'Sản phẩm';
+                        catLink.href = `sanpham.html?danh_muc=${productDetails.MaDM}`;
+                    }
+                    const currentBreadcrumb = document.getElementById('breadcrumbCurrent');
+                    if (currentBreadcrumb) {
+                        currentBreadcrumb.textContent = productDetails.TenSP;
+                    }
+
                     const originalPrice = Number(productDetails.GiaGoc || 0);
-                    if (originalPrice > Number(productDetails.GiaBan)) {
+                    const isSale = originalPrice > Number(productDetails.GiaBan);
+                    if (isSale) {
                         const originalNode = document.getElementById('productOriginalPrice');
                         const discountNode = document.getElementById('productDiscount');
+                        const saleBadge = document.getElementById('detailSaleBadge');
+                        const percent = Math.round((1 - productDetails.GiaBan / originalPrice) * 100);
                         originalNode.textContent = `${originalPrice.toLocaleString('vi-VN')} ₫`;
                         originalNode.hidden = false;
-                        discountNode.textContent = `Tiết kiệm ${Math.round((1 - productDetails.GiaBan / originalPrice) * 100)}%`;
+                        discountNode.textContent = `Tiết kiệm ${percent}% (${(originalPrice - productDetails.GiaBan).toLocaleString('vi-VN')} ₫)`;
                         discountNode.hidden = false;
+                        if (saleBadge) {
+                            saleBadge.textContent = `-${percent}% SALE`;
+                            saleBadge.hidden = false;
+                        }
                     }
                     
                     // Trạng thái kho
@@ -210,45 +611,48 @@
                         stockLabel.style.color = "red";
                     } else {
                         stockLabel.textContent = `Còn hàng (${stock} chiếc)`;
-                        stockLabel.style.color = "#4CAF50";
+                        stockLabel.style.color = "#28a966";
                     }
 
-                    // Ưu đãi khuyến mãi
-                    document.getElementById('promotionContainer').innerHTML = productDetails.MoTa;
-                    document.getElementById('productFullDescription').innerHTML = productDetails.MoTa || '<p>Thông tin sản phẩm đang được cập nhật.</p>';
+                    // Thông số kỹ thuật & Khuyến mãi
+                    const specs = inferProductSpecs(productDetails);
+                    renderSpecs(specs);
+
+                    document.getElementById('promotionContainer').innerHTML = productDetails.MoTa || '';
+                    document.getElementById('productFullDescription').innerHTML = productDetails.MoTa || '<p>Thông tin sản phẩm đang được cập nhật chi tiết.</p>';
 
                     const categoryText = `${productDetails.TenDM || ''} ${productDetails.TenSP || ''}`
                         .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase();
-                    const isRacket = Number(productDetails.MaDM) === 1 || categoryText.includes('vot cau long');
+                    const isRacket = Number(productDetails.MaDM) === 1 || categoryText.includes('vot');
                     document.getElementById('racketConfigurator').hidden = !isRacket;
-                    document.querySelectorAll('.racket-product-fact').forEach(node => { node.hidden = !isRacket; });
+
                     if (isRacket) {
-                        const readable = value => String(value || 'Chưa khai báo').replaceAll('_', ' ').toLowerCase().replace(/^./, char => char.toUpperCase());
-                        document.getElementById('productWeightFact').textContent = productDetails.TrongLuongCan || 'Chưa khai báo';
-                        document.getElementById('productPlayFact').textContent = readable(productDetails.LoiChoi);
-                        document.getElementById('productBalanceFact').textContent = readable(productDetails.DiemCanBang);
-                        document.getElementById('productTensionFact').textContent = productDetails.LucCangToiDa ? `${productDetails.LucCangToiDa} lbs` : 'Theo khuyến nghị hãng';
-                        if (productDetails.TrongLuongCan && [...document.getElementById('racketWeight').options].some(option => option.value === productDetails.TrongLuongCan)) {
-                            document.getElementById('racketWeight').value = productDetails.TrongLuongCan;
+                        if (specs.weight && [...document.getElementById('racketWeight').options].some(opt => opt.value === specs.weight)) {
+                            document.getElementById('racketWeight').value = specs.weight;
                         }
                         const maxTension = Number(productDetails.LucCangToiDa || 30);
                         [...document.getElementById('racketTension').options].forEach(option => {
                             option.disabled = Boolean(option.value && Number(option.value) > maxTension);
                         });
                         updateRacketConfigSummary();
+
+                        ['racketWeight', 'racketString', 'racketTension', 'racketQuantity'].forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el) el.addEventListener('change', updateRacketConfigSummary);
+                        });
                     }
 
                     // Load Hình ảnh
                     initGallery(productDetails.HinhAnh, productDetails.AnhChiTiet);
 
                     // Load Đánh giá
-                    initReviews(data.reviews);
+                    initReviews(data.reviews || []);
 
                     // Load Sản phẩm liên quan
                     loadRelatedProducts(productDetails.MaDM, productDetails.MaSP);
                     loadDetailWallet();
                 } else {
-                    showToast(data.message, "error");
+                    showToast(data.message || "Không thể tải sản phẩm", "error");
                 }
             } catch (e) {
                 console.error("Lỗi cào API:", e);

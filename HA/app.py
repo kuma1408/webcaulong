@@ -626,9 +626,48 @@ def clamp_int(value, default: int, minimum: int, maximum: int) -> int:
 
 def decimal_number(value, default: Decimal | None = None) -> Decimal | None:
     try:
-        return Decimal(str(value))
+        number = Decimal(str(value))
+        return number if number.is_finite() else default
     except (TypeError, ValueError, ArithmeticError):
         return default
+
+
+def integer_number(
+    value,
+    *,
+    minimum: int | None = None,
+    maximum: int | None = None,
+    default: int | None = None,
+) -> int | None:
+    """Đọc số nguyên nghiệp vụ mà không âm thầm ép dữ liệu sai về 0."""
+    if isinstance(value, bool):
+        return default
+    try:
+        number = int(str(value).strip())
+    except (TypeError, ValueError):
+        return default
+    if minimum is not None and number < minimum:
+        return default
+    if maximum is not None and number > maximum:
+        return default
+    return number
+
+
+def optional_datetime_input(value) -> datetime | None:
+    """Chuẩn hóa ngày giờ từ biểu mẫu HTML thành DATETIME không timezone."""
+    if value in (None, ""):
+        return None
+    if isinstance(value, datetime):
+        parsed = value
+    else:
+        text = str(value).strip()
+        try:
+            parsed = datetime.fromisoformat(text)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Ngày giờ không đúng định dạng ISO.") from exc
+    if parsed.tzinfo is not None:
+        raise ValueError("Ngày giờ không được chứa múi giờ.")
+    return parsed.replace(microsecond=0)
 
 
 def json_value(value):
@@ -2059,50 +2098,147 @@ def validate_voucher():
 @app.route("/api/admin/vouchers", methods=["GET", "POST"])
 @admin_required
 def admin_vouchers():
-    conn = get_db_connection(); cursor = conn.cursor(dictionary=True)
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
     try:
         if request.method == "GET":
             cursor.execute("SELECT * FROM Voucher ORDER BY TrangThai DESC, NgayHetHan DESC, MaVoucher")
             return jsonify({"success": True, "items": [serialize_row(row) for row in cursor.fetchall()]})
-        data = body_json(); code = str(data.get("code", "")).strip().upper()
+        data = body_json()
+        code = str(data.get("code", "")).strip().upper()
         kind = str(data.get("type", "PHAN_TRAM")).upper()
-        value = decimal_number(data.get("value")); minimum = decimal_number(data.get("minimum", 0)) or Decimal(0)
-        maximum = decimal_number(data.get("maximum")); quantity = int(data.get("quantity", 100) or 0)
-        if not re.fullmatch(r"[A-Z0-9_-]{3,20}", code): return api_error("Mã voucher cần 3–20 ký tự A-Z, số, _ hoặc -.")
-        if kind not in {"PHAN_TRAM", "SO_TIEN"} or value is None or value <= 0: return api_error("Giá trị giảm không hợp lệ.")
-        if kind == "PHAN_TRAM" and value > 100: return api_error("Mức giảm phần trăm không được vượt quá 100%.")
-        if quantity < 1: return api_error("Số lượt phát hành phải lớn hơn 0.")
-        cursor.execute("""INSERT INTO Voucher
-            (MaVoucher,LoaiGiam,GiaTri,GiamToiDa,DonToiThieu,SoLuong,DaSuDung,NgayBatDau,NgayHetHan,TrangThai)
-            VALUES (%s,%s,%s,%s,%s,%s,0,%s,%s,%s)""",
-            (code,kind,value,maximum,minimum,quantity,data.get("starts_at") or None,data.get("expires_at") or None,int(bool(data.get("active", True)))))
-        audit_admin(cursor,"CREATE","Voucher",code,{"value":str(value),"type":kind}); conn.commit()
+        value = decimal_number(data.get("value"))
+        minimum = decimal_number(data.get("minimum", 0))
+        maximum = decimal_number(data.get("maximum"))
+        quantity = integer_number(data.get("quantity", 100), minimum=1, maximum=1_000_000)
+        active = data.get("active", True)
+        try:
+            starts_at = optional_datetime_input(data.get("starts_at"))
+            expires_at = optional_datetime_input(data.get("expires_at"))
+        except ValueError:
+            return api_error("Ngày bắt đầu hoặc ngày hết hạn không hợp lệ.")
+        if not re.fullmatch(r"[A-Z0-9_-]{3,20}", code):
+            return api_error("Mã voucher cần 3–20 ký tự A-Z, số, _ hoặc -.")
+        if kind not in {"PHAN_TRAM", "SO_TIEN"} or value is None or value <= 0:
+            return api_error("Giá trị giảm không hợp lệ.")
+        if kind == "PHAN_TRAM" and value > 100:
+            return api_error("Mức giảm phần trăm không được vượt quá 100%.")
+        if value > PRODUCT_PRICE_MAX or minimum is None or minimum < 0 or minimum > PRODUCT_PRICE_MAX:
+            return api_error("Giá trị voucher nằm ngoài phạm vi cho phép.")
+        if maximum is not None and (maximum <= 0 or maximum > PRODUCT_PRICE_MAX):
+            return api_error("Mức giảm tối đa không hợp lệ.")
+        if quantity is None:
+            return api_error("Số lượt phát hành phải là số nguyên từ 1 đến 1.000.000.")
+        if not isinstance(active, bool):
+            return api_error("Trạng thái voucher không hợp lệ.")
+        if starts_at and expires_at and starts_at > expires_at:
+            return api_error("Ngày bắt đầu phải trước ngày hết hạn.")
+        cursor.execute(
+            """INSERT INTO Voucher
+               (MaVoucher,LoaiGiam,GiaTri,GiamToiDa,DonToiThieu,SoLuong,DaSuDung,NgayBatDau,NgayHetHan,TrangThai)
+               VALUES (%s,%s,%s,%s,%s,%s,0,%s,%s,%s)""",
+            (code, kind, value, maximum, minimum, quantity, starts_at, expires_at, 1 if active else 0),
+        )
+        audit_admin(cursor, "CREATE", "Voucher", code, {"value": str(value), "type": kind})
+        conn.commit()
         return jsonify({"success": True, "message": "Đã tạo voucher mới."}), 201
     except mysql.connector.IntegrityError:
-        conn.rollback(); return api_error("Mã voucher đã tồn tại.", 409, "duplicate_voucher")
-    finally: cursor.close(); conn.close()
+        conn.rollback()
+        return api_error("Mã voucher đã tồn tại hoặc dữ liệu ngày tháng không hợp lệ.", 409, "duplicate_voucher")
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @app.patch("/api/admin/vouchers/<string:code>")
 @admin_required
 def admin_update_voucher(code):
-    data=body_json(); fields=[]; params=[]
-    mapping={"active":"TrangThai","quantity":"SoLuong","expires_at":"NgayHetHan","starts_at":"NgayBatDau","minimum":"DonToiThieu","maximum":"GiamToiDa","value":"GiaTri"}
-    for key,column in mapping.items():
-        if key in data:
-            value=data[key]
-            if key=="active": value=int(bool(value))
-            elif key in {"quantity"}: value=int(value)
-            elif key in {"minimum","maximum","value"}: value=decimal_number(value)
-            elif value=="": value=None
-            fields.append(f"{column}=%s"); params.append(value)
-    if not fields: return api_error("Không có thay đổi để lưu.")
-    conn=get_db_connection();cursor=conn.cursor()
+    voucher_code = str(code).strip().upper()
+    if not re.fullmatch(r"[A-Z0-9_-]{3,20}", voucher_code):
+        return api_error("Mã voucher không hợp lệ.")
+    data = body_json()
+    if not any(key in data for key in {"active", "quantity", "expires_at", "starts_at", "minimum", "maximum", "value"}):
+        return api_error("Không có thay đổi để lưu.")
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
     try:
-        params.append(code.upper());cursor.execute(f"UPDATE Voucher SET {', '.join(fields)} WHERE MaVoucher=%s",params)
-        if cursor.rowcount<1: return api_error("Không tìm thấy voucher.",404,"voucher_not_found")
-        audit_admin(cursor,"UPDATE","Voucher",code,data);conn.commit();return jsonify({"success":True,"message":"Đã cập nhật voucher."})
-    finally:cursor.close();conn.close()
+        conn.start_transaction()
+        cursor.execute("SELECT * FROM Voucher WHERE MaVoucher=%s FOR UPDATE", (voucher_code,))
+        before = cursor.fetchone()
+        if not before:
+            conn.rollback()
+            return api_error("Không tìm thấy voucher.", 404, "voucher_not_found")
+
+        fields, params, changed = [], [], {}
+        if "active" in data:
+            if not isinstance(data["active"], bool):
+                conn.rollback()
+                return api_error("Trạng thái voucher không hợp lệ.")
+            changed["active"] = 1 if data["active"] else 0
+        if "quantity" in data:
+            quantity = integer_number(data["quantity"], minimum=1, maximum=1_000_000)
+            if quantity is None or quantity < int(before.get("DaSuDung") or 0):
+                conn.rollback()
+                return api_error("Số lượt phát hành không được nhỏ hơn số lượt đã sử dụng.")
+            changed["quantity"] = quantity
+        for key in ("minimum", "maximum", "value"):
+            if key not in data:
+                continue
+            value = None if key == "maximum" and data[key] in (None, "") else decimal_number(data[key])
+            if value is None and key != "maximum":
+                conn.rollback()
+                return api_error("Giá trị voucher không hợp lệ.")
+            if value is not None and (value < 0 or value > PRODUCT_PRICE_MAX or (key in {"maximum", "value"} and value == 0)):
+                conn.rollback()
+                return api_error("Giá trị voucher nằm ngoài phạm vi cho phép.")
+            changed[key] = value
+        for key in ("starts_at", "expires_at"):
+            if key in data:
+                try:
+                    changed[key] = optional_datetime_input(data[key])
+                except ValueError:
+                    conn.rollback()
+                    return api_error("Ngày bắt đầu hoặc ngày hết hạn không hợp lệ.")
+
+        final_value = changed.get("value", Decimal(str(before.get("GiaTri") or 0)))
+        if before.get("LoaiGiam") == "PHAN_TRAM" and final_value > 100:
+            conn.rollback()
+            return api_error("Mức giảm phần trăm không được vượt quá 100%.")
+        final_start = changed.get("starts_at", before.get("NgayBatDau"))
+        final_end = changed.get("expires_at", before.get("NgayHetHan"))
+        if final_start and final_end and final_start > final_end:
+            conn.rollback()
+            return api_error("Ngày bắt đầu phải trước ngày hết hạn.")
+
+        mapping = {
+            "active": "TrangThai", "quantity": "SoLuong", "expires_at": "NgayHetHan",
+            "starts_at": "NgayBatDau", "minimum": "DonToiThieu",
+            "maximum": "GiamToiDa", "value": "GiaTri",
+        }
+        for key, value in changed.items():
+            fields.append(f"{mapping[key]}=%s")
+            params.append(value)
+        cursor.execute(f"UPDATE Voucher SET {', '.join(fields)} WHERE MaVoucher=%s", params + [voucher_code])
+        cursor.execute("SELECT * FROM Voucher WHERE MaVoucher=%s", (voucher_code,))
+        after = cursor.fetchone()
+        audit_admin(
+            cursor, "UPDATE", "Voucher", voucher_code, changed,
+            serialize_row(before), serialize_row(after),
+        )
+        conn.commit()
+        unchanged = all(before.get(mapping[key]) == after.get(mapping[key]) for key in changed)
+        return jsonify({
+            "success": True,
+            "message": "Voucher không có thông tin nào thay đổi." if unchanged else "Đã cập nhật voucher.",
+            "unchanged": unchanged,
+        })
+    except mysql.connector.Error:
+        conn.rollback()
+        app.logger.exception("Không thể cập nhật voucher %s", voucher_code)
+        return api_error("Không thể cập nhật voucher lúc này.", 409, "voucher_update_failed")
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @app.post("/api/mua-hang")
@@ -2111,10 +2247,12 @@ def checkout():
     data = body_json()
     address = str(data.get("dia_chi_giao", "")).strip()
     note = str(data.get("ghi_chu", "")).strip()[:500]
-    voucher_code = str(data.get("voucher", data.get("ma_voucher", ""))).strip()
+    voucher_code = str(data.get("voucher", data.get("ma_voucher", ""))).strip().upper()
     payment_method = str(data.get("phuong_thuc", "SO_DU")).upper()
     if len(address) < 8 or len(address) > 500:
         return api_error("Vui lòng nhập địa chỉ giao hàng đầy đủ.")
+    if voucher_code and not re.fullmatch(r"[A-Z0-9_-]{3,20}", voucher_code):
+        return api_error("Mã voucher không đúng định dạng.", 400, "invalid_voucher_code")
     if payment_method not in {"SO_DU", "COD", "BANKING"}:
         return api_error("Phương thức thanh toán chưa được hỗ trợ.")
     if payment_method == "BANKING" and not bank_transfer_configured():
@@ -2490,8 +2628,16 @@ def create_support_request():
 def search_products():
     keyword = request.args.get("q", "").strip()[:120]
     category = request.args.get("danh_muc", "").strip()
-    min_price = max(0, request.args.get("gia_min", 0, type=float))
-    max_price = max(min_price, request.args.get("gia_max", 999_999_999, type=float))
+    min_price = decimal_number(request.args.get("gia_min", 0))
+    max_price = decimal_number(request.args.get("gia_max", PRODUCT_PRICE_MAX))
+    if (
+        min_price is None
+        or max_price is None
+        or min_price < 0
+        or max_price < min_price
+        or max_price > PRODUCT_PRICE_MAX
+    ):
+        return api_error("Khoảng giá tìm kiếm không hợp lệ.", 400, "invalid_price_range")
     sort = request.args.get("sap_xep", "moi_nhat")
     page = clamp_int(request.args.get("trang"), 1, 1, 100000)
     limit = clamp_int(request.args.get("limit"), 20, 1, 50)
@@ -3150,21 +3296,6 @@ def admin_update_product(product_id):
         updates.append(f"{column} = %s")
         values.append(value)
         changed[key] = value
-    resulting_price = next((values[index] for index, update in enumerate(updates) if update.startswith("GiaBan")), None)
-    resulting_original = next((values[index] for index, update in enumerate(updates) if update.startswith("GiaGoc")), None)
-    if resulting_original is not None:
-        if resulting_price is None:
-            conn_check = get_db_connection()
-            cursor_check = conn_check.cursor(dictionary=True)
-            try:
-                cursor_check.execute("SELECT GiaBan FROM SanPham WHERE MaSP=%s", (product_id,))
-                row_check = cursor_check.fetchone()
-                resulting_price = decimal_number(row_check["GiaBan"]) if row_check else None
-            finally:
-                cursor_check.close()
-                conn_check.close()
-        if resulting_price is None or resulting_original <= resulting_price:
-            return api_error("Sản phẩm Sale Off cần có giá gốc lớn hơn giá bán.")
     if not updates:
         return api_error("Không có dữ liệu cần cập nhật.")
     conn = get_db_connection()
@@ -3175,6 +3306,19 @@ def admin_update_product(product_id):
         if not previous:
             conn.rollback()
             return api_error("Không tìm thấy sản phẩm.", 404, "product_not_found")
+        final_price = decimal_number(previous.get("GiaBan"))
+        final_original = decimal_number(previous.get("GiaGoc"))
+        for update, value in zip(updates, values):
+            if update.startswith("GiaBan"):
+                final_price = value
+            elif update.startswith("GiaGoc"):
+                final_original = value
+        if final_price is None or final_price < 0:
+            conn.rollback()
+            return api_error("Giá bán không hợp lệ.")
+        if final_original is not None and final_original <= final_price:
+            conn.rollback()
+            return api_error("Sản phẩm Sale Off cần có giá gốc lớn hơn giá bán.")
         cursor.execute(
             f"UPDATE SanPham SET {', '.join(updates)}, NgayCapNhat = NOW() WHERE MaSP = %s",
             values + [product_id],
@@ -3187,6 +3331,10 @@ def admin_update_product(product_id):
         audit_admin(cursor, "UPDATE", "SanPham", product_id, changed, serialize_row(previous), serialize_row(current))
         conn.commit()
         return jsonify({"success": True, "message": "Đã cập nhật sản phẩm."})
+    except mysql.connector.Error:
+        conn.rollback()
+        app.logger.exception("Không thể cập nhật sản phẩm %s", product_id)
+        return api_error("Không thể cập nhật sản phẩm. Kiểm tra lại danh mục và dữ liệu.", 409, "product_update_failed")
     finally:
         cursor.close()
         conn.close()
@@ -3718,6 +3866,21 @@ def admin_confirm_order_payment(order_id):
             conn.rollback()
             return api_error("Không thể đối soát một đơn đã hủy.", 409, "cancelled_order")
         next_status = "DA_THANH_TOAN" if paid else "CHO_THANH_TOAN"
+        if not paid and order.get("TrangThai") in {"DANG_GIAO", "HOAN_THANH"}:
+            conn.rollback()
+            return api_error(
+                "Không thể đưa đơn đang giao hoặc đã hoàn thành về trạng thái chưa thanh toán.",
+                409,
+                "payment_state_locked",
+            )
+        if order.get("TrangThaiThanhToan") == next_status:
+            conn.rollback()
+            return jsonify({
+                "success": True,
+                "message": "Trạng thái thanh toán không thay đổi.",
+                "payment_status": next_status,
+                "unchanged": True,
+            })
         cursor.execute(
             "UPDATE DonHang SET TrangThaiThanhToan=%s, NgayCapNhat=NOW() WHERE MaDH=%s",
             (next_status, order_id),
@@ -3810,10 +3973,18 @@ def admin_content():
     kind = str(data.get("type", "")).upper()
     title = str(data.get("title", "")).strip()[:220]
     summary = str(data.get("summary", "")).strip()[:500]
-    content = str(data.get("content", "")).strip()
+    content = sanitize_rich_text(str(data.get("content", ""))[:20_000])
+    raw_image = str(data.get("image", "")).strip()
+    raw_source_url = str(data.get("source_url", "")).strip()
+    image = normalize_public_url(raw_image, allow_relative=True, max_length=500)
+    source_url = normalize_public_url(raw_source_url, allow_relative=False, max_length=700)
     active = data.get("active", True)
     if kind not in {"TIN_TUC", "HUONG_DAN"} or len(title) < 5 or not content or not isinstance(active, bool):
         return api_error("Loại, tiêu đề hoặc nội dung chưa hợp lệ.")
+    if raw_image and not image:
+        return api_error("Đường dẫn ảnh nội dung không hợp lệ.")
+    if raw_source_url and not source_url:
+        return api_error("Liên kết nguồn nội dung không hợp lệ.")
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
@@ -3821,8 +3992,8 @@ def admin_content():
             """INSERT INTO BaiViet (Loai,TieuDe,TomTat,NoiDung,HinhAnh,NguonURL,TrangThai)
             VALUES (%s,%s,%s,%s,%s,%s,%s)""",
             (kind, title, summary or None, content,
-             str(data.get("image", "")).strip()[:500] or None,
-             str(data.get("source_url", "")).strip()[:700] or None,
+             image,
+             source_url,
              1 if active else 0),
         )
         content_id = cursor.lastrowid
@@ -3856,9 +4027,9 @@ def admin_update_content(content_id):
             "type": ("Loai", lambda value: str(value).upper()),
             "title": ("TieuDe", lambda value: str(value).strip()[:220]),
             "summary": ("TomTat", lambda value: str(value).strip()[:500] or None),
-            "content": ("NoiDung", lambda value: str(value).strip()),
-            "image": ("HinhAnh", lambda value: str(value).strip()[:500] or None),
-            "source_url": ("NguonURL", lambda value: str(value).strip()[:700] or None),
+            "content": ("NoiDung", lambda value: sanitize_rich_text(str(value)[:20_000])),
+            "image": ("HinhAnh", lambda value: normalize_public_url(value, allow_relative=True, max_length=500)),
+            "source_url": ("NguonURL", lambda value: normalize_public_url(value, allow_relative=False, max_length=700)),
             "active": ("TrangThai", lambda value: 1 if value else 0),
         }
         updates, values, changed = [], [], {}
@@ -3872,6 +4043,8 @@ def admin_update_content(content_id):
                 return api_error("Loại nội dung không hợp lệ.")
             if key in {"title", "content"} and not value:
                 return api_error("Tiêu đề và nội dung không được để trống.")
+            if key in {"image", "source_url"} and str(data[key] or "").strip() and value is None:
+                return api_error("Đường dẫn ảnh hoặc liên kết nguồn không hợp lệ.")
             updates.append(f"{column}=%s")
             values.append(value)
             changed[key] = value

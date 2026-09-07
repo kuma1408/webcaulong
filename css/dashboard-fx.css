@@ -3,8 +3,6 @@
 .admin-health>div:not(.admin-health__status){justify-content:space-between}.admin-health span,.admin-health small{color:var(--bs-muted);font-size:10px}.admin-health strong{color:var(--bs-ink);font-size:15px}.admin-health__status strong,.admin-health__status small{display:block}.admin-health__status small{margin-top:3px}.admin-health__pulse{position:relative;flex:0 0 auto;width:12px;height:12px;border-radius:50%;background:#35bd70;box-shadow:0 0 0 0 rgba(53,189,112,.5);animation:adminPulse 2s infinite}.admin-health__pulse::after{content:"";position:absolute;inset:3px;border-radius:inherit;background:#d9ffe9}
 @keyframes adminPulse{70%{box-shadow:0 0 0 10px rgba(53,189,112,0)}100%{box-shadow:0 0 0 0 rgba(53,189,112,0)}}
 .admin-metrics{grid-template-columns:repeat(3,minmax(0,1fr))!important}.admin-metrics article{isolation:isolate;overflow:hidden;background:linear-gradient(145deg,color-mix(in srgb,var(--bs-card) 92%,transparent),color-mix(in srgb,var(--bs-bg) 78%,transparent));backdrop-filter:blur(16px)}.admin-metrics article::before{content:"";position:absolute;inset:-80% auto auto -20%;z-index:-1;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--metric-color,var(--bs-red)) 20%,transparent),transparent 68%)}.admin-metrics article::after{content:"";position:absolute;inset:0 auto 0 -40%;width:28%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.38),transparent);transform:skewX(-18deg);transition:left .65s ease}.admin-metrics article:hover::after{left:125%}.admin-metrics article[data-tone="red"]{--metric-color:#e9381b}.admin-metrics article[data-tone="orange"]{--metric-color:#ff7a1a}.admin-metrics article[data-tone="gold"]{--metric-color:#e7a51a}.admin-metrics article[data-tone="violet"]{--metric-color:#8a56d6}.admin-metrics article[data-tone="green"]{--metric-color:#28a966}.admin-metrics article[data-tone="blue"]{--metric-color:#3d78c5}.admin-metric-icon{position:absolute!important;right:15px;top:15px;width:31px;height:31px;display:grid!important;place-items:center;border-radius:10px;background:color-mix(in srgb,var(--metric-color) 13%,transparent);color:var(--metric-color)!important;font-size:13px!important;font-weight:900}.metric-spark--green{background:#28a966}.metric-spark--blue{background:#3d78c5}
-.admin-analytics-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(270px,.75fr);gap:14px;margin:14px 0}.admin-chart-card,.admin-status-card,.admin-funnel{background:linear-gradient(145deg,color-mix(in srgb,var(--bs-card) 94%,transparent),color-mix(in srgb,var(--bs-bg) 82%,transparent));backdrop-filter:blur(18px)}.admin-chart-card>.admin-card__heading>strong{color:var(--bs-red);font-size:15px}.admin-trend-chart{height:225px;display:flex;align-items:flex-end;gap:7px;padding:24px 20px 16px;background:repeating-linear-gradient(to top,transparent 0,transparent 43px,color-mix(in srgb,var(--bs-line) 56%,transparent) 44px);border-top:1px solid var(--bs-line)}.admin-trend-bar{position:relative;flex:1;min-width:8px;height:var(--bar-height);border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,var(--bs-orange),var(--bs-red));box-shadow:0 8px 16px rgba(233,56,27,.18);transform-origin:bottom;animation:adminBarRise .65s cubic-bezier(.2,.8,.2,1) both}.admin-trend-bar:hover{filter:brightness(1.12)}.admin-trend-bar span{position:absolute;left:50%;bottom:-17px;transform:translateX(-50%);color:var(--bs-muted);font-size:8px;white-space:nowrap}.admin-trend-bar em{position:absolute;left:50%;bottom:calc(100% + 7px);transform:translateX(-50%);padding:4px 6px;border-radius:7px;background:var(--bs-ink);color:var(--bs-card);font-size:8px;font-style:normal;white-space:nowrap;opacity:0;transition:.2s}.admin-trend-bar:hover em{opacity:1}.admin-trend-bar.is-empty{min-height:3px;background:var(--bs-line);box-shadow:none}@keyframes adminBarRise{from{transform:scaleY(.05);opacity:.2}}
-.admin-status-visual{min-height:226px;display:grid;grid-template-columns:148px minmax(0,1fr);align-items:center;gap:20px;padding:18px}.admin-donut{--donut:conic-gradient(var(--bs-line) 0 100%);width:142px;aspect-ratio:1;display:grid;place-content:center;border-radius:50%;background:radial-gradient(circle at center,var(--bs-card) 0 51%,transparent 52%),var(--donut);box-shadow:inset 0 0 0 1px var(--bs-line)}.admin-donut span,.admin-donut small{display:block;text-align:center}.admin-donut span{color:var(--bs-ink);font-size:25px;font-weight:900}.admin-donut small{color:var(--bs-muted);font-size:9px}.admin-status-legend{display:grid;gap:10px}.admin-status-legend div{display:grid;grid-template-columns:9px minmax(0,1fr) auto;align-items:center;gap:8px;color:var(--bs-muted);font-size:9px}.admin-status-legend i{width:8px;height:8px;border-radius:50%;background:var(--legend-color)}.admin-status-legend strong{color:var(--bs-ink)}
 .admin-funnel{margin-bottom:14px}.admin-funnel>.admin-card__heading>span{color:var(--bs-muted);font-size:9px}.admin-funnel__steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:5px 18px 20px}.admin-funnel__steps>div{position:relative;padding:13px;border:1px solid var(--bs-line);border-radius:13px;background:color-mix(in srgb,var(--bs-card) 88%,transparent)}.admin-funnel__steps span,.admin-funnel__steps strong{display:block}.admin-funnel__steps span{color:var(--bs-muted);font-size:9px}.admin-funnel__steps strong{margin:6px 0 12px;color:var(--bs-ink);font-size:20px}.admin-funnel__steps i{display:block;width:var(--funnel-width,0%);height:5px;border-radius:9px;background:linear-gradient(90deg,var(--bs-red),var(--bs-orange));transition:width .7s cubic-bezier(.2,.8,.2,1)}
 :root[data-theme="dark"] .admin-health,:root[data-theme="dark"] .admin-metrics article,:root[data-theme="dark"] .admin-chart-card,:root[data-theme="dark"] .admin-status-card,:root[data-theme="dark"] .admin-funnel{box-shadow:0 18px 44px rgba(0,0,0,.24)}:root[data-theme="dark"] .admin-metrics article::after{background:linear-gradient(100deg,transparent,rgba(255,156,113,.13),transparent)}
 @media(max-width:1180px){.admin-health{grid-template-columns:1fr 1fr}.admin-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}.admin-analytics-grid{grid-template-columns:1fr}}
@@ -270,18 +268,18 @@
     font-weight: 800;
 }
 
-/* 4. Analytics Grid & Interactive Charts */
+/* 4. Analytics Grid & Interactive Spline Charts */
 .admin-analytics-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.85fr);
-    gap: 16px;
-    margin: 16px 0;
+    grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.95fr);
+    gap: 18px;
+    margin: 18px 0;
 }
 
 .admin-chart-card, .admin-status-card, .admin-funnel {
     border: 1px solid color-mix(in srgb, var(--bs-line) 80%, transparent);
     border-radius: 22px;
-    background: linear-gradient(145deg, color-mix(in srgb, var(--bs-card) 94%, transparent), color-mix(in srgb, var(--bs-bg) 82%, transparent));
+    background: linear-gradient(145deg, color-mix(in srgb, var(--bs-card) 95%, transparent), color-mix(in srgb, var(--bs-bg) 84%, transparent));
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     box-shadow: 0 10px 30px rgba(80, 21, 8, 0.06);
@@ -291,179 +289,329 @@
 
 .admin-chart-card:hover, .admin-status-card:hover, .admin-funnel:hover {
     border-color: color-mix(in srgb, var(--bs-orange) 45%, var(--bs-line));
-    box-shadow: 0 16px 40px rgba(80, 21, 8, 0.1);
+    box-shadow: 0 16px 42px rgba(80, 21, 8, 0.1);
 }
 
-.admin-chart-card > .admin-card__heading > strong {
-    color: var(--bs-red);
+/* Chart Card Header & Action Pills */
+.admin-chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 18px 22px;
+    border-bottom: 1px solid color-mix(in srgb, var(--bs-line) 70%, transparent);
+}
+
+.admin-chart-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.admin-chart-pills {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    background: color-mix(in srgb, var(--bs-card) 65%, var(--bs-bg));
+    border: 1px solid color-mix(in srgb, var(--bs-line) 85%, transparent);
+    border-radius: 999px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.admin-chart-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--bs-muted);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-chart-pill:hover {
+    color: var(--bs-ink);
+}
+
+.admin-chart-pill.is-active {
+    background: var(--bs-card);
+    color: var(--bs-ink);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08), 0 0 0 1px color-mix(in srgb, var(--bs-line) 90%, transparent);
+}
+
+.pill-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.pill-dot--orange {
+    background: #ff7a1a;
+    box-shadow: 0 0 6px rgba(255, 122, 26, 0.6);
+}
+
+.pill-dot--blue {
+    background: #38bdf8;
+    box-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
+}
+
+.admin-chart-total-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.admin-chart-total-stat small {
+    font-size: 11px;
+    color: var(--bs-muted);
+    font-weight: 600;
+}
+
+.admin-chart-total-stat strong {
     font-size: 18px;
     font-weight: 900;
+    color: var(--bs-red);
+    letter-spacing: -0.01em;
 }
 
-/* SVG Hybrid Curve & Bar Chart Container */
-.admin-chart-wrapper {
+/* Spline SVG Chart Area */
+.admin-trend-chart-wrapper {
     position: relative;
-    padding: 16px 20px 20px;
-    border-top: 1px solid var(--bs-line);
+    padding: 10px 14px 16px;
 }
 
-.admin-chart-svg-container {
+.admin-spline-wrapper {
     position: relative;
     width: 100%;
-    height: 190px;
-    overflow: visible;
+    height: 220px;
+    user-select: none;
 }
 
-.admin-chart-svg {
+.admin-spline-svg {
     width: 100%;
     height: 100%;
+    display: block;
     overflow: visible;
 }
 
-/* SVG Line & Area Animation */
-.admin-svg-area {
-    fill: url(#adminChartAreaGrad);
-    opacity: 0;
-    animation: adminAreaFade 1s 0.3s ease forwards;
+/* Grid & Reference Lines */
+.admin-grid-line {
+    stroke: color-mix(in srgb, var(--bs-line) 60%, transparent);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
 }
 
-.admin-svg-line {
+.admin-grid-label {
+    fill: var(--bs-muted);
+    font-size: 10px;
+    font-weight: 700;
+    font-family: inherit;
+    font-feature-settings: "tnum";
+}
+
+.admin-axis-date {
+    fill: var(--bs-muted);
+    font-size: 10px;
+    font-weight: 700;
+    font-family: inherit;
+}
+
+/* Curves & Glow Animation */
+.admin-spline-area {
+    opacity: 0;
+    animation: splineAreaEnter 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.admin-spline-line {
     fill: none;
-    stroke: url(#adminChartLineGrad);
     stroke-width: 3.5;
     stroke-linecap: round;
     stroke-linejoin: round;
-    stroke-dasharray: 2400;
-    stroke-dashoffset: 2400;
-    animation: adminStrokeDraw 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    filter: drop-shadow(0 6px 12px rgba(233, 56, 27, 0.35));
+    stroke-dasharray: 2200;
+    stroke-dashoffset: 2200;
+    animation: splineLineDraw 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes adminStrokeDraw {
+@keyframes splineLineDraw {
     to { stroke-dashoffset: 0; }
 }
 
-@keyframes adminAreaFade {
-    to { opacity: 1; }
+@keyframes splineAreaEnter {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
+/* Spline Dots */
 .admin-svg-dot {
-    r: 4.5;
     fill: #ffffff;
-    stroke: var(--bs-red);
-    stroke-width: 3;
-    cursor: pointer;
-    transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.admin-svg-dot:hover, .admin-svg-dot.is-active {
-    r: 7;
-    stroke-width: 4;
-    filter: drop-shadow(0 0 8px rgba(233, 56, 27, 0.7));
-}
-
-/* Interactive Bars Overlay */
-.admin-trend-chart {
-    height: 230px;
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-    padding: 24px 20px 16px;
-    background: repeating-linear-gradient(to top, transparent 0, transparent 44px, color-mix(in srgb, var(--bs-line) 50%, transparent) 45px);
-    border-top: 1px solid var(--bs-line);
-    position: relative;
-}
-
-.admin-trend-bar {
-    position: relative;
-    flex: 1;
-    min-width: 10px;
-    height: var(--bar-height, 4px);
-    border-radius: 8px 8px 4px 4px;
-    background: linear-gradient(180deg, var(--bs-orange), var(--bs-red));
-    box-shadow: 0 6px 16px rgba(233, 56, 27, 0.22);
-    transform-origin: bottom;
-    animation: adminBarRise 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    transition: transform 0.2s ease, filter 0.2s ease;
+    stroke: #ff7a1a;
+    stroke-width: 2.5;
+    transition: r 0.2s ease, stroke-width 0.2s ease, filter 0.2s ease;
     cursor: pointer;
 }
 
-.admin-trend-bar:hover {
-    transform: scaleX(1.15) translateY(-3px);
-    filter: brightness(1.2) drop-shadow(0 8px 18px rgba(255, 122, 26, 0.4));
-    z-index: 10;
+.admin-svg-dot.is-highlighted {
+    r: 6.5;
+    stroke-width: 3.5;
+    filter: drop-shadow(0 0 8px rgba(255, 122, 26, 0.7));
 }
 
-.admin-trend-bar span {
-    position: absolute;
-    left: 50%;
-    bottom: -20px;
-    transform: translateX(-50%);
-    color: var(--bs-muted);
-    font-size: 10px;
-    font-weight: 700;
-    white-space: nowrap;
-}
-
-.admin-trend-bar em {
-    position: absolute;
-    left: 50%;
-    bottom: calc(100% + 8px);
-    transform: translateX(-50%) translateY(4px);
-    padding: 6px 10px;
-    border-radius: 10px;
-    background: var(--bs-ink);
-    color: var(--bs-card);
-    font-size: 10px;
-    font-weight: 700;
-    font-style: normal;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
+.admin-svg-cursor-line {
+    stroke: color-mix(in srgb, var(--bs-ink) 35%, transparent);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
     pointer-events: none;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-    z-index: 20;
+    transition: x1 0.08s ease, x2 0.08s ease;
 }
 
-.admin-trend-bar:hover em {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(0);
+.admin-svg-active-dot {
+    animation: pulseActiveDot 1.4s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    pointer-events: none;
+    filter: drop-shadow(0 0 10px currentColor);
 }
 
-.admin-trend-bar.is-empty {
-    min-height: 4px;
-    background: var(--bs-line);
-    box-shadow: none;
+@keyframes pulseActiveDot {
+    0% { r: 6.5; }
+    50% { r: 8.5; }
+    100% { r: 6.5; }
 }
 
-@keyframes adminBarRise {
-    from {
-        transform: scaleY(0.02);
-        opacity: 0.1;
-    }
-    to {
-        transform: scaleY(1);
-        opacity: 1;
-    }
+/* Interactive Column Zones */
+.admin-chart-interactive-cols {
+    position: absolute;
+    inset: 26px 24px 38px 60px;
+    display: flex;
+    pointer-events: auto;
 }
 
-/* 5. Animated Status Donut & SVG Ring */
+.admin-chart-col-zone {
+    height: 100%;
+    cursor: crosshair;
+}
+
+/* Floating Glassmorphism Tooltip */
+.admin-chart-tooltip {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    min-width: 175px;
+    padding: 10px 14px;
+    background: color-mix(in srgb, var(--bs-card) 85%, transparent);
+    border: 1px solid color-mix(in srgb, var(--bs-line) 85%, transparent);
+    border-radius: 14px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    z-index: 60;
+    transition: opacity 0.18s ease, top 0.12s ease, left 0.12s ease;
+}
+
+.chart-tip-header {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--bs-ink);
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid color-mix(in srgb, var(--bs-line) 70%, transparent);
+}
+
+.chart-tip-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+    font-size: 11px;
+}
+
+.chart-tip-row:last-child {
+    margin-bottom: 0;
+}
+
+.chart-tip-row--sub {
+    margin-top: 6px;
+    padding-top: 4px;
+    border-top: 1px dashed color-mix(in srgb, var(--bs-line) 60%, transparent);
+    font-size: 10px;
+    color: var(--bs-muted);
+}
+
+.tip-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.tip-dot--orange {
+    background: #ff7a1a;
+    box-shadow: 0 0 6px #ff7a1a;
+}
+
+.tip-dot--blue {
+    background: #38bdf8;
+    box-shadow: 0 0 6px #38bdf8;
+}
+
+.tip-label {
+    color: var(--bs-muted);
+    font-weight: 600;
+}
+
+.tip-val {
+    color: var(--bs-ink);
+    font-weight: 800;
+}
+
+.tip-val--rev {
+    color: #ff6a3d;
+}
+
+/* 5. Live Status Indicator & Animated Donut */
+.admin-status-badge-live {
+    font-size: 11px;
+    font-weight: 800;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.12);
+    padding: 4px 10px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    animation: liveBadgePulse 2s infinite ease-in-out;
+}
+
+@keyframes liveBadgePulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.85; }
+}
+
 .admin-status-visual {
     min-height: 230px;
     display: grid;
-    grid-template-columns: 150px minmax(0, 1fr);
+    grid-template-columns: 146px minmax(0, 1fr);
     align-items: center;
-    gap: 22px;
-    padding: 20px;
+    gap: 18px;
+    padding: 16px 20px;
+}
+
+.admin-donut-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .admin-donut-container {
     position: relative;
     width: 146px;
     height: 146px;
-    margin: auto;
     display: grid;
     place-items: center;
 }
@@ -477,93 +625,149 @@
 
 .admin-donut-bg {
     fill: none;
-    stroke: var(--bs-line);
-    stroke-width: 16;
+    stroke: color-mix(in srgb, var(--bs-line) 70%, transparent);
+    stroke-width: 15;
 }
 
 .admin-donut-seg {
     fill: none;
-    stroke-width: 16;
+    stroke-width: 15;
     stroke-linecap: round;
-    transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.3s ease, filter 0.25s ease;
+    transition: stroke-width 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, filter 0.25s ease;
     cursor: pointer;
 }
 
-.admin-donut-seg:hover {
-    filter: brightness(1.2) drop-shadow(0 0 6px currentColor);
-    stroke-width: 19;
+.admin-donut-seg.is-focus {
+    stroke-width: 20;
+    filter: drop-shadow(0 0 10px var(--seg-color));
+    opacity: 1 !important;
 }
 
-.admin-donut {
-    --donut: conic-gradient(var(--bs-line) 0 100%);
-    width: 144px;
-    aspect-ratio: 1;
-    display: grid;
-    place-content: center;
-    border-radius: 50%;
-    background: radial-gradient(circle at center, var(--bs-card) 0 52%, transparent 53%), var(--donut);
-    box-shadow: inset 0 0 0 1px var(--bs-line), 0 8px 24px rgba(0, 0, 0, 0.06);
-    animation: adminDonutEnter 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-    transition: transform 0.3s ease;
+.admin-donut-seg.is-dimmed {
+    opacity: 0.25;
 }
 
-.admin-donut:hover {
-    transform: scale(1.04);
-}
-
-.admin-donut span, .admin-donut small {
-    display: block;
+.admin-donut-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
     text-align: center;
+    padding: 8px;
 }
 
-.admin-donut span {
-    color: var(--bs-ink);
+.admin-donut-center span {
     font-size: 26px;
     font-weight: 900;
+    color: var(--bs-ink);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    transition: color 0.25s ease;
 }
 
-.admin-donut small {
-    color: var(--bs-muted);
+.admin-donut-center small {
     font-size: 10px;
     font-weight: 700;
+    color: var(--bs-muted);
     text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 3px;
+    max-width: 80px;
+    line-height: 1.2;
 }
 
+/* Modern Interactive Legend Cards */
 .admin-status-legend {
     display: grid;
-    gap: 12px;
+    gap: 8px;
 }
 
-.admin-status-legend div {
-    display: grid;
-    grid-template-columns: 10px minmax(0, 1fr) auto;
+.admin-legend-card {
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--bs-card) 60%, var(--bs-bg));
+    border: 1px solid color-mix(in srgb, var(--bs-line) 75%, transparent);
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease, box-shadow 0.22s ease;
+    cursor: pointer;
+}
+
+.admin-legend-card:hover, .admin-legend-card.is-active {
+    transform: translateX(3px) scale(1.015);
+    border-color: var(--legend-color);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--legend-color) 20%, transparent);
+    background: color-mix(in srgb, var(--bs-card) 85%, transparent);
+}
+
+.legend-card-header {
+    display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 10px;
-    color: var(--bs-muted);
-    font-size: 12px;
-    font-weight: 600;
-    padding: 6px 10px;
-    border-radius: 10px;
-    transition: background 0.2s ease, transform 0.2s ease;
-    cursor: default;
+    margin-bottom: 6px;
 }
 
-.admin-status-legend div:hover {
-    background: color-mix(in srgb, var(--legend-color, var(--bs-orange)) 10%, transparent);
-    transform: translateX(3px);
+.legend-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
-.admin-status-legend i {
-    width: 10px;
-    height: 10px;
+.legend-indicator {
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    background: var(--legend-color);
-    box-shadow: 0 0 8px var(--legend-color);
+    flex-shrink: 0;
+    box-shadow: 0 0 6px var(--legend-color);
 }
 
-.admin-status-legend strong {
+.legend-title {
+    font-size: 11px;
+    font-weight: 700;
     color: var(--bs-ink);
-    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.legend-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.legend-count {
+    font-size: 13px;
+    font-weight: 900;
+    color: var(--bs-ink);
+}
+
+.legend-pct {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--bs-muted);
+    background: color-mix(in srgb, var(--bs-card) 80%, transparent);
+    padding: 1px 6px;
+    border-radius: 6px;
+}
+
+.legend-track {
+    width: 100%;
+    height: 4px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bs-line) 60%, transparent);
+    overflow: hidden;
+}
+
+.legend-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* 6. Conversion Funnel with Animated Shimmer */
@@ -745,6 +949,53 @@
 
 :root[data-theme="dark"] .admin-metrics article::after {
     background: linear-gradient(100deg, transparent, rgba(255, 156, 113, 0.16), transparent);
+}
+
+:root[data-theme="dark"] .admin-chart-tooltip {
+    background: rgba(24, 18, 16, 0.92);
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme="dark"] .admin-chart-pills {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="dark"] .admin-chart-pill.is-active {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="dark"] .admin-legend-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme="dark"] .admin-legend-card:hover,
+:root[data-theme="dark"] .admin-legend-card.is-active {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+:root[data-theme="dark"] .legend-title {
+    color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .legend-count {
+    color: #ffffff;
+}
+
+:root[data-theme="dark"] .admin-donut-center span {
+    color: #ffffff;
+}
+
+:root[data-theme="dark"] .admin-donut-center small {
+    color: #94a3b8;
+}
+
+:root[data-theme="dark"] .admin-grid-line {
+    stroke: rgba(255, 255, 255, 0.08);
 }
 
 /* 12. Responsive Breakpoints */
