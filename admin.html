@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="css/account.css?v=20260906-1">
     <link rel="stylesheet" href="css/admin.css?v=20260906-2">
     <link rel="stylesheet" href="css/dashboard-fx.css?v=20260906-2">
-    <script src="css/auth.js?v=20260906-2" defer></script>
-    <script src="css/admin.js?v=20260906-2" defer></script>
+    <script src="css/auth.js?v=20260906-3" defer></script>
+    <script src="css/admin.js?v=20260906-3" defer></script>
 </head>
 <body class="account-body admin-body">
     <a class="skip-link" href="#adminMain">Bỏ qua điều hướng</a>
@@ -49,6 +49,12 @@
                         <div><span>Tài khoản hoạt động</span><strong id="healthUsers">0</strong></div>
                         <div><span>Phiếu cần trả lời</span><strong id="healthSupport">0</strong></div>
                     </div>
+                    <div class="admin-operations" aria-label="Chỉ số vận hành chuyên môn">
+                        <div><span>Database đang dùng</span><strong id="adminDatabaseSize">0 MB</strong></div>
+                        <div><span>Vợt chờ căng cước</span><strong id="adminStringingQueue">0</strong></div>
+                        <div><span>Voucher hoạt động</span><strong id="adminActiveVouchers">0</strong></div>
+                        <div><span>Lượt đang yêu thích</span><strong id="adminWishlistItems">0</strong></div>
+                    </div>
                     <div class="admin-metrics">
                         <article data-tone="red"><span class="admin-metric-icon" aria-hidden="true">₫</span><span>Doanh thu tháng</span><strong id="adminRevenueMonth">0 ₫</strong><small>Từ đơn hoàn thành trong tháng</small><i class="metric-spark metric-spark--red"></i></article>
                         <article data-tone="orange"><span class="admin-metric-icon" aria-hidden="true">□</span><span>Tổng đơn hàng</span><strong id="adminOrders">0</strong><small><b id="adminPendingOrders">0</b> đang chờ xác nhận</small><i class="metric-spark metric-spark--orange"></i></article>
@@ -61,16 +67,17 @@
                         <article class="admin-card admin-chart-card"><div class="admin-card__heading"><div><p class="eyebrow">14 ngày gần nhất</p><h2>Nhịp đơn hàng</h2></div><strong id="adminRevenue">0 ₫</strong></div><div class="admin-trend-chart" id="adminTrendChart" aria-label="Biểu đồ đơn hàng 14 ngày"><p class="admin-empty">Đang tải biểu đồ…</p></div></article>
                         <article class="admin-card admin-status-card"><div class="admin-card__heading"><div><p class="eyebrow">Cơ cấu xử lý</p><h2>Trạng thái đơn</h2></div></div><div class="admin-status-visual"><div class="admin-donut" id="adminStatusDonut"><span id="adminStatusTotal">0</span><small>đơn</small></div><div class="admin-status-legend" id="adminStatusLegend"></div></div></article>
                     </div>
-                    <article class="admin-card admin-funnel"><div class="admin-card__heading"><div><p class="eyebrow">Luồng vận hành</p><h2>Tiến độ xử lý đơn</h2></div><span>Tự cập nhật theo dữ liệu thật</span></div><div class="admin-funnel__steps">
-                        <div><span>Tất cả đơn</span><strong id="funnelOrders">0</strong><i style="--funnel-width:100%"></i></div>
-                        <div><span>Đang xử lý</span><strong id="funnelProcessing">0</strong><i id="funnelProcessingBar"></i></div>
-                        <div><span>Hoàn thành</span><strong id="funnelCompleted">0</strong><i id="funnelCompletedBar"></i></div>
-                        <div><span>Đã hủy</span><strong id="funnelCancelled">0</strong><i id="funnelCancelledBar"></i></div>
+                    <article class="admin-card admin-funnel"><div class="admin-card__heading"><div><p class="eyebrow">Phễu mua sắm</p><h2>Từ tài khoản đến đơn hoàn thành</h2></div><span>Số liệu thật, không dùng dữ liệu mẫu</span></div><div class="admin-funnel__steps">
+                        <div><span>Tài khoản</span><strong id="funnelUsers">0</strong><i style="--funnel-width:100%"></i></div>
+                        <div><span>Đang có giỏ hàng</span><strong id="funnelCarts">0</strong><i id="funnelCartBar"></i></div>
+                        <div><span>Khách mua trong 30 ngày</span><strong id="funnelBuyers">0</strong><i id="funnelBuyerBar"></i></div>
+                        <div><span>Đơn hoàn thành 30 ngày</span><strong id="funnelCompleted30">0</strong><i id="funnelCompleted30Bar"></i></div>
                     </div></article>
                     <div class="admin-overview-grid">
                         <article class="admin-card"><div class="admin-card__heading"><div><p class="eyebrow">Mới nhất</p><h2>Đơn hàng gần đây</h2></div><button type="button" data-jump-view="orders">Xem tất cả →</button></div><div class="admin-list" id="recentOrders"><p class="admin-empty">Đang tải dữ liệu…</p></div></article>
                         <article class="admin-card"><div class="admin-card__heading"><div><p class="eyebrow">Tồn kho</p><h2>Sản phẩm cần chú ý</h2></div><button type="button" data-jump-view="products">Quản lý →</button></div><div class="admin-list" id="lowStockProducts"><p class="admin-empty">Đang tải dữ liệu…</p></div></article>
                     </div>
+                    <article class="admin-card" style="margin-top:14px"><div class="admin-card__heading"><div><p class="eyebrow">Live activity</p><h2>Hoạt động quản trị gần nhất</h2></div><button type="button" data-jump-view="audit">Mở nhật ký →</button></div><div class="admin-list" id="adminLiveActivity"><p class="admin-empty">Đang tải hoạt động…</p></div></article>
                 </section>
 
                 <section class="admin-view" data-admin-panel="products" hidden>
@@ -79,7 +86,7 @@
                 </section>
 
                 <section class="admin-view" data-admin-panel="orders" hidden>
-                    <div class="admin-toolbar"><form class="admin-search" id="orderSearch"><label class="bs-visually-hidden" for="adminOrderQuery">Tìm đơn hàng</label><input id="adminOrderQuery" type="search" placeholder="Mã đơn, tên khách hàng…"><button type="submit">Tìm</button></form><select id="adminOrderStatus" aria-label="Lọc trạng thái đơn"><option value="all">Tất cả trạng thái</option><option value="CHO_XAC_NHAN">Chờ xác nhận</option><option value="DANG_GIAO">Đang giao</option><option value="HOAN_THANH">Hoàn thành</option><option value="DA_HUY">Đã hủy</option></select></div>
+                    <div class="admin-toolbar"><form class="admin-search" id="orderSearch"><label class="bs-visually-hidden" for="adminOrderQuery">Tìm đơn hàng</label><input id="adminOrderQuery" type="search" placeholder="Mã đơn, tên khách hàng…"><button type="submit">Tìm</button></form><select id="adminOrderStatus" aria-label="Lọc trạng thái đơn"><option value="all">Tất cả trạng thái</option><option value="CHO_XAC_NHAN">Chờ xác nhận</option><option value="DANG_GIAO">Đang giao</option><option value="HOAN_THANH">Hoàn thành</option><option value="DA_HUY">Đã hủy</option></select><button class="admin-primary" type="button" id="exportOrders">↓ Xuất CSV</button></div>
                     <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Ngày đặt</th><th>Tổng tiền</th><th>Thanh toán</th><th>Trạng thái</th><th>Chuyển trạng thái</th></tr></thead><tbody id="adminOrderRows"><tr><td colspan="7" class="admin-empty-cell">Chọn mục để tải đơn hàng.</td></tr></tbody></table></div><div class="admin-pagination"><button type="button" id="adminOrderPrev">← Trước</button><span id="adminOrderPageInfo">Trang 1</span><button type="button" id="adminOrderNext">Sau →</button></div></div>
                 </section>
 
@@ -131,6 +138,8 @@
             <div class="field-grid"><div class="field"><label for="productBrand">Thương hiệu</label><input id="productBrand" maxlength="100"></div><div class="field"><label for="productImage">Ảnh đại diện</label><div class="admin-media-picker"><img id="productImagePreview" src="HA/cc-removebg-preview.png" alt="Xem trước ảnh đại diện sản phẩm"><div><input id="productImage" maxlength="500" placeholder="Đường dẫn ảnh sau khi tải lên"><input id="productImageFile" type="file" accept="image/jpeg,image/png,image/webp" hidden><button type="button" id="uploadProductImage">Chọn và tải ảnh</button><small>JPG, PNG hoặc WebP · tối đa 3 MB</small></div></div></div></div>
             <div class="field"><label for="productDetailImages">Ảnh chi tiết / Swiper</label><textarea id="productDetailImages" rows="3" placeholder="Mỗi đường dẫn một dòng"></textarea><div class="admin-media-actions"><input id="productDetailImageFiles" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden><button type="button" id="uploadProductDetailImages">+ Tải nhiều ảnh chi tiết</button><small id="productDetailUploadStatus">Có thể chọn nhiều ảnh, hệ thống sẽ tự nén và thêm vào Swiper.</small></div><div class="admin-media-gallery" id="productDetailPreview"></div></div>
             <div class="field-grid"><div class="field"><label for="productSourceName">Tên nguồn</label><input id="productSourceName" maxlength="120" placeholder="ShopVNB, HVShop..."></div><div class="field"><label for="productSourceUrl">URL nguồn tham khảo</label><input id="productSourceUrl" type="url" maxlength="700"></div></div>
+            <div class="field-grid field-grid--three"><div class="field"><label for="productWeightGrip">Trọng lượng / cán</label><select id="productWeightGrip"><option value="">Chưa khai báo</option><option>3U-G5</option><option>4U-G5</option><option>4U-G6</option><option>5U-G5</option></select></div><div class="field"><label for="productPlayStyle">Lối chơi</label><select id="productPlayStyle"><option value="">Chưa khai báo</option><option value="TAN_CONG">Tấn công</option><option value="CAN_BANG">Cân bằng</option><option value="PHONG_THU">Phòng thủ / tốc độ</option></select></div><div class="field"><label for="productBalance">Điểm cân bằng</label><select id="productBalance"><option value="">Chưa khai báo</option><option value="NANG_DAU">Nặng đầu</option><option value="CAN_BANG">Cân bằng</option><option value="NHE_DAU">Nhẹ đầu</option></select></div></div>
+            <div class="field-grid"><div class="field"><label for="productStiffness">Độ cứng đũa</label><select id="productStiffness"><option value="">Chưa khai báo</option><option value="MEM">Mềm</option><option value="TRUNG_BINH">Trung bình</option><option value="CUNG">Cứng</option></select></div><div class="field"><label for="productMaxTension">Lực căng tối đa (lbs)</label><input id="productMaxTension" type="number" min="18" max="40" step="1"></div></div>
             <div class="field"><label for="productDescription">Mô tả</label><textarea id="productDescription" rows="4" maxlength="5000"></textarea></div>
             <label class="admin-switch"><input id="productActive" type="checkbox" checked><span></span>Hiển thị sản phẩm trên cửa hàng</label>
             <p class="form-status" id="productFormStatus" role="alert" aria-live="polite"></p>

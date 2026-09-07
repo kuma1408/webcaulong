@@ -288,8 +288,16 @@
                         </div>
                     </div>
 
+                    <div class="pay-method-card" id="bankingMethodCard" onclick="selectPayMethod('banking')" hidden>
+                        <input type="radio" name="payment_method" id="payBanking" value="BANKING">
+                        <div>
+                            <div style="font-weight:bold; font-size:14px;">Chuyển khoản VietQR theo đơn</div>
+                            <div style="font-size:11px; color:var(--text-muted);">QR có sẵn đúng số tiền và mã tham chiếu; admin đối soát trước khi giao.</div>
+                        </div>
+                    </div>
+
                     <p style="margin:10px 0 0; font-size:12px; color:var(--text-muted);">
-                        Chuyển khoản được thực hiện qua yêu cầu nạp tiền trong trang tài khoản và chỉ được cộng số dư sau khi quản trị viên đối soát.
+                        Website không yêu cầu số thẻ, mật khẩu ngân hàng hay OTP. Chuyển khoản chỉ được xác nhận sau khi quản trị viên đối soát sao kê.
                     </p>
 
                     <button type="submit" class="btn-filter-apply" id="btnPlaceOrder" style="width:100%; margin-top:24px; padding:14px; font-size:16px;">ĐẶT HÀNG NGAY</button>
@@ -304,6 +312,20 @@
             <p style="font-size:15px; line-height:1.6; color:var(--text-color);" id="successMessage">
                 Cảm ơn bạn đã mua sắm tại Shop Cầu Lông Premium. Đơn hàng của bạn đã được tiếp nhận thành công và đang được chờ duyệt.
             </p>
+            <section class="order-bank-payment" id="orderBankPayment" hidden aria-labelledby="orderBankTitle">
+                <img id="orderBankQr" alt="Mã VietQR cho đơn hàng">
+                <div>
+                    <span id="orderBankTitle">CHUYỂN KHOẢN ĐÚNG NỘI DUNG</span>
+                    <strong id="orderBankName">—</strong>
+                    <span>Số tài khoản</span><strong id="orderBankAccount">—</strong>
+                    <span>Số tiền</span><strong id="orderBankAmount">—</strong>
+                    <span>Nội dung chuyển khoản</span><strong id="orderBankContent">—</strong>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <button type="button" onclick="copyPaymentValue('orderBankAccount','Số tài khoản')">Sao chép STK</button>
+                        <button type="button" onclick="copyPaymentValue('orderBankContent','Nội dung')">Sao chép nội dung</button>
+                    </div>
+                </div>
+            </section>
             <div style="margin-top:30px; display:flex; gap:16px; justify-content:center;">
                 <a href="canhan.html#orders" id="viewPlacedOrder" class="btn-filter-apply" style="width:auto; text-decoration:none; padding:12px 24px; margin:0;">Xem chi tiết đơn hàng</a>
                 <a href="trangchu.html" class="btn-secondary" style="border-radius:24px; display:flex; align-items:center; padding:0 24px; text-decoration:none; font-weight:bold;">Quay lại Trang chủ</a>
@@ -315,13 +337,21 @@
     </div>
 
     <!-- Script Layout & Auth -->
-    <script src="css/auth.js?v=20260906-2"></script>
+    <script src="css/auth.js?v=20260906-3"></script>
     <script>
         let cartItems = [];
         let cartTotal = 0;
         let userBalanceVal = 0;
         let appliedCouponCode = '';
         let appliedDiscount = 0;
+
+        const racketConfigLabels = {
+            KHONG_CANG: 'Chưa căng cước', YONEX_BG65: 'Yonex BG65',
+            YONEX_BG65TI: 'Yonex BG65Ti', YONEX_NANOGY98: 'Yonex Nanogy 98',
+            YONEX_AEROBITE: 'Yonex Aerobite', LINING_NO1: 'Lining No.1',
+            QUAN_CAN_CAO_SU: 'Quấn cán cao su', TUI_CACH_NHIET: 'Túi cách nhiệt',
+            HOP_CAU_LONG: 'Hộp cầu lông'
+        };
 
         const formatMoney = value => `${Number(value || 0).toLocaleString('vi-VN')} ₫`;
         const authHeaders = () => window.BadmintonAuth?.getApiHeaders?.() || API_HEADERS;
@@ -355,6 +385,13 @@
                 showToast(error.message || 'Không thể tải thông tin tài khoản.', 'error');
             }
 
+            fetch(`${API_BASE}/api/thanh-toan/cau-hinh`)
+                .then(readJson)
+                .then(data => {
+                    document.getElementById('bankingMethodCard').hidden = !data.payment?.configured;
+                })
+                .catch(() => { document.getElementById('bankingMethodCard').hidden = true; });
+
             await fetchCartItems();
         }
 
@@ -379,6 +416,22 @@
             price.className = 'cart-item-price';
             price.textContent = formatMoney(item.GiaBan);
             details.append(name, price);
+            const config = item.CauHinh;
+            if (config && typeof config === 'object') {
+                const configRow = document.createElement('div');
+                configRow.className = 'cart-item-config';
+                [
+                    config.weight_grip,
+                    racketConfigLabels[config.string] || config.string,
+                    config.tension_lbs ? `${config.tension_lbs} lbs` : '',
+                    ...(Array.isArray(config.addons) ? config.addons.map(code => racketConfigLabels[code] || code) : [])
+                ].filter(Boolean).forEach(label => {
+                    const badge = document.createElement('span');
+                    badge.textContent = label;
+                    configRow.appendChild(badge);
+                });
+                details.appendChild(configRow);
+            }
 
             const quantityControl = document.createElement('div');
             quantityControl.className = 'quantity-control';
@@ -506,9 +559,37 @@
 
         function selectPayMethod(method) {
             document.querySelectorAll('.pay-method-card').forEach(card => card.classList.remove('active-method'));
-            const input = document.getElementById(method === 'cod' ? 'payCod' : 'payBalance');
+            const input = document.getElementById(
+                method === 'cod' ? 'payCod' : method === 'banking' ? 'payBanking' : 'payBalance'
+            );
+            if (!input || input.closest('.pay-method-card')?.hidden) return;
             input.checked = true;
             input.closest('.pay-method-card').classList.add('active-method');
+        }
+
+        async function copyPaymentValue(elementId, label) {
+            const value = document.getElementById(elementId)?.textContent?.trim();
+            if (!value || value === '—') return;
+            try {
+                await navigator.clipboard.writeText(value);
+                showToast(`Đã sao chép ${label.toLowerCase()}.`, 'success');
+            } catch (_) {
+                showToast(`Không thể tự sao chép. ${label}: ${value}`, 'warning');
+            }
+        }
+
+        function showBankingPayment(payment) {
+            const panel = document.getElementById('orderBankPayment');
+            if (!payment?.configured || !payment.qr_url) {
+                panel.hidden = true;
+                return;
+            }
+            document.getElementById('orderBankQr').src = `${API_BASE}${payment.qr_url}`;
+            document.getElementById('orderBankName').textContent = `${payment.bank_name} · ${payment.account_name}`;
+            document.getElementById('orderBankAccount').textContent = payment.account_no;
+            document.getElementById('orderBankAmount').textContent = formatMoney(payment.amount);
+            document.getElementById('orderBankContent').textContent = payment.content;
+            panel.hidden = false;
         }
 
         async function processCheckout(event) {
@@ -542,8 +623,11 @@
                 });
                 const data = await readJson(response);
                 const paidTotal = Number(data.tong_tien || 0);
-                const methodLabel = paymentMethod === 'SO_DU' ? 'Số dư tài khoản' : 'Thanh toán khi nhận hàng (COD)';
+                const methodLabel = paymentMethod === 'SO_DU'
+                    ? 'Số dư tài khoản'
+                    : paymentMethod === 'BANKING' ? 'chuyển khoản VietQR' : 'Thanh toán khi nhận hàng (COD)';
                 document.getElementById('successMessage').textContent = `Cửa hàng đã tiếp nhận đơn hàng #${data.ma_don_hang}. Tổng thanh toán ${formatMoney(paidTotal)} qua ${methodLabel}. Chúng tôi sẽ liên hệ xác nhận sớm nhất.`;
+                showBankingPayment(data.payment);
                 document.getElementById('viewPlacedOrder').href = `canhan.html?order=${encodeURIComponent(data.ma_don_hang)}#orders`;
                 document.getElementById('cartLayout').style.display = 'none';
                 const successPanel = document.getElementById('successPanel');

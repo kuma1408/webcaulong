@@ -20,6 +20,8 @@ from HA.app import (
     normalized_avatar,
     normalized_public_image,
     sanitize_rich_text,
+    validate_racket_configuration,
+    validated_product_specs,
     verify_password,
 )
 from werkzeug.security import generate_password_hash
@@ -92,6 +94,32 @@ class ApiSmokeTest(unittest.TestCase):
         self.assertRegex(payload, r"6304[0-9A-F]{4}$")
         png = make_vietqr_png(payload)
         self.assertTrue(png.startswith(b"\x89PNG\r\n\x1a\n"))
+
+    def test_racket_configuration_is_whitelisted_and_normalized(self):
+        config = validate_racket_configuration({
+            "weight_grip": "4u-g5",
+            "string": "yonex_bg65",
+            "tension_lbs": "25",
+            "addons": ["QUAN_CAN_CAO_SU", "QUAN_CAN_CAO_SU"],
+        })
+        self.assertEqual(config["weight_grip"], "4U-G5")
+        self.assertEqual(config["tension_lbs"], 25)
+        self.assertEqual(config["addons"], ["QUAN_CAN_CAO_SU"])
+        with self.assertRaises(ValueError):
+            validate_racket_configuration({
+                "weight_grip": "4U-G5", "string": "YONEX_BG65",
+                "tension_lbs": 99, "addons": [],
+            })
+
+    def test_product_racket_specs_are_bounded(self):
+        specs = validated_product_specs({
+            "weight_grip": "5u-g5", "play_style": "phong_thu",
+            "balance": "nhe_dau", "stiffness": "mem", "max_tension": "28",
+        })
+        self.assertEqual(specs["max_tension"], 28)
+        self.assertEqual(specs["play_style"], "PHONG_THU")
+        with self.assertRaises(ValueError):
+            validated_product_specs({"max_tension": 41})
 
     def test_support_table_name_is_linux_safe(self):
         statement = normalize_sql_table_names("SELECT * FROM YeuCauHoTro")
@@ -244,7 +272,8 @@ class ApiSmokeTest(unittest.TestCase):
         content = detail_path.read_text(encoding="utf-8")
         self.assertNotIn('id="cardNumInput"', content)
         self.assertNotIn('id="cardCvvInput"', content)
-        self.assertIn("Website không thu thập số thẻ hay mã CVV", content)
+        self.assertIn("Website không thu thập số thẻ", content)
+        self.assertIn("OTP", content)
 
     def test_api_errors_stay_json_even_for_browser_accept_header(self):
         response = self.client.get(

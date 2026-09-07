@@ -7,7 +7,6 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <!-- CSS -->
     <link href="css/tutaoo.css?v=20260808-8" rel="stylesheet" style="text/css" />
-    <link href="https://unpkg.com/swiper/swiper-bundle.min.css" rel="stylesheet">
     <style>
         .detail-container {
             max-width: 1200px;
@@ -30,7 +29,8 @@
             color: #ffd7c5;
         }
     </style>
-    <link rel="stylesheet" href="css/site-refresh.css?v=20260906-2">
+    <link rel="stylesheet" href="css/site-refresh.css?v=20260906-3">
+    <link rel="stylesheet" href="css/sport-system.css?v=20260906-3">
 </head>
 <body>
     <div class="baotrang">
@@ -72,11 +72,27 @@
                         <div><span>Danh mục</span><strong id="productCategoryName">—</strong></div>
                         <div><span>Đã bán</span><strong id="productSold">0</strong></div>
                         <div><span>Lượt xem</span><strong id="productViews">0</strong></div>
+                        <div class="racket-product-fact" hidden><span>Trọng lượng / cán</span><strong id="productWeightFact">—</strong></div>
+                        <div class="racket-product-fact" hidden><span>Lối chơi</span><strong id="productPlayFact">—</strong></div>
+                        <div class="racket-product-fact" hidden><span>Điểm cân bằng</span><strong id="productBalanceFact">—</strong></div>
+                        <div class="racket-product-fact" hidden><span>Lực căng tối đa</span><strong id="productTensionFact">—</strong></div>
                     </div>
                     <div class="detail-wallet-card">
                         <div><span>Số dư tài khoản</span><strong id="detailWalletBalance">Đăng nhập để xem</strong></div>
                         <a href="canhan.html#wallet" id="detailDepositLink">Nạp tiền vào tài khoản →</a>
                     </div>
+
+                    <section class="racket-configurator" id="racketConfigurator" aria-labelledby="racketConfigTitle" hidden>
+                        <div class="racket-configurator__heading"><div><h3 id="racketConfigTitle">Cấu hình cây vợt của bạn</h3><span>Lựa chọn được lưu cùng đơn hàng để bộ phận kỹ thuật xử lý chính xác.</span></div><span>BADMINTON LAB</span></div>
+                        <div class="racket-configurator__grid">
+                            <label class="racket-option"><span>Trọng lượng &amp; chu vi cán</span><select id="racketWeight"><option value="3U-G5">3U-G5 · Đầm tay</option><option value="4U-G5" selected>4U-G5 · Cân bằng phổ biến</option><option value="4U-G6">4U-G6 · Cán nhỏ</option><option value="5U-G5">5U-G5 · Siêu nhẹ</option></select></label>
+                            <label class="racket-option"><span>Loại cước căng kèm</span><select id="racketString"><option value="KHONG_CANG" selected>Không căng cước</option><option value="YONEX_BG65">Yonex BG65</option><option value="YONEX_BG65TI">Yonex BG65Ti</option><option value="YONEX_NANOGY98">Yonex Nanogy 98</option><option value="YONEX_AEROBITE">Yonex Aerobite</option><option value="LINING_NO1">Lining No.1</option></select></label>
+                            <label class="racket-option"><span>Lực căng máy điện tử</span><select id="racketTension"><option value="">Không áp dụng</option><option value="21">9.5 kg · 21 lbs</option><option value="22">10.0 kg · 22 lbs</option><option value="23">10.5 kg · 23 lbs</option><option value="24">11.0 kg · 24 lbs</option><option value="25">11.5 kg · 25 lbs</option><option value="26">12.0 kg · 26 lbs</option><option value="27">12.5 kg · 27 lbs</option><option value="28">12.7 kg · 28 lbs</option><option value="29">13.2 kg · 29 lbs</option><option value="30">13.5 kg · 30 lbs</option></select></label>
+                            <label class="racket-option"><span>Số lượng</span><select id="racketQuantity"><option value="1">1 cây</option><option value="2">2 cây</option><option value="3">3 cây</option><option value="4">4 cây</option><option value="5">5 cây</option></select></label>
+                            <div class="racket-option racket-option--full"><span>Yêu cầu phụ kiện kèm theo</span><div class="racket-addon-list"><label class="racket-addon"><input type="checkbox" value="QUAN_CAN_CAO_SU"><span>Quấn cán cao su</span></label><label class="racket-addon"><input type="checkbox" value="TUI_CACH_NHIET"><span>Túi vợt cách nhiệt</span></label><label class="racket-addon"><input type="checkbox" value="HOP_CAU_LONG"><span>Hộp cầu lông</span></label></div><small>Nhân viên sẽ xác nhận loại và phụ phí (nếu có) trước khi xử lý; hệ thống chưa tự cộng phụ kiện vào tổng tiền.</small></div>
+                        </div>
+                        <div class="racket-config-summary"><span>Tóm tắt cấu hình</span><strong id="racketConfigSummary">4U-G5 · Khung vợt chưa căng</strong></div>
+                    </section>
                     
                     <!-- Nhóm nút tác vụ -->
                     <div style="display:flex; flex-direction:column; gap:12px; margin:20px 0;">
@@ -85,7 +101,7 @@
                             <button class="btn-add-cart" style="flex:1;" onclick="triggerAddToCart()">THÊM GIỎ HÀNG</button>
                         </div>
                         <button class="btn-add-cart" id="wishlistDetailButton" type="button" onclick="saveToWishlist()">♡ LƯU SẢN PHẨM YÊU THÍCH</button>
-                        <p class="payment-safety-note">🔒 Thanh toán an toàn bằng số dư tài khoản hoặc COD tại bước giỏ hàng. Website không thu thập số thẻ hay mã CVV.</p>
+                        <p class="payment-safety-note">🔒 Thanh toán bằng số dư, COD hoặc VietQR đúng mã đơn. Website không thu thập số thẻ, mật khẩu ngân hàng, CVV hay OTP.</p>
                     </div>
 
                     <!-- Box Khuyến Mãi / Ưu đãi cào từ database -->
@@ -98,8 +114,9 @@
             <!-- Tab mô tả & Đánh giá -->
             <div class="tabs-container">
                 <div class="tabs-headers">
-                    <div class="tab-header active-tab" onclick="switchTab('tab-description')">MÔ TẢ & ƯU ĐÃI</div>
-                    <div class="tab-header" id="reviewsTabHeader" onclick="switchTab('tab-reviews')">ĐÁNH GIÁ (0)</div>
+                    <button type="button" class="tab-header active-tab" onclick="switchTab(event, 'tab-description')">MÔ TẢ &amp; ƯU ĐÃI</button>
+                    <button type="button" class="tab-header" id="studioTabHeader" onclick="switchTab(event, 'tab-studio')">MODEL 3D 360° STUDIO</button>
+                    <button type="button" class="tab-header" id="reviewsTabHeader" onclick="switchTab(event, 'tab-reviews')">ĐÁNH GIÁ (0)</button>
                 </div>
 
                 <!-- Nội dung Tab Mô tả -->
@@ -115,6 +132,10 @@
                             <li>Bao đựng vợt hoặc bao nhung đi kèm miễn phí.</li>
                         </ul>
                     </div>
+                </div>
+
+                <div class="tab-content" id="tab-studio">
+                    <div data-racket-studio data-preset="cyber"></div>
                 </div>
 
                 <!-- Nội dung Tab Đánh giá -->
@@ -140,8 +161,9 @@
     </div>
 
     <!-- Scripts -->
-    <script src="css/auth.js?v=20260906-2"></script>
-    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script src="css/auth.js?v=20260906-3"></script>
+    <script src="vendor/three.min.js?v=128"></script>
+    <script src="css/racket-studio.js?v=20260906-3"></script>
     <script>
         let currentProductId = null;
         let selectedRating = 5;
@@ -201,6 +223,28 @@
                     // Ưu đãi khuyến mãi
                     document.getElementById('promotionContainer').innerHTML = productDetails.MoTa;
                     document.getElementById('productFullDescription').innerHTML = productDetails.MoTa || '<p>Thông tin sản phẩm đang được cập nhật.</p>';
+
+                    const categoryText = `${productDetails.TenDM || ''} ${productDetails.TenSP || ''}`
+                        .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase();
+                    const isRacket = Number(productDetails.MaDM) === 1 || categoryText.includes('vot cau long');
+                    document.getElementById('racketConfigurator').hidden = !isRacket;
+                    document.getElementById('studioTabHeader').hidden = !isRacket;
+                    document.querySelectorAll('.racket-product-fact').forEach(node => { node.hidden = !isRacket; });
+                    if (isRacket) {
+                        const readable = value => String(value || 'Chưa khai báo').replaceAll('_', ' ').toLowerCase().replace(/^./, char => char.toUpperCase());
+                        document.getElementById('productWeightFact').textContent = productDetails.TrongLuongCan || 'Chưa khai báo';
+                        document.getElementById('productPlayFact').textContent = readable(productDetails.LoiChoi);
+                        document.getElementById('productBalanceFact').textContent = readable(productDetails.DiemCanBang);
+                        document.getElementById('productTensionFact').textContent = productDetails.LucCangToiDa ? `${productDetails.LucCangToiDa} lbs` : 'Theo khuyến nghị hãng';
+                        if (productDetails.TrongLuongCan && [...document.getElementById('racketWeight').options].some(option => option.value === productDetails.TrongLuongCan)) {
+                            document.getElementById('racketWeight').value = productDetails.TrongLuongCan;
+                        }
+                        const maxTension = Number(productDetails.LucCangToiDa || 30);
+                        [...document.getElementById('racketTension').options].forEach(option => {
+                            option.disabled = Boolean(option.value && Number(option.value) > maxTension);
+                        });
+                        updateRacketConfigSummary();
+                    }
 
                     // Load Hình ảnh
                     initGallery(productDetails.HinhAnh, productDetails.AnhChiTiet);
@@ -276,7 +320,7 @@
                 });
             }
 
-            // Khôi phục Swiper thật giống các trang chi tiết ban đầu.
+            // Dùng thanh thumbnail kéo ngang cục bộ, không phụ thuộc CDN.
             if (thumbnailSwiper) thumbnailSwiper.destroy(true, true);
             if (window.Swiper) {
                 thumbnailSwiper = new Swiper(container, {
@@ -425,21 +469,81 @@
         }
 
         // --- Tabs ---
-        function switchTab(tabId) {
+        function switchTab(event, tabId) {
             document.querySelectorAll('.tab-header').forEach(h => h.classList.remove('active-tab'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active-tab-content'));
 
-            event.target.classList.add('active-tab');
-            document.getElementById(tabId).classList.add('active-tab-content');
+            event.currentTarget.classList.add('active-tab');
+            const target = document.getElementById(tabId);
+            target.classList.add('active-tab-content');
+            if (tabId === 'tab-studio') {
+                [30, 150, 350].forEach(delay => setTimeout(() => {
+                    target.querySelector('[data-racket-studio]')?.dispatchEvent(new CustomEvent('racketstudio:resize'));
+                    window.BadmintonRacketStudio?.resize?.(target);
+                }, delay));
+            }
         }
 
         // --- Tác vụ Mua hàng ---
+        const racketStringLabels = {
+            KHONG_CANG: 'Không căng cước', YONEX_BG65: 'Yonex BG65', YONEX_BG65TI: 'Yonex BG65Ti',
+            YONEX_NANOGY98: 'Yonex Nanogy 98', YONEX_AEROBITE: 'Yonex Aerobite', LINING_NO1: 'Lining No.1'
+        };
+
+        function readRacketConfiguration() {
+            const configurator = document.getElementById('racketConfigurator');
+            if (configurator.hidden) return null;
+            const stringCode = document.getElementById('racketString').value;
+            const tension = stringCode === 'KHONG_CANG' ? null : Number(document.getElementById('racketTension').value || 0);
+            const addons = [...configurator.querySelectorAll('.racket-addon input:checked')].map(input => input.value);
+            return {
+                weight_grip: document.getElementById('racketWeight').value,
+                string: stringCode,
+                tension_lbs: tension || null,
+                addons
+            };
+        }
+
+        function updateRacketConfigSummary() {
+            const config = readRacketConfiguration();
+            if (!config) return;
+            const parts = [config.weight_grip, racketStringLabels[config.string] || config.string];
+            if (config.tension_lbs) parts.push(`${config.tension_lbs} lbs`);
+            if (config.addons.length) parts.push(`${config.addons.length} yêu cầu phụ kiện`);
+            document.getElementById('racketConfigSummary').textContent = parts.join(' · ');
+            const tension = document.getElementById('racketTension');
+            tension.disabled = config.string === 'KHONG_CANG';
+            if (tension.disabled) tension.value = '';
+        }
+
+        async function addConfiguredProduct(goToCart = false) {
+            if (!window.BadmintonAuth?.getToken?.()) {
+                showToast('Vui lòng đăng nhập để thêm sản phẩm.', 'warning');
+                const next = encodeURIComponent(`chitiet.html?id=${currentProductId}`);
+                setTimeout(() => location.assign(`dangnhap.html?next=${next}`), 700);
+                return;
+            }
+            const config = readRacketConfiguration();
+            const quantity = config ? Number(document.getElementById('racketQuantity').value || 1) : 1;
+            try {
+                const data = await window.BadmintonAuth.request('/api/gio-hang/them', {
+                    method: 'POST',
+                    json: { ma_san_pham: currentProductId, so_luong: quantity, cau_hinh: config }
+                });
+                showToast(data.message || 'Đã thêm vào giỏ hàng.', 'success');
+                capNhatBadgeGioHang();
+                if (goToCart) location.assign('giohang.html');
+            } catch (error) {
+                showToast(error.message || 'Không thể thêm sản phẩm.', 'error');
+            }
+        }
+
         function triggerAddToCart() {
-            themVaoGioHang(currentProductId);
+            addConfiguredProduct(false);
         }
 
         function triggerBuyNow() {
-            muaNgay(currentProductId);
+            addConfiguredProduct(true);
         }
 
         async function saveToWishlist() {
@@ -502,6 +606,8 @@
         // Khởi động trang chi tiết sản phẩm
         document.addEventListener('DOMContentLoaded', () => {
             setReviewRating(5);
+            document.querySelectorAll('#racketConfigurator select, #racketConfigurator input').forEach(control => control.addEventListener('change', updateRacketConfigSummary));
+            updateRacketConfigSummary();
             const comment = document.getElementById('reviewComment');
             comment.addEventListener('input', () => { document.getElementById('reviewChars').textContent = String(comment.value.length); });
             window.BadmintonAuth.me().then(user => {

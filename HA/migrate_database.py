@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-MIGRATION_VERSION = "2026-08-17-support-schema-compat-v7"
+MIGRATION_VERSION = "2026-09-06-racket-commerce-v8"
 LOCK_NAME = "shop_caulong_schema_migration"
 BASE_TABLES = {
     "nguoidung": {
@@ -280,6 +280,35 @@ def build_plan(cursor, database: str) -> list[Operation]:
     add_column_if_missing(
         operations, tables, actual("SanPham"), "NguonTen", "VARCHAR(120) NULL"
     )
+    # Thuộc tính chuyên dụng cho vợt. Các cột đều nullable để dữ liệu sản phẩm
+    # cũ tiếp tục hoạt động và quản trị viên có thể bổ sung dần.
+    for column, definition in (
+        ("TrongLuongCan", "VARCHAR(32) NULL"),
+        ("LoiChoi", "VARCHAR(32) NULL"),
+        ("DiemCanBang", "VARCHAR(32) NULL"),
+        ("DoCungDua", "VARCHAR(32) NULL"),
+        ("LucCangToiDa", "TINYINT UNSIGNED NULL"),
+    ):
+        add_column_if_missing(operations, tables, actual("SanPham"), column, definition)
+
+    # Cấu hình cá nhân hóa phải đi cùng mặt hàng từ giỏ tới đơn, không lưu ở
+    # localStorage để tránh mất lựa chọn khi đổi thiết bị.
+    add_column_if_missing(
+        operations, tables, actual("GioHang"), "CauHinh", "LONGTEXT NULL"
+    )
+    add_column_if_missing(
+        operations, tables, actual("ChiTietDonHang"), "CauHinh", "LONGTEXT NULL"
+    )
+    add_column_if_missing(
+        operations, tables, actual("DonHang"), "MaThamChieu", "VARCHAR(64) NULL"
+    )
+    add_column_if_missing(
+        operations,
+        tables,
+        actual("DonHang"),
+        "TrangThaiThanhToan",
+        "VARCHAR(24) NOT NULL DEFAULT 'CHUA_THANH_TOAN'",
+    )
 
     if "schemamigration" not in tables:
         operations.append(
@@ -294,6 +323,26 @@ def build_plan(cursor, database: str) -> list[Operation]:
                     PRIMARY KEY (`Version`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                 """,
+            )
+        )
+
+    migration_recorded = False
+    if "schemamigration" in tables:
+        cursor.execute(
+            f"SELECT 1 FROM {migration_table_sql} WHERE `Version`=%s LIMIT 1",
+            (MIGRATION_VERSION,),
+        )
+        migration_recorded = cursor.fetchone() is not None
+
+    # Một số bản SQL cũ dùng ENUM chỉ gồm SO_DU/COD. Chuẩn hóa sang VARCHAR
+    # để nhận BANKING; API vẫn whitelist chặt các phương thức hợp lệ.
+    if not migration_recorded:
+        operations.append(
+            Operation(
+                "orders:payment-method-v8",
+                "Cho phép phương thức chuyển khoản VietQR",
+                f"ALTER TABLE {identifier(actual('DonHang'))} MODIFY COLUMN `PhuongThuc` "
+                "VARCHAR(24) NOT NULL DEFAULT 'COD'",
             )
         )
 
@@ -666,14 +715,7 @@ def build_plan(cursor, database: str) -> list[Operation]:
         # Các bản thử nghiệm từng dùng ENUM khác nhau. Chuyển ba trường mã sang
         # VARCHAR để dữ liệu hợp lệ do API kiểm soát không bị MariaDB từ chối.
         # Chỉ chạy một lần theo phiên bản migration để kế hoạch hội tụ.
-        support_v7_recorded = False
-        if "schemamigration" in tables:
-            cursor.execute(
-                f"SELECT 1 FROM {migration_table_sql} WHERE `Version`=%s LIMIT 1",
-                (MIGRATION_VERSION,),
-            )
-            support_v7_recorded = cursor.fetchone() is not None
-        if not support_v7_recorded:
+        if not migration_recorded:
             support_table_sql = identifier(actual("YeuCauHoTro"))
             operations.extend([
                 Operation(
@@ -719,6 +761,14 @@ def build_plan(cursor, database: str) -> list[Operation]:
         actual("DonHang"),
         "idx_donhang_status_date",
         "`TrangThai`, `NgayDat`",
+    )
+    add_index_if_missing(
+        operations,
+        indexes,
+        actual("DonHang"),
+        "uq_donhang_thamchieu",
+        "`MaThamChieu`",
+        unique=True,
     )
     add_index_if_missing(
         operations,
@@ -770,22 +820,13 @@ def build_plan(cursor, database: str) -> list[Operation]:
         "`MaND`, `NgayGD`",
     )
 
-    if "schemamigration" in tables:
-        cursor.execute(
-            f"SELECT 1 FROM {migration_table_sql} "
-            "WHERE `Version` = %s LIMIT 1",
-            (MIGRATION_VERSION,),
-        )
-        version_recorded = cursor.fetchone() is not None
-    else:
-        version_recorded = False
-    if not version_recorded:
+    if not migration_recorded:
         operations.append(
             Operation(
                 f"version:{MIGRATION_VERSION}",
                 f"Ghi nhận migration {MIGRATION_VERSION}",
                 f"INSERT IGNORE INTO {migration_table_sql} (`Version`, `Description`) "
-                f"VALUES ('{MIGRATION_VERSION}', 'Support schema compatibility for legacy MariaDB tables')",
+                f"VALUES ('{MIGRATION_VERSION}', 'Racket configuration, VietQR orders and product specifications')",
             )
         )
     return operations

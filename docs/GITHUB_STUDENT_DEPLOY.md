@@ -153,15 +153,18 @@ python -m unittest HA.smoke_test -v
 ```
 
 Lệnh đầu chỉ in kế hoạch; `--apply` mới ghi schema. Migration hiện tại là
-additive, tạo phiên đăng nhập, reset mật khẩu, yêu thích, dùng voucher, nội dung,
-nhật ký và phê duyệt quản trị mà không xóa dữ liệu bán hàng.
+`2026-09-06-racket-commerce-v8`, bổ sung cấu hình/thông số vợt, cấu hình từng
+mặt hàng trong giỏ và đơn, mã đối soát cùng trạng thái thanh toán VietQR. Đây là
+migration additive, không xóa dữ liệu bán hàng cũ.
 
 ## 8. Triển khai các lần sau
 
 1. Push code lên nhánh `main` và chờ workflow **CI** xanh.
 2. Vào **Actions > Deploy Alwaysdata > Run workflow**.
-3. Giữ `apply_migration` tắt nếu không có thay đổi database.
-4. Nếu CI báo có migration mới: sao lưu MySQL, chạy lại và bật tùy chọn đó.
+3. Với lần triển khai đầu tiên chứa bản `racket-commerce-v8`, hãy sao lưu MySQL
+   rồi bật `apply_migration`. Sau khi workflow xanh, các lần sau có thể tắt.
+4. Nếu CI báo có migration mới trong tương lai: sao lưu MySQL, chạy lại và bật
+   tùy chọn đó.
 5. Mở `https://haianh.alwaysdata.net/api/health`, sau đó thử đăng nhập, giỏ hàng,
    đặt đơn, admin và tải ảnh.
 

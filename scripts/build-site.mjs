@@ -5,7 +5,7 @@ const root = resolve(import.meta.dirname, "..");
 const dist = resolve(root, "dist");
 const client = resolve(dist, "client");
 const server = resolve(dist, "server");
-const allowedAssetExtensions = new Set([".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico"]);
+const allowedAssetExtensions = new Set([".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".svg"]);
 
 function encodePathSegment(name) {
   return encodeURIComponent(name);
@@ -26,6 +26,10 @@ for (const entry of rootEntries) {
   }
 }
 
+for (const publicFile of ["favicon.svg"]) {
+  await cp(resolve(root, publicFile), resolve(client, publicFile));
+}
+
 async function copyAssets(sourceDir, destinationDir) {
   const entries = await readdir(sourceDir, { withFileTypes: true });
   for (const entry of entries) {
@@ -43,6 +47,7 @@ async function copyAssets(sourceDir, destinationDir) {
 
 await copyAssets(resolve(root, "css"), resolve(client, "css"));
 await copyAssets(resolve(root, "HA"), resolve(client, "HA"));
+await copyAssets(resolve(root, "vendor"), resolve(client, "vendor"));
 
 const workerSource = `const worker = {
   async fetch(request, env) {

@@ -324,7 +324,12 @@
             const id = Number(order.MaDH);
             const idCell = element('td');
             idCell.appendChild(element('strong', '', `#${id}`));
-            row.append(idCell, element('td', '', formatDate(order.NgayDat)), element('td', '', paymentLabel(order.PhuongThuc)), element('td', '', formatMoney(order.TongTien)));
+            const paymentCell = element('td');
+            paymentCell.append(
+                element('strong', '', paymentLabel(order.PhuongThuc)),
+                element('span', '', order.TrangThaiThanhToan === 'DA_THANH_TOAN' ? 'Đã thanh toán' : order.TrangThaiThanhToan === 'DA_HUY' ? 'Đã hủy' : 'Chờ đối soát')
+            );
+            row.append(idCell, element('td', '', formatDate(order.NgayDat)), paymentCell, element('td', '', formatMoney(order.TongTien)));
             const statusCell = element('td');
             statusCell.appendChild(statusPill(order.TrangThai));
             row.appendChild(statusCell);
@@ -382,6 +387,7 @@
             [
                 ['Trạng thái', statusMeta[data.order.TrangThai]?.[0] || data.order.TrangThai],
                 ['Thanh toán', paymentLabel(data.order.PhuongThuc)],
+                ['Đối soát', data.order.TrangThaiThanhToan === 'DA_THANH_TOAN' ? 'Đã thanh toán' : data.order.TrangThaiThanhToan === 'DA_HUY' ? 'Đã hủy' : 'Chờ đối soát'],
                 ['Tổng tiền', formatMoney(data.order.TongTien)]
             ].forEach(([label, value]) => {
                 const item = element('div'); item.append(element('span', '', label), element('strong', '', value)); meta.appendChild(item);
@@ -399,9 +405,30 @@
                 image.loading = 'lazy';
                 const info = element('div');
                 info.append(element('strong', '', item.TenSP || `Sản phẩm #${item.MaSP}`), element('span', '', `Số lượng: ${item.SoLuong}`));
+                if (item.CauHinh && typeof item.CauHinh === 'object') {
+                    const labels = { KHONG_CANG: 'Chưa căng cước', YONEX_BG65: 'Yonex BG65', YONEX_BG65TI: 'Yonex BG65Ti', YONEX_NANOGY98: 'Yonex Nanogy 98', YONEX_AEROBITE: 'Yonex Aerobite', LINING_NO1: 'Lining No.1', QUAN_CAN_CAO_SU: 'Quấn cán cao su', TUI_CACH_NHIET: 'Túi cách nhiệt', HOP_CAU_LONG: 'Hộp cầu lông' };
+                    const config = element('span', 'cart-item-config');
+                    [item.CauHinh.weight_grip, labels[item.CauHinh.string] || item.CauHinh.string, item.CauHinh.tension_lbs ? `${item.CauHinh.tension_lbs} lbs` : '', ...(Array.isArray(item.CauHinh.addons) ? item.CauHinh.addons.map(code => labels[code] || code) : [])].filter(Boolean).forEach(value => config.appendChild(element('span', '', value)));
+                    info.appendChild(config);
+                }
                 product.append(image, info, element('strong', '', formatMoney(Number(item.GiaBan) * Number(item.SoLuong))));
                 content.appendChild(product);
             });
+            if (data.payment?.configured && data.payment.qr_url) {
+                const payment = element('section', 'order-bank-payment');
+                const qr = document.createElement('img'); qr.src = `${window.API_BASE || ''}${data.payment.qr_url}`; qr.alt = `VietQR đơn hàng #${orderId}`;
+                const copy = element('div');
+                copy.append(
+                    element('span', '', 'CHUYỂN KHOẢN ĐÚNG NỘI DUNG'),
+                    element('strong', '', `${data.payment.bank_name} · ${data.payment.account_name}`),
+                    element('span', '', 'Số tài khoản'), element('strong', '', data.payment.account_no),
+                    element('span', '', 'Số tiền'), element('strong', '', formatMoney(data.payment.amount)),
+                    element('span', '', 'Nội dung'), element('strong', '', data.payment.content)
+                );
+                const button = element('button', '', 'Sao chép nội dung chuyển khoản'); button.type = 'button';
+                button.addEventListener('click', async () => { try { await navigator.clipboard.writeText(data.payment.content); showToast('Đã sao chép nội dung chuyển khoản.', 'success'); } catch (_) { showToast(`Nội dung: ${data.payment.content}`, 'warning'); } });
+                copy.appendChild(button); payment.append(qr, copy); content.appendChild(payment);
+            }
         } catch (error) {
             content.innerHTML = '';
             content.append(element('h2', '', `Đơn hàng #${orderId}`), element('p', 'empty-state', error.message));

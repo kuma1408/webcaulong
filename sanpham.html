@@ -109,6 +109,11 @@
             height: 38px;
             border-radius: 6px;
         }
+        .filter-select {
+            width: 100%; min-height: 40px; margin-bottom: 8px; padding: 0 10px;
+            border: 1px solid var(--border-color); border-radius: 8px;
+            background: var(--input-bg); color: var(--text-color); font: inherit;
+        }
         .btn-filter-apply {
             width: 100%;
             padding: 10px;
@@ -171,7 +176,7 @@
             color: var(--primary-color);
         }
     </style>
-    <link rel="stylesheet" href="css/site-refresh.css?v=20260906-2">
+    <link rel="stylesheet" href="css/site-refresh.css?v=20260906-3">
 </head>
 <body>
     <div class="baotrang">
@@ -215,6 +220,14 @@
                         <button class="btn-filter-apply" onclick="applyFilters()">Áp dụng lọc</button>
                     </div>
                 </div>
+                <div class="filter-group" id="racketFilterGroup">
+                    <div class="filter-title">Thông số vợt</div>
+                    <select class="filter-select" id="filterWeight" aria-label="Lọc trọng lượng và cán"><option value="">Mọi trọng lượng / cán</option><option>3U-G5</option><option>4U-G5</option><option>4U-G6</option><option>5U-G5</option></select>
+                    <select class="filter-select" id="filterPlayStyle" aria-label="Lọc lối chơi"><option value="">Mọi lối chơi</option><option value="TAN_CONG">Tấn công</option><option value="CAN_BANG">Cân bằng</option><option value="PHONG_THU">Phòng thủ / tốc độ</option></select>
+                    <select class="filter-select" id="filterBalance" aria-label="Lọc điểm cân bằng"><option value="">Mọi điểm cân bằng</option><option value="NANG_DAU">Nặng đầu</option><option value="CAN_BANG">Cân bằng</option><option value="NHE_DAU">Nhẹ đầu</option></select>
+                    <select class="filter-select" id="filterStiffness" aria-label="Lọc độ cứng đũa"><option value="">Mọi độ cứng đũa</option><option value="MEM">Mềm</option><option value="TRUNG_BINH">Trung bình</option><option value="CUNG">Cứng</option></select>
+                    <button class="btn-filter-apply" type="button" onclick="resetFilters()">Xóa bộ lọc</button>
+                </div>
             </aside>
 
             <!-- Grid danh sách sản phẩm -->
@@ -224,11 +237,11 @@
                     <div>
                         <span style="font-size:14px; font-weight:600; margin-right:8px;">Sắp xếp:</span>
                         <select class="sort-select" id="sortSelect" onchange="applyFilters()">
+                            <option value="moi_nhat">Mới cập nhật</option>
                             <option value="ten_asc">Tên (A-Z)</option>
                             <option value="ten_desc">Tên (Z-A)</option>
                             <option value="gia_asc">Giá tăng dần</option>
                             <option value="gia_desc">Giá giảm dần</option>
-                            <option value="moi_nhat">Mới nhất</option>
                         </select>
                     </div>
                 </div>
@@ -247,7 +260,7 @@
     </div>
 
     <!-- Script điều hướng, layout và logic -->
-    <script src="css/auth.js?v=20260906-2"></script>
+    <script src="css/auth.js?v=20260906-3"></script>
     <script>
         // Bản đồ ảnh nền tương ứng cho từng danh mục
         const BANNER_BGS = {
@@ -295,8 +308,27 @@
                 isSale = true;
             }
 
+            // Giữ nguyên bộ lọc khi người dùng đi từ các gợi ý/lối chơi ở trang chủ
+            // hoặc chia sẻ URL. Chỉ nhận các giá trị thực sự có trong select để
+            // tránh trạng thái giao diện và truy vấn API không đồng nhất.
+            const queryFilterMap = {
+                trong_luong: 'filterWeight',
+                loi_choi: 'filterPlayStyle',
+                can_bang: 'filterBalance',
+                do_cung: 'filterStiffness',
+                sap_xep: 'sortSelect'
+            };
+            Object.entries(queryFilterMap).forEach(([queryKey, elementId]) => {
+                const value = params.get(queryKey);
+                const select = document.getElementById(elementId);
+                if (value && select && [...select.options].some(option => option.value === value)) {
+                    select.value = value;
+                }
+            });
+
             // Dựng banner
             setCategoryBanner();
+            document.getElementById('racketFilterGroup').hidden = Boolean(currentCategory && currentCategory !== 1);
 
             // Tải dữ liệu sản phẩm
             fetchCatalogProducts();
@@ -341,17 +373,20 @@
             const maxPrice = document.getElementById('priceMax').value || 999999999;
             const sortBy = document.getElementById('sortSelect').value;
 
-            // Xây dựng query string gọi Flask API
-            let url = `${API_BASE}/api/tim-kiem?trang=${currentPage}&sap_xep=${sortBy}&gia_min=${minPrice}&gia_max=${maxPrice}`;
-            if (currentCategory) {
-                url += `&danh_muc=${currentCategory}`;
-            }
-            if (currentSearchQuery) {
-                url += `&q=${encodeURIComponent(currentSearchQuery)}`;
-            }
-            if (isSale) {
-                url += '&sale=true';
-            }
+            // Lọc tại backend để tổng số và phân trang luôn chính xác.
+            const query = new URLSearchParams({ trang: currentPage, sap_xep: sortBy, gia_min: minPrice, gia_max: maxPrice });
+            if (currentCategory) query.set('danh_muc', currentCategory);
+            if (currentSearchQuery) query.set('q', currentSearchQuery);
+            if (isSale) query.set('sale', 'true');
+            if (checkedBrands.length) query.set('thuong_hieu', checkedBrands.join(','));
+            const specFilters = {
+                trong_luong: document.getElementById('filterWeight').value,
+                loi_choi: document.getElementById('filterPlayStyle').value,
+                can_bang: document.getElementById('filterBalance').value,
+                do_cung: document.getElementById('filterStiffness').value
+            };
+            Object.entries(specFilters).forEach(([key, value]) => { if (value) query.set(key, value); });
+            const url = `${API_BASE}/api/tim-kiem?${query}`;
 
             try {
                 const res = await fetch(url);
@@ -359,11 +394,6 @@
 
                 if (data.success && data.products.length > 0) {
                     let products = data.products;
-
-                    // Nếu có lọc theo hãng (client-side filter tiện lợi vì API chung không hỗ trợ lọc mảng hãng)
-                    if (checkedBrands.length > 0) {
-                        products = products.filter(p => checkedBrands.includes(p.ThuongHieu));
-                    }
 
                     if (products.length === 0) {
                         grid.innerHTML = '<div style="text-align:center;grid-column:1/-1;color:var(--text-muted);padding:40px;">Không có sản phẩm nào khớp với bộ lọc của bạn!</div>';
@@ -373,7 +403,7 @@
                     }
 
                     grid.innerHTML = '';
-                    countLabel.textContent = `Tìm thấy ${products.length} sản phẩm`;
+                    countLabel.textContent = `Tìm thấy ${Number(data.total || products.length)} sản phẩm`;
 
                     products.forEach(p => {
                         const productId = Number(p.MaSP);
@@ -399,7 +429,9 @@
                         if (saleActive) { const original = document.createElement('span'); original.className = 'original-price'; original.textContent = `${Number(p.GiaGoc).toLocaleString('vi-VN')} ₫`; priceStack.appendChild(original); }
                         const price = document.createElement('span'); price.className = 'price'; price.textContent = `${Number(p.GiaBan || 0).toLocaleString('vi-VN')} ₫`; priceStack.appendChild(price);
                         const rating = document.createElement('span'); rating.className = 'rating'; rating.textContent = `⭐ ${Number(p.DanhGiaTrungBinh || 5).toFixed(1)}`;
-                        priceRow.append(priceStack, rating); info.append(brand, title, priceRow); card.append(media, info);
+                        const specs = document.createElement('div'); specs.className = 'cart-item-config';
+                        [p.TrongLuongCan, p.LoiChoi && String(p.LoiChoi).replaceAll('_', ' '), p.DiemCanBang && String(p.DiemCanBang).replaceAll('_', ' ')].filter(Boolean).forEach(value => { const chip = document.createElement('span'); chip.textContent = value; specs.appendChild(chip); });
+                        priceRow.append(priceStack, rating); info.append(brand, title); if (specs.childElementCount) info.appendChild(specs); info.appendChild(priceRow); card.append(media, info);
                         grid.appendChild(card);
                     });
 
@@ -456,10 +488,18 @@
             fetchCatalogProducts();
         }
 
+        function resetFilters() {
+            document.querySelectorAll('#brandList input').forEach(input => { input.checked = false; });
+            ['priceMin','priceMax','filterWeight','filterPlayStyle','filterBalance','filterStiffness'].forEach(id => { document.getElementById(id).value = ''; });
+            document.getElementById('sortSelect').value = 'moi_nhat';
+            applyFilters();
+        }
+
         // Lắng nghe sự kiện click hãng để lọc ngay lập tức
         document.querySelectorAll('#brandList input').forEach(input => {
             input.addEventListener('change', applyFilters);
         });
+        document.querySelectorAll('#racketFilterGroup select').forEach(input => input.addEventListener('change', applyFilters));
 
         // Lắng nghe sự kiện đổi màu nền khi thay đổi theme
         window.addEventListener('themeChanged', () => {

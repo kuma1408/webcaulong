@@ -8,6 +8,24 @@
 
     const TOKEN_KEY = 'badminton_access_token';
     const THEME_KEY = 'badminton_theme';
+    const SPORT_ASSET_VERSION = '20260906-3';
+
+    function ensureSportDesignAssets() {
+        if (!document.querySelector('link[href*="css/sport-system.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = `css/sport-system.css?v=${SPORT_ASSET_VERSION}`;
+            document.head.appendChild(link);
+        }
+        if (!document.querySelector('script[src*="css/sport-fx.js"]')) {
+            const script = document.createElement('script');
+            script.src = `css/sport-fx.js?v=${SPORT_ASSET_VERSION}`;
+            script.defer = true;
+            document.head.appendChild(script);
+        }
+    }
+
+    ensureSportDesignAssets();
     const configuredBase = document.querySelector('meta[name="api-base"]')?.content?.trim();
     const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.protocol === 'file:';
 
@@ -462,7 +480,7 @@
             // Vẫn đổi giao diện nếu trình duyệt chặn lưu trữ cục bộ.
         }
         const themeColor = document.querySelector('meta[name="theme-color"]');
-        themeColor?.setAttribute('content', normalized === 'dark' ? '#160b08' : '#d9361e');
+        themeColor?.setAttribute('content', normalized === 'dark' ? '#090b10' : '#edf2f8');
         document.querySelectorAll('[data-theme-icon]').forEach((node) => {
             node.textContent = normalized === 'dark' ? '☀' : '☾';
         });
@@ -1121,7 +1139,8 @@
     window.AuthStore = { getToken, getApiHeaders, clear: clearSession };
 
     const preferredTheme = localStorage.getItem(THEME_KEY)
-        || (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        || localStorage.getItem('theme')
+        || 'dark';
     setTheme(preferredTheme);
 
     if (document.readyState === 'loading') {

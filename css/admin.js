@@ -17,6 +17,13 @@
         DANG_XU_LY: ['Đang xử lý', 'admin-badge--info'], DA_PHAN_HOI: ['Đã phản hồi', 'admin-badge--success'],
         DA_DONG: ['Đã đóng', 'admin-badge--success']
     };
+    const racketOptionNames = {
+        KHONG_CANG: 'Chưa căng cước', YONEX_BG65: 'Yonex BG65',
+        YONEX_BG65TI: 'Yonex BG65Ti', YONEX_NANOGY98: 'Yonex Nanogy 98',
+        YONEX_AEROBITE: 'Yonex Aerobite', LINING_NO1: 'Lining No.1',
+        QUAN_CAN_CAO_SU: 'Quấn cán cao su', TUI_CACH_NHIET: 'Túi cách nhiệt',
+        HOP_CAU_LONG: 'Hộp cầu lông'
+    };
     const state = {
         currentView: 'overview', loaded: new Set(), admin: null, categories: [],
         products: [], productPage: 1, productTotal: 0,
@@ -80,7 +87,7 @@
             return;
         }
         const started = performance.now();
-        const duration = 720;
+        const duration = 1200;
         const frame = (now) => {
             const progress = Math.min((now - started) / duration, 1);
             const eased = 1 - Math.pow(1 - progress, 3);
@@ -174,6 +181,13 @@
         tbody.appendChild(row);
     }
     function paymentLabel(value) { return { SO_DU: 'Số dư', COD: 'COD', BANKING: 'Chuyển khoản' }[value] || value || '—'; }
+    function paymentStatusLabel(value) { return { DA_THANH_TOAN: 'Đã thanh toán', CHO_THANH_TOAN: 'Chờ đối soát', DA_HUY: 'Đã hủy' }[value] || value || 'Chưa rõ'; }
+    function formatBytes(value) {
+        const bytes = Math.max(0, Number(value) || 0);
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+        return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+    }
 
     function activateView(view, reload = false) {
         if (!pageTitles[view]) return;
@@ -220,14 +234,19 @@
             $('#healthProducts').textContent = String(metrics.active_products || 0);
             $('#healthUsers').textContent = String(metrics.active_users || 0);
             $('#healthSupport').textContent = String(metrics.pending_support || 0);
+            $('#adminDatabaseSize').textContent = formatBytes(metrics.database_bytes);
+            animateMetric($('#adminStringingQueue'), metrics.pending_stringing);
+            animateMetric($('#adminActiveVouchers'), metrics.active_vouchers);
+            animateMetric($('#adminWishlistItems'), metrics.wishlist_items);
             updateNavBadge($('#navPendingOrders'), metrics.pending_orders);
             updateNavBadge($('#navPendingDeposits'), metrics.pending_deposits);
             updateNavBadge($('#navPendingSupport'), metrics.pending_support);
             renderTrend(data.trend || []);
             renderOrderStatus(data.order_status || []);
-            renderFunnel(metrics);
+            renderFunnel(data.funnel || {});
             renderRecentOrders(data.recent_orders || []);
             renderLowStock(data.low_stock_products || []);
+            renderActivity(data.activity || []);
             if(state.admin?.role==='superadmin'){
                 Auth.request('/api/admin/phe-duyet-thay-doi?status=CHO_XEM').then(result=>updateNavBadge($('#navPendingApprovals'),(result.changes||[]).length)).catch(()=>{});
             }
@@ -279,16 +298,17 @@
         if (!normalized.length) legend.appendChild(element('p', 'admin-empty', 'Chưa có đơn hàng.'));
     }
 
-    function renderFunnel(metrics) {
-        const total = Math.max(1, Number(metrics.orders) || 0);
-        const processing = Number(metrics.pending_orders) || 0;
-        const completed = Number(metrics.completed_orders) || 0;
-        const cancelled = Number(metrics.cancelled_orders) || 0;
-        [['#funnelOrders', metrics.orders], ['#funnelProcessing', processing], ['#funnelCompleted', completed], ['#funnelCancelled', cancelled]]
+    function renderFunnel(funnel) {
+        const users = Number(funnel.registered_users) || 0;
+        const carts = Number(funnel.users_with_cart) || 0;
+        const buyers = Number(funnel.buyers_30d) || 0;
+        const completed = Number(funnel.completed_orders_30d) || 0;
+        const base = Math.max(1, users);
+        [['#funnelUsers', users], ['#funnelCarts', carts], ['#funnelBuyers', buyers], ['#funnelCompleted30', completed]]
             .forEach(([selector, value]) => animateMetric($(selector), value));
-        $('#funnelProcessingBar').style.setProperty('--funnel-width', `${processing / total * 100}%`);
-        $('#funnelCompletedBar').style.setProperty('--funnel-width', `${completed / total * 100}%`);
-        $('#funnelCancelledBar').style.setProperty('--funnel-width', `${cancelled / total * 100}%`);
+        $('#funnelCartBar').style.setProperty('--funnel-width', `${Math.min(100, carts / base * 100)}%`);
+        $('#funnelBuyerBar').style.setProperty('--funnel-width', `${Math.min(100, buyers / base * 100)}%`);
+        $('#funnelCompleted30Bar').style.setProperty('--funnel-width', `${Math.min(100, completed / base * 100)}%`);
     }
 
     function updateNavBadge(node, value) {
@@ -323,6 +343,24 @@
             const info = element('div');
             info.append(element('strong', '', product.TenSP), element('span', '', `Mã sản phẩm #${product.MaSP}`));
             row.append(image, info, element('strong', 'admin-list-item__value', `Còn ${product.TonKho}`));
+            list.appendChild(row);
+        });
+    }
+
+    function renderActivity(items) {
+        const list = $('#adminLiveActivity');
+        list.innerHTML = '';
+        if (!items.length) { list.appendChild(element('p', 'admin-empty', 'Chưa có thao tác quản trị.')); return; }
+        items.forEach((item) => {
+            const row = element('div', 'admin-list-item');
+            const avatar = userAvatar(item); avatar.classList.add('admin-list-item__avatar');
+            const info = element('div');
+            const target = item.MaDoiTuong ? `${item.DoiTuong} #${item.MaDoiTuong}` : item.DoiTuong;
+            info.append(
+                element('strong', '', `${item.HanhDong} · ${target || 'Hệ thống'}`),
+                element('span', '', `${item.HoTen || item.TenDangNhap} · ${formatDate(item.NgayTao)}`)
+            );
+            row.append(avatar, info, element('strong', 'admin-list-item__value', 'LIVE'));
             list.appendChild(row);
         });
     }
@@ -397,7 +435,7 @@
         const price = element('div', 'admin-product-detail__price'); if (sale) price.appendChild(element('del', '', formatMoney(product.GiaGoc))); price.appendChild(element('strong', '', formatMoney(product.GiaBan))); if (sale) price.appendChild(element('span', '', `Giảm ${Math.round((1 - Number(product.GiaBan) / Number(product.GiaGoc)) * 100)}%`));
         heading.append(title, price); content.appendChild(heading);
         const facts = element('div', 'admin-product-facts');
-        [['Danh mục', product.TenDM || `#${product.MaDM}`], ['Tồn kho', `${product.TonKho ?? 0} sản phẩm`], ['Trạng thái', product.TrangThai ? 'Đang bán' : 'Đã ẩn'], ['Ảnh Swiper', `${images.length} ảnh`], ['Ngày tạo', formatDate(product.NgayTao)], ['Cập nhật', formatDate(product.NgayCapNhat)]].forEach(([label, value]) => { const fact = element('div'); fact.append(element('span', '', label), element('strong', '', value)); facts.appendChild(fact); });
+        [['Danh mục', product.TenDM || `#${product.MaDM}`], ['Tồn kho', `${product.TonKho ?? 0} sản phẩm`], ['Trạng thái', product.TrangThai ? 'Đang bán' : 'Đã ẩn'], ['Ảnh Swiper', `${images.length} ảnh`], ['Trọng lượng / cán', product.TrongLuongCan || 'Chưa khai báo'], ['Lối chơi', String(product.LoiChoi || 'Chưa khai báo').replaceAll('_', ' ')], ['Điểm cân bằng', String(product.DiemCanBang || 'Chưa khai báo').replaceAll('_', ' ')], ['Độ cứng đũa', String(product.DoCungDua || 'Chưa khai báo').replaceAll('_', ' ')], ['Lực căng tối đa', product.LucCangToiDa ? `${product.LucCangToiDa} lbs` : 'Chưa khai báo'], ['Ngày tạo', formatDate(product.NgayTao)], ['Cập nhật', formatDate(product.NgayCapNhat)]].forEach(([label, value]) => { const fact = element('div'); fact.append(element('span', '', label), element('strong', '', value)); facts.appendChild(fact); });
         content.appendChild(facts);
         const description = element('div', 'admin-product-description'); description.append(element('strong', '', 'Mô tả sản phẩm'), element('p', '', product.MoTa || 'Chưa có mô tả.')); content.appendChild(description);
         const source = element('div', 'admin-product-source'); source.appendChild(element('strong', '', 'Nguồn dữ liệu: ')); if (product.NguonURL) { const link = element('a', '', product.NguonTen || product.NguonURL); link.href = product.NguonURL; link.target = '_blank'; link.rel = 'noopener noreferrer'; source.appendChild(link); } else source.appendChild(document.createTextNode(product.NguonTen || 'Không có'));
@@ -423,6 +461,11 @@
         $('#productDetailImages').value = Array.isArray(product?.AnhChiTiet) ? product.AnhChiTiet.join('\n') : '';
         $('#productSourceName').value = product?.NguonTen || '';
         $('#productSourceUrl').value = product?.NguonURL || '';
+        $('#productWeightGrip').value = product?.TrongLuongCan || '';
+        $('#productPlayStyle').value = product?.LoiChoi || '';
+        $('#productBalance').value = product?.DiemCanBang || '';
+        $('#productStiffness').value = product?.DoCungDua || '';
+        $('#productMaxTension').value = product?.LucCangToiDa ?? '';
         $('#productDescription').value = product?.MoTa || '';
         $('#productActive').checked = product ? Boolean(product.TrangThai) : true;
         $('#productDetailUploadStatus').textContent = 'Có thể chọn nhiều ảnh, hệ thống sẽ tự nén và thêm vào Swiper.';
@@ -441,6 +484,9 @@
             image: $('#productImage').value.trim(), description: $('#productDescription').value.trim(),
             detail_images: $('#productDetailImages').value.split(/\r?\n|,/).map((value) => value.trim()).filter(Boolean),
             source_name: $('#productSourceName').value.trim(), source_url: $('#productSourceUrl').value.trim(),
+            weight_grip: $('#productWeightGrip').value, play_style: $('#productPlayStyle').value,
+            balance: $('#productBalance').value, stiffness: $('#productStiffness').value,
+            max_tension: $('#productMaxTension').value || null,
             active: $('#productActive').checked
         };
         if (payload.name.length < 3 || !payload.category_id || payload.price < 0 || payload.stock < 0) { setStatus($('#productFormStatus'), 'Vui lòng kiểm tra tên, danh mục, giá và tồn kho.'); return; }
@@ -490,9 +536,22 @@
             const row = element('tr');
             row.append(element('td', '', `#${order.MaDH}`));
             const userCell = element('td'); const user = element('div', 'admin-user-cell'); const avatar = userAvatar(order); const copy = element('div'); copy.append(element('strong','',order.HoTen || order.TenDangNhap),element('span','',`@${order.TenDangNhap}`)); user.append(avatar,copy); userCell.appendChild(user);
-            row.append(userCell, element('td','',formatDate(order.NgayDat)), element('td','',formatMoney(order.TongTien)), element('td','',paymentLabel(order.PhuongThuc)));
+            row.append(userCell, element('td','',formatDate(order.NgayDat)), element('td','',formatMoney(order.TongTien)));
+            const paymentCell = element('td');
+            paymentCell.append(
+                element('strong', '', paymentLabel(order.PhuongThuc)),
+                element('span', `admin-badge ${order.TrangThaiThanhToan === 'DA_THANH_TOAN' ? 'admin-badge--success' : order.TrangThaiThanhToan === 'DA_HUY' ? 'admin-badge--danger' : ''}`, paymentStatusLabel(order.TrangThaiThanhToan))
+            );
+            row.appendChild(paymentCell);
             const statusCell = element('td'); statusCell.appendChild(badge(order.TrangThai)); row.appendChild(statusCell);
             const actionCell = element('td'); const actions = element('div','admin-row-actions'); const transitions = allowedOrderTransitions(order.TrangThai);
+            if (order.PhuongThuc === 'BANKING' && order.TrangThai !== 'DA_HUY') {
+                const paid = order.TrangThaiThanhToan === 'DA_THANH_TOAN';
+                const paymentButton = element('button', paid ? '' : 'admin-primary', paid ? 'Hủy xác nhận tiền' : 'Xác nhận đã nhận tiền');
+                paymentButton.type = 'button';
+                paymentButton.addEventListener('click', () => updateOrderPayment(order, !paid, paymentButton));
+                actions.appendChild(paymentButton);
+            }
             if (transitions.length) {
                 const select = element('select'); const initial = element('option','','Chọn thao tác'); initial.value=''; select.appendChild(initial);
                 transitions.forEach(([value,label])=>{const option=element('option','',label);option.value=value;select.appendChild(option);});
@@ -505,7 +564,7 @@
             [['Mã đơn',`#${order.MaDH}`],['Khách hàng',`${order.HoTen||order.TenDangNhap} (@${order.TenDangNhap})`],['Liên hệ',`${order.SoDienThoai||'Chưa có SĐT'} · ${order.Email||'Chưa có email'}`],['Ngày đặt',formatDate(order.NgayDat)],['Cập nhật gần nhất',formatDate(order.NgayCapNhat)],['Thanh toán',paymentLabel(order.PhuongThuc)],['Trạng thái',statusMeta[order.TrangThai]?.[0]||order.TrangThai],['Tổng thanh toán',formatMoney(order.TongTien)]].forEach(([label,value])=>{const fact=element('div');fact.append(element('span','',label),element('strong','',value));summary.appendChild(fact);});detailPanel.appendChild(summary);
             const items=Array.isArray(order.SanPham)?order.SanPham:[];const productHeading=element('div','admin-order-section-title');productHeading.append(element('div','',`Sản phẩm trong đơn (${items.reduce((sum,item)=>sum+Number(item.SoLuong||0),0)})`),element('strong','',`${items.length} mặt hàng`));const list=element('div','admin-order-items');
             if(!items.length)list.appendChild(element('p','admin-empty','Đơn hàng chưa có dữ liệu sản phẩm.'));
-            items.forEach((item)=>{const card=element('div','admin-order-item');const image=document.createElement('img');image.src=safeImage(item.HinhAnh);image.alt=item.TenSP||`Sản phẩm #${item.MaSP}`;const info=element('div');info.append(element('strong','',item.TenSP||`Sản phẩm #${item.MaSP}`),element('span','',`${item.ThuongHieu||'Chưa có thương hiệu'} · #${item.MaSP} · ${item.TenDM||'Chưa có danh mục'}`),element('span','',`Số lượng: ${item.SoLuong} · Đơn giá lúc mua: ${formatMoney(item.GiaBan)}${item.TrangThaiSanPham===0?' · Sản phẩm hiện đã ẩn':''}`));const total=element('div','admin-order-item__total');total.append(element('small','','Thành tiền'),element('b','',formatMoney(Number(item.SoLuong)*Number(item.GiaBan))));card.append(image,info,total);list.appendChild(card);});
+            items.forEach((item)=>{const card=element('div','admin-order-item');const image=document.createElement('img');image.src=safeImage(item.HinhAnh);image.alt=item.TenSP||`Sản phẩm #${item.MaSP}`;const info=element('div');info.append(element('strong','',item.TenSP||`Sản phẩm #${item.MaSP}`),element('span','',`${item.ThuongHieu||'Chưa có thương hiệu'} · #${item.MaSP} · ${item.TenDM||'Chưa có danh mục'}`),element('span','',`Số lượng: ${item.SoLuong} · Đơn giá lúc mua: ${formatMoney(item.GiaBan)}${item.TrangThaiSanPham===0?' · Sản phẩm hiện đã ẩn':''}`));const config=item.CauHinh;if(config&&typeof config==='object'){const line=element('span','cart-item-config');[config.weight_grip,racketOptionNames[config.string]||config.string,config.tension_lbs?`${config.tension_lbs} lbs`:'',...(Array.isArray(config.addons)?config.addons.map(code=>racketOptionNames[code]||code):[])].filter(Boolean).forEach(value=>line.appendChild(element('span','',value)));info.appendChild(line);}const total=element('div','admin-order-item__total');total.append(element('small','','Thành tiền'),element('b','',formatMoney(Number(item.SoLuong)*Number(item.GiaBan))));card.append(image,info,total);list.appendChild(card);});
             const shipping=element('div','admin-order-shipping');shipping.append(element('strong','','Thông tin giao hàng'),element('p','',order.DiaChiGiao||'Chưa có địa chỉ'),element('span','',`Ghi chú: ${order.GhiChu||'Không có ghi chú'}`));
             const timeline=element('div','admin-order-timeline');timeline.appendChild(element('strong','','Lịch sử phê duyệt và xử lý'));const created=element('div','admin-order-timeline__item');created.append(element('i'),element('div','',`Đơn hàng được tạo · ${formatDate(order.NgayDat)}`));timeline.appendChild(created);(Array.isArray(order.LichSuXuLy)?order.LichSuXuLy:[]).forEach(event=>{const data=parsedObject(event.ChiTiet);const item=element('div','admin-order-timeline__item');const label=data.to?`Chuyển từ ${statusMeta[data.from]?.[0]||data.from||'—'} sang ${statusMeta[data.to]?.[0]||data.to}`:(actionLabels[event.HanhDong]||event.HanhDong);item.append(element('i'),element('div','',`${label} · ${formatDate(event.NgayTao)} · bởi @${event.TenDangNhap}`));timeline.appendChild(item);});
             detailPanel.append(productHeading,list,shipping,timeline);detailCell.appendChild(detailPanel);detailRow.appendChild(detailCell);tbody.appendChild(detailRow);
@@ -520,6 +579,40 @@
         select.disabled=true;
         try{const data=await Auth.request(`/api/admin/orders/${id}/status`,{method:'PATCH',json:{status:nextStatus}});showToast(data.message,'success');await loadOrders();loadDashboard();}
         catch(error){showToast(error.message,'error');select.value='';select.disabled=false;}
+    }
+
+    async function updateOrderPayment(order, paid, button) {
+        const action = paid ? 'xác nhận đã nhận đủ tiền' : 'đưa về trạng thái chờ đối soát';
+        if (!window.confirm(`Bạn chắc chắn muốn ${action} cho đơn #${order.MaDH}?`)) return;
+        setBusy(button, true, 'Đang lưu…');
+        try {
+            const data = await Auth.request(`/api/admin/orders/${order.MaDH}/payment`, { method: 'PATCH', json: { paid } });
+            showToast(data.message, 'success');
+            await loadOrders(); loadDashboard();
+        } catch (error) { showToast(error.message, 'error'); setBusy(button, false); }
+    }
+
+    async function exportOrders() {
+        const button = $('#exportOrders');
+        const params = new URLSearchParams({ q: $('#adminOrderQuery').value.trim(), status: $('#adminOrderStatus').value });
+        setBusy(button, true, 'Đang xuất…');
+        try {
+            const response = await fetch(`${window.API_BASE}/api/admin/orders/export.csv?${params}`, {
+                headers: { Authorization: `Bearer ${Auth.getToken()}` }
+            });
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}));
+                throw new Error(data.message || 'Không thể xuất đơn hàng.');
+            }
+            const blob = await response.blob();
+            const disposition = response.headers.get('Content-Disposition') || '';
+            const fileName = disposition.match(/filename="?([^";]+)"?/i)?.[1] || 'don-hang.csv';
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a'); link.href = url; link.download = fileName;
+            document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+            showToast('Đã xuất danh sách đơn hàng CSV.', 'success');
+        } catch (error) { showToast(error.message, 'error'); }
+        finally { setBusy(button, false); }
     }
 
     async function loadUsers() {
@@ -694,6 +787,7 @@
         $('#productDetailImageFiles').addEventListener('change',async(event)=>{const files=[...(event.target.files||[])];if(!files.length)return;const button=$('#uploadProductDetailImages');const status=$('#productDetailUploadStatus');button.disabled=true;const uploaded=[];try{for(let index=0;index<files.length;index+=1){status.textContent=`Đang tải ảnh ${index+1}/${files.length}…`;uploaded.push(await uploadAdminImage(files[index],'products',button,status));}const existing=$('#productDetailImages').value.trim();$('#productDetailImages').value=[existing,...uploaded].filter(Boolean).join('\n');renderProductMediaPreviews();status.textContent=`Đã thêm ${uploaded.length} ảnh vào Swiper.`;showToast(`Đã tải ${uploaded.length} ảnh chi tiết.`,'success');}catch(error){status.textContent=error.message;setStatus($('#productFormStatus'),error.message);}finally{button.disabled=false;event.target.value='';}});
         $('#productPrev').addEventListener('click',()=>{if(state.productPage>1){state.productPage-=1;loadProducts();}});$('#productNext').addEventListener('click',()=>{if(state.productPage*20<state.productTotal){state.productPage+=1;loadProducts();}});
         $('#orderSearch').addEventListener('submit',(event)=>{event.preventDefault();state.orderPage=1;loadOrders();});$('#adminOrderStatus').addEventListener('change',()=>{state.orderPage=1;loadOrders();});
+        $('#exportOrders').addEventListener('click', exportOrders);
         $('#adminOrderPrev').addEventListener('click',()=>{if(state.orderPage>1){state.orderPage-=1;loadOrders();}});$('#adminOrderNext').addEventListener('click',()=>{if(state.orderPage*20<state.orderTotal){state.orderPage+=1;loadOrders();}});
         $('#userSearch').addEventListener('submit',(event)=>{event.preventDefault();state.userPage=1;loadUsers();});$('#userRole').addEventListener('change',()=>{state.userPage=1;loadUsers();});$('#addUser').addEventListener('click',()=>openUserDialog());$('#userForm').addEventListener('submit',saveUser);
         $('#chooseUserAvatar').addEventListener('click',()=>$('#editUserAvatar').click());

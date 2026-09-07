@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import csv
 import os
 import re
 import secrets
@@ -30,7 +31,7 @@ from urllib.parse import quote, urlsplit
 import bleach
 import click
 import mysql.connector
-from flask import Flask, abort, g, jsonify, request, send_from_directory
+from flask import Flask, Response, abort, g, jsonify, request, send_from_directory
 from flask_cors import CORS
 from mysql.connector import IntegrityError
 from PIL import Image, ImageOps, UnidentifiedImageError
@@ -178,6 +179,104 @@ def bank_transfer_payload(amount: int | float = 0, reference: str = "") -> dict:
         "content": content,
         "qr_url": qr_url,
     }
+
+
+RACKET_WEIGHT_GRIPS = {"3U-G5", "4U-G5", "4U-G6", "5U-G5"}
+RACKET_STRINGS = {
+    "KHONG_CANG",
+    "YONEX_BG65",
+    "YONEX_BG65TI",
+    "YONEX_NANOGY98",
+    "YONEX_AEROBITE",
+    "LINING_NO1",
+}
+RACKET_ADDONS = {"QUAN_CAN_CAO_SU", "TUI_CACH_NHIET", "HOP_CAU_LONG"}
+PRODUCT_PLAY_STYLES = {"TAN_CONG", "CAN_BANG", "PHONG_THU"}
+PRODUCT_BALANCE_POINTS = {"NANG_DAU", "CAN_BANG", "NHE_DAU"}
+PRODUCT_SHAFT_STIFFNESS = {"MEM", "TRUNG_BINH", "CUNG"}
+
+
+def validate_racket_configuration(value) -> dict | None:
+    """Chuẩn hóa cấu hình vợt do client gửi; không tin mã tùy chọn tự do."""
+    if value in (None, "", {}):
+        return None
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise ValueError("Cấu hình vợt không đúng định dạng.") from exc
+    if not isinstance(value, dict):
+        raise ValueError("Cấu hình vợt không đúng định dạng.")
+
+    weight_grip = str(value.get("weight_grip", "")).strip().upper()
+    string_code = str(value.get("string", "KHONG_CANG")).strip().upper()
+    if weight_grip not in RACKET_WEIGHT_GRIPS:
+        raise ValueError("Phiên bản trọng lượng/tay cầm không hợp lệ.")
+    if string_code not in RACKET_STRINGS:
+        raise ValueError("Loại cước không hợp lệ.")
+
+    raw_addons = value.get("addons", [])
+    if not isinstance(raw_addons, list) or len(raw_addons) > len(RACKET_ADDONS):
+        raise ValueError("Danh sách phụ kiện không hợp lệ.")
+    addons = []
+    for item in raw_addons:
+        code = str(item).strip().upper()
+        if code not in RACKET_ADDONS:
+            raise ValueError("Phụ kiện đã chọn không hợp lệ.")
+        if code not in addons:
+            addons.append(code)
+
+    tension = None
+    if string_code != "KHONG_CANG":
+        try:
+            tension = int(value.get("tension_lbs"))
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Mức căng cước phải từ 21 đến 30 lbs.") from exc
+        if tension < 21 or tension > 30:
+            raise ValueError("Mức căng cước phải từ 21 đến 30 lbs.")
+
+    return {
+        "weight_grip": weight_grip,
+        "string": string_code,
+        "tension_lbs": tension,
+        "addons": addons,
+    }
+
+
+def stored_racket_configuration(value) -> dict | None:
+    """Đọc cấu hình cũ an toàn; dữ liệu lỗi không làm hỏng cả đơn hàng."""
+    try:
+        return validate_racket_configuration(value)
+    except ValueError:
+        return None
+
+
+def validated_product_specs(data: dict) -> dict:
+    """Đọc thuộc tính vợt từ biểu mẫu admin với whitelist cố định."""
+    specs = {
+        "weight_grip": str(data.get("weight_grip", "")).strip().upper() or None,
+        "play_style": str(data.get("play_style", "")).strip().upper() or None,
+        "balance": str(data.get("balance", "")).strip().upper() or None,
+        "stiffness": str(data.get("stiffness", "")).strip().upper() or None,
+        "max_tension": None,
+    }
+    if specs["weight_grip"] not in RACKET_WEIGHT_GRIPS | {None}:
+        raise ValueError("Thông số trọng lượng/tay cầm không hợp lệ.")
+    if specs["play_style"] not in PRODUCT_PLAY_STYLES | {None}:
+        raise ValueError("Lối chơi không hợp lệ.")
+    if specs["balance"] not in PRODUCT_BALANCE_POINTS | {None}:
+        raise ValueError("Điểm cân bằng không hợp lệ.")
+    if specs["stiffness"] not in PRODUCT_SHAFT_STIFFNESS | {None}:
+        raise ValueError("Độ cứng đũa không hợp lệ.")
+    raw_tension = data.get("max_tension")
+    if raw_tension not in (None, ""):
+        try:
+            specs["max_tension"] = int(raw_tension)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Lực căng tối đa phải là số nguyên.") from exc
+        if specs["max_tension"] < 18 or specs["max_tension"] > 40:
+            raise ValueError("Lực căng tối đa phải từ 18 đến 40 lbs.")
+    return specs
 
 RICH_TEXT_TAGS = {
     "p", "br", "ul", "ol", "li", "strong", "b", "em", "i", "u",
@@ -1701,16 +1800,33 @@ def add_to_cart():
     quantity = clamp_int(data.get("so_luong"), 1, 1, 99)
     if not product_id:
         return api_error("Sản phẩm không hợp lệ.")
+    try:
+        configuration = validate_racket_configuration(data.get("cau_hinh"))
+    except ValueError as error:
+        return api_error(str(error), 400, "invalid_racket_configuration")
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
-        cursor.execute("SELECT TonKho, TrangThai FROM SanPham WHERE MaSP = %s", (product_id,))
+        cursor.execute(
+            """SELECT sp.TonKho, sp.TrangThai, sp.MaDM, dm.TenDM
+               FROM SanPham sp LEFT JOIN DanhMuc dm ON dm.MaDM=sp.MaDM
+               WHERE sp.MaSP=%s""",
+            (product_id,),
+        )
         product = cursor.fetchone()
         if not product or not product["TrangThai"]:
             return api_error("Sản phẩm không tồn tại hoặc đang tạm ẩn.", 404, "product_not_found")
+        category_name = normalize_search_text(product.get("TenDM"))
+        is_racket = int(product.get("MaDM") or 0) == 1 or category_name == "vot cau long"
+        if configuration and not is_racket:
+            return api_error(
+                "Chỉ sản phẩm vợt mới nhận cấu hình trọng lượng và căng cước.",
+                400,
+                "configuration_not_supported",
+            )
         cursor.execute(
-            "SELECT SoLuong FROM GioHang WHERE MaND = %s AND MaSP = %s",
+            "SELECT SoLuong, CauHinh FROM GioHang WHERE MaND = %s AND MaSP = %s",
             (g.current_user["MaND"], product_id),
         )
         current = cursor.fetchone()
@@ -1719,11 +1835,18 @@ def add_to_cart():
             return api_error("Số lượng trong giỏ vượt quá tồn kho.", 409, "insufficient_stock")
         cursor.execute(
             """
-            INSERT INTO GioHang (MaND, MaSP, SoLuong)
-            VALUES (%s, %s, %s)
-            ON DUPLICATE KEY UPDATE SoLuong = VALUES(SoLuong)
+            INSERT INTO GioHang (MaND, MaSP, SoLuong, CauHinh)
+            VALUES (%s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                SoLuong = VALUES(SoLuong),
+                CauHinh = COALESCE(VALUES(CauHinh), CauHinh)
             """,
-            (g.current_user["MaND"], product_id, desired),
+            (
+                g.current_user["MaND"],
+                product_id,
+                desired,
+                json.dumps(configuration, ensure_ascii=False) if configuration else None,
+            ),
         )
         conn.commit()
         return jsonify({"success": True, "message": "Đã thêm sản phẩm vào giỏ hàng.", "quantity": desired})
@@ -1775,7 +1898,7 @@ def view_cart():
         cursor.execute(
             """
             SELECT g.MaSP, sp.TenSP, sp.GiaBan, sp.HinhAnh, sp.TonKho,
-                   g.SoLuong, (sp.GiaBan * g.SoLuong) AS ThanhTien
+                   g.SoLuong, g.CauHinh, (sp.GiaBan * g.SoLuong) AS ThanhTien
             FROM GioHang g
             JOIN SanPham sp ON sp.MaSP = g.MaSP
             WHERE g.MaND = %s AND sp.TrangThai = 1
@@ -1783,7 +1906,11 @@ def view_cart():
             """,
             (g.current_user["MaND"],),
         )
-        items = [serialize_row(row) for row in cursor.fetchall()]
+        items = []
+        for row in cursor.fetchall():
+            item = serialize_row(row)
+            item["CauHinh"] = stored_racket_configuration(row.get("CauHinh"))
+            items.append(item)
         total = sum(Decimal(str(item["ThanhTien"])) for item in items)
         return jsonify({"success": True, "items": items, "total": float(total)})
     finally:
@@ -1983,8 +2110,14 @@ def checkout():
     payment_method = str(data.get("phuong_thuc", "SO_DU")).upper()
     if len(address) < 8 or len(address) > 500:
         return api_error("Vui lòng nhập địa chỉ giao hàng đầy đủ.")
-    if payment_method not in {"SO_DU", "COD"}:
+    if payment_method not in {"SO_DU", "COD", "BANKING"}:
         return api_error("Phương thức thanh toán chưa được hỗ trợ.")
+    if payment_method == "BANKING" and not bank_transfer_configured():
+        return api_error(
+            "Cửa hàng chưa cấu hình tài khoản nhận VietQR.",
+            503,
+            "bank_transfer_unavailable",
+        )
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -1994,7 +2127,7 @@ def checkout():
         user = cursor.fetchone()
         cursor.execute(
             """
-            SELECT g.MaSP, sp.TenSP, sp.GiaBan, g.SoLuong, sp.TonKho
+            SELECT g.MaSP, sp.TenSP, sp.GiaBan, g.SoLuong, g.CauHinh, sp.TonKho
             FROM GioHang g JOIN SanPham sp ON sp.MaSP = g.MaSP
             WHERE g.MaND = %s AND sp.TrangThai = 1
             ORDER BY g.MaSP FOR UPDATE
@@ -2024,16 +2157,37 @@ def checkout():
 
         cursor.execute(
             """
-            INSERT INTO DonHang (MaND, TongTien, DiaChiGiao, GhiChu, TrangThai, PhuongThuc)
-            VALUES (%s, %s, %s, %s, 'CHO_XAC_NHAN', %s)
+            INSERT INTO DonHang
+                (MaND, TongTien, DiaChiGiao, GhiChu, TrangThai, PhuongThuc, TrangThaiThanhToan)
+            VALUES (%s, %s, %s, %s, 'CHO_XAC_NHAN', %s, %s)
             """,
-            (g.current_user["MaND"], total, address, note or None, payment_method),
+            (
+                g.current_user["MaND"],
+                total,
+                address,
+                note or None,
+                payment_method,
+                "DA_THANH_TOAN" if payment_method == "SO_DU" else "CHO_THANH_TOAN",
+            ),
         )
         order_id = cursor.lastrowid
+        order_reference = f"DH{order_id}"
+        cursor.execute(
+            "UPDATE DonHang SET MaThamChieu=%s WHERE MaDH=%s",
+            (order_reference, order_id),
+        )
         for item in items:
             cursor.execute(
-                "INSERT INTO ChiTietDonHang (MaDH, MaSP, SoLuong, GiaBan) VALUES (%s, %s, %s, %s)",
-                (order_id, item["MaSP"], item["SoLuong"], item["GiaBan"]),
+                """INSERT INTO ChiTietDonHang
+                       (MaDH, MaSP, SoLuong, GiaBan, CauHinh)
+                   VALUES (%s, %s, %s, %s, %s)""",
+                (
+                    order_id,
+                    item["MaSP"],
+                    item["SoLuong"],
+                    item["GiaBan"],
+                    item.get("CauHinh"),
+                ),
             )
             cursor.execute(
                 """
@@ -2063,16 +2217,19 @@ def checkout():
             )
         cursor.execute("DELETE FROM GioHang WHERE MaND = %s", (g.current_user["MaND"],))
         conn.commit()
-        return jsonify(
-            {
-                "success": True,
-                "message": f"Đặt hàng thành công. Mã đơn #{order_id}.",
-                "ma_don_hang": order_id,
-                "subtotal": float(subtotal),
-                "discount": float(discount),
-                "tong_tien": float(total),
-            }
-        )
+        response = {
+            "success": True,
+            "message": f"Đặt hàng thành công. Mã đơn #{order_id}.",
+            "ma_don_hang": order_id,
+            "ma_tham_chieu": order_reference,
+            "trang_thai_thanh_toan": "DA_THANH_TOAN" if payment_method == "SO_DU" else "CHO_THANH_TOAN",
+            "subtotal": float(subtotal),
+            "discount": float(discount),
+            "tong_tien": float(total),
+        }
+        if payment_method == "BANKING":
+            response["payment"] = bank_transfer_payload(float(total), order_reference)
+        return jsonify(response)
     except Exception:
         conn.rollback()
         app.logger.exception("Lỗi thanh toán")
@@ -2095,6 +2252,7 @@ def order_history():
         cursor.execute(
             """
             SELECT dh.MaDH, dh.TongTien, dh.TrangThai, dh.PhuongThuc,
+                   dh.MaThamChieu, dh.TrangThaiThanhToan,
                    dh.NgayDat, dh.DiaChiGiao, COUNT(ct.MaSP) AS SoLoaiSP
             FROM DonHang dh
             LEFT JOIN ChiTietDonHang ct ON ct.MaDH = dh.MaDH
@@ -2128,15 +2286,24 @@ def order_detail(order_id):
             return api_error("Không tìm thấy đơn hàng.", 404, "order_not_found")
         cursor.execute(
             """
-            SELECT ct.MaSP, ct.SoLuong, ct.GiaBan, sp.TenSP, sp.HinhAnh
+            SELECT ct.MaSP, ct.SoLuong, ct.GiaBan, ct.CauHinh, sp.TenSP, sp.HinhAnh
             FROM ChiTietDonHang ct LEFT JOIN SanPham sp ON sp.MaSP = ct.MaSP
             WHERE ct.MaDH = %s
             """,
             (order_id,),
         )
-        return jsonify(
-            {"success": True, "order": serialize_row(order), "items": [serialize_row(row) for row in cursor.fetchall()]}
-        )
+        items = []
+        for row in cursor.fetchall():
+            item = serialize_row(row)
+            item["CauHinh"] = stored_racket_configuration(row.get("CauHinh"))
+            items.append(item)
+        payload = {"success": True, "order": serialize_row(order), "items": items}
+        if order.get("PhuongThuc") == "BANKING" and order.get("TrangThaiThanhToan") != "DA_THANH_TOAN":
+            payload["payment"] = bank_transfer_payload(
+                order.get("TongTien") or 0,
+                order.get("MaThamChieu") or f"DH{order_id}",
+            )
+        return jsonify(payload)
     finally:
         cursor.close()
         conn.close()
@@ -2178,6 +2345,10 @@ def cancel_order_transaction(cursor, order_id: int, owner_id: int | None = None)
             "INSERT INTO LichSuGiaoDich (MaND, LoaiGiaoDich, SoTien, MoTa) VALUES (%s, 'HOAN_TIEN', %s, %s)",
             (order["MaND"], order["TongTien"], f"Hoàn tiền đơn hàng #{order_id}"),
         )
+    cursor.execute(
+        "UPDATE DonHang SET TrangThaiThanhToan='DA_HUY' WHERE MaDH=%s",
+        (order_id,),
+    )
     return order, ""
 
 
@@ -2212,7 +2383,13 @@ def confirm_received():
     try:
         cursor.execute(
             """
-            UPDATE DonHang SET TrangThai = 'HOAN_THANH', NgayCapNhat = NOW()
+            UPDATE DonHang
+            SET TrangThai = 'HOAN_THANH',
+                TrangThaiThanhToan = CASE
+                    WHEN PhuongThuc='COD' THEN 'DA_THANH_TOAN'
+                    ELSE TrangThaiThanhToan
+                END,
+                NgayCapNhat = NOW()
             WHERE MaDH = %s AND MaND = %s AND TrangThai = 'DANG_GIAO'
             """,
             (order_id, g.current_user["MaND"]),
@@ -2310,16 +2487,21 @@ def search_products():
     category = request.args.get("danh_muc", "").strip()
     min_price = max(0, request.args.get("gia_min", 0, type=float))
     max_price = max(min_price, request.args.get("gia_max", 999_999_999, type=float))
-    sort = request.args.get("sap_xep", "phu_hop")
+    sort = request.args.get("sap_xep", "moi_nhat")
     page = clamp_int(request.args.get("trang"), 1, 1, 100000)
     limit = clamp_int(request.args.get("limit"), 20, 1, 50)
     sale_only = str(request.args.get("sale", "")).lower() in {"1", "true", "yes"}
+    brands = [value.strip().lower() for value in request.args.get("thuong_hieu", "").split(",") if value.strip()][:12]
+    weight_grip = request.args.get("trong_luong", "").strip().upper()
+    play_style = request.args.get("loi_choi", "").strip().upper()
+    balance = request.args.get("can_bang", "").strip().upper()
+    stiffness = request.args.get("do_cung", "").strip().upper()
     order_map = {
         "ten_asc": "sp.TenSP ASC",
         "ten_desc": "sp.TenSP DESC",
         "gia_asc": "sp.GiaBan ASC",
         "gia_desc": "sp.GiaBan DESC",
-        "moi_nhat": "sp.NgayTao DESC",
+        "moi_nhat": "COALESCE(sp.NgayCapNhat, sp.NgayTao) DESC, sp.MaSP DESC",
     }
     where = ["sp.GiaBan BETWEEN %s AND %s", "sp.TrangThai = 1"]
     params = [min_price, max_price]
@@ -2332,6 +2514,21 @@ def search_products():
             params.extend([category, category])
     if sale_only:
         where.append("sp.GiaGoc IS NOT NULL AND sp.GiaGoc > sp.GiaBan")
+    if brands:
+        where.append(f"LOWER(sp.ThuongHieu) IN ({','.join(['%s'] * len(brands))})")
+        params.extend(brands)
+    if weight_grip in RACKET_WEIGHT_GRIPS:
+        where.append("sp.TrongLuongCan=%s")
+        params.append(weight_grip)
+    if play_style in PRODUCT_PLAY_STYLES:
+        where.append("sp.LoiChoi=%s")
+        params.append(play_style)
+    if balance in PRODUCT_BALANCE_POINTS:
+        where.append("sp.DiemCanBang=%s")
+        params.append(balance)
+    if stiffness in PRODUCT_SHAFT_STIFFNESS:
+        where.append("sp.DoCungDua=%s")
+        params.append(stiffness)
     where_sql = " AND ".join(where)
     offset = (page - 1) * limit
     conn = get_db_connection()
@@ -2383,7 +2580,7 @@ def search_products():
             f"""
             SELECT sp.*, dm.TenDM FROM SanPham sp
             LEFT JOIN DanhMuc dm ON dm.MaDM = sp.MaDM
-            WHERE {where_sql} ORDER BY {order_map.get(sort, order_map['ten_asc'])}
+            WHERE {where_sql} ORDER BY {order_map.get(sort, order_map['moi_nhat'])}
             LIMIT %s OFFSET %s
             """,
             params + [limit, offset],
@@ -2681,6 +2878,50 @@ def admin_dashboard():
             "SELECT MaSP, TenSP, TonKho, HinhAnh FROM SanPham WHERE TrangThai = 1 AND TonKho <= 5 ORDER BY TonKho ASC LIMIT 8"
         )
         low_stock = [serialize_row(row) for row in cursor.fetchall()]
+        cursor.execute(
+            """SELECT COUNT(DISTINCT MaND) AS NguoiCoGio,
+                      COALESCE(SUM(SoLuong), 0) AS SanPhamTrongGio
+               FROM GioHang"""
+        )
+        carts = cursor.fetchone()
+        cursor.execute("SELECT COUNT(*) AS Tong FROM YeuThich")
+        wishlist_count = int(cursor.fetchone().get("Tong") or 0)
+        cursor.execute(
+            """SELECT COUNT(*) AS Tong FROM Voucher
+               WHERE TrangThai=1 AND DaSuDung < SoLuong
+                 AND (NgayBatDau IS NULL OR NgayBatDau <= NOW())
+                 AND (NgayHetHan IS NULL OR NgayHetHan >= NOW())"""
+        )
+        active_vouchers = int(cursor.fetchone().get("Tong") or 0)
+        cursor.execute(
+            """SELECT COUNT(*) AS Tong
+               FROM ChiTietDonHang ct JOIN DonHang dh ON dh.MaDH=ct.MaDH
+               WHERE dh.TrangThai IN ('CHO_XAC_NHAN','DANG_GIAO')
+                 AND ct.CauHinh IS NOT NULL
+                 AND ct.CauHinh NOT LIKE '%KHONG_CANG%'"""
+        )
+        pending_stringing = int(cursor.fetchone().get("Tong") or 0)
+        cursor.execute(
+            """SELECT COALESCE(SUM(DATA_LENGTH + INDEX_LENGTH), 0) AS Bytes
+               FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=%s""",
+            (DB_CONFIG["database"],),
+        )
+        database_bytes = int(cursor.fetchone().get("Bytes") or 0)
+        cursor.execute(
+            """SELECT COUNT(DISTINCT MaND) AS NguoiMua,
+                      COUNT(*) AS DonHoanThanh
+               FROM DonHang
+               WHERE NgayDat >= CURDATE() - INTERVAL 30 DAY
+                 AND TrangThai='HOAN_THANH'"""
+        )
+        buyers = cursor.fetchone()
+        cursor.execute(
+            """SELECT nk.HanhDong, nk.DoiTuong, nk.MaDoiTuong, nk.ChiTiet,
+                      nk.NgayTao, nd.TenDangNhap, nd.HoTen, nd.Avatar
+               FROM NhatKyQuanTri nk JOIN NguoiDung nd ON nd.MaND=nk.MaND
+               ORDER BY nk.NgayTao DESC LIMIT 10"""
+        )
+        activity = [serialize_row(row) for row in cursor.fetchall()]
         return jsonify(
             {
                 "success": True,
@@ -2702,11 +2943,24 @@ def admin_dashboard():
                     "out_of_stock": int(stock.get("HetHang") or 0),
                     "pending_deposits": int(deposits.get("ChoDuyet") or 0),
                     "pending_support": int(support.get("ChoXuLy") or 0),
+                    "cart_users": int(carts.get("NguoiCoGio") or 0),
+                    "cart_items": int(carts.get("SanPhamTrongGio") or 0),
+                    "wishlist_items": wishlist_count,
+                    "active_vouchers": active_vouchers,
+                    "pending_stringing": pending_stringing,
+                    "database_bytes": database_bytes,
                 },
                 "trend": trend,
                 "order_status": order_status,
+                "funnel": {
+                    "registered_users": int(users.get("TongUser") or 0),
+                    "users_with_cart": int(carts.get("NguoiCoGio") or 0),
+                    "buyers_30d": int(buyers.get("NguoiMua") or 0),
+                    "completed_orders_30d": int(buyers.get("DonHoanThanh") or 0),
+                },
                 "recent_orders": recent,
                 "low_stock_products": low_stock,
+                "activity": activity,
             }
         )
     finally:
@@ -2763,6 +3017,10 @@ def admin_products():
     original_price = decimal_number(data.get("original_price"))
     stock = clamp_int(data.get("stock"), 0, 0, 1_000_000)
     active = data.get("active", True)
+    try:
+        specs = validated_product_specs(data)
+    except ValueError as error:
+        return api_error(str(error), 400, "invalid_product_specs")
     if (
         len(name) < 3
         or len(name) > 200
@@ -2781,8 +3039,10 @@ def admin_products():
         cursor.execute(
             """
             INSERT INTO SanPham
-                (MaDM, TenSP, MoTa, GiaBan, GiaGoc, TonKho, HinhAnh, ThuongHieu, AnhChiTiet, TrangThai, NguonURL, NguonTen)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (MaDM, TenSP, MoTa, GiaBan, GiaGoc, TonKho, HinhAnh, ThuongHieu,
+                 AnhChiTiet, TrangThai, NguonURL, NguonTen, TrongLuongCan,
+                 LoiChoi, DiemCanBang, DoCungDua, LucCangToiDa)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 category_id,
@@ -2797,6 +3057,11 @@ def admin_products():
                 1 if active else 0,
                 normalize_public_url(data.get("source_url"), allow_relative=False, max_length=700),
                 str(data.get("source_name", "")).strip()[:120] or None,
+                specs["weight_grip"],
+                specs["play_style"],
+                specs["balance"],
+                specs["stiffness"],
+                specs["max_tension"],
             ),
         )
         product_id = cursor.lastrowid
@@ -2836,6 +3101,10 @@ def admin_update_product(product_id):
             conn.close()
 
     data = body_json()
+    try:
+        provided_specs = validated_product_specs(data)
+    except ValueError as error:
+        return api_error(str(error), 400, "invalid_product_specs")
     mapping = {
         "name": ("TenSP", lambda value: str(value).strip()[:200]),
         "category_id": ("MaDM", lambda value: clamp_int(value, 0, 0, 2_000_000_000)),
@@ -2849,6 +3118,11 @@ def admin_update_product(product_id):
         "detail_images": ("AnhChiTiet", lambda value: json.dumps(normalized_image_list(value), ensure_ascii=False)),
         "source_url": ("NguonURL", lambda value: normalize_public_url(value, allow_relative=False, max_length=700)),
         "source_name": ("NguonTen", lambda value: str(value).strip()[:120] or None),
+        "weight_grip": ("TrongLuongCan", lambda _value: provided_specs["weight_grip"]),
+        "play_style": ("LoiChoi", lambda _value: provided_specs["play_style"]),
+        "balance": ("DiemCanBang", lambda _value: provided_specs["balance"]),
+        "stiffness": ("DoCungDua", lambda _value: provided_specs["stiffness"]),
+        "max_tension": ("LucCangToiDa", lambda _value: provided_specs["max_tension"]),
     }
     updates = []
     values = []
@@ -2943,7 +3217,7 @@ def admin_orders():
         if order_ids:
             placeholders = ",".join(["%s"] * len(order_ids))
             cursor.execute(
-                f"""SELECT ct.MaDH,ct.MaSP,ct.SoLuong,ct.GiaBan,sp.TenSP,sp.HinhAnh,
+                f"""SELECT ct.MaDH,ct.MaSP,ct.SoLuong,ct.GiaBan,ct.CauHinh,sp.TenSP,sp.HinhAnh,
                            sp.ThuongHieu,sp.GiaGoc,sp.TrangThai AS TrangThaiSanPham,
                            sp.MaDM,dm.TenDM
                 FROM ChiTietDonHang ct
@@ -2953,8 +3227,10 @@ def admin_orders():
                 order_ids,
             )
             items_by_order = {}
-            for item in cursor.fetchall():
-                items_by_order.setdefault(item["MaDH"], []).append(serialize_row(item))
+            for item_row in cursor.fetchall():
+                item = serialize_row(item_row)
+                item["CauHinh"] = stored_racket_configuration(item_row.get("CauHinh"))
+                items_by_order.setdefault(item["MaDH"], []).append(item)
             for order in orders:
                 order["SanPham"] = items_by_order.get(order["MaDH"], [])
             cursor.execute(
@@ -3006,6 +3282,17 @@ def admin_update_order(order_id):
         if new_status not in allowed.get(order["TrangThai"], set()):
             conn.rollback()
             return api_error("Không thể chuyển sang trạng thái này.", 409, "invalid_order_transition")
+        if (
+            new_status == "DANG_GIAO"
+            and order.get("PhuongThuc") == "BANKING"
+            and order.get("TrangThaiThanhToan") != "DA_THANH_TOAN"
+        ):
+            conn.rollback()
+            return api_error(
+                "Hãy đối soát và xác nhận chuyển khoản trước khi giao đơn.",
+                409,
+                "payment_not_confirmed",
+            )
         if new_status == "DA_HUY":
             _, error = cancel_order_transaction(cursor, order_id)
             if error:
@@ -3016,6 +3303,11 @@ def admin_update_order(order_id):
                 "UPDATE DonHang SET TrangThai = %s, NgayCapNhat = NOW() WHERE MaDH = %s",
                 (new_status, order_id),
             )
+            if new_status == "HOAN_THANH" and order.get("PhuongThuc") == "COD":
+                cursor.execute(
+                    "UPDATE DonHang SET TrangThaiThanhToan='DA_THANH_TOAN' WHERE MaDH=%s",
+                    (order_id,),
+                )
         audit_admin(cursor, "STATUS", "DonHang", order_id, {"from": order["TrangThai"], "to": new_status})
         conn.commit()
         return jsonify({"success": True, "message": "Đã cập nhật trạng thái đơn hàng."})
@@ -3337,6 +3629,107 @@ def admin_support_requests():
             503,
             "support_schema_unavailable",
         )
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.get("/api/admin/orders/export.csv")
+@admin_required
+def admin_export_orders():
+    """Xuất tối đa 10.000 đơn theo bộ lọc hiện tại, tương thích Excel UTF-8."""
+    status = request.args.get("status", "all")
+    keyword = request.args.get("q", "").strip()[:100]
+    where = ["(nd.TenDangNhap LIKE %s OR nd.HoTen LIKE %s OR CAST(dh.MaDH AS CHAR) LIKE %s)"]
+    params = [f"%{keyword}%", f"%{keyword}%", f"%{keyword}%"]
+    if status in ORDER_STATES:
+        where.append("dh.TrangThai=%s")
+        params.append(status)
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            f"""SELECT dh.MaDH, dh.NgayDat, nd.TenDangNhap, nd.HoTen,
+                       nd.Email, nd.SoDienThoai, dh.TongTien, dh.PhuongThuc,
+                       dh.MaThamChieu, dh.TrangThaiThanhToan, dh.TrangThai,
+                       dh.DiaChiGiao, dh.GhiChu
+                FROM DonHang dh JOIN NguoiDung nd ON nd.MaND=dh.MaND
+                WHERE {' AND '.join(where)}
+                ORDER BY dh.NgayDat DESC LIMIT 10000""",
+            params,
+        )
+        output = io.StringIO(newline="")
+        writer = csv.writer(output)
+        writer.writerow([
+            "Mã đơn", "Ngày đặt", "Tài khoản", "Khách hàng", "Email", "SĐT",
+            "Tổng tiền", "Phương thức", "Mã tham chiếu", "Thanh toán",
+            "Trạng thái", "Địa chỉ giao", "Ghi chú",
+        ])
+
+        def safe_csv(value):
+            text = str(value or "")
+            return f"'{text}" if text.startswith(("=", "+", "-", "@")) else text
+
+        for row in cursor.fetchall():
+            writer.writerow([
+                row["MaDH"], json_value(row["NgayDat"]), safe_csv(row["TenDangNhap"]),
+                safe_csv(row["HoTen"]), safe_csv(row["Email"]), safe_csv(row["SoDienThoai"]),
+                row["TongTien"], row["PhuongThuc"], safe_csv(row["MaThamChieu"]),
+                row["TrangThaiThanhToan"], row["TrangThai"], safe_csv(row["DiaChiGiao"]),
+                safe_csv(row["GhiChu"]),
+            ])
+        filename = f"don-hang-{datetime.now().strftime('%Y%m%d-%H%M')}.csv"
+        return Response(
+            "\ufeff" + output.getvalue(),
+            mimetype="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.patch("/api/admin/orders/<int:order_id>/payment")
+@app.patch("/api/admin/don-hang/<int:order_id>/thanh-toan")
+@admin_required
+def admin_confirm_order_payment(order_id):
+    data = body_json()
+    paid = data.get("paid")
+    if not isinstance(paid, bool):
+        return api_error("Trạng thái đối soát không hợp lệ.")
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        conn.start_transaction()
+        cursor.execute("SELECT * FROM DonHang WHERE MaDH=%s FOR UPDATE", (order_id,))
+        order = cursor.fetchone()
+        if not order:
+            conn.rollback()
+            return api_error("Không tìm thấy đơn hàng.", 404, "order_not_found")
+        if order.get("PhuongThuc") != "BANKING":
+            conn.rollback()
+            return api_error("Đơn này không thanh toán bằng chuyển khoản.", 409, "not_bank_transfer")
+        if order.get("TrangThai") == "DA_HUY":
+            conn.rollback()
+            return api_error("Không thể đối soát một đơn đã hủy.", 409, "cancelled_order")
+        next_status = "DA_THANH_TOAN" if paid else "CHO_THANH_TOAN"
+        cursor.execute(
+            "UPDATE DonHang SET TrangThaiThanhToan=%s, NgayCapNhat=NOW() WHERE MaDH=%s",
+            (next_status, order_id),
+        )
+        audit_admin(
+            cursor,
+            "PAYMENT",
+            "DonHang",
+            order_id,
+            {"from": order.get("TrangThaiThanhToan"), "to": next_status},
+        )
+        conn.commit()
+        return jsonify({
+            "success": True,
+            "message": "Đã xác nhận tiền vào tài khoản." if paid else "Đã đưa giao dịch về chờ đối soát.",
+            "payment_status": next_status,
+        })
     finally:
         cursor.close()
         conn.close()
@@ -3746,7 +4139,12 @@ def superadmin_review_change(change_id):
                 return api_error("Thao tác này chỉ hỗ trợ xác nhận, không thể hoàn tác tự động.", 409, "change_not_reversible")
             entity_id = int(change["MaDoiTuong"])
             if change["DoiTuong"] == "SanPham":
-                columns = ["MaDM", "TenSP", "MoTa", "GiaBan", "GiaGoc", "TonKho", "HinhAnh", "ThuongHieu", "AnhChiTiet", "TrangThai", "NguonURL", "NguonTen"]
+                columns = [
+                    "MaDM", "TenSP", "MoTa", "GiaBan", "GiaGoc", "TonKho",
+                    "HinhAnh", "ThuongHieu", "AnhChiTiet", "TrangThai", "NguonURL",
+                    "NguonTen", "TrongLuongCan", "LoiChoi", "DiemCanBang",
+                    "DoCungDua", "LucCangToiDa",
+                ]
                 cursor.execute(
                     f"UPDATE SanPham SET {', '.join(f'{column}=%s' for column in columns)}, NgayCapNhat=NOW() WHERE MaSP=%s",
                     [before.get(column) for column in columns] + [entity_id],
