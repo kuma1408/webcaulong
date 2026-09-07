@@ -24,6 +24,10 @@ assert(!/swiper|unpkg\.com/i.test(html), "Trang chủ vẫn còn phụ thuộc S
 assert(!/\+123|Đường ABC|support@thethao/i.test(html), "Trang chủ còn dữ liệu liên hệ mẫu.");
 assert((html.match(/<img\b(?![^>]*\balt=)[^>]*>/gi) || []).length === 0, "Có ảnh thiếu alt text.");
 assert((html.match(/<button\b(?![^>]*\btype=)[^>]*>/gi) || []).length === 0, "Có button thiếu thuộc tính type.");
+assert((html.match(/id="searchSuggestions"/gi) || []).length === 1, "Trang chủ phải có đúng một vùng gợi ý tìm kiếm.");
+assert(/id="siteSearch"[^>]*data-search-suggestions-owned/i.test(html), "Ô tìm kiếm trang chủ chưa khai báo quyền sở hữu dropdown gợi ý.");
+assert(/data-open-quick-3d="quick3dDialog"/i.test(html), "Trang chủ thiếu nút mở mô hình 3D.");
+assert(/BadmintonRacketStudio\?\.ready/.test(js) || /SUGGEST_LIMIT\s*=\s*8/.test(js), "JavaScript trang chủ chưa dùng cấu hình gợi ý mới.");
 
 const localRefs = [...html.matchAll(/(?:src|href)="([^"]+)"/gi)]
   .map((match) => match[1])

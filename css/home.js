@@ -65,7 +65,7 @@
 
     const PRICE_FORMATTER = new Intl.NumberFormat('vi-VN');
     const REDUCED_MOTION = window.matchMedia?.('(prefers-reduced-motion: reduce)');
-    const SUGGEST_LIMIT = 6;
+    const SUGGEST_LIMIT = 8;
     const SUGGEST_DEBOUNCE = 260;
 
     const selectors = {

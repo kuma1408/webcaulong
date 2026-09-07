@@ -11,3 +11,12 @@
 @media(max-width:700px){.admin-health{grid-template-columns:1fr}.admin-metrics{grid-template-columns:1fr 1fr!important}.admin-funnel__steps{grid-template-columns:1fr 1fr}.admin-status-visual{grid-template-columns:1fr}.admin-donut{margin:auto}.admin-trend-chart{gap:4px;padding-inline:12px}.admin-trend-bar:nth-child(even) span{display:none}}
 @media(max-width:420px){.admin-metrics{grid-template-columns:1fr!important}.admin-funnel__steps{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.admin-health__pulse,.admin-trend-bar{animation:none!important}}
+
+/* Nhịp vào trang và phản hồi hover có kiểm soát cho dashboard. */
+.admin-metrics article{animation:adminMetricEnter .55s cubic-bezier(.16,1,.3,1) both;transition:transform .28s cubic-bezier(.16,1,.3,1),border-color .2s ease,box-shadow .28s ease}
+.admin-metrics article:nth-child(2){animation-delay:.05s}.admin-metrics article:nth-child(3){animation-delay:.1s}.admin-metrics article:nth-child(4){animation-delay:.15s}.admin-metrics article:nth-child(5){animation-delay:.2s}.admin-metrics article:nth-child(6){animation-delay:.25s}
+.admin-metrics article:hover{z-index:2;transform:translateY(-3px)}
+.admin-donut{animation:adminDonutEnter .75s cubic-bezier(.16,1,.3,1) both}
+@keyframes adminMetricEnter{from{opacity:0;transform:translateY(14px)}}
+@keyframes adminDonutEnter{from{opacity:0;transform:rotate(-24deg) scale(.76)}}
+@media(prefers-reduced-motion:reduce){.admin-metrics article,.admin-donut{animation:none!important}.admin-metrics article:hover{transform:none}}

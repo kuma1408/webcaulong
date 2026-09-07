@@ -59,7 +59,7 @@
             const centerY = rect.height / 2;
             const rotateX = -((mouseY - centerY) / rect.height) * 15;
             const rotateY = ((mouseX - centerX) / rect.width) * 15;
-            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
             glare.style.setProperty('--glare-x', `${mouseX}px`);
             glare.style.setProperty('--glare-y', `${mouseY}px`);
         };

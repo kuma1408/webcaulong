@@ -49,6 +49,7 @@
             border-radius: 8px;
             background-color: #f8f8fa;
         }
+        :root[data-theme="dark"] .cart-item-img,
         .dark-theme .cart-item-img {
             background-color: #12121b;
         }
@@ -144,31 +145,101 @@
             font-weight: bold;
             font-size: 13px;
         }
-        .checkout-form input, .checkout-form textarea {
+        .checkout-form input, .checkout-form textarea, #couponInput {
             width: 100%;
-            border-radius: 8px;
+            border-radius: 10px;
+            border: 1px solid var(--input-border, var(--border-color));
+            background: var(--input-bg, var(--card-bg));
+            color: var(--text-color);
+            padding: 10px 14px;
+            font: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .checkout-form input {
+            height: 44px;
             margin-bottom: 14px;
+        }
+        .checkout-form textarea {
+            margin-bottom: 14px;
+        }
+        .checkout-form input:focus, .checkout-form textarea:focus, #couponInput:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(233, 56, 27, 0.15);
         }
         /* Cổng thanh toán */
         .pay-method-card {
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 10px;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             cursor: pointer;
-            transition: all 0.2s;
+            background: var(--card-bg);
+            transition: all 0.2s ease;
         }
         .pay-method-card input {
             width: auto;
             height: auto;
             margin: 0;
+            accent-color: var(--primary-color);
+        }
+        .pay-method-card:hover {
+            border-color: var(--primary-color);
+            background-color: color-mix(in srgb, var(--primary-color) 4%, var(--card-bg));
         }
         .pay-method-card.active-method {
             border-color: var(--primary-color);
-            background-color: rgba(255, 102, 0, 0.05);
+            background-color: color-mix(in srgb, var(--primary-color) 8%, var(--card-bg));
+            box-shadow: 0 0 0 1px var(--primary-color);
+        }
+        /* VietQR Order Payment Box */
+        .order-bank-payment {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 18px;
+            align-items: center;
+            margin: 24px auto 0;
+            padding: 18px;
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            background: var(--card-bg);
+            text-align: left;
+        }
+        .order-bank-payment[hidden] { display: none; }
+        .order-bank-payment img {
+            width: 160px;
+            aspect-ratio: 1;
+            padding: 8px;
+            border-radius: 14px;
+            background: #ffffff;
+            object-fit: contain;
+            box-shadow: var(--shadow-sm);
+        }
+        .order-bank-payment span, .order-bank-payment strong { display: block; }
+        .order-bank-payment span { color: var(--text-muted); font-size: 11px; }
+        .order-bank-payment strong { margin: 2px 0 8px; color: var(--text-color); font-size: 13px; overflow-wrap: anywhere; }
+        .order-bank-payment button {
+            min-height: 36px;
+            padding: 0 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 9px;
+            background: var(--bg-color);
+            color: var(--primary-color);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .order-bank-payment button:hover {
+            background: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
+        }
+        @media (max-width: 640px) {
+            .order-bank-payment { grid-template-columns: 1fr; text-align: center; }
+            .order-bank-payment img { margin-inline: auto; }
         }
         .qr-code-panel {
             background: white;

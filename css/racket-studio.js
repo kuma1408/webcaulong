@@ -8,7 +8,7 @@
         const fallback = () => document.querySelectorAll('[data-racket-studio]').forEach((root) => {
             root.innerHTML = '<div style="position:absolute;inset:0;display:grid;place-items:center;padding:28px;text-align:center;color:#96a2b5;font:600 13px/1.7 system-ui">Không tải được thư viện 3D. Ảnh và thông tin sản phẩm vẫn hoạt động bình thường.</div>';
         });
-        window.BadmintonRacketStudio = { studios, init: fallback, resize() {} };
+        window.BadmintonRacketStudio = { studios, init: fallback, resize() {}, ready: false };
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fallback, { once: true });
         else fallback();
         return;
@@ -77,6 +77,7 @@
         build() {
             const THREE = window.THREE;
             this.root.classList.add('racket-studio');
+            this.root.classList.add('is-loading');
             this.root.setAttribute('role', 'application');
             this.root.setAttribute('aria-label', 'Mô hình vợt cầu lông 3D tương tác');
 
@@ -85,21 +86,33 @@
             this.camera = new THREE.PerspectiveCamera(34, 1, .1, 100);
             this.camera.position.set(0, -.25, this.targetCameraZ);
 
+            const deviceMemory = Number(navigator.deviceMemory || 4);
+            const lowPowerDevice = deviceMemory <= 4 || (navigator.hardwareConcurrency || 4) <= 4;
             try {
-                this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+                this.renderer = new THREE.WebGLRenderer({ antialias: !lowPowerDevice, alpha: true, powerPreference: 'high-performance' });
             } catch (_) {
                 showUnavailable(this.root, 'Thiết bị này chưa thể khởi tạo WebGL. Bạn vẫn có thể xem ảnh sản phẩm và mua hàng bình thường.');
                 return;
             }
-            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lowPowerDevice ? 1.25 : 1.65));
             this.renderer.setSize(this.root.clientWidth || 600, this.root.clientHeight || 590, false);
-            this.renderer.shadowMap.enabled = true;
+            this.renderer.shadowMap.enabled = !lowPowerDevice;
             this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             if ('outputColorSpace' in this.renderer && THREE.SRGBColorSpace) this.renderer.outputColorSpace = THREE.SRGBColorSpace;
             else if ('outputEncoding' in this.renderer && THREE.sRGBEncoding) this.renderer.outputEncoding = THREE.sRGBEncoding;
             this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
             this.renderer.toneMappingExposure = 1.18;
             this.root.prepend(this.renderer.domElement);
+            this.renderer.domElement.addEventListener('webglcontextlost', (event) => {
+                event.preventDefault();
+                this.active = false;
+                this.root.classList.add('has-context-error');
+            });
+            this.renderer.domElement.addEventListener('webglcontextrestored', () => {
+                this.active = true;
+                this.root.classList.remove('has-context-error');
+                this.onResize();
+            });
 
             this.ambient = new THREE.HemisphereLight(0xbfefff, 0x181021, 1.25);
             this.keyLight = new THREE.DirectionalLight(0xffffff, 2.25);
@@ -121,6 +134,8 @@
             this.bindControls();
             this.applyEnvironment(this.root.dataset.preset || 'cyber');
             this.onResize();
+            this.root.classList.remove('is-loading');
+            this.root.classList.add('is-ready');
 
             if (typeof ResizeObserver === 'function') {
                 this.resizeObserver = new ResizeObserver(() => this.onResize());
@@ -447,7 +462,8 @@
             if (!this.renderer) return;
             const dt = Math.min(.05, Math.max(.001, (now - this.lastTime) / 1000));
             this.lastTime = now;
-            if (this.active && !document.hidden) {
+                const dialog = this.root.closest('dialog');
+                if (this.active && !document.hidden && (!dialog || dialog.open)) {
                 const time = now / 1000;
                 if (!this.dragging && !reducedMotion?.matches) this.targetRotY += dt * .17;
                 const smoothFactor = 1 - Math.exp(-14 * dt);
@@ -514,7 +530,7 @@
         }));
     }
 
-    window.BadmintonRacketStudio = { studios, init: initStudios, resize: resizeStudios };
+    window.BadmintonRacketStudio = { studios, init: initStudios, resize: resizeStudios, ready: true };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
     else boot();
 }());

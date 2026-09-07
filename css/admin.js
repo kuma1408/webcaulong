@@ -775,7 +775,7 @@
     function installEvents(){
         $$('[data-admin-view]').forEach((button)=>button.addEventListener('click',()=>activateView(button.dataset.adminView)));
         $$('[data-jump-view]').forEach((button)=>button.addEventListener('click',()=>activateView(button.dataset.jumpView)));
-        $('#adminRefresh').addEventListener('click',()=>activateView(state.currentView,true));
+        $('#adminRefresh').addEventListener('click',async(event)=>{const button=event.currentTarget;button.classList.add('is-refreshing');button.disabled=true;try{await activateView(state.currentView,true);}finally{window.setTimeout(()=>{button.classList.remove('is-refreshing');button.disabled=false;},260);}});
         $('#productSearch').addEventListener('submit',(event)=>{event.preventDefault();state.productPage=1;loadProducts();});
         $('#productStatus').addEventListener('change',()=>{state.productPage=1;loadProducts();});
         $('#productSale').addEventListener('change',()=>{const enabled=$('#productSale').checked;$('#productOriginalPrice').disabled=!enabled;if(enabled)$('#productOriginalPrice').focus();else $('#productOriginalPrice').value='';});

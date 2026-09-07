@@ -290,11 +290,11 @@ textarea {
   top: 76px !important;
   z-index: 950 !important;
   width: 100% !important;
-  background: linear-gradient(135deg, #a9230f 0%, #c93416 55%, #d43a18 100%) !important;
-  box-shadow: 0 10px 30px rgba(128, 28, 12, 0.25) !important;
+  background: color-mix(in srgb, var(--card-bg, #fff5ef) 96%, transparent) !important;
+  box-shadow: 0 4px 20px rgba(80, 21, 8, 0.08) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-bottom: 1px solid var(--border-color, #e6c3b6) !important;
   margin: 0 !important;
   padding: 0 !important;
 }
@@ -340,7 +340,7 @@ textarea {
   gap: 6px !important;
   padding: 8px 16px !important;
   border-radius: 12px !important;
-  color: #ffffff !important;
+  color: var(--bs-ink, #2b1c17) !important;
   text-decoration: none !important;
   white-space: nowrap !important;
   font-size: 13px !important;
@@ -349,14 +349,24 @@ textarea {
   background: transparent !important;
 }
 
+:root[data-theme="dark"] #menu li > a,
+:root[data-theme="dark"] #menu a {
+  color: var(--bs-ink, #f5efeb) !important;
+}
+
+:root[data-theme="light"] #menu li > a,
+:root[data-theme="light"] #menu a {
+  color: var(--bs-ink, #2b1c17) !important;
+}
+
 #menu li > a:hover,
 #menu a:hover,
 #menu li > a:focus-visible,
 #menu li > a[aria-current="page"] {
   height: 100% !important;
-  background: rgba(255, 255, 255, 0.22) !important;
-  color: #ffffff !important;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3), 0 4px 14px rgba(0, 0, 0, 0.16) !important;
+  background: color-mix(in srgb, var(--bs-red, #e94723) 12%, transparent) !important;
+  color: var(--bs-red, #e94723) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bs-red, #e94723) 25%, transparent) !important;
   transform: translateY(-1px) !important;
   border-radius: 12px !important;
 }
@@ -382,12 +392,12 @@ textarea {
   min-width: 250px !important;
   padding: 10px !important;
   overflow: hidden !important;
-  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.18)) !important;
   border-radius: 16px !important;
-  background: rgba(42, 16, 11, 0.96) !important;
+  background: var(--card-bg, #fff5ef) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18) !important;
   transform-origin: top center !important;
   z-index: 1200 !important;
 }
@@ -406,7 +416,7 @@ textarea {
   min-height: 40px !important;
   padding: 8px 14px !important;
   border-radius: 10px !important;
-  color: #f7e6e0 !important;
+  color: var(--bs-ink, #2b1c17) !important;
   font-size: 13px !important;
   font-weight: 650 !important;
   text-align: left !important;
@@ -414,9 +424,17 @@ textarea {
   transition: all 0.18s ease !important;
 }
 
+:root[data-theme="dark"] #menu .sub-menu a {
+  color: #f7e6e0 !important;
+}
+
+:root[data-theme="light"] #menu .sub-menu a {
+  color: #2b1c17 !important;
+}
+
 #menu .sub-menu a:hover {
-  background: rgba(255, 122, 26, 0.28) !important;
-  color: #ffffff !important;
+  background: rgba(255, 122, 26, 0.16) !important;
+  color: var(--bs-red, #e94723) !important;
   padding-left: 18px !important;
 }
 

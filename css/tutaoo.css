@@ -1449,32 +1449,41 @@ button {
 
 .detail-price-card {
     margin: 18px 0;
-    padding: 18px 20px;
-    border: 1px solid #f0c7b8;
+    padding: 18px 22px;
+    border: 1px solid var(--bs-line, #f0c7b8);
     border-radius: 16px;
-    background: linear-gradient(135deg, #fff7f2, #fff0e7);
+    background: color-mix(in srgb, var(--primary-color, #ff6600) 7%, var(--card-bg, #fff));
+    box-shadow: var(--shadow-sm, 0 4px 16px rgba(0,0,0,0.04));
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+:root[data-theme="dark"] .detail-price-card,
+.dark-theme .detail-price-card {
+    border-color: rgba(255, 107, 61, 0.28);
+    background: linear-gradient(135deg, rgba(233, 71, 35, 0.14), rgba(42, 36, 32, 0.95));
 }
 .detail-price-meta { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
 .detail-price-meta del { color: var(--text-muted); font-size: 14px; }
-.detail-price-meta span { padding: 4px 9px; border-radius: 999px; background: #e9381b; color: #fff; font-size: 11px; font-weight: 800; }
+.detail-price-meta span { padding: 4px 10px; border-radius: 999px; background: var(--bs-red, #e9381b); color: #fff; font-size: 11px; font-weight: 800; letter-spacing: 0.02em; }
 .product-facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin: 16px 0; }
-.product-facts div { padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--card-bg); }
+.product-facts div { padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--card-bg); transition: background-color 0.25s ease, border-color 0.25s ease; }
 .product-facts span, .product-facts strong { display: block; }
 .product-facts span { color: var(--text-muted); font-size: 11px; }
 .product-facts strong { margin-top: 4px; color: var(--text-color); font-size: 13px; }
-.detail-wallet-card { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 16px 0; padding: 14px 16px; border-radius: 14px; background: #2d1009; color: #fff; }
+.detail-wallet-card { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 16px 0; padding: 14px 18px; border-radius: 14px; background: linear-gradient(135deg, #2d1009, #1c0a06); border: 1px solid rgba(255, 107, 61, 0.2); color: #fff; }
 .detail-wallet-card span, .detail-wallet-card strong { display: block; }
 .detail-wallet-card span { color: #dcbcaf; font-size: 11px; }
 .detail-wallet-card strong { margin-top: 4px; font-size: 15px; }
-.detail-wallet-card a { color: #ff9a67; font-size: 12px; font-weight: 800; text-decoration: none; white-space: nowrap; }
-.product-description { margin-bottom: 18px; padding: 20px; border: 1px solid var(--border-color); border-radius: 14px; background: var(--card-bg); color: var(--text-color); line-height: 1.7; }
+.detail-wallet-card a { color: #ff9a67; font-size: 12px; font-weight: 800; text-decoration: none; white-space: nowrap; transition: color 0.2s; }
+.detail-wallet-card a:hover { color: #ffb894; text-decoration: underline; }
+.product-description { margin-bottom: 18px; padding: 20px; border: 1px solid var(--border-color); border-radius: 14px; background: var(--card-bg); color: var(--text-color); line-height: 1.7; transition: background-color 0.25s ease; }
 @media (max-width: 560px) { .detail-wallet-card { align-items: flex-start; flex-direction: column; } }
 
 .detail-info-box .price {
-    font-size: 28px;
-    color: #e53935;
-    font-weight: 700;
-    margin: 15px 0;
+    font-size: 32px;
+    color: var(--bs-red, #e53935);
+    font-weight: 800;
+    margin: 4px 0 10px;
+    letter-spacing: -0.02em;
 }
 
 .detail-info-box .btn-buy-now {

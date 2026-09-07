@@ -57,16 +57,16 @@
         .filter-sidebar {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 20px;
+            border-radius: 20px;
+            padding: 24px;
             height: fit-content;
             box-shadow: var(--shadow-sm);
             transition: background-color 0.3s, border-color 0.3s;
         }
         .filter-group {
-            margin-bottom: 24px;
+            margin-bottom: 22px;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 20px;
+            padding-bottom: 18px;
         }
         .filter-group:last-child {
             border-bottom: none;
@@ -74,30 +74,42 @@
             margin-bottom: 0;
         }
         .filter-title {
-            font-weight: bold;
-            font-size: 15px;
-            margin-bottom: 12px;
+            font-weight: 800;
+            font-size: 13px;
+            margin-bottom: 14px;
             color: var(--text-color);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.06em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .brand-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 4px;
         }
         .brand-item {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            padding: 6px 10px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
             color: var(--text-color);
+            transition: background 0.15s, color 0.15s;
+        }
+        .brand-item:hover {
+            background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+            color: var(--primary-color);
         }
         .brand-item input {
-            height: 18px;
-            width: 18px;
+            height: 17px;
+            width: 17px;
             cursor: pointer;
+            accent-color: var(--primary-color);
+            border-radius: 4px;
         }
         .price-inputs {
             display: flex;
@@ -106,77 +118,145 @@
         }
         .price-inputs input {
             width: 100%;
-            height: 38px;
-            border-radius: 6px;
+            height: 42px;
+            padding: 0 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-color);
+            font: inherit;
+            font-size: 13px;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .price-inputs input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 18%, transparent);
+            outline: none;
         }
         .filter-select {
-            width: 100%; min-height: 40px; margin-bottom: 8px; padding: 0 10px;
-            border: 1px solid var(--border-color); border-radius: 8px;
-            background: var(--input-bg); color: var(--text-color); font: inherit;
+            width: 100%;
+            min-height: 42px;
+            margin-bottom: 10px;
+            padding: 0 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            font: inherit;
+            font-size: 13px;
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .filter-select:focus {
+            border-color: var(--primary-color);
+            outline: none;
         }
         .btn-filter-apply {
             width: 100%;
-            padding: 10px;
-            background: var(--primary-gradient);
+            min-height: 44px;
+            padding: 10px 16px;
+            background: linear-gradient(135deg, var(--bs-red, #e94723), var(--bs-orange, #ff6b35));
             color: white;
             border: none;
-            border-radius: 8px;
-            font-weight: bold;
+            border-radius: 12px;
+            font-weight: 750;
+            font-size: 14px;
+            letter-spacing: 0.02em;
             cursor: pointer;
-            margin-top: 10px;
-            box-shadow: 0 4px 10px rgba(255, 102, 0, 0.2);
+            margin-top: 6px;
+            box-shadow: 0 6px 18px rgba(233, 71, 35, 0.25);
             transition: transform 0.2s, box-shadow 0.2s;
         }
         .btn-filter-apply:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 14px rgba(255, 102, 0, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 9px 24px rgba(233, 71, 35, 0.38);
+        }
+        .btn-filter-reset {
+            width: 100%;
+            min-height: 38px;
+            padding: 8px 14px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.2s;
+        }
+        .btn-filter-reset:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: color-mix(in srgb, var(--primary-color) 6%, transparent);
         }
         /* Sắp xếp */
         .catalog-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            padding: 14px 20px;
+            border-radius: 14px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
         }
         .sort-select {
-            padding: 8px 12px;
-            border-radius: 8px;
+            padding: 8px 14px;
+            border-radius: 10px;
             border: 1px solid var(--border-color);
-            background-color: var(--card-bg);
+            background-color: var(--input-bg);
             color: var(--text-color);
             outline: none;
             font-weight: 600;
+            font-size: 13px;
             cursor: pointer;
-            transition: background-color 0.3s, border-color 0.3s;
+            transition: border-color 0.2s;
+        }
+        .sort-select:focus {
+            border-color: var(--primary-color);
         }
         /* Phân trang */
         .pagination {
             display: flex;
             justify-content: center;
+            align-items: center;
             gap: 8px;
-            margin-top: 40px;
+            margin-top: 45px;
+            flex-wrap: wrap;
         }
         .page-btn {
-            padding: 8px 16px;
+            min-width: 42px;
+            height: 42px;
+            padding: 0 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             border: 1px solid var(--border-color);
             background-color: var(--card-bg);
             color: var(--text-color);
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .page-btn.active-page {
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, var(--bs-red, #e94723), var(--bs-orange, #ff6b35));
             color: white;
             border-color: transparent;
+            box-shadow: 0 6px 18px rgba(233, 71, 35, 0.32);
         }
         .page-btn:hover:not(.active-page) {
             border-color: var(--primary-color);
             color: var(--primary-color);
+            transform: translateY(-2px);
         }
     </style>
-    <link rel="stylesheet" href="css/site-refresh.css?v=20260907-1">
+    <link rel="stylesheet" href="css/site-refresh.css?v=20260907-2">
 </head>
 <body>
     <div class="baotrang">
@@ -226,7 +306,7 @@
                     <select class="filter-select" id="filterPlayStyle" aria-label="Lọc lối chơi"><option value="">Mọi lối chơi</option><option value="TAN_CONG">Tấn công</option><option value="CAN_BANG">Cân bằng</option><option value="PHONG_THU">Phòng thủ / tốc độ</option></select>
                     <select class="filter-select" id="filterBalance" aria-label="Lọc điểm cân bằng"><option value="">Mọi điểm cân bằng</option><option value="NANG_DAU">Nặng đầu</option><option value="CAN_BANG">Cân bằng</option><option value="NHE_DAU">Nhẹ đầu</option></select>
                     <select class="filter-select" id="filterStiffness" aria-label="Lọc độ cứng đũa"><option value="">Mọi độ cứng đũa</option><option value="MEM">Mềm</option><option value="TRUNG_BINH">Trung bình</option><option value="CUNG">Cứng</option></select>
-                    <button class="btn-filter-apply" type="button" onclick="resetFilters()">Xóa bộ lọc</button>
+                    <button class="btn-filter-reset" type="button" onclick="resetFilters()">Xóa bộ lọc</button>
                 </div>
             </aside>
 
@@ -260,7 +340,7 @@
     </div>
 
     <!-- Script điều hướng, layout và logic -->
-    <script src="css/auth.js?v=20260907-1"></script>
+    <script src="css/auth.js?v=20260907-2"></script>
     <script>
         // Bản đồ ảnh nền tương ứng cho từng danh mục
         const BANNER_BGS = {
@@ -418,6 +498,7 @@
                         image.src = window.BadmintonAuth.safeUrl(p.HinhAnh, 'HA/cc-removebg-preview.png');
                         image.alt = String(p.TenSP || 'Sản phẩm cầu lông');
                         image.loading = 'lazy'; image.decoding = 'async';
+                        image.onerror = () => { image.src = 'HA/cc-removebg-preview.png'; image.classList.add('is-fallback-image'); };
                         media.appendChild(image);
                         const info = document.createElement('div'); info.className = 'card-info';
                         const brand = document.createElement('span'); brand.className = 'brand-tag'; brand.textContent = p.ThuongHieu || 'Chính hãng';
@@ -436,7 +517,9 @@
                             const view3d = document.createElement('button');
                             view3d.type = 'button';
                             view3d.className = 'product-quick-3d';
-                            view3d.dataset.openQuick3d = 'globalQuick3dDialog';
+                            // Tên data có số phải đặt nguyên thuộc tính; dataset.openQuick3d
+                            // tạo data-open-quick3d và không khớp bộ điều khiển 3D.
+                            view3d.setAttribute('data-open-quick-3d', 'globalQuick3dDialog');
                             view3d.innerHTML = '<span aria-hidden="true">◈</span> Xem mô hình vợt 3D';
                             info.appendChild(view3d);
                         }

@@ -8,7 +8,8 @@
 
     const TOKEN_KEY = 'badminton_access_token';
     const THEME_KEY = 'badminton_theme';
-    const SPORT_ASSET_VERSION = '20260907-1';
+    const SPORT_ASSET_VERSION = '20260907-2';
+    let racketAssetsPromise = null;
 
     function ensureSportDesignAssets() {
         if (!document.querySelector('link[href*="css/sport-system.css"]')) {
@@ -26,28 +27,72 @@
     }
 
     function ensureRacketStudioAssets() {
-        const loadRacketStudio = () => {
-            if (window.BadmintonRacketStudio || document.querySelector('script[src*="css/racket-studio.js"]')) return;
-            const script = document.createElement('script');
-            script.src = `css/racket-studio.js?v=${SPORT_ASSET_VERSION}`;
-            script.defer = true;
-            document.head.appendChild(script);
-        };
-        if (window.THREE) {
-            loadRacketStudio();
-            return;
-        }
-        const existing = document.querySelector('script[src*="vendor/three.min.js"]');
-        if (existing) {
-            existing.addEventListener('load', loadRacketStudio, { once: true });
-            return;
-        }
-        const script = document.createElement('script');
-        script.src = 'vendor/three.min.js?v=128';
-        script.defer = true;
-        script.addEventListener('load', loadRacketStudio, { once: true });
-        document.head.appendChild(script);
+        if (window.BadmintonRacketStudio?.ready && window.THREE) return Promise.resolve(window.BadmintonRacketStudio);
+        if (racketAssetsPromise) return racketAssetsPromise;
+
+        const loadScript = (source, matcher) => new Promise((resolve, reject) => {
+            if (matcher()) { resolve(); return; }
+            let script = Array.from(document.scripts).find((item) => item.src.includes(source.split('?')[0]));
+            if (script?.dataset.loadFailed === 'true') script = null;
+            if (!script) {
+                script = document.createElement('script');
+                script.src = source;
+                script.async = true;
+                document.head.appendChild(script);
+            }
+            const timeout = window.setTimeout(() => reject(new Error(`asset_timeout:${source}`)), 9000);
+            const done = () => {
+                window.clearTimeout(timeout);
+                matcher() ? resolve() : reject(new Error(`asset_invalid:${source}`));
+            };
+            script.addEventListener('load', done, { once: true });
+            script.addEventListener('error', () => {
+                script.dataset.loadFailed = 'true';
+                window.clearTimeout(timeout);
+                reject(new Error(`asset_failed:${source}`));
+            }, { once: true });
+            // Tệp có thể đã tải xong trước khi listener được gắn.
+            window.setTimeout(() => { if (matcher()) done(); }, 0);
+        });
+
+        racketAssetsPromise = (async () => {
+            await loadScript('vendor/three.min.js?v=128', () => Boolean(window.THREE));
+            document.dispatchEvent(new CustomEvent('badminton:three-ready'));
+            await loadScript(`css/racket-studio.js?v=${SPORT_ASSET_VERSION}`, () => Boolean(window.BadmintonRacketStudio?.ready));
+            return window.BadmintonRacketStudio;
+        })().catch((error) => {
+            racketAssetsPromise = null;
+            throw error;
+        });
+        return racketAssetsPromise;
     }
+
+    // Nếu người dùng bấm khi thư viện 3D còn đang tải, giữ thao tác đó và
+    // tự mở studio ngay khi tài nguyên sẵn sàng thay vì để nút bấm im lặng.
+    document.addEventListener('click', async (event) => {
+        const button = event.target.closest?.('[data-open-quick-3d]');
+        if (!button || (window.THREE && window.BadmintonRacketStudio?.ready)) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        const originalLabel = button.getAttribute('aria-label');
+        button.classList.add('is-loading');
+        button.setAttribute('aria-busy', 'true');
+        button.setAttribute('aria-label', 'Đang tải mô hình vợt 3D');
+        try {
+            const studio = await ensureRacketStudioAssets();
+            const dialog = document.getElementById(button.getAttribute('data-open-quick-3d') || 'globalQuick3dDialog');
+            if (!dialog) throw new Error('dialog_missing');
+            studio.init(dialog);
+            if (!dialog.open) dialog.showModal();
+            [30, 160, 360].forEach((delay) => window.setTimeout(() => studio.resize(dialog), delay));
+        } catch (_) {
+            showToast('Chưa tải được mô hình 3D. Hãy tải lại trang và thử lại.', 'error');
+        } finally {
+            button.classList.remove('is-loading');
+            button.removeAttribute('aria-busy');
+            if (originalLabel) button.setAttribute('aria-label', originalLabel);
+        }
+    }, true);
 
     ensureSportDesignAssets();
     const configuredBase = document.querySelector('meta[name="api-base"]')?.content?.trim();
@@ -284,6 +329,9 @@
         injectSearchSuggestionStyles();
         document.querySelectorAll('.bs-search, .site-search').forEach((form) => {
             if (form.dataset.suggestionsReady === 'true') return;
+            // Trang chủ có bộ gợi ý giàu thông tin riêng. Không gắn thêm một
+            // dropdown thứ hai vào cùng ô tìm kiếm.
+            if (form.querySelector('#searchSuggestions, [data-search-suggestions-owned]')) return;
             const input = form.querySelector('input[name="q"], input[type="search"]');
             if (!input) return;
             form.dataset.suggestionsReady = 'true';
@@ -1119,14 +1167,17 @@
             footer.innerHTML = `<footer class="bs-footer"><div class="bs-footer__grid"><section><h2>BADMINTON STORE</h2><p>Trang bị đúng chất cho mọi trận cầu — sản phẩm rõ nguồn gốc, tư vấn vừa tay và hỗ trợ tận tâm.</p></section><section><h3>Mua sắm</h3><ul><li><a href="sanpham.html?danh_muc=1">Vợt cầu lông</a></li><li><a href="sanpham.html?danh_muc=2">Giày cầu lông</a></li><li><a href="sanpham.html?danh_muc=8">Phụ kiện</a></li></ul></section><section><h3>Hỗ trợ</h3><ul><li><a href="hướng dẫn.html">Hướng dẫn mua hàng</a></li><li><a href="lienhe.html">Liên hệ</a></li><li><a href="canhan.html">Tài khoản của tôi</a></li></ul></section><section><h3>Kết nối</h3><ul><li><a href="lienhe.html">Gửi yêu cầu hỗ trợ</a></li><li><a href="tin tức.html">Tin tức cầu lông</a></li><li><span class="bs-footer__dot"></span>Thông tin liên hệ được công bố tại trang Liên hệ</li></ul></section></div><div class="bs-footer__bottom">© ${new Date().getFullYear()} Badminton Store.<span>Mua sắm an tâm · Thanh toán bảo mật</span></div></footer>`;
         }
 
-        if (!document.getElementById('quick3dDialog') && !document.getElementById('globalQuick3dDialog')) {
+        if (header && !document.getElementById('globalQuick3dDialog')) {
             const dialog = document.createElement('dialog');
             dialog.className = 'quick-3d-dialog';
             dialog.id = 'globalQuick3dDialog';
             dialog.setAttribute('aria-labelledby', 'globalQuick3dTitle');
             dialog.innerHTML = `<div class="quick-3d-dialog__head"><strong id="globalQuick3dTitle">Badminton 3D Studio · Xoay và khám phá cấu tạo vợt</strong><button type="button" data-close-quick-3d aria-label="Đóng">×</button></div><div data-racket-studio data-preset="arena"></div>`;
             document.body.appendChild(dialog);
-            ensureRacketStudioAssets();
+            ensureRacketStudioAssets().catch(() => {
+                const root = dialog.querySelector('[data-racket-studio]');
+                if (root) root.innerHTML = '<p class="racket-studio__error">Không tải được mô hình 3D. Hãy kiểm tra mạng rồi bấm Thử lại.</p>';
+            });
         }
 
         setupSearchSuggestions();

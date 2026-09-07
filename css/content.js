@@ -6,7 +6,28 @@
 
     function injectStyles() {
         const style=document.createElement('style');style.textContent=`
-        .db-content-grid{width:min(calc(100% - 28px),1200px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin:34px auto 60px}.db-content-card{overflow:hidden;border:1px solid #f1cbbd;border-radius:18px;background:#fff;box-shadow:0 10px 30px rgba(96,30,15,.08)}.db-content-card img{width:100%;height:210px;padding:0;object-fit:cover}.db-content-card__body{padding:18px}.db-content-card h2{margin:0 0 9px;color:#351812;font-size:18px}.db-content-card p{color:#765c54;line-height:1.6}.db-content-card a{color:inherit;text-decoration:none}.db-content-card__meta{color:#e43a1d!important;font-size:12px;font-weight:800}.db-guide-list{width:min(calc(100% - 28px),900px);display:grid;gap:18px;margin:35px auto 60px}.db-guide-list article{padding:25px;border:1px solid #f1cbbd;border-radius:18px;background:#fff}.db-guide-list h2{color:#ba2d18}.db-article{width:min(calc(100% - 28px),900px);margin:35px auto 70px;padding:clamp(24px,5vw,58px);border:1px solid #f1cbbd;border-radius:24px;background:#fff;box-shadow:0 18px 50px rgba(96,30,15,.1)}.db-article h1{color:#351812}.db-article__summary{color:#ad351e;font-size:18px;font-weight:700}.db-article__content{white-space:pre-line;line-height:1.85}.db-content-empty{grid-column:1/-1;padding:45px;text-align:center;color:#765c54}@media(max-width:850px){.db-content-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:580px){.db-content-grid{grid-template-columns:1fr}}
+        .db-content-grid{width:min(calc(100% - 28px),1200px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin:34px auto 60px}
+        .db-content-card{overflow:hidden;border:1px solid var(--bs-line,#f1cbbd);border-radius:18px;background:var(--bs-card,#fff);box-shadow:var(--bs-shadow,0 10px 30px rgba(96,30,15,.08));transition:transform .22s ease,box-shadow .22s ease}
+        .db-content-card:hover{transform:translateY(-4px);box-shadow:0 16px 36px rgba(233,56,27,.14)}
+        .db-content-card img{width:100%;height:210px;padding:0;object-fit:cover;transition:transform .3s ease}
+        .db-content-card:hover img{transform:scale(1.03)}
+        .db-content-card__body{padding:20px}
+        .db-content-card h2{margin:0 0 9px;color:var(--bs-ink,#351812);font-size:18px;line-height:1.4}
+        .db-content-card p{color:var(--bs-muted,#765c54);line-height:1.6}
+        .db-content-card a{color:inherit;text-decoration:none;display:block}
+        .db-content-card__meta{color:var(--bs-red,#e43a1d)!important;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
+        .db-guide-list{width:min(calc(100% - 28px),900px);display:grid;gap:20px;margin:35px auto 60px}
+        .db-guide-list article{padding:28px;border:1px solid var(--bs-line,#f1cbbd);border-radius:18px;background:var(--bs-card,#fff);box-shadow:var(--bs-shadow,0 10px 30px rgba(96,30,15,.08));transition:transform .22s ease}
+        .db-guide-list article:hover{transform:translateY(-2px)}
+        .db-guide-list h2{color:var(--bs-red,#ba2d18);margin-top:0}
+        .db-guide-list p{color:var(--bs-muted,#765c54);line-height:1.65}
+        .db-article{width:min(calc(100% - 28px),900px);margin:35px auto 70px;padding:clamp(24px,5vw,58px);border:1px solid var(--bs-line,#f1cbbd);border-radius:24px;background:var(--bs-card,#fff);box-shadow:0 18px 50px rgba(96,30,15,.1);color:var(--bs-ink,#351812)}
+        .db-article h1{color:var(--bs-ink,#351812);font-size:clamp(24px,4vw,34px);line-height:1.3}
+        .db-article__summary{color:var(--bs-red,#ad351e);font-size:18px;font-weight:700;line-height:1.5}
+        .db-article__content{white-space:pre-line;line-height:1.85;color:var(--bs-ink,#351812)}
+        .db-content-empty{grid-column:1/-1;padding:45px;text-align:center;color:var(--bs-muted,#765c54)}
+        @media(max-width:850px){.db-content-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+        @media(max-width:580px){.db-content-grid{grid-template-columns:1fr}}
         `;document.head.appendChild(style);
     }
     const date = (value) => value ? new Date(String(value).replace(' ','T')).toLocaleDateString('vi-VN') : '';
