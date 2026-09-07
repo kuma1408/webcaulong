@@ -47,7 +47,6 @@ async function copyAssets(sourceDir, destinationDir) {
 
 await copyAssets(resolve(root, "css"), resolve(client, "css"));
 await copyAssets(resolve(root, "HA"), resolve(client, "HA"));
-await copyAssets(resolve(root, "vendor"), resolve(client, "vendor"));
 
 const workerSource = `const worker = {
   async fetch(request, env) {
