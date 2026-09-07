@@ -115,7 +115,6 @@
             <div class="tabs-container">
                 <div class="tabs-headers">
                     <button type="button" class="tab-header active-tab" onclick="switchTab(event, 'tab-description')">MÔ TẢ &amp; ƯU ĐÃI</button>
-                    <button type="button" class="tab-header" id="studioTabHeader" onclick="switchTab(event, 'tab-studio')">MODEL 3D 360° STUDIO</button>
                     <button type="button" class="tab-header" id="reviewsTabHeader" onclick="switchTab(event, 'tab-reviews')">ĐÁNH GIÁ (0)</button>
                 </div>
 
@@ -132,10 +131,6 @@
                             <li>Bao đựng vợt hoặc bao nhung đi kèm miễn phí.</li>
                         </ul>
                     </div>
-                </div>
-
-                <div class="tab-content" id="tab-studio">
-                    <div data-racket-studio data-preset="cyber"></div>
                 </div>
 
                 <!-- Nội dung Tab Đánh giá -->
@@ -162,8 +157,6 @@
 
     <!-- Scripts -->
     <script src="css/auth.js?v=20260907-4"></script>
-    <script src="vendor/three.min.js?v=128-20260907-4"></script>
-    <script src="css/racket-studio.js?v=20260907-4"></script>
     <script>
         let currentProductId = null;
         let selectedRating = 5;
@@ -228,7 +221,6 @@
                         .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase();
                     const isRacket = Number(productDetails.MaDM) === 1 || categoryText.includes('vot cau long');
                     document.getElementById('racketConfigurator').hidden = !isRacket;
-                    document.getElementById('studioTabHeader').hidden = !isRacket;
                     document.querySelectorAll('.racket-product-fact').forEach(node => { node.hidden = !isRacket; });
                     if (isRacket) {
                         const readable = value => String(value || 'Chưa khai báo').replaceAll('_', ' ').toLowerCase().replace(/^./, char => char.toUpperCase());
@@ -476,12 +468,6 @@
             event.currentTarget.classList.add('active-tab');
             const target = document.getElementById(tabId);
             target.classList.add('active-tab-content');
-            if (tabId === 'tab-studio') {
-                [30, 150, 350].forEach(delay => setTimeout(() => {
-                    target.querySelector('[data-racket-studio]')?.dispatchEvent(new CustomEvent('racketstudio:resize'));
-                    window.BadmintonRacketStudio?.resize?.(target);
-                }, delay));
-            }
         }
 
         // --- Tác vụ Mua hàng ---

@@ -321,122 +321,7 @@
 .sport-marquee__group span:nth-child(2n) i { background: var(--sport-orange); box-shadow: 0 0 14px var(--sport-orange); }
 .sport-marquee__group span:nth-child(3n) i { background: var(--sport-lime); box-shadow: 0 0 14px var(--sport-lime); }
 
-.studio-section {
-    padding-block: clamp(76px, 8vw, 118px);
-}
-
-.studio-shell {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(320px, .72fr) minmax(480px, 1.28fr);
-    gap: clamp(24px, 4vw, 62px);
-    align-items: stretch;
-    overflow: hidden;
-    padding: clamp(24px, 4vw, 54px);
-    border: 1px solid var(--sport-line);
-    border-radius: 32px;
-    background:
-        radial-gradient(circle at 86% 10%, rgba(0,240,255,.12), transparent 28rem),
-        radial-gradient(circle at 8% 92%, rgba(255,87,34,.11), transparent 25rem),
-        var(--sport-titanium);
-    color: var(--sport-white);
-    box-shadow: var(--sport-shadow), inset 0 1px rgba(255,255,255,.05);
-}
-
-.studio-shell::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 11%;
-    background: linear-gradient(180deg, transparent, rgba(0,240,255,.045), transparent);
-    animation: scanLine 6s linear infinite;
-    pointer-events: none;
-}
-
-.studio-copy { position: relative; z-index: 2; align-self: center; }
-.studio-copy .eyebrow { color: #ff8258; }
-.studio-copy h2 { margin: 0; font-size: clamp(42px, 5.2vw, 76px); line-height: .94; letter-spacing: -.055em; }
-.studio-copy h2 span { color: transparent; background: linear-gradient(90deg, #ff6b3d, #f5b84b); -webkit-background-clip: text; background-clip: text; }
-.studio-copy > p:not(.eyebrow) { max-width: 560px; margin: 24px 0; color: var(--sport-muted); font-size: 14px; line-height: 1.8; }
-.studio-specs { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 9px; margin: 26px 0; }
-.studio-specs div { padding: 13px; border: 1px solid var(--sport-line); border-radius: 14px; background: rgba(255,255,255,.025); }
-.studio-specs strong, .studio-specs span { display: block; }
-.studio-specs strong { color: var(--sport-white); font-size: 14px; }
-.studio-specs span { margin-top: 4px; color: var(--sport-muted); font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
-
-.racket-studio {
-    position: relative;
-    min-height: 590px;
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,.1);
-    border-radius: 26px;
-    background: radial-gradient(circle at 50% 42%, #182535, #080a0f 72%);
-    box-shadow: inset 0 1px rgba(255,255,255,.06), 0 24px 60px rgba(0,0,0,.32);
-    touch-action: none;
-}
-.racket-studio::before { content:"Đang khởi tạo mô hình 3D…"; position:absolute; z-index:8; inset:0; display:grid; place-items:center; padding:24px; background:radial-gradient(circle at 50% 42%,#342018,#0c0807 72%); color:#f8d9cb; font-size:13px; font-weight:800; text-align:center; opacity:0; visibility:hidden; transition:opacity .22s ease,visibility .22s ease; }
-.racket-studio.is-loading::before { opacity:1; visibility:visible; }
-.racket-studio.has-context-error::before { content:"Mô hình 3D tạm dừng do trình duyệt mất kết nối đồ họa."; opacity:1; visibility:visible; }
-.racket-studio__error { position:absolute; inset:0; display:grid; place-items:center; margin:0; padding:28px; color:#f8d9cb; font-size:13px; font-weight:750; line-height:1.6; text-align:center; }
-
-.racket-studio canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; display: block; }
-.racket-studio__hud { position: absolute; z-index: 4; inset: 18px 18px auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; pointer-events: none; }
-.racket-studio__status { display: inline-flex; align-items: center; gap: 9px; padding: 8px 11px; border: 1px solid rgba(255,255,255,.1); border-radius: 99px; background: rgba(6,9,14,.62); color: #dbe7f6; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; backdrop-filter: blur(12px); }
-.racket-studio__status i { width: 7px; height: 7px; border-radius: 50%; background: var(--sport-green); box-shadow: 0 0 12px var(--sport-green); }
-.racket-studio__hint { color: #8290a4; font-size: 9px; }
-.racket-studio__controls { position: absolute; z-index: 5; left: 16px; right: 16px; bottom: 16px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 7px; }
-.racket-studio__controls button,
-.racket-studio__controls select,
-.studio-action {
-    min-height: 40px;
-    padding: 0 13px;
-    border: 1px solid rgba(255,255,255,.12);
-    border-radius: 12px;
-    background: rgba(9,11,16,.72);
-    color: #e8f1ff;
-    font-size: 10px;
-    font-weight: 780;
-    backdrop-filter: blur(12px);
-    cursor: pointer;
-    transition: transform .2s var(--sport-ease), border-color .2s ease, background-color .2s ease;
-}
-.racket-studio__controls button:hover,
-.studio-action:hover { transform: translateY(-2px); border-color: rgba(0,240,255,.65); }
-.racket-studio__controls button[aria-pressed="true"] { border-color: var(--sport-cyan); background: rgba(0,240,255,.12); color: var(--sport-cyan); }
-.studio-action--primary { background: linear-gradient(105deg, #e84a24, #ff8a45); color: #fff; border-color: transparent; }
-.studio-colors { display: inline-flex; gap: 5px; padding: 4px; border: 1px solid rgba(255,255,255,.1); border-radius: 99px; background: rgba(9,11,16,.64); }
-.studio-color { width: 28px; min-height: 28px !important; height: 28px; padding: 0 !important; border-radius: 50% !important; background: var(--swatch) !important; box-shadow: inset 0 0 0 2px rgba(255,255,255,.18); }
-.studio-color[aria-pressed="true"] { box-shadow: 0 0 0 2px #fff, 0 0 17px var(--swatch); }
-
-.racket-studio__labels { position: absolute; z-index: 3; inset: 0; pointer-events: none; }
-.racket-label { position: absolute; display: grid; gap: 2px; max-width: 140px; padding: 8px 10px; border: 1px solid rgba(0,240,255,.18); border-radius: 10px; background: rgba(8,11,16,.62); backdrop-filter: blur(9px); opacity: .88; }
-.racket-label strong { color: var(--sport-cyan); font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
-.racket-label span { color: #9ba9bb; font-size: 8px; }
-.racket-label--frame { right: 5%; top: 23%; }
-.racket-label--shaft { left: 5%; top: 57%; }
-.racket-label--grip { right: 6%; bottom: 22%; }
-
-.quick-3d-dialog {
-    width: min(1040px, calc(100% - 28px));
-    max-height: calc(100vh - 28px);
-    padding: 0;
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,.12);
-    border-radius: 28px;
-    background: var(--sport-titanium);
-    color: var(--sport-white);
-    box-shadow: 0 40px 110px rgba(0,0,0,.65);
-}
-.quick-3d-dialog::backdrop { background: rgba(2,4,8,.76); backdrop-filter: blur(12px); }
-.quick-3d-dialog__head { position:relative; min-height:72px; display:grid; place-items:center; padding:17px 68px; border-bottom:1px solid var(--sport-line); text-align:center; }
-.quick-3d-dialog__head strong { font-size:14px; line-height:1.45; }
-.quick-3d-dialog__head button { position:absolute; right:18px; top:50%; width:38px; height:38px; display:grid; place-items:center; border:1px solid var(--sport-line); border-radius:11px; background:transparent; color:var(--sport-white); cursor:pointer; transform:translateY(-50%); }
-.quick-3d-dialog__head button:hover { border-color:var(--sport-orange); box-shadow:inset 0 0 0 1px rgba(255,107,61,.2); }
-.quick-3d-dialog .racket-studio { min-height: min(700px, calc(100vh - 110px)); border: 0; border-radius: 0; }
-
-/* Product-detail configurator and 3D tab. */
+/* Product-detail configurator. */
 .racket-configurator {
     display: grid;
     gap: 15px;
@@ -464,7 +349,6 @@
 .racket-config-summary span { color: var(--text-muted); font-size: 10px; }
 .racket-config-summary strong { color: var(--primary-color); font-size: 12px; text-align: right; }
 .tab-header { cursor: pointer; }
-.tab-content .racket-studio { min-height: 680px; }
 
 .cart-item-config { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
 .cart-item-config span { padding: 4px 7px; border: 1px solid color-mix(in srgb, var(--primary-color) 30%, var(--border-color)); border-radius: 99px; background: color-mix(in srgb, var(--primary-soft) 70%, transparent); color: var(--text-muted); font-size: 9px; }
@@ -518,21 +402,6 @@
 .activity-item span, .activity-item time { margin-top: 3px; color: var(--bs-muted); font-size: 8px; }
 .activity-item time { white-space: nowrap; }
 
-.product-quick-3d {
-    width: 100%;
-    min-height: 39px;
-    margin-top: 12px;
-    border: 1px solid color-mix(in srgb, var(--primary-color) 38%, var(--border-color));
-    border-radius: 11px;
-    background: color-mix(in srgb, var(--primary-soft) 76%, transparent);
-    color: var(--primary-color);
-    font-size: 10px;
-    font-weight: 850;
-    letter-spacing: .035em;
-    cursor: pointer;
-}
-.product-quick-3d:hover { transform: translateY(-2px); border-color: var(--primary-color); box-shadow: 0 10px 24px rgba(211,67,29,.14); }
-
 /* Hiển thị menu và bề mặt nhất quán, không còn dải màu neon ghi đè theme. */
 :root[data-theme="dark"] #menu:has(.bs-nav),
 :root[data-theme="dark"] .bs-nav {
@@ -548,26 +417,15 @@
 :root[data-theme="light"] :where(.bs-search-suggestions,.bs-nav__catalog,.primary-nav__catalog) { background: #fffdfb !important; color: #2b1c17 !important; }
 
 /* Light mode gets the same structure with calmer contrast. */
-:root[data-theme="light"] .studio-shell { background: linear-gradient(145deg, #101722, #202b3c); }
 :root[data-theme="light"] .sport-marquee { background: #edf2f8; }
 :root[data-theme="light"] .sport-marquee__group span { color: #3c4a5e; }
 :root[data-theme="light"] .racket-configurator { background: rgba(255,255,255,.72); box-shadow: 0 15px 40px rgba(26,43,68,.08); }
 
 @media (max-width: 980px) {
-    .studio-shell { grid-template-columns: 1fr; }
-    .racket-studio { min-height: 560px; }
     .admin-operations { grid-template-columns: repeat(2, minmax(0,1fr)); }
 }
 
 @media (max-width: 620px) {
-    .studio-section { padding-block: 58px; }
-    .studio-shell { padding: 18px; border-radius: 22px; }
-    .studio-copy h2 { font-size: clamp(40px, 13vw, 60px); }
-    .studio-specs { grid-template-columns: 1fr 1fr; }
-    .racket-studio, .tab-content .racket-studio { min-height: 520px; border-radius: 18px; }
-    .racket-studio__hint, .racket-label { display: none; }
-    .racket-studio__controls { left: 9px; right: 9px; bottom: 9px; }
-    .racket-studio__controls button, .racket-studio__controls select { min-height: 36px; padding-inline: 9px; font-size: 9px; }
     .racket-configurator__grid { grid-template-columns: 1fr; }
     .racket-option--full { grid-column: auto; }
     .racket-config-summary { align-items: flex-start; flex-direction: column; }
@@ -583,7 +441,6 @@
     .admin-health__pulse,
     .admin-live i,
     .live-status-dot,
-    .studio-shell::after,
     .admin-funnel__steps i { animation: none !important; }
     .marquee-track { flex-wrap: wrap; width: auto; transform: none !important; }
     .sport-tilt { transform: none !important; }

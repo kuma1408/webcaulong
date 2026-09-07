@@ -35,8 +35,6 @@
     <link rel="stylesheet" href="css/sport-system.css?v=20260907-4">
     <script src="css/auth.js?v=20260907-4" defer></script>
     <script src="css/home.js?v=20260907-4" defer></script>
-    <script src="vendor/three.min.js?v=128-20260907-4" defer></script>
-    <script src="css/racket-studio.js?v=20260907-4" defer></script>
 </head>
 
 <body>
@@ -89,7 +87,6 @@
             </nav>
 
             <div class="header__actions">
-                <button class="icon-button home-3d-toggle" type="button" data-open-quick-3d="quick3dDialog" aria-label="Mở mô hình vợt 3D" title="Mở mô hình vợt 3D"><span aria-hidden="true">3D</span></button>
                 <button class="icon-button ambient-toggle bs-ambient-action" type="button" data-ambient-toggle aria-label="Tắt hiệu ứng hạt tuyết" aria-pressed="true" title="Tắt hiệu ứng hạt tuyết"><span aria-hidden="true">❄</span></button>
                 <button class="icon-button theme-toggle" id="themeToggle" type="button" aria-label="Chuyển sang giao diện tối">
                     <span class="theme-toggle__sun" aria-hidden="true">☀</span>
@@ -132,7 +129,6 @@
                 <p class="hero__lead">Từ cây vợt đầu tiên đến bộ trang bị thi đấu, tìm đúng món đồ giúp bạn tự tin trong từng pha cầu.</p>
                 <div class="hero__actions">
                     <a class="button button--accent" href="sanpham.html">Khám phá sản phẩm <span aria-hidden="true">→</span></a>
-                    <button class="button button--3d" type="button" data-open-quick-3d="quick3dDialog"><span aria-hidden="true">◈</span> Xem vợt 3D</button>
                     <a class="button button--ghost" href="hướng dẫn.html">Tư vấn chọn vợt</a>
                 </div>
                 <dl class="hero__facts">
@@ -167,28 +163,6 @@
                 <div class="sport-marquee__group" aria-hidden="true">
                     <span><i></i> Vợt chính hãng</span><span><i></i> Cấu hình theo lối chơi</span><span><i></i> Căng cước điện tử</span><span><i></i> VietQR đúng mã đơn</span><span><i></i> Theo dõi đơn minh bạch</span>
                 </div>
-            </div>
-        </section>
-
-        <section class="studio-section shell" aria-labelledby="studioTitle" data-reveal>
-            <div class="studio-shell">
-                <div class="studio-copy">
-                    <p class="eyebrow"><span></span> Badminton 3D Studio</p>
-                    <h2 id="studioTitle">Chạm vào từng lớp<br><span>công nghệ.</span></h2>
-                    <p>Xoay, phóng to và bóc tách mô hình vợt theo thời gian thực. Mỗi lớp từ mặt cước, dải gen, khung carbon đến cán PU đều được dựng riêng để bạn hiểu rõ cấu tạo trước khi chọn.</p>
-                    <div class="studio-specs" aria-label="Thông số mô hình">
-                        <div><strong><span data-count="76">76</span></strong><span>Lỗ gen mô phỏng</span></div>
-                        <div><strong><span data-count="6.6">6,6</span> mm</strong><span>Ultra slim shaft</span></div>
-                        <div><strong><span data-count="4">4</span></strong><span>Preset ánh sáng</span></div>
-                    </div>
-                    <div style="display:flex;gap:9px;flex-wrap:wrap">
-                        <button class="studio-action studio-action--primary" type="button" data-open-quick-3d="quick3dDialog">Mở toàn màn hình 3D →</button>
-                        <a class="studio-action" href="sanpham.html?danh_muc=1" style="display:inline-flex;align-items:center;text-decoration:none">Khám phá vợt</a>
-                        <a class="studio-action" href="sanpham.html?danh_muc=1&amp;loi_choi=TAN_CONG" style="display:inline-flex;align-items:center;text-decoration:none">Vợt tấn công</a>
-                        <a class="studio-action" href="sanpham.html?danh_muc=1&amp;loi_choi=PHONG_THU" style="display:inline-flex;align-items:center;text-decoration:none">Vợt tốc độ</a>
-                    </div>
-                </div>
-                <div data-racket-studio data-preset="cyber"></div>
             </div>
         </section>
 
@@ -319,11 +293,6 @@
             <article><span aria-hidden="true">04</span><div><strong>Hỗ trợ đổi sản phẩm lỗi</strong><p>An tâm sau khi mua</p></div></article>
         </section>
     </main>
-
-    <dialog class="quick-3d-dialog" id="quick3dDialog" aria-labelledby="quick3dTitle">
-        <div class="quick-3d-dialog__head"><strong id="quick3dTitle">Badminton 3D Studio · Mô hình cấu tạo vợt</strong><button type="button" data-close-quick-3d aria-label="Đóng">×</button></div>
-        <div data-racket-studio data-preset="midnight"></div>
-    </dialog>
 
     <footer class="site-footer">
         <div class="shell site-footer__top">

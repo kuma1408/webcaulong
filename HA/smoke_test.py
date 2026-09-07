@@ -199,15 +199,7 @@ class ApiSmokeTest(unittest.TestCase):
         finally:
             javascript.close()
 
-        three_js = self.client.get("/vendor/three.min.js")
-        try:
-            self.assertEqual(three_js.status_code, 200)
-            self.assertGreater(len(three_js.data), 500_000)
-            self.assertIn("public", three_js.headers["Cache-Control"])
-        finally:
-            three_js.close()
-
-        blocked_vendor_file = self.client.get("/vendor/not-public.js")
+        blocked_vendor_file = self.client.get("/vendor/three.min.js")
         self.assertEqual(blocked_vendor_file.status_code, 404)
         self.assertEqual(blocked_vendor_file.headers["Cache-Control"], "no-store")
 

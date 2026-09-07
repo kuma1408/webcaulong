@@ -20,7 +20,7 @@ Flask + MySQL.
 - Vận hành: migration additive, WSGI, header bảo mật, rate limit, kiểm tra upload,
   CI GitHub và workflow triển khai Alwaysdata qua SSH.
 - Trải nghiệm: chế độ sáng/tối thống nhất trên toàn bộ trang con, hiệu ứng sương
-  có thể tắt, ripple/tilt/glare/chuyển cảnh khi cuộn, studio vợt 3D tương tác,
+  có thể tắt, ripple/tilt/glare và chuyển cảnh khi cuộn,
   dashboard quản trị và hạng thành viên dùng số liệu thật từ MySQL.
 - Quản trị vận hành: funnel người mua 30 ngày, hoạt động mới nhất, dung lượng
   database, hàng chờ căng cước, đối soát VietQR và xuất đơn hàng CSV UTF-8.

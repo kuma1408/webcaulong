@@ -49,7 +49,7 @@ const placeholderPatterns = [
   ["địa chỉ mẫu", /Số 123,\s*Đường ABC/i],
   ["hàm tìm kiếm chưa triển khai", /Search functionality not implemented/i],
 ];
-const brokenQuick3dPattern = /\.dataset\.openQuick3d\s*=/;
+const retiredRacket3dPattern = /data-racket-studio|data-open-quick-3d|three\.min\.js|racket-studio\.js/i;
 
 function addError(message) {
   errors.add(message);
@@ -213,8 +213,8 @@ for (const fileName of htmlFiles) {
   if (missingAlt.length) addError(`${fileName}: có ${missingAlt.length} ảnh thiếu alt`);
   const unsafeBlankLinks = markupOnly(html).match(/<a\b(?=[^>]*\btarget\s*=\s*(["'])_blank\1)(?![^>]*\brel\s*=)[^>]*>/gi) || [];
   if (unsafeBlankLinks.length) addError(`${fileName}: có ${unsafeBlankLinks.length} liên kết _blank thiếu rel an toàn`);
+  if (retiredRacket3dPattern.test(html)) addError(`${fileName}: vẫn còn giao diện hoặc tài nguyên model 3D đã ngừng sử dụng`);
   verifyStyles(fileName, html);
-  if (brokenQuick3dPattern.test(html)) addError(`${fileName}: dùng dataset.openQuick3d nên nút 3D không khớp data-open-quick-3d`);
   inlineScriptCount += checkInlineScripts(fileName, html);
 
   for (const reference of extractLocalReferences(html)) {
