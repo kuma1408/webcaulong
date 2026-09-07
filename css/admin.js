@@ -262,37 +262,154 @@
         chart.innerHTML = '';
         if (!items.length) { chart.appendChild(element('p', 'admin-empty', 'Chưa có dữ liệu biểu đồ.')); return; }
         const maxOrders = Math.max(1, ...items.map((item) => Number(item.orders) || 0));
-        items.forEach((item) => {
+
+        // 1. Dựng SVG Area Curve mượt mà với stroke draw animation
+        const svgW = 600;
+        const svgH = 145;
+        const padX = 20;
+        const padTop = 18;
+        const padBottom = 16;
+        const plotW = svgW - 2 * padX;
+        const plotH = svgH - padTop - padBottom;
+
+        const points = items.map((item, index) => {
+            const orders = Number(item.orders) || 0;
+            const x = items.length > 1 ? padX + (index / (items.length - 1)) * plotW : padX + plotW / 2;
+            const y = padTop + (1 - (orders / maxOrders)) * plotH;
+            return { x, y, orders, revenue: item.revenue, date: item.date };
+        });
+
+        let lineD = '';
+        if (points.length === 1) {
+            lineD = `M ${points[0].x - 20} ${points[0].y} L ${points[0].x + 20} ${points[0].y}`;
+        } else {
+            lineD = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+            for (let i = 0; i < points.length - 1; i++) {
+                const p0 = points[i === 0 ? 0 : i - 1];
+                const p1 = points[i];
+                const p2 = points[i + 1];
+                const p3 = points[i + 2] || p2;
+                const cp1x = p1.x + (p2.x - p0.x) / 6;
+                const cp1y = p1.y + (p2.y - p0.y) / 6;
+                const cp2x = p2.x - (p3.x - p1.x) / 6;
+                const cp2y = p2.y - (p3.y - p1.y) / 6;
+                lineD += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+            }
+        }
+        const lastX = points[points.length - 1].x;
+        const firstX = points[0].x;
+        const areaD = `${lineD} L ${lastX.toFixed(1)} ${svgH - padBottom} L ${firstX.toFixed(1)} ${svgH - padBottom} Z`;
+
+        const svgWrapper = document.createElement('div');
+        svgWrapper.className = 'admin-chart-svg-container';
+        svgWrapper.innerHTML = `
+            <svg class="admin-chart-svg" viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="adminChartAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#ff7a1a" stop-opacity="0.35" />
+                        <stop offset="85%" stop-color="#e9381b" stop-opacity="0.05" />
+                        <stop offset="100%" stop-color="#e9381b" stop-opacity="0" />
+                    </linearGradient>
+                    <linearGradient id="adminChartLineGrad" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stop-color="#ff9b45" />
+                        <stop offset="50%" stop-color="#ff6a3d" />
+                        <stop offset="100%" stop-color="#e9381b" />
+                    </linearGradient>
+                </defs>
+                <path class="admin-svg-area" d="${areaD}" />
+                <path class="admin-svg-line" d="${lineD}" />
+                <g class="admin-svg-dots">
+                    ${points.map((p, i) => `<circle class="admin-svg-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" data-point-index="${i}"></circle>`).join('')}
+                </g>
+            </svg>
+        `;
+        chart.appendChild(svgWrapper);
+
+        // 2. Dựng overlay các cột tương tác và nhãn ngày
+        const barsContainer = document.createElement('div');
+        barsContainer.style.cssText = 'display:flex;align-items:flex-end;gap:8px;position:absolute;inset:0;padding:24px 20px 16px;pointer-events:none;';
+
+        items.forEach((item, index) => {
             const orders = Number(item.orders) || 0;
             const bar = element('div', `admin-trend-bar${orders ? '' : ' is-empty'}`);
-            bar.style.setProperty('--bar-height', `${Math.max(3, orders / maxOrders * 165)}px`);
+            bar.style.pointerEvents = 'auto';
+            bar.style.setProperty('--bar-height', `${Math.max(4, orders / maxOrders * 165)}px`);
+            bar.style.animationDelay = `${index * 0.035}s`;
             const labelDate = new Date(`${item.date}T00:00:00`);
-            bar.append(
-                element('em', '', `${orders} đơn · ${formatMoney(item.revenue)}`),
-                element('span', '', `${labelDate.getDate()}/${labelDate.getMonth() + 1}`)
-            );
-            chart.appendChild(bar);
+            const em = element('em', '', `${orders} đơn · ${formatMoney(item.revenue)}`);
+            const span = element('span', '', `${labelDate.getDate()}/${labelDate.getMonth() + 1}`);
+            bar.append(em, span);
+
+            bar.addEventListener('mouseenter', () => {
+                svgWrapper.querySelectorAll('.admin-svg-dot').forEach((dot, dotIdx) => {
+                    dot.classList.toggle('is-active', dotIdx === index);
+                });
+            });
+            bar.addEventListener('mouseleave', () => {
+                svgWrapper.querySelectorAll('.admin-svg-dot').forEach(dot => dot.classList.remove('is-active'));
+            });
+
+            barsContainer.appendChild(bar);
         });
+        chart.appendChild(barsContainer);
     }
 
     function renderOrderStatus(items) {
         const colors = { CHO_XAC_NHAN: '#ff9f1c', DANG_GIAO: '#3d78c5', HOAN_THANH: '#28a966', DA_HUY: '#d94b3d' };
         const normalized = items.map((item) => ({ status: item.TrangThai, count: Number(item.SoLuong) || 0 })).filter((item) => item.count > 0);
         const total = normalized.reduce((sum, item) => sum + item.count, 0);
-        $('#adminStatusTotal').textContent = String(total);
-        let cursor = 0;
-        const segments = normalized.map((item) => {
-            const start = cursor;
-            cursor += total ? item.count / total * 100 : 0;
-            return `${colors[item.status] || '#9b776a'} ${start}% ${cursor}%`;
+
+        // 1. Dựng SVG Donut Ring tương tác động
+        const donut = $('#adminStatusDonut');
+        donut.innerHTML = '';
+
+        const R = 54;
+        const C = 2 * Math.PI * R; // ~339.292
+        let accumulated = 0;
+
+        const svgSegments = normalized.map((item) => {
+            const fraction = total ? item.count / total : 0;
+            const dash = fraction * C;
+            const gap = C - dash;
+            const offset = - (accumulated / total) * C;
+            accumulated += item.count;
+            const color = colors[item.status] || '#9b776a';
+            return `<circle class="admin-donut-seg" cx="72" cy="72" r="${R}" stroke="${color}" stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" data-status="${item.status}"></circle>`;
         });
-        $('#adminStatusDonut').style.setProperty('--donut', segments.length ? `conic-gradient(${segments.join(',')})` : 'conic-gradient(var(--bs-line) 0 100%)');
+
+        const svgHtml = `
+            <svg class="admin-donut-svg" viewBox="0 0 144 144">
+                <circle class="admin-donut-bg" cx="72" cy="72" r="${R}"></circle>
+                ${svgSegments.join('')}
+            </svg>
+        `;
+        donut.innerHTML = svgHtml + `<div style="position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;"><span id="adminStatusTotal">${total}</span><small>đơn</small></div>`;
+
+        // 2. Dựng Legend tương tác với hiệu ứng highlight
         const legend = $('#adminStatusLegend');
         legend.innerHTML = '';
         normalized.forEach((item) => {
+            const pct = total ? Math.round(item.count / total * 100) : 0;
             const row = element('div');
-            const dot = element('i'); dot.style.setProperty('--legend-color', colors[item.status] || '#9b776a');
-            row.append(dot, element('span', '', statusMeta[item.status]?.[0] || item.status), element('strong', '', item.count));
+            row.style.setProperty('--legend-color', colors[item.status] || '#9b776a');
+            const dot = element('i');
+            row.append(
+                dot,
+                element('span', '', `${statusMeta[item.status]?.[0] || item.status} (${pct}%)`),
+                element('strong', '', item.count)
+            );
+            row.addEventListener('mouseenter', () => {
+                donut.querySelectorAll('.admin-donut-seg').forEach(seg => {
+                    seg.style.opacity = seg.dataset.status === item.status ? '1' : '0.35';
+                    if (seg.dataset.status === item.status) seg.style.strokeWidth = '20';
+                });
+            });
+            row.addEventListener('mouseleave', () => {
+                donut.querySelectorAll('.admin-donut-seg').forEach(seg => {
+                    seg.style.opacity = '1';
+                    seg.style.strokeWidth = '16';
+                });
+            });
             legend.appendChild(row);
         });
         if (!normalized.length) legend.appendChild(element('p', 'admin-empty', 'Chưa có đơn hàng.'));
@@ -306,9 +423,28 @@
         const base = Math.max(1, users);
         [['#funnelUsers', users], ['#funnelCarts', carts], ['#funnelBuyers', buyers], ['#funnelCompleted30', completed]]
             .forEach(([selector, value]) => animateMetric($(selector), value));
+
+        const cartRate = Math.min(100, Math.round(carts / base * 100));
+        const buyerRate = carts ? Math.min(100, Math.round(buyers / carts * 100)) : 0;
+        const completedRate = buyers ? Math.min(100, Math.round(completed / buyers * 100)) : 0;
+
         $('#funnelCartBar').style.setProperty('--funnel-width', `${Math.min(100, carts / base * 100)}%`);
         $('#funnelBuyerBar').style.setProperty('--funnel-width', `${Math.min(100, buyers / base * 100)}%`);
         $('#funnelCompleted30Bar').style.setProperty('--funnel-width', `${Math.min(100, completed / base * 100)}%`);
+
+        // Gắn tỷ lệ chuyển đổi cho từng bước phễu
+        const steps = document.querySelectorAll('.admin-funnel__steps > div');
+        if (steps.length >= 4) {
+            const rates = ['100% người dùng', `${cartRate}% đã thêm giỏ`, `${buyerRate}% tiến hành đặt`, `${completedRate}% giao thành công`];
+            steps.forEach((step, i) => {
+                let badge = step.querySelector('.admin-funnel__step-rate');
+                if (!badge) {
+                    badge = element('span', 'admin-funnel__step-rate');
+                    step.insertBefore(badge, step.querySelector('i'));
+                }
+                badge.textContent = rates[i] || '';
+            });
+        }
     }
 
     function updateNavBadge(node, value) {
@@ -321,8 +457,10 @@
         const list = $('#recentOrders');
         list.innerHTML = '';
         if (!items.length) { list.appendChild(element('p', 'admin-empty', 'Chưa có đơn hàng.')); return; }
-        items.forEach((order) => {
+        items.forEach((order, index) => {
             const row = element('div', 'admin-list-item');
+            row.style.animation = 'adminRowIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both';
+            row.style.animationDelay = `${index * 0.04}s`;
             const avatar = userAvatar(order); avatar.classList.add('admin-list-item__avatar');
             row.appendChild(avatar);
             const info = element('div');
@@ -336,8 +474,10 @@
         const list = $('#lowStockProducts');
         list.innerHTML = '';
         if (!items.length) { list.appendChild(element('p', 'admin-empty', 'Tồn kho đang ổn định.')); return; }
-        items.forEach((product) => {
+        items.forEach((product, index) => {
             const row = element('div', 'admin-list-item');
+            row.style.animation = 'adminRowIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both';
+            row.style.animationDelay = `${index * 0.04}s`;
             const image = document.createElement('img');
             image.src = safeImage(product.HinhAnh); image.alt = ''; image.loading = 'lazy';
             const info = element('div');
@@ -351,8 +491,10 @@
         const list = $('#adminLiveActivity');
         list.innerHTML = '';
         if (!items.length) { list.appendChild(element('p', 'admin-empty', 'Chưa có thao tác quản trị.')); return; }
-        items.forEach((item) => {
+        items.forEach((item, index) => {
             const row = element('div', 'admin-list-item');
+            row.style.animation = 'adminRowIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both';
+            row.style.animationDelay = `${index * 0.04}s`;
             const avatar = userAvatar(item); avatar.classList.add('admin-list-item__avatar');
             const info = element('div');
             const target = item.MaDoiTuong ? `${item.DoiTuong} #${item.MaDoiTuong}` : item.DoiTuong;

@@ -8,7 +8,7 @@
 
     const TOKEN_KEY = 'badminton_access_token';
     const THEME_KEY = 'badminton_theme';
-    const SPORT_ASSET_VERSION = '20260907-4';
+    const SPORT_ASSET_VERSION = '20260907-5';
 
     function ensureSportDesignAssets() {
         if (!document.querySelector('link[href*="css/sport-system.css"]')) {

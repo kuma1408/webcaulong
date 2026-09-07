@@ -256,7 +256,7 @@
             transform: translateY(-2px);
         }
     </style>
-    <link rel="stylesheet" href="css/site-refresh.css?v=20260907-4">
+    <link rel="stylesheet" href="css/site-refresh.css?v=20260907-5">
 </head>
 <body>
     <div class="baotrang">
@@ -340,7 +340,7 @@
     </div>
 
     <!-- Script điều hướng, layout và logic -->
-    <script src="css/auth.js?v=20260907-4"></script>
+    <script src="css/auth.js?v=20260907-5"></script>
     <script>
         // Bản đồ ảnh nền tương ứng cho từng danh mục
         const BANNER_BGS = {
@@ -485,7 +485,7 @@
                     grid.innerHTML = '';
                     countLabel.textContent = `Tìm thấy ${Number(data.total || products.length)} sản phẩm`;
 
-                    products.forEach(p => {
+                    products.forEach((p, idx) => {
                         const productId = Number(p.MaSP);
                         if (!Number.isInteger(productId) || productId <= 0) return;
                         const saleActive = Number(p.GiaGoc || 0) > Number(p.GiaBan || 0);
@@ -497,7 +497,13 @@
                         const image = document.createElement('img');
                         image.src = window.BadmintonAuth.safeUrl(p.HinhAnh, 'HA/cc-removebg-preview.png');
                         image.alt = String(p.TenSP || 'Sản phẩm cầu lông');
-                        image.loading = 'lazy'; image.decoding = 'async';
+                        if (idx < 6) {
+                            image.loading = 'eager';
+                            image.decoding = 'async';
+                        } else {
+                            image.loading = 'lazy';
+                            image.decoding = 'async';
+                        }
                         image.onerror = () => { image.src = 'HA/cc-removebg-preview.png'; image.classList.add('is-fallback-image'); };
                         media.appendChild(image);
                         const info = document.createElement('div'); info.className = 'card-info';
