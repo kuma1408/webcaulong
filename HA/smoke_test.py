@@ -199,6 +199,17 @@ class ApiSmokeTest(unittest.TestCase):
         finally:
             javascript.close()
 
+        three_js = self.client.get("/vendor/three.min.js")
+        try:
+            self.assertEqual(three_js.status_code, 200)
+            self.assertGreater(len(three_js.data), 500_000)
+            self.assertIn("public", three_js.headers["Cache-Control"])
+        finally:
+            three_js.close()
+
+        blocked_vendor_file = self.client.get("/vendor/not-public.js")
+        self.assertEqual(blocked_vendor_file.status_code, 404)
+
     def test_rich_text_sanitizer_removes_stored_xss(self):
         dirty = '<p onclick="steal()">Mô tả</p><script>alert(1)</script><a href="javascript:alert(2)">Mở</a>'
         clean = sanitize_rich_text(dirty)

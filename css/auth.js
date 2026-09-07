@@ -8,7 +8,7 @@
 
     const TOKEN_KEY = 'badminton_access_token';
     const THEME_KEY = 'badminton_theme';
-    const SPORT_ASSET_VERSION = '20260907-2';
+    const SPORT_ASSET_VERSION = '20260907-3';
     let racketAssetsPromise = null;
 
     function ensureSportDesignAssets() {
@@ -633,21 +633,6 @@
                 header.dataset.stickyObserved = 'true';
                 new ResizeObserver(syncHeight).observe(header);
             }
-        }
-        let button = document.getElementById('bsBackToTop');
-        if (!button) {
-            button = document.createElement('button');
-            button.id = 'bsBackToTop';
-            button.className = 'bs-back-to-top';
-            button.type = 'button';
-            button.setAttribute('aria-label', 'Lên đầu trang');
-            button.title = 'Lên đầu trang';
-            button.textContent = '↑';
-            button.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-            document.body.appendChild(button);
-            const update = () => button.classList.toggle('is-visible', window.scrollY > 420);
-            window.addEventListener('scroll', update, { passive: true });
-            update();
         }
     }
 

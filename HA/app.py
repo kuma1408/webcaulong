@@ -1089,8 +1089,14 @@ def storefront_file(public_path: str):
         abort(404)
     if normalized.lower() in PRIVATE_PUBLIC_FILES:
         abort(404)
-    # Chỉ công khai trang HTML ở thư mục gốc và tài nguyên trong css/ hoặc HA/.
-    if "/" in normalized and not normalized.startswith(("css/", "HA/")):
+    # Chỉ công khai trang HTML ở thư mục gốc, tài nguyên ứng dụng và đúng thư viện
+    # Three.js đã được ghim phiên bản. Không mở toàn bộ vendor/ ra Internet.
+    allowed_vendor_files = {"vendor/three.min.js"}
+    if (
+        "/" in normalized
+        and not normalized.startswith(("css/", "HA/"))
+        and normalized not in allowed_vendor_files
+    ):
         abort(404)
     return send_from_directory(PROJECT_ROOT, normalized)
 
