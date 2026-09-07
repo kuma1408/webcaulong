@@ -32,11 +32,11 @@
         }());
     </script>
     <link rel="stylesheet" href="css/home.css?v=20260906-1">
-    <link rel="stylesheet" href="css/sport-system.css?v=20260906-3">
-    <script src="css/auth.js?v=20260906-3" defer></script>
+    <link rel="stylesheet" href="css/sport-system.css?v=20260907-1">
+    <script src="css/auth.js?v=20260907-1" defer></script>
     <script src="css/home.js?v=20260826-1" defer></script>
     <script src="vendor/three.min.js?v=128" defer></script>
-    <script src="css/racket-studio.js?v=20260906-3" defer></script>
+    <script src="css/racket-studio.js?v=20260907-1" defer></script>
 </head>
 
 <body>
@@ -89,6 +89,8 @@
             </nav>
 
             <div class="header__actions">
+                <button class="icon-button home-3d-toggle" type="button" data-open-quick-3d="quick3dDialog" aria-label="Mở mô hình vợt 3D" title="Mở mô hình vợt 3D"><span aria-hidden="true">3D</span></button>
+                <button class="icon-button ambient-toggle bs-ambient-action" type="button" data-ambient-toggle aria-label="Tắt hiệu ứng hạt tuyết" aria-pressed="true" title="Tắt hiệu ứng hạt tuyết"><span aria-hidden="true">❄</span></button>
                 <button class="icon-button theme-toggle" id="themeToggle" type="button" aria-label="Chuyển sang giao diện tối">
                     <span class="theme-toggle__sun" aria-hidden="true">☀</span>
                     <span class="theme-toggle__moon" aria-hidden="true">☾</span>
@@ -130,6 +132,7 @@
                 <p class="hero__lead">Từ cây vợt đầu tiên đến bộ trang bị thi đấu, tìm đúng món đồ giúp bạn tự tin trong từng pha cầu.</p>
                 <div class="hero__actions">
                     <a class="button button--accent" href="sanpham.html">Khám phá sản phẩm <span aria-hidden="true">→</span></a>
+                    <button class="button button--3d" type="button" data-open-quick-3d="quick3dDialog"><span aria-hidden="true">◈</span> Xem vợt 3D</button>
                     <a class="button button--ghost" href="hướng dẫn.html">Tư vấn chọn vợt</a>
                 </div>
                 <dl class="hero__facts">

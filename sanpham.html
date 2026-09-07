@@ -176,7 +176,7 @@
             color: var(--primary-color);
         }
     </style>
-    <link rel="stylesheet" href="css/site-refresh.css?v=20260906-3">
+    <link rel="stylesheet" href="css/site-refresh.css?v=20260907-1">
 </head>
 <body>
     <div class="baotrang">
@@ -260,7 +260,7 @@
     </div>
 
     <!-- Script điều hướng, layout và logic -->
-    <script src="css/auth.js?v=20260906-3"></script>
+    <script src="css/auth.js?v=20260907-1"></script>
     <script>
         // Bản đồ ảnh nền tương ứng cho từng danh mục
         const BANNER_BGS = {
@@ -431,7 +431,16 @@
                         const rating = document.createElement('span'); rating.className = 'rating'; rating.textContent = `⭐ ${Number(p.DanhGiaTrungBinh || 5).toFixed(1)}`;
                         const specs = document.createElement('div'); specs.className = 'cart-item-config';
                         [p.TrongLuongCan, p.LoiChoi && String(p.LoiChoi).replaceAll('_', ' '), p.DiemCanBang && String(p.DiemCanBang).replaceAll('_', ' ')].filter(Boolean).forEach(value => { const chip = document.createElement('span'); chip.textContent = value; specs.appendChild(chip); });
-                        priceRow.append(priceStack, rating); info.append(brand, title); if (specs.childElementCount) info.appendChild(specs); info.appendChild(priceRow); card.append(media, info);
+                        priceRow.append(priceStack, rating); info.append(brand, title); if (specs.childElementCount) info.appendChild(specs); info.appendChild(priceRow);
+                        if (Number(p.MaDM) === 1 || String(p.TenDM || '').toLocaleLowerCase('vi-VN').includes('vợt')) {
+                            const view3d = document.createElement('button');
+                            view3d.type = 'button';
+                            view3d.className = 'product-quick-3d';
+                            view3d.dataset.openQuick3d = 'globalQuick3dDialog';
+                            view3d.innerHTML = '<span aria-hidden="true">◈</span> Xem mô hình vợt 3D';
+                            info.appendChild(view3d);
+                        }
+                        card.append(media, info);
                         grid.appendChild(card);
                     });
 

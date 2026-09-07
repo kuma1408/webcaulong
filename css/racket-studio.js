@@ -62,7 +62,7 @@
             this.lastPinch = 0;
             this.targetRotX = -.08;
             this.targetRotY = -.32;
-            this.targetCameraZ = 7.2;
+            this.targetCameraZ = 8.25;
             this.exploded = false;
             this.macro = false;
             this.lastTime = performance.now();
@@ -424,7 +424,7 @@
         reset() {
             this.targetRotX = -.08;
             this.targetRotY = -.32;
-            this.targetCameraZ = 7.2;
+            this.targetCameraZ = 8.25;
             this.camera.position.x = 0;
             this.camera.position.y = -.25;
             this.camera.rotation.z = 0;
@@ -491,13 +491,24 @@
             return;
         }
         initStudios();
-        document.querySelectorAll('[data-open-quick-3d]').forEach((button) => button.addEventListener('click', () => {
-            const dialog = document.getElementById(button.dataset.openQuick3d || 'quick3dDialog');
+        const openDialog = (button) => {
+            const dialogId = button.getAttribute('data-open-quick-3d') || 'quick3dDialog';
+            const dialog = document.getElementById(dialogId);
             if (!dialog) return;
+            initStudios(dialog);
             dialog.showModal();
             [30, 150, 350].forEach((delay) => window.setTimeout(() => resizeStudios(dialog), delay));
-        }));
-        document.querySelectorAll('[data-close-quick-3d]').forEach((button) => button.addEventListener('click', () => button.closest('dialog')?.close()));
+        };
+        document.addEventListener('click', (event) => {
+            const openButton = event.target.closest?.('[data-open-quick-3d]');
+            if (openButton) {
+                event.preventDefault();
+                openDialog(openButton);
+                return;
+            }
+            const closeButton = event.target.closest?.('[data-close-quick-3d]');
+            if (closeButton) closeButton.closest('dialog')?.close();
+        });
         document.querySelectorAll('.quick-3d-dialog').forEach((dialog) => dialog.addEventListener('click', (event) => {
             if (event.target === dialog) dialog.close();
         }));

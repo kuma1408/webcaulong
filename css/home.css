@@ -141,6 +141,9 @@ html.js [data-reveal].is-revealed {
 .icon-button, .nav-toggle { border: 0; color: var(--ink); background: transparent; cursor: pointer; }
 .icon-button { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; }
 .theme-toggle { position: relative; font-size: 19px; }
+.ambient-toggle { font-size: 17px; }
+.ambient-toggle.is-active { border-color: color-mix(in srgb, var(--accent) 58%, var(--line)); color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.home-3d-toggle { width: 42px; padding: 0; border-radius: 50%; color: var(--accent-deep); font: 900 10px/1 var(--font-body); letter-spacing: .04em; }
 .theme-toggle__moon { display: none; }
 html[data-theme="dark"] .theme-toggle__sun { display: none; }
 html[data-theme="dark"] .theme-toggle__moon { display: inline; }
@@ -192,6 +195,8 @@ html[data-theme="dark"] .theme-toggle__moon { display: inline; }
 .button--accent { background: linear-gradient(135deg, var(--accent), var(--accent-deep)); color: #fff; box-shadow: 0 10px 26px rgba(217, 54, 30, .24); }
 .button--accent:hover { background: linear-gradient(135deg, #ff7d45, #c92c18); box-shadow: 0 14px 34px rgba(217, 54, 30, .32); }
 .button--ghost { border: 1px solid rgba(255,255,255,.28); color: #fff; }
+.button--3d { border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.1); color: #fff; backdrop-filter: blur(12px); }
+.button--3d:hover { border-color: rgba(255,255,255,.7); background: rgba(255,255,255,.17); }
 .hero__facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin: 46px 0 0; padding-top: 24px; border-top: 1px solid rgba(255,255,255,.15); }
 .hero__facts div { display: grid; gap: 2px; }
 .hero__facts dt { color: #fff; font-size: 15px; font-weight: 850; }
@@ -385,6 +390,7 @@ html[data-theme="dark"] .theme-toggle__moon { display: inline; }
     .brand__mark { width: 36px; }
     .brand__text strong { font-size: 16px; }
     .header__actions { gap: 5px; }
+    .home-3d-toggle { width: 38px; padding: 0; }
     .icon-button { width: 38px; height: 38px; }
     .cart-link { min-height: 38px; padding-inline: 11px; }
     .search-row { padding-inline: 0; }
