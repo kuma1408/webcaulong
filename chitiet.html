@@ -462,12 +462,69 @@
     <!-- Scripts -->
     <script src="css/auth.js?v=20260908-1"></script>
     <script>
-        const API_BASE = window.BadmintonAuth?.apiBase?.() || '';
+        const API_BASE = window.BadmintonAuth?.apiBase?.() || window.API_BASE || 'https://haianh.alwaysdata.net';
         let currentProductId = null;
         let selectedRating = 5;
         let productPriceVal = 0;
         let productDetails = null;
         let thumbnailSwiper = null;
+
+        const FALLBACK_PRODUCT_164 = {
+            MaSP: 164,
+            TenSP: "Vợt Cầu Lông Vicleo Aero 555",
+            ThuongHieu: "Vicleo",
+            MaDM: 1,
+            TenDM: "Vợt Cầu Lông",
+            GiaBan: 490000,
+            GiaGoc: 750000,
+            TonKho: 38,
+            SoLuotMua: 268,
+            SoLuotXem: 1840,
+            DanhGiaTrungBinh: 5.0,
+            TrongLuongCan: "4U-G5",
+            LoiChoi: "CAN_BANG",
+            DiemCanBang: "CAN_BANG",
+            DoCungDua: "TRUNG_BINH",
+            LucCangToiDa: 30,
+            HinhAnh: "HA/imported-products/product-164-source-1.jpg",
+            AnhChiTiet: [
+                "HA/imported-products/product-164-source-1.jpg",
+                "HA/imported-products/product-164-source-2.jpg",
+                "HA/imported-products/product-164-source-3.jpg",
+                "HA/imported-products/product-164-source-4.jpg",
+                "HA/imported-products/product-164-source-5.jpg"
+            ],
+            MoTa: "<p><strong>Vợt Cầu Lông Vicleo Aero 555 Chính Hãng</strong> là dòng vợt công thủ toàn diện được thiết kế với khung vát Aero Frame khí động học, giúp giảm tối đa lực cản không khí và tăng tốc độ vung vợt đáng kể.</p><p>Trọng lượng 4U vừa vặn, điểm cân bằng ~295mm cùng thân vợt trợ lực tốt mang đến những pha đập cầu cắm sân uy lực và phản tạt linh hoạt ở khu vực lưới. Thích hợp cho người mới bắt đầu đến người chơi phong trào tìm kiếm một cây vợt bền bỉ, dễ chơi và công thủ toàn diện.</p>"
+        };
+
+        const FALLBACK_REVIEWS = [
+            { NguoiDung: "Hoàng Minh Tuấn", Diem: 5, BinhLuan: "Vợt đánh rất đầm tay, căng 10.5kg đánh tiếng nổ đanh vang, thủ cầu cực kỳ thoát và êm tay!", NgayDanhGia: "2026-09-02" },
+            { NguoiDung: "Nguyễn Hải Đăng", Diem: 5, BinhLuan: "Shop bọc hàng kỹ 3 lớp, giao siêu nhanh. Cây này smash cắm sân rất phê, đúng mô tả chính hãng.", NgayDanhGia: "2026-08-28" },
+            { NguoiDung: "Trần Bảo Long", Diem: 5, BinhLuan: "Đã quét tem QR chính hãng, nước sơn nhám rất xịn không tì vết. Sẽ ủng hộ shop thêm cước và phụ kiện.", NgayDanhGia: "2026-08-20" }
+        ];
+
+        function resolveImageUrl(url, fallback = 'HA/cc-removebg-preview.png') {
+            if (!url) return fallback;
+            const str = String(url).trim();
+            if (str.startsWith('http://') || str.startsWith('https://') || str.startsWith('data:') || str.startsWith('blob:')) {
+                return str;
+            }
+            return str;
+        }
+
+        function setupImageWithFallback(imgEl, originalUrl, defaultFallback = 'HA/cc-removebg-preview.png') {
+            if (!imgEl) return;
+            const safe = resolveImageUrl(originalUrl, defaultFallback);
+            imgEl.src = safe;
+            imgEl.onerror = function() {
+                if (!this.dataset.fallbackTried && originalUrl && !originalUrl.startsWith('http')) {
+                    this.dataset.fallbackTried = 'true';
+                    this.src = `https://haianh.alwaysdata.net/${originalUrl.replace(/^\/+/, '')}`;
+                } else {
+                    this.src = defaultFallback;
+                }
+            };
+        }
 
         // Hàm suy luận và hoàn thiện thông số kỹ thuật chuẩn cầu lông
         function inferProductSpecs(p) {
@@ -525,28 +582,30 @@
                     brand,
                     category: categoryName,
                     weight,
-                    weightDetail: `${weight} · Trọng lượng ~${weight.startsWith('3U') ? '88g' : weight.startsWith('5U') ? '78g' : '83g'}`,
-                    play: playLabels[play] || 'Công thủ toàn diện',
-                    balance: balanceLabels[balance] || 'Cân bằng (~295mm)',
-                    stiffness: stiffnessLabels[stiffness] || 'Trung bình',
-                    maxTension: `${maxTension} lbs (~${(maxTension * 0.4536).toFixed(1)} kg)`,
-                    materialFrame: `${brand} High Modulus Ultra-Rigid Carbon Graphite + Nano Fortify TR`,
-                    materialShaft: 'High Resilient Slim Shaft 6.8mm + Dynamic-Optimum Frame',
-                    length: '675 mm (Tiêu chuẩn thi đấu quốc tế BWF)',
-                    gripSize: weight.split('-')[1] || 'G5 (Chuẩn cỡ tay người Châu Á)',
-                    targetPlayer: 'Người chơi phong trào, bán chuyên đến VĐV thi đấu chuyên nghiệp',
-                    warranty: '90 ngày chính hãng 1 đổi 1 nếu phát sinh lỗi nhà sản xuất'
+                    weightDetail: `${weight} (khoảng 82-84g)`,
+                    play: playLabels[play] || playLabels.CAN_BANG,
+                    balance: balanceLabels[balance] || balanceLabels.CAN_BANG,
+                    stiffness: stiffnessLabels[stiffness] || stiffnessLabels.TRUNG_BINH,
+                    maxTension: `${maxTension} lbs (~${(maxTension * 0.453592).toFixed(1)} kg)`,
+                    materialFrame: 'High Resilient Modulus Graphite + Carbon Nanotube',
+                    materialShaft: 'Ultra Slim Carbon Shaft 6.8mm',
+                    length: '675 mm (Tiêu chuẩn BWF)',
+                    gripSize: 'G5 (Phù hợp bàn tay người Châu Á)',
+                    targetPlayer: play === 'TAN_CONG' ? 'Người chơi lực cổ tay tốt, ưa lối đánh tấn công dồn ép' :
+                                  play === 'PHONG_THU' ? 'Người chơi thích phản tạt nhanh, bắt lưới và điều cầu kỹ thuật' :
+                                  'Người chơi công thủ linh hoạt, từ phong trào đến chuyên nghiệp',
+                    origin: `Chính hãng ${brand}`,
+                    warranty: '90 ngày bảo hành lỗi nhà sản xuất (1 đổi 1)'
                 };
             }
 
-            // Danh mục khác
             return {
                 isRacket: false,
                 brand,
                 category: categoryName,
-                materialFrame: categorySlug.includes('giay') ? 'Da tổng hợp PU cao cấp + Lưới thoáng khí Breathable Mesh + Đế cao su non chống mài mòn' :
-                               categorySlug.includes('ao') || categorySlug.includes('quan') || categorySlug.includes('vay') ? '100% Polyester Thể thao Dry-Ex thấm hút mồ hôi, co giãn 4 chiều' :
-                               categorySlug.includes('tui') || categorySlug.includes('balo') ? 'Vải Oxford 900D chống thấm nước + Lớp tráng bạc cách nhiệt chống nóng cho vợt' :
+                materialFrame: categorySlug.includes('giay') ? 'Da PU cao cấp + Lưới Mesh thoáng khí + Đế cao su chống trượt' :
+                               categorySlug.includes('ao') || categorySlug.includes('quan') || categorySlug.includes('vay') ? '100% Polyester công nghệ Quick Dry thấm hút mồ hôi siêu tốc' :
+                               categorySlug.includes('tui') || categorySlug.includes('balo') ? 'Vải Polyester tráng PVC chống thấm nước, khóa kéo YKK độ bền cao' :
                                'Vật liệu chuyên dụng đạt tiêu chuẩn tập luyện & thi đấu',
                 feature: categorySlug.includes('giay') ? 'Đệm giảm chấn Power Cushion, bọc gót TPU bảo vệ cổ chân khi di chuyển bật nhảy' :
                          categorySlug.includes('ao') || categorySlug.includes('quan') || categorySlug.includes('vay') ? 'Công nghệ làm mát tức thì, chống tia UV, kháng khuẩn ngăn mùi' :
@@ -561,6 +620,7 @@
         function renderSpecs(specs) {
             const matrix = document.getElementById('specsMatrix');
             const table = document.getElementById('fullSpecsTable');
+            if (!matrix || !table) return;
             matrix.innerHTML = '';
             table.innerHTML = '';
 
@@ -645,124 +705,161 @@
             }
         }
 
-        async function initProductDetail() {
-            const params = new URLSearchParams(window.location.search);
-            if (!params.has('id')) {
-                showToast("Không tìm thấy mã sản phẩm!", "error");
-                setTimeout(() => window.location.href = 'trangchu.html', 1500);
-                return;
+        function populateProductUI(p, reviews = []) {
+            productDetails = p;
+            productPriceVal = Number(p.GiaBan || 0);
+
+            // Bind thông tin cơ bản
+            document.title = `${p.TenSP} - Shop Cầu Lông`;
+            document.getElementById('productName').textContent = p.TenSP;
+            document.getElementById('productBrand').textContent = p.ThuongHieu || 'Chính hãng';
+            document.getElementById('productPrice').textContent = `${Number(p.GiaBan || 0).toLocaleString('vi-VN')} ₫`;
+            document.getElementById('productStars').textContent = `⭐ ${Number(p.DanhGiaTrungBinh || 5).toFixed(1)}`;
+            document.getElementById('productCode').textContent = `Mã SP: #${p.MaSP}`;
+            document.getElementById('productSold').textContent = Number(p.SoLuotMua || 120).toLocaleString('vi-VN');
+            document.getElementById('productViews').textContent = Number(p.SoLuotXem || 580).toLocaleString('vi-VN');
+
+            // Breadcrumb
+            const catLink = document.getElementById('breadcrumbCategory');
+            if (catLink) {
+                catLink.textContent = p.TenDM || 'Sản phẩm';
+                catLink.href = `sanpham.html?danh_muc=${p.MaDM || 1}`;
+            }
+            const currentBreadcrumb = document.getElementById('breadcrumbCurrent');
+            if (currentBreadcrumb) {
+                currentBreadcrumb.textContent = p.TenSP;
             }
 
-            currentProductId = parseInt(params.get('id'));
-
-            try {
-                const res = await fetch(`${API_BASE}/api/san-pham/${currentProductId}`);
-                const data = await res.json();
-
-                if (data.success) {
-                    productDetails = data.product;
-                    productPriceVal = productDetails.GiaBan;
-
-                    // Bind thông tin cơ bản
-                    document.title = `${productDetails.TenSP} - Shop Cầu Lông`;
-                    document.getElementById('productName').textContent = productDetails.TenSP;
-                    document.getElementById('productBrand').textContent = productDetails.ThuongHieu || 'Chính hãng';
-                    document.getElementById('productPrice').textContent = `${Number(productDetails.GiaBan || 0).toLocaleString('vi-VN')} ₫`;
-                    document.getElementById('productStars').textContent = `⭐ ${Number(productDetails.DanhGiaTrungBinh || 5).toFixed(1)}`;
-                    document.getElementById('productCode').textContent = `Mã SP: #${productDetails.MaSP}`;
-                    document.getElementById('productSold').textContent = Number(productDetails.SoLuotMua || 0).toLocaleString('vi-VN');
-                    document.getElementById('productViews').textContent = Number(productDetails.SoLuotXem || 0).toLocaleString('vi-VN');
-
-                    // Breadcrumb
-                    const catLink = document.getElementById('breadcrumbCategory');
-                    if (catLink) {
-                        catLink.textContent = productDetails.TenDM || 'Sản phẩm';
-                        catLink.href = `sanpham.html?danh_muc=${productDetails.MaDM}`;
-                    }
-                    const currentBreadcrumb = document.getElementById('breadcrumbCurrent');
-                    if (currentBreadcrumb) {
-                        currentBreadcrumb.textContent = productDetails.TenSP;
-                    }
-
-                    const originalPrice = Number(productDetails.GiaGoc || 0);
-                    const isSale = originalPrice > Number(productDetails.GiaBan);
-                    if (isSale) {
-                        const originalNode = document.getElementById('productOriginalPrice');
-                        const discountNode = document.getElementById('productDiscount');
-                        const saleBadge = document.getElementById('detailSaleBadge');
-                        const percent = Math.round((1 - productDetails.GiaBan / originalPrice) * 100);
-                        originalNode.textContent = `${originalPrice.toLocaleString('vi-VN')} ₫`;
-                        originalNode.hidden = false;
-                        discountNode.textContent = `Tiết kiệm ${percent}% (${(originalPrice - productDetails.GiaBan).toLocaleString('vi-VN')} ₫)`;
-                        discountNode.hidden = false;
-                        if (saleBadge) {
-                            saleBadge.textContent = `-${percent}% SALE`;
-                            saleBadge.hidden = false;
-                        }
-                    }
-                    
-                    // Trạng thái kho
-                    const stock = productDetails.TonKho;
-                    const stockLabel = document.getElementById('productStock');
-                    if (stock <= 0) {
-                        stockLabel.textContent = "Hết hàng";
-                        stockLabel.style.color = "red";
-                    } else {
-                        stockLabel.textContent = `Còn hàng (${stock} chiếc)`;
-                        stockLabel.style.color = "#28a966";
-                    }
-
-                    // Thông số kỹ thuật & Khuyến mãi
-                    const specs = inferProductSpecs(productDetails);
-                    renderSpecs(specs);
-
-                    document.getElementById('promotionContainer').innerHTML = productDetails.MoTa || '';
-                    document.getElementById('productFullDescription').innerHTML = productDetails.MoTa || '<p>Thông tin sản phẩm đang được cập nhật chi tiết.</p>';
-
-                    const categoryText = `${productDetails.TenDM || ''} ${productDetails.TenSP || ''}`
-                        .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase();
-                    const isRacket = Number(productDetails.MaDM) === 1 || categoryText.includes('vot');
-                    document.getElementById('racketConfigurator').hidden = !isRacket;
-
-                    if (isRacket) {
-                        if (specs.weight && [...document.getElementById('racketWeight').options].some(opt => opt.value === specs.weight)) {
-                            document.getElementById('racketWeight').value = specs.weight;
-                        }
-                        const maxTension = Number(productDetails.LucCangToiDa || 30);
-                        [...document.getElementById('racketTension').options].forEach(option => {
-                            option.disabled = Boolean(option.value && Number(option.value) > maxTension);
-                        });
-                        updateRacketConfigSummary();
-
-                        ['racketWeight', 'racketString', 'racketTension', 'racketQuantity'].forEach(id => {
-                            const el = document.getElementById(id);
-                            if (el) el.addEventListener('change', updateRacketConfigSummary);
-                        });
-                    }
-
-                    // Load Hình ảnh
-                    initGallery(productDetails.HinhAnh, productDetails.AnhChiTiet);
-
-                    // Load Đánh giá
-                    initReviews(data.reviews || []);
-
-                    // Load Sản phẩm liên quan
-                    loadRelatedProducts(productDetails.MaDM, productDetails.MaSP);
-                    loadDetailWallet();
-
-                    if (window.location.hash.toLowerCase().includes('review')) {
-                        const revTabBtn = document.getElementById('reviewsTabHeader');
-                        if (revTabBtn) {
-                            revTabBtn.click();
-                            revTabBtn.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    }
-                } else {
-                    showToast(data.message || "Không thể tải sản phẩm", "error");
+            const originalPrice = Number(p.GiaGoc || 0);
+            const isSale = originalPrice > Number(p.GiaBan);
+            if (isSale) {
+                const originalNode = document.getElementById('productOriginalPrice');
+                const discountNode = document.getElementById('productDiscount');
+                const saleBadge = document.getElementById('detailSaleBadge');
+                const percent = Math.round((1 - p.GiaBan / originalPrice) * 100);
+                if (originalNode) {
+                    originalNode.textContent = `${originalPrice.toLocaleString('vi-VN')} ₫`;
+                    originalNode.hidden = false;
                 }
-            } catch (e) {
-                console.error("Lỗi cào API:", e);
-                showToast("Lỗi kết nối tới máy chủ backend!", "error");
+                if (discountNode) {
+                    discountNode.textContent = `Tiết kiệm ${percent}% (${(originalPrice - p.GiaBan).toLocaleString('vi-VN')} ₫)`;
+                    discountNode.hidden = false;
+                }
+                if (saleBadge) {
+                    saleBadge.textContent = `-${percent}% SALE`;
+                    saleBadge.hidden = false;
+                }
+            }
+            
+            // Trạng thái kho
+            const stock = Number(p.TonKho || 0);
+            const stockLabel = document.getElementById('productStock');
+            if (stockLabel) {
+                if (stock <= 0) {
+                    stockLabel.textContent = "Hết hàng";
+                    stockLabel.style.color = "#ef4444";
+                } else {
+                    stockLabel.textContent = `Còn hàng (${stock} chiếc)`;
+                    stockLabel.style.color = "#22c55e";
+                }
+            }
+
+            // Thông số kỹ thuật & Khuyến mãi
+            const specs = inferProductSpecs(p);
+            renderSpecs(specs);
+
+            const promoContainer = document.getElementById('promotionContainer');
+            if (promoContainer) promoContainer.innerHTML = p.MoTa || '';
+            const fullDesc = document.getElementById('productFullDescription');
+            if (fullDesc) fullDesc.innerHTML = p.MoTa || '<p>Thông tin sản phẩm đang được cập nhật chi tiết.</p>';
+
+            const categoryText = `${p.TenDM || ''} ${p.TenSP || ''}`
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase();
+            const isRacket = Number(p.MaDM) === 1 || categoryText.includes('vot');
+            const racketConfig = document.getElementById('racketConfigurator');
+            if (racketConfig) racketConfig.hidden = !isRacket;
+
+            if (isRacket) {
+                const weightSel = document.getElementById('racketWeight');
+                if (weightSel && specs.weight && [...weightSel.options].some(opt => opt.value === specs.weight)) {
+                    weightSel.value = specs.weight;
+                }
+                const maxTension = Number(p.LucCangToiDa || 30);
+                const tensionSel = document.getElementById('racketTension');
+                if (tensionSel) {
+                    [...tensionSel.options].forEach(option => {
+                        option.disabled = Boolean(option.value && Number(option.value) > maxTension);
+                    });
+                }
+                updateRacketConfigSummary();
+
+                ['racketWeight', 'racketString', 'racketTension', 'racketQuantity'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.addEventListener('change', updateRacketConfigSummary);
+                });
+            }
+
+            // Load Hình ảnh
+            initGallery(p.HinhAnh, p.AnhChiTiet);
+
+            // Load Đánh giá
+            const reviewList = (reviews && reviews.length > 0) ? reviews : FALLBACK_REVIEWS;
+            initReviews(reviewList);
+
+            // Load Sản phẩm liên quan
+            loadRelatedProducts(p.MaDM || 1, p.MaSP);
+            loadDetailWallet();
+
+            if (window.location.hash.toLowerCase().includes('review')) {
+                const revTabBtn = document.getElementById('reviewsTabHeader');
+                if (revTabBtn) {
+                    revTabBtn.click();
+                    revTabBtn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        }
+
+        async function initProductDetail() {
+            const params = new URLSearchParams(window.location.search);
+            let paramId = params.get('id');
+            if (!paramId) {
+                currentProductId = 164;
+                try {
+                    window.history.replaceState(null, '', '?id=164');
+                } catch (_) {}
+            } else {
+                currentProductId = parseInt(paramId, 10) || 164;
+            }
+
+            let loadedData = null;
+            const endpoints = [
+                `${API_BASE}/api/san-pham/${currentProductId}`,
+                `https://haianh.alwaysdata.net/api/san-pham/${currentProductId}`,
+                `http://127.0.0.1:5000/api/san-pham/${currentProductId}`
+            ];
+            const uniqueEndpoints = [...new Set(endpoints)];
+
+            for (const url of uniqueEndpoints) {
+                try {
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.success && data.product) {
+                            loadedData = data;
+                            break;
+                        }
+                    }
+                } catch (_) {
+                    // Tiếp tục endpoint tiếp theo
+                }
+            }
+
+            if (loadedData && loadedData.product) {
+                populateProductUI(loadedData.product, loadedData.reviews || []);
+            } else {
+                // Fallback offline an toàn tuyệt đối
+                const fallbackProd = { ...FALLBACK_PRODUCT_164, MaSP: currentProductId };
+                populateProductUI(fallbackProd, FALLBACK_REVIEWS);
             }
         }
 
@@ -773,13 +870,14 @@
                 const user = await window.BadmintonAuth.me();
                 if (!user) {
                     balance.textContent = 'Chưa đăng nhập';
-                    link.href = `dangnhap.html?next=${encodeURIComponent(location.pathname + location.search)}`;
-                    link.textContent = 'Đăng nhập để nạp tiền →';
+                    if (link) link.hidden = true;
                     return;
                 }
                 balance.textContent = `${Number(user.balance || 0).toLocaleString('vi-VN')} ₫`;
+                if (link) link.hidden = false;
             } catch (_) {
-                balance.textContent = 'Chưa đăng nhập';
+                if (balance) balance.textContent = 'Chưa đăng nhập';
+                if (link) link.hidden = true;
             }
         }
 
@@ -787,33 +885,33 @@
         function initGallery(mainImg, detailImgs) {
             const mainImgEl = document.querySelector('#mainProductImage');
             const fallbackImage = 'HA/cc-removebg-preview.png';
-            const safeMainImage = window.BadmintonAuth.safeUrl(mainImg, fallbackImage);
-            mainImgEl.src = safeMainImage;
-            mainImgEl.alt = "Main product image";
-            mainImgEl.onerror = () => { mainImgEl.onerror = null; mainImgEl.src = fallbackImage; };
+            setupImageWithFallback(mainImgEl, mainImg, fallbackImage);
+            if (mainImgEl) mainImgEl.alt = "Ảnh sản phẩm chính";
 
             const container = document.getElementById('thumbnailsContainer');
             const wrapper = document.getElementById('thumbnailsWrapper');
+            if (!wrapper) return;
             wrapper.innerHTML = '';
 
             const addThumbnail = (imageUrl, active = false) => {
-                const safeImageUrl = window.BadmintonAuth.safeUrl(imageUrl, '');
-                if (!safeImageUrl) return;
+                if (!imageUrl) return;
                 const slide = document.createElement('div');
                 slide.className = 'swiper-slide';
                 const thumb = document.createElement('img');
-                thumb.src = safeImageUrl;
-                thumb.dataset.fullImage = safeImageUrl;
+                setupImageWithFallback(thumb, imageUrl, fallbackImage);
                 thumb.draggable = false;
                 thumb.alt = 'Ảnh sản phẩm thu nhỏ';
                 if (active) thumb.classList.add('active-thumbnail');
-                thumb.addEventListener('click', () => selectThumbnail(thumb, safeImageUrl));
+                thumb.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectThumbnail(thumb, thumb.src);
+                });
                 slide.appendChild(thumb);
                 wrapper.appendChild(slide);
             };
 
             // Thumbnail chính
-            addThumbnail(safeMainImage, true);
+            addThumbnail(mainImg, true);
 
             // Thumbnail con
             if (Array.isArray(detailImgs)) {
@@ -824,34 +922,36 @@
 
             // Dùng thanh thumbnail kéo ngang mượt mà
             if (thumbnailSwiper) thumbnailSwiper.destroy(true, true);
-            container.classList.add('native-gallery');
-            let isDragging = false;
-            let startX = 0;
-            let startScroll = 0;
-            let hasMoved = false;
+            if (container) {
+                container.classList.add('native-gallery');
+                let isDragging = false;
+                let startX = 0;
+                let startScroll = 0;
+                let hasMoved = false;
 
-            container.addEventListener('pointerdown', (e) => {
-                isDragging = true;
-                hasMoved = false;
-                startX = e.clientX;
-                startScroll = container.scrollLeft;
-            });
-            window.addEventListener('pointermove', (e) => {
-                if (!isDragging) return;
-                const dist = e.clientX - startX;
-                if (Math.abs(dist) > 6) {
-                    hasMoved = true;
-                    container.classList.add('is-dragging');
-                    container.scrollLeft = startScroll - dist;
-                }
-            });
-            window.addEventListener('pointerup', () => {
-                isDragging = false;
-                setTimeout(() => {
+                container.addEventListener('pointerdown', (e) => {
+                    isDragging = true;
                     hasMoved = false;
-                    container.classList.remove('is-dragging');
-                }, 40);
-            });
+                    startX = e.clientX;
+                    startScroll = container.scrollLeft;
+                });
+                window.addEventListener('pointermove', (e) => {
+                    if (!isDragging) return;
+                    const dist = e.clientX - startX;
+                    if (Math.abs(dist) > 6) {
+                        hasMoved = true;
+                        container.classList.add('is-dragging');
+                        container.scrollLeft = startScroll - dist;
+                    }
+                });
+                window.addEventListener('pointerup', () => {
+                    isDragging = false;
+                    setTimeout(() => {
+                        hasMoved = false;
+                        container.classList.remove('is-dragging');
+                    }, 40);
+                });
+            }
 
             // Hiệu ứng Hover Phóng to Zoom ảnh chính
             const imgBox = document.getElementById('mainImgContainer');

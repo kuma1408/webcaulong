@@ -27,9 +27,11 @@
 
     ensureSportDesignAssets();
     const configuredBase = document.querySelector('meta[name="api-base"]')?.content?.trim();
+    const isGithubPages = window.location.hostname.endsWith('github.io');
     const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.protocol === 'file:';
+    const PRODUCTION_API = 'https://haianh.alwaysdata.net';
 
-    window.API_BASE = configuredBase || (isLocal ? 'http://127.0.0.1:5000' : window.location.origin);
+    window.API_BASE = configuredBase || (isGithubPages ? PRODUCTION_API : (isLocal ? 'http://127.0.0.1:5000' : window.location.origin));
     // Khai báo lexical để các script cũ có thể tiếp tục dùng API_BASE/API_HEADERS.
     window.API_HEADERS = { 'Content-Type': 'application/json' };
 
@@ -173,10 +175,13 @@
     }
 
     function safeUrl(value, fallback = '') {
+        if (!value) return fallback;
         try {
-            const url = new URL(String(value || ''), window.location.href);
-            if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return fallback;
-            return url.href;
+            const raw = String(value).trim();
+            if (raw.startsWith('data:image/') || raw.startsWith('blob:')) return raw;
+            const url = new URL(raw, window.location.href);
+            if (!['http:', 'https:', 'file:'].includes(url.protocol) || url.username || url.password) return fallback;
+            return raw;
         } catch (_) {
             return fallback;
         }
@@ -195,7 +200,8 @@
         clearSession,
         saveSession,
         safeNext,
-        safeUrl
+        safeUrl,
+        apiBase: () => window.API_BASE
     };
 
     function showToast(message, type = 'info', duration = 3800) {

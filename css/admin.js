@@ -199,6 +199,8 @@
         if (reload || !state.loaded.has(view)) {
             state.loaded.add(view);
             loadView(view);
+        } else if (view === 'overview') {
+            setTimeout(replayAllDashboardAnimations, 80);
         }
     }
 
@@ -311,9 +313,10 @@
         chartScrollObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 const now = Date.now();
+                const lastTime = Number(entry.target.dataset.lastAnimated || 0);
                 if (entry.isIntersecting) {
-                    if (entry.target.dataset.chartExited === 'true' && (now - lastChartAnimateTime > 600)) {
-                        lastChartAnimateTime = now;
+                    if (entry.target.dataset.chartExited === 'true' && (now - lastTime > 400)) {
+                        entry.target.dataset.lastAnimated = String(now);
                         entry.target.dataset.chartExited = 'false';
                         if (entry.target.classList.contains('admin-metrics')) {
                             replayMetricsAnimation();
@@ -333,12 +336,26 @@
                     entry.target.dataset.chartExited = 'true';
                 }
             });
-        }, { threshold: 0.15 });
+        }, { threshold: 0.12 });
 
         targets.forEach(t => {
             t.dataset.chartExited = 'false';
             chartScrollObserver.observe(t);
         });
+    }
+
+    function replayAllDashboardAnimations() {
+        replayMetricsAnimation();
+        const splineCard = $('.admin-chart-card');
+        if (splineCard) replaySplineAnimation(splineCard);
+        const statusCard = $('.admin-status-card');
+        if (statusCard) replayDonutAnimation(statusCard);
+        const catCard = $('.admin-category-card');
+        if (catCard) replayCategoryAnimation(catCard);
+        const topCard = $('.admin-top-products-card');
+        if (topCard) replayTopProductsAnimation(topCard);
+        const funnelCard = $('.admin-funnel');
+        if (funnelCard) replayFunnelAnimation(funnelCard);
     }
 
     function replayMetricsAnimation() {
@@ -364,18 +381,21 @@
         const totalDisplay = $('#adminRevenue');
         if (line) {
             line.style.animation = 'none';
+            line.style.strokeDashoffset = '2200';
             void line.offsetWidth;
-            line.style.animation = '';
+            line.style.animation = 'splineLineDraw 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards';
         }
         if (area) {
             area.style.animation = 'none';
+            area.style.opacity = '0';
             void area.offsetWidth;
-            area.style.animation = '';
+            area.style.animation = 'splineAreaEnter 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards';
         }
-        dots.forEach(d => {
+        dots.forEach((d, idx) => {
             d.style.animation = 'none';
+            d.style.opacity = '0';
             void d.offsetWidth;
-            d.style.animation = '';
+            d.style.animation = `adminMetricEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${0.08 + idx * 0.03}s forwards`;
         });
         if (totalDisplay && cachedTrendData.length) {
             const isRev = currentTrendMode === 'revenue';
@@ -387,10 +407,10 @@
     function replayDonutAnimation(card) {
         const segs = card.querySelectorAll('.admin-donut-seg');
         const center = card.querySelector('#adminStatusTotal');
-        segs.forEach(seg => {
+        segs.forEach((seg, idx) => {
             seg.style.animation = 'none';
             void seg.offsetWidth;
-            seg.style.animation = '';
+            seg.style.animation = `donutSegDraw 1.1s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 0.08}s both`;
         });
         if (center && cachedOrderStatusData.length) {
             const total = cachedOrderStatusData.reduce((sum, item) => sum + (Number(item.SoLuong) || 0), 0);
@@ -401,10 +421,10 @@
     function replayCategoryAnimation(card) {
         const segs = card.querySelectorAll('.admin-donut-seg');
         const center = card.querySelector('#adminCategoryTotal');
-        segs.forEach(seg => {
+        segs.forEach((seg, idx) => {
             seg.style.animation = 'none';
             void seg.offsetWidth;
-            seg.style.animation = '';
+            seg.style.animation = `donutSegDraw 1.1s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 0.08}s both`;
         });
         if (center && cachedCategoryData.length) {
             const total = cachedCategoryData.reduce((sum, item) => sum + (Number(item.TongSP) || 0), 0);
@@ -419,7 +439,7 @@
             f.style.width = '0%';
             f.style.transition = 'none';
             void f.offsetWidth;
-            f.style.transition = '';
+            f.style.transition = 'width 1.1s cubic-bezier(0.16, 1, 0.3, 1)';
             f.style.width = targetW;
         });
     }

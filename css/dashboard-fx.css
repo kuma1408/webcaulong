@@ -1241,3 +1241,200 @@
         transform: none !important;
     }
 }
+
+/* ==========================================================================
+   BADMINTON STORE — PRO ADMIN FORM SECTIONS & CYBER SPORT ENHANCEMENTS
+   ========================================================================== */
+
+/* Modern Dialog Sizing & Aesthetics */
+.admin-dialog--product {
+    width: min(920px, calc(100% - 28px)) !important;
+}
+
+.admin-dialog--content {
+    width: min(860px, calc(100% - 28px)) !important;
+}
+
+.admin-dialog {
+    border: 1px solid color-mix(in srgb, var(--bs-orange) 30%, var(--bs-line)) !important;
+    border-radius: 24px !important;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--bs-card) 98%, transparent), color-mix(in srgb, var(--bs-bg) 92%, transparent)) !important;
+    box-shadow: 0 28px 80px rgba(43, 9, 2, 0.35), 0 0 0 1px rgba(255, 122, 26, 0.15) !important;
+    backdrop-filter: blur(28px) !important;
+    -webkit-backdrop-filter: blur(28px) !important;
+    animation: adminModalSpring 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+:root[data-theme="dark"] .admin-dialog {
+    background: linear-gradient(160deg, #140a08, #1a0d0a 75%, #23110d) !important;
+    border-color: rgba(255, 122, 26, 0.28) !important;
+    box-shadow: 0 35px 100px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 122, 26, 0.22) !important;
+}
+
+/* Form Sections with Headers & Icons */
+.admin-form-section {
+    display: grid;
+    gap: 14px;
+    padding: 16px 18px;
+    border: 1px solid color-mix(in srgb, var(--bs-line) 80%, transparent);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--bs-card) 85%, var(--bs-bg));
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.admin-form-section:hover {
+    border-color: color-mix(in srgb, var(--bs-orange) 45%, var(--bs-line));
+    box-shadow: 0 6px 20px rgba(255, 122, 26, 0.08);
+}
+
+:root[data-theme="dark"] .admin-form-section {
+    background: rgba(255, 255, 255, 0.025);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme="dark"] .admin-form-section:hover {
+    border-color: rgba(255, 122, 26, 0.4);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+.admin-form-section__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 11px;
+    border-bottom: 1px solid color-mix(in srgb, var(--bs-line) 70%, transparent);
+}
+
+.admin-form-section__icon {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--bs-orange) 15%, transparent);
+    font-size: 16px;
+}
+
+.admin-form-section__header strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--bs-ink);
+    letter-spacing: -0.01em;
+}
+
+.admin-form-section__header small {
+    display: block;
+    margin-top: 2px;
+    font-size: 10px;
+    color: var(--bs-muted);
+}
+
+.admin-form-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    padding-top: 4px;
+}
+
+.admin-form-toggles .admin-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.admin-form-toggles .admin-switch b {
+    color: var(--bs-ink);
+    font-weight: 700;
+}
+
+/* Enhanced Inputs & Selects inside dialogs */
+.admin-dialog .field label {
+    font-size: 11px;
+    font-weight: 750;
+    color: var(--bs-ink);
+    margin-bottom: 6px;
+}
+
+.admin-dialog .field input,
+.admin-dialog .field select,
+.admin-dialog .field textarea {
+    border: 1px solid color-mix(in srgb, var(--bs-line) 85%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--bs-card) 95%, transparent);
+    color: var(--bs-ink);
+    font-size: 12px;
+    transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-dialog .field input:focus,
+.admin-dialog .field select:focus,
+.admin-dialog .field textarea:focus {
+    border-color: var(--bs-orange);
+    box-shadow: 0 0 0 3.5px rgba(255, 122, 26, 0.22);
+    outline: none;
+}
+
+/* Primary Action Button Upgrade */
+.admin-primary--lg {
+    min-height: 46px !important;
+    padding: 0 24px !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.02em !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    border-radius: 14px !important;
+    box-shadow: 0 12px 28px rgba(233, 56, 27, 0.32) !important;
+    transition: transform 0.22s ease, box-shadow 0.22s ease !important;
+}
+
+.admin-primary--lg:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 34px rgba(233, 56, 27, 0.42) !important;
+}
+
+.admin-primary--lg:active {
+    transform: translateY(0);
+}
+
+/* Spline & Donut Neon Glow Animations */
+.admin-spline-line {
+    animation: splineLineDraw 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+.admin-spline-area {
+    animation: splineAreaEnter 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+.admin-svg-dot {
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), r 0.24s ease, filter 0.24s ease;
+}
+
+.admin-svg-dot:hover, .admin-svg-dot.is-highlighted {
+    r: 6 !important;
+    filter: drop-shadow(0 0 8px rgba(255, 122, 26, 0.8));
+}
+
+/* Top Products Bar Slide In */
+.top-product-bar-fill {
+    transition: width 1s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Table rows smooth hover pulse */
+.admin-table-card tbody tr {
+    transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.admin-table-card tbody tr:hover {
+    background: color-mix(in srgb, var(--bs-orange-soft) 60%, transparent) !important;
+}
+
+:root[data-theme="dark"] .admin-table-card tbody tr:hover {
+    background: rgba(255, 122, 26, 0.08) !important;
+}
+

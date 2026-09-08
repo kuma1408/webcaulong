@@ -203,22 +203,203 @@
         </div>
     </main>
 
-    <dialog class="admin-dialog" id="productDialog" aria-labelledby="productDialogTitle">
+    <dialog class="admin-dialog admin-dialog--product" id="productDialog" aria-labelledby="productDialogTitle">
         <form class="admin-dialog__form" id="productForm" method="dialog">
-            <div class="admin-dialog__heading"><div><p class="eyebrow">Danh mục sản phẩm</p><h2 id="productDialogTitle">Thêm sản phẩm</h2></div><button type="button" data-close-dialog="productDialog" aria-label="Đóng">×</button></div>
+            <div class="admin-dialog__heading">
+                <div>
+                    <p class="eyebrow">Hệ thống kho hàng chuyên nghiệp</p>
+                    <h2 id="productDialogTitle">Thêm sản phẩm</h2>
+                </div>
+                <button type="button" data-close-dialog="productDialog" aria-label="Đóng">×</button>
+            </div>
             <input id="productId" type="hidden">
-            <div class="field-grid"><div class="field"><label for="productName">Tên sản phẩm</label><input id="productName" required minlength="3" maxlength="200"></div><div class="field"><label for="productCategory">Danh mục</label><select id="productCategory" required><option value="">Chọn danh mục</option></select></div></div>
-            <div class="field-grid field-grid--three"><div class="field"><label for="productPrice">Giá bán</label><input id="productPrice" type="number" min="0" step="1000" required></div><div class="field"><label for="productOriginalPrice">Giá gốc</label><input id="productOriginalPrice" type="number" min="0" step="1000"></div><div class="field"><label for="productStock">Tồn kho</label><input id="productStock" type="number" min="0" step="1" required></div></div>
-            <label class="admin-switch"><input id="productSale" type="checkbox"><span></span>Đưa sản phẩm vào Sale Off</label>
-            <div class="field-grid"><div class="field"><label for="productBrand">Thương hiệu</label><input id="productBrand" maxlength="100"></div><div class="field"><label for="productImage">Ảnh đại diện</label><div class="admin-media-picker"><img id="productImagePreview" src="HA/cc-removebg-preview.png" alt="Xem trước ảnh đại diện sản phẩm"><div><input id="productImage" maxlength="500" placeholder="Đường dẫn ảnh sau khi tải lên"><input id="productImageFile" type="file" accept="image/jpeg,image/png,image/webp" hidden><button type="button" id="uploadProductImage">Chọn và tải ảnh</button><small>JPG, PNG hoặc WebP · tối đa 3 MB</small></div></div></div></div>
-            <div class="field"><label for="productDetailImages">Ảnh chi tiết / Swiper</label><textarea id="productDetailImages" rows="3" placeholder="Mỗi đường dẫn một dòng"></textarea><div class="admin-media-actions"><input id="productDetailImageFiles" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden><button type="button" id="uploadProductDetailImages">+ Tải nhiều ảnh chi tiết</button><small id="productDetailUploadStatus">Có thể chọn nhiều ảnh, hệ thống sẽ tự nén và thêm vào Swiper.</small></div><div class="admin-media-gallery" id="productDetailPreview"></div></div>
-            <div class="field-grid"><div class="field"><label for="productSourceName">Tên nguồn</label><input id="productSourceName" maxlength="120" placeholder="ShopVNB, HVShop..."></div><div class="field"><label for="productSourceUrl">URL nguồn tham khảo</label><input id="productSourceUrl" type="url" maxlength="700"></div></div>
-            <div class="field-grid field-grid--three"><div class="field"><label for="productWeightGrip">Trọng lượng / cán</label><select id="productWeightGrip"><option value="">Chưa khai báo</option><option>3U-G5</option><option>4U-G5</option><option>4U-G6</option><option>5U-G5</option></select></div><div class="field"><label for="productPlayStyle">Lối chơi</label><select id="productPlayStyle"><option value="">Chưa khai báo</option><option value="TAN_CONG">Tấn công</option><option value="CAN_BANG">Cân bằng</option><option value="PHONG_THU">Phòng thủ / tốc độ</option></select></div><div class="field"><label for="productBalance">Điểm cân bằng</label><select id="productBalance"><option value="">Chưa khai báo</option><option value="NANG_DAU">Nặng đầu</option><option value="CAN_BANG">Cân bằng</option><option value="NHE_DAU">Nhẹ đầu</option></select></div></div>
-            <div class="field-grid"><div class="field"><label for="productStiffness">Độ cứng đũa</label><select id="productStiffness"><option value="">Chưa khai báo</option><option value="MEM">Mềm</option><option value="TRUNG_BINH">Trung bình</option><option value="CUNG">Cứng</option></select></div><div class="field"><label for="productMaxTension">Lực căng tối đa (lbs)</label><input id="productMaxTension" type="number" min="18" max="40" step="1"></div></div>
-            <div class="field"><label for="productDescription">Mô tả</label><textarea id="productDescription" rows="4" maxlength="5000"></textarea></div>
-            <label class="admin-switch"><input id="productActive" type="checkbox" checked><span></span>Hiển thị sản phẩm trên cửa hàng</label>
+
+            <!-- Section 1: Định danh & Phân loại -->
+            <div class="admin-form-section">
+                <div class="admin-form-section__header">
+                    <span class="admin-form-section__icon">🏷️</span>
+                    <div>
+                        <strong>Thông tin cơ bản & Định danh</strong>
+                        <small>Tên, thương hiệu và danh mục hiển thị</small>
+                    </div>
+                </div>
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="productName">Tên sản phẩm đầy đủ *</label>
+                        <input id="productName" required minlength="3" maxlength="200" placeholder="VD: Vợt Cầu Lông Yonex Astrox 88D Pro Chính Hãng">
+                    </div>
+                    <div class="field">
+                        <label for="productCategory">Danh mục sản phẩm *</label>
+                        <select id="productCategory" required>
+                            <option value="">Chọn danh mục</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="productBrand">Thương hiệu / Hãng sản xuất</label>
+                        <input id="productBrand" maxlength="100" placeholder="Yonex, Victor, Li-Ning, Mizuno, Vicleo...">
+                    </div>
+                    <div class="field">
+                        <label for="productSourceName">Tên nguồn nhập hàng</label>
+                        <input id="productSourceName" maxlength="120" placeholder="VD: Yonex Sunrise, ShopVNB, HVShop...">
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="productSourceUrl">URL nguồn tham khảo / đối chiếu</label>
+                    <input id="productSourceUrl" type="url" maxlength="700" placeholder="https://...">
+                </div>
+            </div>
+
+            <!-- Section 2: Giá bán, Khuyến mãi & Kho -->
+            <div class="admin-form-section">
+                <div class="admin-form-section__header">
+                    <span class="admin-form-section__icon">💰</span>
+                    <div>
+                        <strong>Định giá & Tồn kho</strong>
+                        <small>Giá bán, giá gốc, tồn kho và các chế độ ưu đãi</small>
+                    </div>
+                </div>
+                <div class="field-grid field-grid--three">
+                    <div class="field">
+                        <label for="productPrice">Giá bán thực tế (₫) *</label>
+                        <input id="productPrice" type="number" min="0" step="1000" required placeholder="VD: 490000">
+                    </div>
+                    <div class="field">
+                        <label for="productOriginalPrice">Giá gốc niêm yết (₫)</label>
+                        <input id="productOriginalPrice" type="number" min="0" step="1000" placeholder="VD: 750000">
+                    </div>
+                    <div class="field">
+                        <label for="productStock">Số lượng tồn kho (chiếc) *</label>
+                        <input id="productStock" type="number" min="0" step="1" required placeholder="VD: 50">
+                    </div>
+                </div>
+                <div class="admin-form-toggles">
+                    <label class="admin-switch">
+                        <input id="productSale" type="checkbox">
+                        <span></span>
+                        <b>Đưa vào danh mục Sale Off</b> (Yêu cầu giá gốc lớn hơn giá bán)
+                    </label>
+                    <label class="admin-switch">
+                        <input id="productActive" type="checkbox" checked>
+                        <span></span>
+                        <b>Hiển thị trên cửa hàng</b> (Cho phép khách hàng xem và đặt mua)
+                    </label>
+                </div>
+            </div>
+
+            <!-- Section 3: Thông số kỹ thuật cầu lông Pro -->
+            <div class="admin-form-section">
+                <div class="admin-form-section__header">
+                    <span class="admin-form-section__icon">⚡</span>
+                    <div>
+                        <strong>Thông số kỹ thuật chuẩn cầu lông</strong>
+                        <small>Dành cho vợt cầu lông để kích hoạt bộ lọc và cấu hình căng cước</small>
+                    </div>
+                </div>
+                <div class="field-grid field-grid--three">
+                    <div class="field">
+                        <label for="productWeightGrip">Trọng lượng / Chu vi cán</label>
+                        <select id="productWeightGrip">
+                            <option value="">Chưa khai báo</option>
+                            <option value="3U-G5">3U-G5 (~88g · Cán tiêu chuẩn)</option>
+                            <option value="4U-G5">4U-G5 (~83g · Cán tiêu chuẩn)</option>
+                            <option value="4U-G6">4U-G6 (~83g · Cán nhỏ)</option>
+                            <option value="5U-G5">5U-G5 (~78g · Trợ lực nhẹ)</option>
+                            <option value="6U-G5">6U-G5 (~73g · Siêu nhẹ)</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="productPlayStyle">Lối chơi tối ưu</label>
+                        <select id="productPlayStyle">
+                            <option value="">Chưa khai báo</option>
+                            <option value="TAN_CONG">Tấn công áp đảo & Smash uy lực</option>
+                            <option value="CAN_BANG">Công thủ toàn diện & Linh hoạt</option>
+                            <option value="PHONG_THU">Phản tạt tốc độ & Thủ cầu</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="productBalance">Điểm cân bằng</label>
+                        <select id="productBalance">
+                            <option value="">Chưa khai báo</option>
+                            <option value="NANG_DAU">Nặng đầu (~300mm · Trợ lực đập)</option>
+                            <option value="CAN_BANG">Cân bằng (~295mm · Công thủ)</option>
+                            <option value="NHE_DAU">Nhẹ đầu (~285mm · Tốc độ vung)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="productStiffness">Độ cứng đũa vợt</label>
+                        <select id="productStiffness">
+                            <option value="">Chưa khai báo</option>
+                            <option value="CUNG">Cứng (Kiểm soát và truyền lực tối đa)</option>
+                            <option value="TRUNG_BINH">Trung bình (Cân bằng lực và độ nảy)</option>
+                            <option value="MEM">Dẻo (Dễ thuần, trợ lực tối đa)</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="productMaxTension">Lực căng cước tối đa (lbs)</label>
+                        <input id="productMaxTension" type="number" min="18" max="40" step="1" placeholder="VD: 30 lbs (~13.6 kg)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Hình ảnh & Album Swiper -->
+            <div class="admin-form-section">
+                <div class="admin-form-section__header">
+                    <span class="admin-form-section__icon">📸</span>
+                    <div>
+                        <strong>Bộ sưu tập hình ảnh (Media Gallery)</strong>
+                        <small>Ảnh đại diện chính và các góc chụp chi tiết cho Swiper</small>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="productImage">Ảnh đại diện chính *</label>
+                    <div class="admin-media-picker">
+                        <img id="productImagePreview" src="HA/cc-removebg-preview.png" alt="Xem trước ảnh đại diện sản phẩm">
+                        <div>
+                            <input id="productImage" maxlength="500" placeholder="Đường dẫn ảnh sau khi tải lên">
+                            <input id="productImageFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+                            <button type="button" id="uploadProductImage">📁 Chọn và tải ảnh đại diện</button>
+                            <small>Định dạng JPG, PNG hoặc WebP · tối đa 3 MB · Tự động nén chất lượng cao</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="productDetailImages">Album ảnh chi tiết / Swiper Slider</label>
+                    <textarea id="productDetailImages" rows="3" placeholder="Mỗi đường dẫn một dòng, hoặc tải trực tiếp bên dưới..."></textarea>
+                    <div class="admin-media-actions">
+                        <input id="productDetailImageFiles" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
+                        <button type="button" id="uploadProductDetailImages">+ Tải lên nhiều ảnh chi tiết</button>
+                        <small id="productDetailUploadStatus">Có thể chọn nhiều ảnh, hệ thống sẽ tự nén và thêm vào Swiper.</small>
+                    </div>
+                    <div class="admin-media-gallery" id="productDetailPreview"></div>
+                </div>
+            </div>
+
+            <!-- Section 5: Mô tả bài viết & Cam kết -->
+            <div class="admin-form-section">
+                <div class="admin-form-section__header">
+                    <span class="admin-form-section__icon">📝</span>
+                    <div>
+                        <strong>Bài viết mô tả chi tiết & Cam kết chất lượng</strong>
+                        <small>Thông tin quảng bá, công nghệ vật liệu, đối tượng người chơi</small>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="productDescription">Nội dung mô tả sản phẩm (hỗ trợ định dạng HTML/Văn bản)</label>
+                    <textarea id="productDescription" rows="5" maxlength="5000" placeholder="Nhập mô tả sản phẩm, công nghệ nổi bật, cảm giác khi đánh cầu, chính sách bảo hành..."></textarea>
+                </div>
+            </div>
+
             <p class="form-status" id="productFormStatus" role="alert" aria-live="polite"></p>
-            <div class="admin-dialog__actions"><button type="button" data-close-dialog="productDialog">Hủy</button><button class="admin-primary" id="productSave" type="submit">Lưu sản phẩm</button></div>
+            <div class="admin-dialog__actions">
+                <button type="button" data-close-dialog="productDialog">Hủy bỏ</button>
+                <button class="admin-primary admin-primary--lg" id="productSave" type="submit">
+                    <span>✓</span> Lưu sản phẩm
+                </button>
+            </div>
         </form>
     </dialog>
 
@@ -251,7 +432,83 @@
     <dialog class="admin-dialog admin-dialog--detail" id="changeDetailDialog" aria-labelledby="changeDetailTitle">
         <div class="admin-dialog__form"><div class="admin-dialog__heading"><div><p class="eyebrow" id="changeDetailEyebrow">Chi tiết hoạt động</p><h2 id="changeDetailTitle">Thông tin thay đổi</h2></div><button type="button" data-close-dialog="changeDetailDialog" aria-label="Đóng">×</button></div><div class="change-product-card" id="changeProductCard" hidden></div><div class="change-detail-meta" id="changeDetailMeta"></div><div class="change-detail-list" id="changeDetailBody"></div><div class="admin-dialog__actions"><button type="button" data-close-dialog="changeDetailDialog">Đóng</button></div></div>
     </dialog>
-    <dialog class="admin-dialog" id="contentDialog" aria-labelledby="contentDialogTitle"><form class="admin-dialog__form" id="contentForm" method="dialog"><div class="admin-dialog__heading"><div><p class="eyebrow">Kho nội dung</p><h2 id="contentDialogTitle">Thêm nội dung</h2></div><button type="button" data-close-dialog="contentDialog" aria-label="Đóng">×</button></div><input id="contentId" type="hidden"><div class="field-grid"><div class="field"><label for="contentType">Loại</label><select id="contentType"><option value="TIN_TUC">Tin tức</option><option value="HUONG_DAN">Hướng dẫn</option></select></div><div class="field"><label for="contentImage">Ảnh đại diện</label><div class="admin-media-picker admin-media-picker--compact"><img id="contentImagePreview" src="HA/cc-removebg-preview.png" alt="Xem trước ảnh bài viết"><div><input id="contentImage" maxlength="500" placeholder="Đường dẫn ảnh sau khi tải lên"><input id="contentImageFile" type="file" accept="image/jpeg,image/png,image/webp" hidden><button type="button" id="uploadContentImage">Chọn và tải ảnh</button></div></div></div></div><div class="field"><label for="contentTitle">Tiêu đề</label><input id="contentTitle" required minlength="5" maxlength="220"></div><div class="field"><label for="contentSummary">Tóm tắt</label><textarea id="contentSummary" rows="2" maxlength="500"></textarea></div><div class="field"><label for="contentBody">Nội dung</label><textarea id="contentBody" rows="9" required></textarea></div><div class="field"><label for="contentSource">URL nguồn tham khảo</label><input id="contentSource" type="url" maxlength="700"></div><label class="admin-switch"><input id="contentActive" type="checkbox" checked><span></span>Đang xuất bản</label><p class="form-status" id="contentFormStatus" role="alert"></p><div class="admin-dialog__actions"><button type="button" data-close-dialog="contentDialog">Hủy</button><button class="admin-primary" id="contentSave" type="submit">Lưu nội dung</button></div></form></dialog>
+    <dialog class="admin-dialog admin-dialog--content" id="contentDialog" aria-labelledby="contentDialogTitle">
+        <form class="admin-dialog__form" id="contentForm" method="dialog">
+            <div class="admin-dialog__heading">
+                <div>
+                    <p class="eyebrow">Kho nội dung truyền thông & cẩm nang</p>
+                    <h2 id="contentDialogTitle">Thêm bài viết</h2>
+                </div>
+                <button type="button" data-close-dialog="contentDialog" aria-label="Đóng">×</button>
+            </div>
+            <input id="contentId" type="hidden">
+            <div class="admin-form-section">
+                <div class="admin-form-section__header">
+                    <span class="admin-form-section__icon">📰</span>
+                    <div>
+                        <strong>Phân loại & Ảnh đại diện bài viết</strong>
+                        <small>Chuyên mục và hình thu nhỏ hiển thị ngoài trang chủ</small>
+                    </div>
+                </div>
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="contentType">Chuyên mục bài viết *</label>
+                        <select id="contentType">
+                            <option value="TIN_TUC">Tin tức & Sự kiện cầu lông</option>
+                            <option value="HUONG_DAN">Kỹ thuật & Hướng dẫn tập luyện</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="contentImage">Ảnh bìa bài viết</label>
+                        <div class="admin-media-picker admin-media-picker--compact">
+                            <img id="contentImagePreview" src="HA/cc-removebg-preview.png" alt="Xem trước ảnh bài viết">
+                            <div>
+                                <input id="contentImage" maxlength="500" placeholder="Đường dẫn ảnh sau khi tải lên">
+                                <input id="contentImageFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+                                <button type="button" id="uploadContentImage">Chọn và tải ảnh</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-form-section">
+                <div class="admin-form-section__header">
+                    <span class="admin-form-section__icon">✍️</span>
+                    <div>
+                        <strong>Nội dung & Nguồn tham khảo</strong>
+                        <small>Tiêu đề, tóm tắt và toàn văn bài viết</small>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="contentTitle">Tiêu đề bài viết *</label>
+                    <input id="contentTitle" required minlength="5" maxlength="220" placeholder="VD: Đánh giá siêu phẩm Yonex Astrox 100ZZ - Vũ khí smash cắm sân">
+                </div>
+                <div class="field">
+                    <label for="contentSummary">Đoạn tóm tắt (Lead / Sapo)</label>
+                    <textarea id="contentSummary" rows="2" maxlength="500" placeholder="Tóm tắt ngắn gọn 1-2 câu để hiển thị trên trang danh sách..."></textarea>
+                </div>
+                <div class="field">
+                    <label for="contentBody">Nội dung chi tiết bài viết *</label>
+                    <textarea id="contentBody" rows="8" required placeholder="Nhập toàn bộ nội dung bài viết, phân tích chuyên môn..."></textarea>
+                </div>
+                <div class="field">
+                    <label for="contentSource">URL nguồn tham khảo</label>
+                    <input id="contentSource" type="url" maxlength="700" placeholder="https://bwfbadminton.com/news/...">
+                </div>
+            </div>
+            <label class="admin-switch">
+                <input id="contentActive" type="checkbox" checked>
+                <span></span>Đang xuất bản trực tiếp trên website
+            </label>
+            <p class="form-status" id="contentFormStatus" role="alert"></p>
+            <div class="admin-dialog__actions">
+                <button type="button" data-close-dialog="contentDialog">Hủy bỏ</button>
+                <button class="admin-primary admin-primary--lg" id="contentSave" type="submit">
+                    <span>✓</span> Lưu nội dung
+                </button>
+            </div>
+        </form>
+    </dialog>
     <dialog class="admin-dialog" id="voucherDialog" aria-labelledby="voucherDialogTitle"><form class="admin-dialog__form" id="voucherForm" method="dialog"><div class="admin-dialog__heading"><div><p class="eyebrow">Khuyến mãi</p><h2 id="voucherDialogTitle">Thêm voucher</h2></div><button type="button" data-close-dialog="voucherDialog" aria-label="Đóng">×</button></div><div class="field-grid"><div class="field"><label for="voucherCode">Mã voucher</label><input id="voucherCode" required minlength="3" maxlength="20" placeholder="CHAOMUNG20"></div><div class="field"><label for="voucherType">Loại giảm</label><select id="voucherType"><option value="PHAN_TRAM">Phần trăm (%)</option><option value="SO_TIEN">Số tiền (₫)</option></select></div></div><div class="field-grid field-grid--three"><div class="field"><label for="voucherValue">Giá trị giảm</label><input id="voucherValue" type="number" min="1" required></div><div class="field"><label for="voucherMaximum">Giảm tối đa</label><input id="voucherMaximum" type="number" min="0"></div><div class="field"><label for="voucherMinimum">Đơn tối thiểu</label><input id="voucherMinimum" type="number" min="0" value="0"></div></div><div class="field-grid field-grid--three"><div class="field"><label for="voucherQuantity">Số lượt</label><input id="voucherQuantity" type="number" min="1" value="100" required></div><div class="field"><label for="voucherStarts">Bắt đầu</label><input id="voucherStarts" type="datetime-local"></div><div class="field"><label for="voucherExpires">Hết hạn</label><input id="voucherExpires" type="datetime-local"></div></div><label class="admin-switch"><input id="voucherActive" type="checkbox" checked><span></span>Voucher đang hoạt động</label><p class="form-status" id="voucherFormStatus" role="alert"></p><div class="admin-dialog__actions"><button type="button" data-close-dialog="voucherDialog">Hủy</button><button class="admin-primary" id="voucherSave" type="submit">Tạo voucher</button></div></form></dialog>
 </body>
 </html>
