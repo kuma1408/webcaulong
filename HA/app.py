@@ -3075,6 +3075,32 @@ def admin_dashboard():
                ORDER BY nk.NgayTao DESC LIMIT 10"""
         )
         activity = [serialize_row(row) for row in cursor.fetchall()]
+
+        cursor.execute(
+            """SELECT dm.MaDM, dm.TenDM,
+                      COUNT(DISTINCT sp.MaSP) AS TongSP,
+                      COALESCE(SUM(ct.SoLuong), 0) AS DaBan,
+                      COALESCE(SUM(ct.SoLuong * ct.GiaBan), 0) AS DoanhThu
+               FROM DanhMuc dm
+               LEFT JOIN SanPham sp ON sp.MaDM = dm.MaDM
+               LEFT JOIN ChiTietDonHang ct ON ct.MaSP = sp.MaSP
+               GROUP BY dm.MaDM, dm.TenDM
+               ORDER BY DoanhThu DESC, DaBan DESC"""
+        )
+        category_distribution = [serialize_row(row) for row in cursor.fetchall()]
+
+        cursor.execute(
+            """SELECT sp.MaSP, sp.TenSP, sp.HinhAnh, sp.GiaBan,
+                      COALESCE(SUM(ct.SoLuong), 0) AS DaBan,
+                      COALESCE(SUM(ct.SoLuong * ct.GiaBan), 0) AS DoanhThu
+               FROM SanPham sp
+               LEFT JOIN ChiTietDonHang ct ON ct.MaSP = sp.MaSP
+               GROUP BY sp.MaSP, sp.TenSP, sp.HinhAnh, sp.GiaBan
+               ORDER BY DaBan DESC, DoanhThu DESC
+               LIMIT 6"""
+        )
+        top_products = [serialize_row(row) for row in cursor.fetchall()]
+
         return jsonify(
             {
                 "success": True,
@@ -3105,6 +3131,8 @@ def admin_dashboard():
                 },
                 "trend": trend,
                 "order_status": order_status,
+                "category_distribution": category_distribution,
+                "top_products": top_products,
                 "funnel": {
                     "registered_users": int(users.get("TongUser") or 0),
                     "users_with_cart": int(carts.get("NguoiCoGio") or 0),

@@ -136,57 +136,8 @@
     }
 
     function setupBackToTop() {
-        // auth.js từng tạo một nút riêng. Dọn bản cũ trước khi tạo nút dùng chung
-        // để mọi trang chỉ có duy nhất một điều khiển cuộn lên đầu.
-        document.querySelectorAll('#bsBackToTop, .bs-back-to-top').forEach((node) => node.remove());
-        if (document.querySelector('.sport-back-to-top')) return;
-        if (document.getElementById('bsBackToTop') || document.querySelector('.sport-back-to-top')) return;
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'sport-back-to-top';
-        button.setAttribute('aria-label', 'Lên đầu trang');
-        button.setAttribute('title', 'Lên đầu trang');
-        button.innerHTML = `
-            <svg viewBox="0 0 48 48" aria-hidden="true">
-                <defs>
-                    <linearGradient id="b2t-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#ff6b3d"/>
-                        <stop offset="100%" stop-color="#f5b84b"/>
-                    </linearGradient>
-                </defs>
-                <circle class="progress-bg" cx="24" cy="24" r="20"/>
-                <circle class="progress-bar" cx="24" cy="24" r="20"/>
-            </svg>
-            <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m6 14 6-6 6 6M12 8v11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        `;
-        document.body.appendChild(button);
-        const progressBar = button.querySelector('circle.progress-bar');
-        const perimeter = 2 * Math.PI * 20; // 125.66
-
-        let ticking = false;
-        const sync = () => {
-            ticking = false;
-            const scrollY = window.scrollY;
-            button.classList.toggle('is-visible', scrollY > 120);
-            if (progressBar) {
-                const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-                const progress = Math.min(1, Math.max(0, scrollY / maxScroll));
-                progressBar.style.strokeDashoffset = String(perimeter * (1 - progress));
-            }
-        };
-        window.addEventListener('scroll', () => {
-            if (!ticking) {
-                ticking = true;
-                requestAnimationFrame(sync);
-            }
-        }, { passive: true });
-        sync();
-        button.addEventListener('click', () => window.scrollTo({
-            top: 0,
-            behavior: reducedMotion?.matches ? 'auto' : 'smooth'
-        }));
+        // Giao quyền quản lý Back-to-top duy nhất cho auth.js để tránh xung đột 2 nút.
+        document.querySelectorAll('.sport-back-to-top').forEach((node) => node.remove());
     }
 
     function setupPressFeedback() {

@@ -462,6 +462,7 @@
     <!-- Scripts -->
     <script src="css/auth.js?v=20260908-1"></script>
     <script>
+        const API_BASE = window.BadmintonAuth?.apiBase?.() || '';
         let currentProductId = null;
         let selectedRating = 5;
         let productPriceVal = 0;
@@ -821,65 +822,57 @@
                 });
             }
 
-            // Dùng thanh thumbnail kéo ngang cục bộ, không phụ thuộc CDN.
+            // Dùng thanh thumbnail kéo ngang mượt mà
             if (thumbnailSwiper) thumbnailSwiper.destroy(true, true);
-            if (window.Swiper) {
-                thumbnailSwiper = new Swiper(container, {
-                    slidesPerView: 3.35,
-                    spaceBetween: 12,
-                    freeMode: { enabled: true, momentum: true },
-                    grabCursor: true,
-                    watchOverflow: false,
-                    resistanceRatio: 0.72,
-                    observer: true,
-                    observeParents: true,
-                    breakpoints: {
-                        520: { slidesPerView: 4.25 },
-                        900: { slidesPerView: 4.6 }
-                    }
-                });
-                container.classList.remove('native-gallery');
-            } else {
-                // Hoạt động ngay cả khi CDN Swiper bị chặn hoặc mất mạng.
-                container.classList.add('native-gallery');
-                let dragging = false;
-                let startX = 0;
-                let startScroll = 0;
-                container.onpointerdown = event => {
-                    dragging = true;
-                    startX = event.clientX;
-                    startScroll = container.scrollLeft;
+            container.classList.add('native-gallery');
+            let isDragging = false;
+            let startX = 0;
+            let startScroll = 0;
+            let hasMoved = false;
+
+            container.addEventListener('pointerdown', (e) => {
+                isDragging = true;
+                hasMoved = false;
+                startX = e.clientX;
+                startScroll = container.scrollLeft;
+            });
+            window.addEventListener('pointermove', (e) => {
+                if (!isDragging) return;
+                const dist = e.clientX - startX;
+                if (Math.abs(dist) > 6) {
+                    hasMoved = true;
                     container.classList.add('is-dragging');
-                    container.setPointerCapture?.(event.pointerId);
-                };
-                container.onpointermove = event => {
-                    if (!dragging) return;
-                    container.scrollLeft = startScroll - (event.clientX - startX);
-                };
-                container.onpointerup = container.onpointercancel = event => {
-                    dragging = false;
+                    container.scrollLeft = startScroll - dist;
+                }
+            });
+            window.addEventListener('pointerup', () => {
+                isDragging = false;
+                setTimeout(() => {
+                    hasMoved = false;
                     container.classList.remove('is-dragging');
-                    container.releasePointerCapture?.(event.pointerId);
-                };
-            }
+                }, 40);
+            });
 
             // Hiệu ứng Hover Phóng to Zoom ảnh chính
             const imgBox = document.getElementById('mainImgContainer');
-            imgBox.addEventListener('mousemove', e => {
-                const img = imgBox.querySelector('img');
-                const rect = imgBox.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                img.style.transformOrigin = `${x}px ${y}px`;
-                img.style.transform = 'scale(1.8)';
-            });
+            if (imgBox) {
+                imgBox.addEventListener('mousemove', e => {
+                    const img = imgBox.querySelector('img');
+                    if (!img) return;
+                    const rect = imgBox.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    img.style.transformOrigin = `${x}px ${y}px`;
+                    img.style.transform = 'scale(1.7)';
+                });
 
-            imgBox.addEventListener('mouseleave', () => {
-                const img = imgBox.querySelector('img');
-                img.style.transformOrigin = 'center';
-                img.style.transform = 'scale(1)';
-            });
+                imgBox.addEventListener('mouseleave', () => {
+                    const img = imgBox.querySelector('img');
+                    if (!img) return;
+                    img.style.transformOrigin = 'center';
+                    img.style.transform = 'scale(1)';
+                });
+            }
         }
 
         function selectThumbnail(thumbEl, imgUrl) {
@@ -887,12 +880,15 @@
             thumbEl.classList.add('active-thumbnail');
             
             const mainImg = document.querySelector('#mainProductImage');
-            mainImg.style.opacity = '0.3';
-            mainImg.style.transition = 'opacity 0.2s';
+            if (!mainImg) return;
+            mainImg.style.opacity = '0.2';
+            mainImg.style.transform = 'scale(0.96)';
+            mainImg.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
             setTimeout(() => {
                 mainImg.src = imgUrl;
                 mainImg.style.opacity = '1';
-            }, 200);
+                mainImg.style.transform = 'scale(1)';
+            }, 180);
         }
 
         // --- Tải Đánh giá sản phẩm ---
@@ -903,8 +899,7 @@
         function initReviews(reviews) {
             currentReviewsData = reviews || [];
             const header = document.getElementById('reviewsTabHeader');
-            header.textContent = `ĐÁNH GIÁ (${reviews.length})`;
-            header.textContent = `ĐÁNH GIÁ (${currentReviewsData.length})`;
+            if (header) header.textContent = `ĐÁNH GIÁ (${currentReviewsData.length})`;
             
             // Tính toán trung bình & phân bổ số sao
             const total = currentReviewsData.length;

@@ -219,6 +219,8 @@
         try {
             const data = await Auth.request('/api/admin/dashboard');
             const metrics = data.metrics || {};
+            cachedMetricsData = metrics;
+            cachedFunnelData = data.funnel || {};
             animateMetric($('#adminRevenueMonth'), metrics.revenue_month, formatMoney);
             animateMetric($('#adminOrders'), metrics.orders);
             animateMetric($('#adminPendingOrders'), metrics.pending_orders);
@@ -242,6 +244,8 @@
             updateNavBadge($('#navPendingSupport'), metrics.pending_support);
             renderTrend(data.trend || []);
             renderOrderStatus(data.order_status || []);
+            renderCategoryDistribution(data.category_distribution || []);
+            renderTopSellingProducts(data.top_products || []);
             renderFunnel(data.funnel || {});
             renderRecentOrders(data.recent_orders || []);
             renderLowStock(data.low_stock_products || []);
@@ -258,8 +262,12 @@
     }
 
     let currentTrendMode = 'revenue';
+    let cachedMetricsData = null;
     let cachedTrendData = [];
     let cachedOrderStatusData = [];
+    let cachedCategoryData = [];
+    let cachedTopProductsData = [];
+    let cachedFunnelData = null;
     let trendTogglesBound = false;
     let chartScrollObserver = null;
     let lastChartAnimateTime = 0;
@@ -289,37 +297,64 @@
 
     function setupAdminChartScrollWatcher() {
         if (chartScrollObserver) return;
-        const chartCard = $('.admin-chart-card');
-        const statusCard = $('.admin-status-card');
-        if (!chartCard && !statusCard) return;
+        const targets = [
+            $('.admin-metrics'),
+            $('.admin-chart-card'),
+            $('.admin-status-card'),
+            $('.admin-category-card'),
+            $('.admin-top-products-card'),
+            $('.admin-funnel')
+        ].filter(Boolean);
+
+        if (!targets.length) return;
 
         chartScrollObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 const now = Date.now();
                 if (entry.isIntersecting) {
-                    if (entry.target.dataset.chartExited === 'true' && (now - lastChartAnimateTime > 800)) {
+                    if (entry.target.dataset.chartExited === 'true' && (now - lastChartAnimateTime > 600)) {
                         lastChartAnimateTime = now;
                         entry.target.dataset.chartExited = 'false';
-                        if (entry.target.classList.contains('admin-chart-card')) {
+                        if (entry.target.classList.contains('admin-metrics')) {
+                            replayMetricsAnimation();
+                        } else if (entry.target.classList.contains('admin-chart-card')) {
                             replaySplineAnimation(entry.target);
                         } else if (entry.target.classList.contains('admin-status-card')) {
                             replayDonutAnimation(entry.target);
+                        } else if (entry.target.classList.contains('admin-category-card')) {
+                            replayCategoryAnimation(entry.target);
+                        } else if (entry.target.classList.contains('admin-top-products-card')) {
+                            replayTopProductsAnimation(entry.target);
+                        } else if (entry.target.classList.contains('admin-funnel')) {
+                            replayFunnelAnimation(entry.target);
                         }
                     }
                 } else {
                     entry.target.dataset.chartExited = 'true';
                 }
             });
-        }, { threshold: 0.2 });
+        }, { threshold: 0.15 });
 
-        if (chartCard) {
-            chartCard.dataset.chartExited = 'false';
-            chartScrollObserver.observe(chartCard);
-        }
-        if (statusCard) {
-            statusCard.dataset.chartExited = 'false';
-            chartScrollObserver.observe(statusCard);
-        }
+        targets.forEach(t => {
+            t.dataset.chartExited = 'false';
+            chartScrollObserver.observe(t);
+        });
+    }
+
+    function replayMetricsAnimation() {
+        if (!cachedMetricsData) return;
+        const m = cachedMetricsData;
+        animateMetric($('#adminRevenueMonth'), m.revenue_month, formatMoney);
+        animateMetric($('#adminOrders'), m.orders);
+        animateMetric($('#adminPendingOrders'), m.pending_orders);
+        animateMetric($('#adminAov'), m.average_order, formatMoney);
+        animateMetric($('#adminTodayOrders'), m.orders_today);
+        animateMetric($('#adminUsers'), m.users);
+        animateMetric($('#adminActiveUsers'), m.active_users);
+        animateMetric($('#adminProducts'), m.products);
+        animateMetric($('#adminLowStock'), m.low_stock);
+        const attention = (m.low_stock || 0) + (m.pending_deposits || 0) + (m.pending_support || 0);
+        animateMetric($('#adminAttention'), attention);
     }
 
     function replaySplineAnimation(card) {
@@ -361,6 +396,37 @@
             const total = cachedOrderStatusData.reduce((sum, item) => sum + (Number(item.SoLuong) || 0), 0);
             animateMetric(center, total);
         }
+    }
+
+    function replayCategoryAnimation(card) {
+        const segs = card.querySelectorAll('.admin-donut-seg');
+        const center = card.querySelector('#adminCategoryTotal');
+        segs.forEach(seg => {
+            seg.style.animation = 'none';
+            void seg.offsetWidth;
+            seg.style.animation = '';
+        });
+        if (center && cachedCategoryData.length) {
+            const total = cachedCategoryData.reduce((sum, item) => sum + (Number(item.TongSP) || 0), 0);
+            animateMetric(center, total);
+        }
+    }
+
+    function replayTopProductsAnimation(card) {
+        const fills = card.querySelectorAll('.top-product-bar-fill');
+        fills.forEach(f => {
+            const targetW = f.dataset.width || '0%';
+            f.style.width = '0%';
+            f.style.transition = 'none';
+            void f.offsetWidth;
+            f.style.transition = '';
+            f.style.width = targetW;
+        });
+    }
+
+    function replayFunnelAnimation(card) {
+        if (!cachedFunnelData) return;
+        renderFunnel(cachedFunnelData);
     }
 
     function formatShortMoney(value) {
@@ -765,6 +831,228 @@
         if (!normalized.length) {
             legend.appendChild(element('p', 'admin-empty', 'Chưa có đơn hàng phát sinh.'));
         }
+    }
+
+    function renderCategoryDistribution(items) {
+        if (Array.isArray(items)) cachedCategoryData = items;
+        const catList = cachedCategoryData || [];
+        const donut = $('#adminCategoryDonut');
+        const legend = $('#adminCategoryLegend');
+        if (!donut || !legend) return;
+
+        donut.innerHTML = '';
+        legend.innerHTML = '';
+
+        if (!catList.length) {
+            donut.innerHTML = '<span id="adminCategoryTotal">0</span><small>sản phẩm</small>';
+            legend.appendChild(element('p', 'admin-empty', 'Chưa có dữ liệu danh mục.'));
+            return;
+        }
+
+        const categoryPalette = {
+            'Vợt Cầu Lông': '#ff7a1a',
+            'Giày Cầu Lông': '#38bdf8',
+            'Áo Cầu Lông': '#f43f5e',
+            'Váy Cầu Lông': '#ec4899',
+            'Quần Cầu Lông': '#a855f7',
+            'Túi Vợt': '#10b981',
+            'Balo': '#eab308',
+            'Phụ Kiện': '#06b6d4'
+        };
+
+        const totalItems = catList.reduce((sum, c) => sum + (Number(c.TongSP) || 0), 0);
+
+        const R = 52;
+        const C = 2 * Math.PI * R;
+        let accumulated = 0;
+        const gapPx = catList.length > 1 ? 4 : 0;
+
+        const svgSegments = catList.map((item, idx) => {
+            const count = Number(item.TongSP) || 0;
+            const fraction = totalItems ? (count / totalItems) : 0;
+            const fullDash = fraction * C;
+            const actualDash = Math.max(0.1, fullDash - gapPx);
+            const gap = C - actualDash;
+            const offset = - (accumulated / totalItems) * C;
+            accumulated += count;
+            const color = categoryPalette[item.TenDM] || '#9b776a';
+
+            return `
+                <circle class="admin-donut-seg" 
+                    cx="72" cy="72" r="${R}" 
+                    stroke="${color}" 
+                    stroke-dasharray="${actualDash.toFixed(2)} ${gap.toFixed(2)}" 
+                    stroke-dashoffset="${offset.toFixed(2)}" 
+                    data-cat-name="${item.TenDM}"
+                    data-count="${count}"
+                    data-sold="${item.DaBan || 0}"
+                    data-revenue="${item.DoanhThu || 0}"
+                    data-pct="${Math.round(fraction * 100)}"
+                    style="--seg-color:${color}; animation-delay: ${idx * 0.08}s;"
+                ></circle>
+            `;
+        });
+
+        const svgHtml = `
+            <svg class="admin-donut-svg" viewBox="0 0 144 144">
+                <defs>
+                    <filter id="catDonutGlow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="currentColor" flood-opacity="0.35" />
+                    </filter>
+                </defs>
+                <circle class="admin-donut-cyber-ring" cx="72" cy="72" r="66"></circle>
+                <circle class="admin-donut-bg" cx="72" cy="72" r="${R}"></circle>
+                ${svgSegments.join('')}
+            </svg>
+        `;
+
+        const centerKpi = document.createElement('div');
+        centerKpi.className = 'admin-donut-center';
+        centerKpi.innerHTML = `<span id="adminCategoryTotal">${totalItems}</span><small id="adminCategoryLabel">Tổng mẫu</small>`;
+
+        const donutContainer = document.createElement('div');
+        donutContainer.className = 'admin-donut-container';
+        donutContainer.innerHTML = svgHtml;
+        donutContainer.appendChild(centerKpi);
+        donut.appendChild(donutContainer);
+
+        animateMetric(centerKpi.querySelector('#adminCategoryTotal'), totalItems);
+
+        const setCatFocus = (item) => {
+            donut.querySelectorAll('.admin-donut-seg').forEach(seg => {
+                const isMatch = seg.dataset.catName === item.TenDM;
+                seg.classList.toggle('is-focus', isMatch);
+                seg.classList.toggle('is-dimmed', !isMatch);
+            });
+            const totalSpan = centerKpi.querySelector('#adminCategoryTotal');
+            const labelSmall = centerKpi.querySelector('#adminCategoryLabel');
+            if (totalSpan && labelSmall) {
+                totalSpan.textContent = String(item.TongSP);
+                labelSmall.textContent = `${item.TenDM} (${Math.round((item.TongSP / totalItems) * 100)}%)`;
+                totalSpan.style.color = categoryPalette[item.TenDM] || 'var(--bs-ink)';
+            }
+        };
+
+        const resetCatFocus = () => {
+            donut.querySelectorAll('.admin-donut-seg').forEach(seg => {
+                seg.classList.remove('is-focus', 'is-dimmed');
+            });
+            const totalSpan = centerKpi.querySelector('#adminCategoryTotal');
+            const labelSmall = centerKpi.querySelector('#adminCategoryLabel');
+            if (totalSpan && labelSmall) {
+                totalSpan.textContent = String(totalItems);
+                labelSmall.textContent = 'Tổng mẫu';
+                totalSpan.style.color = 'var(--bs-ink)';
+            }
+        };
+
+        donut.querySelectorAll('.admin-donut-seg').forEach(seg => {
+            const cItem = catList.find(c => c.TenDM === seg.dataset.catName);
+            if (cItem) {
+                seg.addEventListener('mouseenter', () => setCatFocus(cItem));
+                seg.addEventListener('mouseleave', resetCatFocus);
+            }
+        });
+
+        catList.forEach((item) => {
+            const count = Number(item.TongSP) || 0;
+            const pct = totalItems ? Math.round((count / totalItems) * 100) : 0;
+            const color = categoryPalette[item.TenDM] || '#9b776a';
+            const rev = Number(item.DoanhThu) || 0;
+            const sold = Number(item.DaBan) || 0;
+
+            const card = document.createElement('div');
+            card.className = 'admin-legend-card';
+            card.style.setProperty('--legend-color', color);
+
+            card.innerHTML = `
+                <div class="legend-card-header">
+                    <div class="legend-title-group">
+                        <i class="legend-indicator" style="background:${color}"></i>
+                        <span class="legend-title">${item.TenDM}</span>
+                    </div>
+                    <div class="legend-stat">
+                        <strong class="legend-count">${count} mẫu</strong>
+                        <span class="legend-pct">${pct}%</span>
+                    </div>
+                </div>
+                <div class="legend-track">
+                    <div class="legend-fill" style="width:${pct}%; background:${color};"></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-top:5px; font-size:10px; color:var(--bs-muted);">
+                    <span>Đã bán: <b style="color:var(--bs-ink)">${sold}</b></span>
+                    <span>Doanh thu: <b style="color:var(--bs-red)">${formatShortMoney(rev)}</b></span>
+                </div>
+            `;
+
+            card.addEventListener('mouseenter', () => {
+                card.classList.add('is-active');
+                setCatFocus(item);
+            });
+            card.addEventListener('mouseleave', () => {
+                card.classList.remove('is-active');
+                resetCatFocus();
+            });
+
+            legend.appendChild(card);
+        });
+    }
+
+    function renderTopSellingProducts(items) {
+        if (Array.isArray(items)) cachedTopProductsData = items;
+        const products = cachedTopProductsData || [];
+        const container = $('#adminTopProductsList');
+        if (!container) return;
+        container.innerHTML = '';
+
+        if (!products.length) {
+            container.appendChild(element('p', 'admin-empty', 'Chưa có dữ liệu sản phẩm bán chạy.'));
+            return;
+        }
+
+        const maxSold = Math.max(1, ...products.map(p => Number(p.DaBan) || 0));
+
+        products.forEach((prod, index) => {
+            const rank = index + 1;
+            const rankClass = rank === 1 ? 'top-product-rank--1' : rank === 2 ? 'top-product-rank--2' : rank === 3 ? 'top-product-rank--3' : 'top-product-rank--other';
+            const rankLabel = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+            const sold = Number(prod.DaBan) || 0;
+            const rev = Number(prod.DoanhThu) || 0;
+            const pct = Math.max(10, Math.round((sold / maxSold) * 100));
+
+            let imgSrc = String(prod.HinhAnh || '').trim();
+            if (imgSrc && !/^(?:https?:)?\/\//i.test(imgSrc) && window.API_BASE) {
+                imgSrc = `${window.API_BASE.replace(/\/$/, '')}/${imgSrc.replace(/^\//, '')}`;
+            }
+
+            const row = document.createElement('div');
+            row.className = 'admin-top-product-row';
+            row.innerHTML = `
+                <div class="top-product-rank ${rankClass}">${rankLabel}</div>
+                <img class="top-product-thumb" src="${imgSrc || 'favicon.svg'}" alt="${prod.TenSP || 'Sản phẩm'}" onerror="this.src='favicon.svg'">
+                <div class="top-product-info">
+                    <span class="top-product-title" title="${prod.TenSP}">${prod.TenSP}</span>
+                    <div class="top-product-bar-wrap">
+                        <div class="top-product-bar-fill" data-width="${pct}%" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="top-product-stats">
+                    <span class="top-product-qty">${sold} đã bán</span>
+                    <span class="top-product-rev">${formatShortMoney(rev)}</span>
+                </div>
+            `;
+
+            container.appendChild(row);
+        });
+
+        // Trigger smooth progress bar fill
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                container.querySelectorAll('.top-product-bar-fill').forEach(fill => {
+                    fill.style.width = fill.dataset.width;
+                });
+            }, 60);
+        });
     }
 
     function renderFunnel(funnel) {

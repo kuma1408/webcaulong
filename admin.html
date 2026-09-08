@@ -110,6 +110,38 @@
                             </div>
                         </article>
                     </div>
+                    <div class="admin-analytics-grid admin-analytics-grid--secondary">
+                        <article class="admin-card admin-category-card">
+                            <div class="admin-card__heading">
+                                <div>
+                                    <p class="eyebrow">Phân bổ ngành hàng</p>
+                                    <h2>Doanh số theo Danh mục</h2>
+                                </div>
+                                <span class="admin-status-badge-live">● Phân tích đa chiều</span>
+                            </div>
+                            <div class="admin-status-visual admin-category-visual">
+                                <div class="admin-donut-wrap">
+                                    <div class="admin-donut" id="adminCategoryDonut">
+                                        <span id="adminCategoryTotal">0</span>
+                                        <small>sản phẩm</small>
+                                    </div>
+                                </div>
+                                <div class="admin-status-legend" id="adminCategoryLegend"></div>
+                            </div>
+                        </article>
+                        <article class="admin-card admin-top-products-card">
+                            <div class="admin-card__heading">
+                                <div>
+                                    <p class="eyebrow">Xếp hạng bán chạy</p>
+                                    <h2>Top Sản phẩm Hot Nhất</h2>
+                                </div>
+                                <button type="button" class="soft-button" data-jump-view="products">Kho hàng →</button>
+                            </div>
+                            <div class="admin-top-products-list" id="adminTopProductsList">
+                                <p class="admin-empty">Đang tải bảng xếp hạng…</p>
+                            </div>
+                        </article>
+                    </div>
                     <article class="admin-card admin-funnel"><div class="admin-card__heading"><div><p class="eyebrow">Phễu mua sắm</p><h2>Từ tài khoản đến đơn hoàn thành</h2></div><span>Số liệu thật, không dùng dữ liệu mẫu</span></div><div class="admin-funnel__steps">
                         <div><span>Tài khoản</span><strong id="funnelUsers">0</strong><i style="--funnel-width:100%"></i></div>
                         <div><span>Đang có giỏ hàng</span><strong id="funnelCarts">0</strong><i id="funnelCartBar"></i></div>

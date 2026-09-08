@@ -1017,8 +1017,182 @@
     color: #94a3b8;
 }
 
-:root[data-theme="dark"] .admin-grid-line {
-    stroke: rgba(255, 255, 255, 0.08);
+/* 11.5. Secondary Analytics Grid (Category Distribution & Top Products) */
+.admin-analytics-grid--secondary {
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) minmax(320px, 1.25fr);
+    gap: 18px;
+    margin: 18px 0;
+}
+
+.admin-category-card, .admin-top-products-card {
+    border: 1px solid color-mix(in srgb, var(--bs-line) 80%, transparent);
+    border-radius: 22px;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--bs-card) 95%, transparent), color-mix(in srgb, var(--bs-bg) 84%, transparent));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 10px 30px rgba(80, 21, 8, 0.06);
+    overflow: hidden;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.admin-category-card:hover, .admin-top-products-card:hover {
+    border-color: color-mix(in srgb, var(--bs-orange) 45%, var(--bs-line));
+    box-shadow: 0 16px 42px rgba(80, 21, 8, 0.1);
+}
+
+:root[data-theme="dark"] .admin-category-card,
+:root[data-theme="dark"] .admin-top-products-card {
+    background: linear-gradient(145deg, #131b2e, #0e1627);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.4);
+}
+
+/* Category Donut Visual */
+.admin-category-visual {
+    min-height: 250px;
+    display: grid;
+    grid-template-columns: 146px minmax(0, 1fr);
+    align-items: center;
+    gap: 18px;
+    padding: 16px 20px;
+}
+
+/* Top Products Animated Bar List */
+.admin-top-products-list {
+    display: grid;
+    gap: 10px;
+    padding: 16px 20px 20px;
+}
+
+.admin-top-product-row {
+    display: grid;
+    grid-template-columns: 30px 44px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 14px;
+    border: 1px solid color-mix(in srgb, var(--bs-line) 75%, transparent);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--bs-card) 60%, var(--bs-bg));
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-top-product-row:hover {
+    transform: translateX(4px);
+    border-color: var(--bs-orange);
+    box-shadow: 0 6px 18px rgba(255, 122, 26, 0.12);
+}
+
+:root[data-theme="dark"] .admin-top-product-row {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme="dark"] .admin-top-product-row:hover {
+    background: rgba(255, 122, 26, 0.08);
+    border-color: rgba(255, 122, 26, 0.3);
+}
+
+.top-product-rank {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    font-weight: 900;
+    flex-shrink: 0;
+}
+
+.top-product-rank--1 {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(255, 140, 0, 0.4);
+}
+
+.top-product-rank--2 {
+    background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(148, 163, 184, 0.3);
+}
+
+.top-product-rank--3 {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(217, 119, 6, 0.3);
+}
+
+.top-product-rank--other {
+    background: color-mix(in srgb, var(--bs-line) 70%, transparent);
+    color: var(--bs-muted);
+}
+
+.top-product-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    object-fit: contain;
+    background: #fff;
+    padding: 3px;
+    border: 1px solid var(--bs-line);
+    flex-shrink: 0;
+}
+
+.top-product-info {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+}
+
+.top-product-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--bs-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.top-product-bar-wrap {
+    height: 6px;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--bs-line) 75%, transparent);
+    overflow: hidden;
+    width: 100%;
+}
+
+:root[data-theme="dark"] .top-product-bar-wrap {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.top-product-bar-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #ff7a1a, #e9381b, #f59e0b);
+    box-shadow: 0 0 8px rgba(233, 56, 27, 0.5);
+    width: 0;
+    transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.top-product-stats {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.top-product-qty {
+    display: block;
+    font-size: 13px;
+    font-weight: 900;
+    color: var(--bs-red);
+    letter-spacing: -0.02em;
+}
+
+.top-product-rev {
+    display: block;
+    font-size: 10px;
+    color: var(--bs-muted);
+    font-weight: 600;
+    margin-top: 2px;
 }
 
 /* 12. Responsive Breakpoints */
@@ -1027,6 +1201,7 @@
     .admin-operations { grid-template-columns: 1fr 1fr; }
     .admin-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
     .admin-analytics-grid { grid-template-columns: 1fr; }
+    .admin-analytics-grid--secondary { grid-template-columns: 1fr; }
     .admin-overview-grid { grid-template-columns: 1fr; }
 }
 
