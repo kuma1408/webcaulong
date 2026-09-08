@@ -1438,3 +1438,609 @@
     background: rgba(255, 122, 26, 0.08) !important;
 }
 
+/* ==========================================================================
+   BADMINTON STORE — ADMIN THEME TOGGLE BUTTON & TOPBAR ENHANCEMENTS
+   ========================================================================== */
+.admin-theme-toggle {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 6px 14px !important;
+    border-radius: 999px !important;
+    border: 1px solid color-mix(in srgb, var(--bs-line) 80%, transparent) !important;
+    background: color-mix(in srgb, var(--bs-card) 90%, transparent) !important;
+    color: var(--bs-ink) !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    backdrop-filter: blur(12px) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.26s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.admin-theme-toggle:hover {
+    border-color: var(--bs-orange) !important;
+    background: color-mix(in srgb, var(--bs-orange-soft) 80%, transparent) !important;
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 6px 20px rgba(255, 122, 26, 0.2) !important;
+}
+
+.admin-theme-toggle:active {
+    transform: translateY(0) scale(0.98) !important;
+}
+
+.admin-theme-toggle .admin-theme-icon {
+    display: inline-block !important;
+    font-size: 13px !important;
+    line-height: 1 !important;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.admin-theme-toggle:hover .admin-theme-icon {
+    transform: rotate(25deg) scale(1.15) !important;
+}
+
+:root[data-theme="dark"] .admin-theme-toggle {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: #f3f4f6 !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
+}
+
+:root[data-theme="dark"] .admin-theme-toggle:hover {
+    background: rgba(255, 122, 26, 0.15) !important;
+    border-color: var(--bs-orange) !important;
+    box-shadow: 0 0 20px rgba(255, 122, 26, 0.35) !important;
+}
+
+/* ==========================================================================
+   BADMINTON STORE — ADMIN SUB-PANEL TAB TRANSITION & ANIMATIONS
+   ========================================================================== */
+.admin-view:not([hidden]) {
+    animation: adminTabIn 0.42s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+}
+
+@keyframes adminTabIn {
+    0% {
+        opacity: 0;
+        transform: translateY(16px) scale(0.99);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ==========================================================================
+   BADMINTON STORE — KPI SUMMARY CARDS (4-COL GRID)
+   ========================================================================== */
+.admin-kpi-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    margin-bottom: 14px !important;
+}
+
+.admin-kpi-card {
+    position: relative !important;
+    isolation: isolate !important;
+    overflow: hidden !important;
+    padding: 14px 16px 16px !important;
+    border-radius: 18px !important;
+    border: 1px solid color-mix(in srgb, var(--bs-line) 76%, transparent) !important;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--bs-card) 95%, transparent), color-mix(in srgb, var(--bs-bg) 80%, transparent)) !important;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.04) !important;
+    backdrop-filter: blur(14px) !important;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.28s ease !important;
+    animation: adminCardPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+}
+
+.admin-kpi-card:nth-child(1) { animation-delay: 0.04s; }
+.admin-kpi-card:nth-child(2) { animation-delay: 0.09s; }
+.admin-kpi-card:nth-child(3) { animation-delay: 0.14s; }
+.admin-kpi-card:nth-child(4) { animation-delay: 0.19s; }
+
+@keyframes adminCardPop {
+    0% {
+        opacity: 0;
+        transform: translateY(14px) scale(0.96);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Tone Colors for KPI Cards */
+.admin-kpi-card[data-tone="red"] { --kpi-color: #e9381b; }
+.admin-kpi-card[data-tone="orange"] { --kpi-color: #ff7a1a; }
+.admin-kpi-card[data-tone="gold"] { --kpi-color: #e7a51a; }
+.admin-kpi-card[data-tone="violet"] { --kpi-color: #8a56d6; }
+.admin-kpi-card[data-tone="green"] { --kpi-color: #28a966; }
+.admin-kpi-card[data-tone="blue"] { --kpi-color: #3d78c5; }
+
+/* KPI Card Shimmer & Radial Light */
+.admin-kpi-card::before {
+    content: "" !important;
+    position: absolute !important;
+    inset: -60% auto auto -20% !important;
+    z-index: -1 !important;
+    width: 140px !important;
+    height: 140px !important;
+    border-radius: 50% !important;
+    background: radial-gradient(circle, color-mix(in srgb, var(--kpi-color, var(--bs-orange)) 20%, transparent), transparent 70%) !important;
+    pointer-events: none !important;
+}
+
+.admin-kpi-card::after {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 auto 0 -60% !important;
+    width: 40% !important;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.4), transparent) !important;
+    transform: skewX(-20deg) !important;
+    transition: left 0.75s ease !important;
+    pointer-events: none !important;
+}
+
+.admin-kpi-card:hover::after {
+    left: 150% !important;
+}
+
+.admin-kpi-card:hover {
+    transform: translateY(-4px) scale(1.015) !important;
+    border-color: var(--kpi-color, var(--bs-orange)) !important;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08), 0 0 20px color-mix(in srgb, var(--kpi-color, var(--bs-orange)) 22%, transparent) !important;
+}
+
+.admin-kpi-card__head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 6px !important;
+}
+
+.admin-kpi-card__head span:first-child {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: var(--bs-muted) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+}
+
+.admin-kpi-icon {
+    display: inline-grid !important;
+    place-items: center !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 9px !important;
+    background: color-mix(in srgb, var(--kpi-color, var(--bs-orange)) 14%, transparent) !important;
+    color: var(--kpi-color, var(--bs-orange)) !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+}
+
+.admin-kpi-card strong {
+    display: block !important;
+    margin: 4px 0 3px !important;
+    font-size: 24px !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.02em !important;
+    color: var(--bs-ink) !important;
+    line-height: 1.2 !important;
+}
+
+.admin-kpi-card small {
+    display: block !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: var(--bs-muted) !important;
+}
+
+/* Dark Mode KPI Card */
+:root[data-theme="dark"] .admin-kpi-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35) !important;
+}
+
+:root[data-theme="dark"] .admin-kpi-card::after {
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.12), transparent) !important;
+}
+
+:root[data-theme="dark"] .admin-kpi-card strong {
+    color: #ffffff !important;
+}
+
+:root[data-theme="dark"] .admin-kpi-card small {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+:root[data-theme="dark"] .admin-kpi-card:hover {
+    border-color: var(--kpi-color, var(--bs-orange)) !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 24px color-mix(in srgb, var(--kpi-color, var(--bs-orange)) 30%, transparent) !important;
+}
+
+/* ==========================================================================
+   BADMINTON STORE — QUICK FILTER PILLS
+   ========================================================================== */
+.admin-filter-pills {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 7px !important;
+    margin-bottom: 12px !important;
+}
+
+.admin-pill-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 6px 13px !important;
+    border-radius: 999px !important;
+    border: 1px solid color-mix(in srgb, var(--bs-line) 80%, transparent) !important;
+    background: color-mix(in srgb, var(--bs-card) 90%, transparent) !important;
+    color: var(--bs-muted) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.admin-pill-btn:hover {
+    color: var(--bs-ink) !important;
+    border-color: var(--bs-orange) !important;
+    background: color-mix(in srgb, var(--bs-orange-soft) 80%, transparent) !important;
+    transform: translateY(-1.5px) !important;
+}
+
+.admin-pill-btn.is-active {
+    background: linear-gradient(135deg, var(--bs-red, #e9381b), var(--bs-orange, #ff7a1a)) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+    box-shadow: 0 6px 16px rgba(233, 56, 27, 0.3) !important;
+    transform: translateY(-1.5px) !important;
+}
+
+:root[data-theme="dark"] .admin-pill-btn {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(255, 255, 255, 0.09) !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+:root[data-theme="dark"] .admin-pill-btn:hover {
+    color: #ffffff !important;
+    background: rgba(255, 122, 26, 0.14) !important;
+    border-color: var(--bs-orange) !important;
+}
+
+:root[data-theme="dark"] .admin-pill-btn.is-active {
+    background: linear-gradient(135deg, #e9381b, #ff7a1a) !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 20px rgba(255, 122, 26, 0.45) !important;
+}
+
+/* ==========================================================================
+   BADMINTON STORE — PRODUCT THUMBNAIL UPGRADE & IMAGE POP-OVER
+   ========================================================================== */
+.admin-product {
+    display: grid !important;
+    grid-template-columns: 56px minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 12px !important;
+    max-width: 320px !important;
+}
+
+.admin-product img {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 12px !important;
+    object-fit: contain !important;
+    background: #ffffff !important;
+    border: 1.5px solid var(--bs-line) !important;
+    padding: 3px !important;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease !important;
+}
+
+.admin-product img:hover {
+    transform: scale(1.15) !important;
+    box-shadow: 0 8px 24px rgba(255, 122, 26, 0.35) !important;
+    border-color: var(--bs-orange) !important;
+    z-index: 10 !important;
+}
+
+:root[data-theme="dark"] .admin-product img {
+    background: #1c2026 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+:root[data-theme="dark"] .admin-product img:hover {
+    box-shadow: 0 8px 24px rgba(255, 122, 26, 0.5) !important;
+}
+
+.admin-product strong {
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    color: var(--bs-ink) !important;
+    line-height: 1.35 !important;
+    white-space: normal !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+}
+
+.admin-product span {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: var(--bs-muted) !important;
+    margin-top: 3px !important;
+}
+
+:root[data-theme="dark"] .admin-product strong {
+    color: #f3f4f6 !important;
+}
+
+/* ==========================================================================
+   BADMINTON STORE — FIX DARK/LIGHT MODE CONTRAST & "CHE CHỮ, KHUẤT ẢNH"
+   ========================================================================== */
+/* Detail row inside Product table */
+.admin-product-detail-row > td {
+    padding: 0 16px 16px !important;
+    background: color-mix(in srgb, var(--bs-orange-soft) 40%, var(--bs-bg)) !important;
+}
+
+:root[data-theme="dark"] .admin-product-detail-row > td {
+    background: #0f1217 !important;
+}
+
+.admin-product-detail {
+    display: grid !important;
+    grid-template-columns: minmax(240px, 0.75fr) minmax(0, 1.25fr) !important;
+    gap: 22px !important;
+    padding: 22px !important;
+    border: 1px solid var(--bs-line) !important;
+    border-radius: 18px !important;
+    background: var(--bs-card) !important;
+    color: var(--bs-ink) !important;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08) !important;
+    animation: adminTabIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+}
+
+:root[data-theme="dark"] .admin-product-detail {
+    background: #181b21 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #f3f4f6 !important;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45) !important;
+}
+
+.admin-product-detail__gallery img {
+    width: 100% !important;
+    aspect-ratio: 1 !important;
+    padding: 6px !important;
+    border: 1px solid var(--bs-line) !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    object-fit: contain !important;
+    transition: transform 0.24s ease !important;
+}
+
+.admin-product-detail__gallery img:hover {
+    transform: scale(1.06) !important;
+    border-color: var(--bs-orange) !important;
+}
+
+:root[data-theme="dark"] .admin-product-detail__gallery img {
+    background: #20242c !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.admin-product-facts div {
+    padding: 12px !important;
+    border-radius: 12px !important;
+    background: color-mix(in srgb, var(--bs-bg) 80%, var(--bs-card)) !important;
+    border: 1px solid var(--bs-line) !important;
+}
+
+:root[data-theme="dark"] .admin-product-facts div {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.admin-product-facts strong,
+.admin-product-description > strong,
+.admin-product-source > strong,
+.admin-product-detail__heading h3 {
+    color: var(--bs-ink) !important;
+}
+
+:root[data-theme="dark"] .admin-product-facts strong,
+:root[data-theme="dark"] .admin-product-description > strong,
+:root[data-theme="dark"] .admin-product-source > strong,
+:root[data-theme="dark"] .admin-product-detail__heading h3 {
+    color: #ffffff !important;
+}
+
+.admin-product-facts span,
+.admin-product-description p,
+.admin-product-source,
+.admin-product-detail__heading span {
+    color: var(--bs-muted) !important;
+}
+
+:root[data-theme="dark"] .admin-product-facts span,
+:root[data-theme="dark"] .admin-product-description p,
+:root[data-theme="dark"] .admin-product-source,
+:root[data-theme="dark"] .admin-product-detail__heading span {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+/* ==========================================================================
+   BADMINTON STORE — DIALOGS, FORMS & INPUTS CONTRAST FIX
+   ========================================================================== */
+.admin-dialog {
+    border: 1px solid var(--bs-line) !important;
+    border-radius: 22px !important;
+    background: var(--bs-card) !important;
+    color: var(--bs-ink) !important;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22) !important;
+}
+
+:root[data-theme="dark"] .admin-dialog {
+    background: #16191f !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #f3f4f6 !important;
+    box-shadow: 0 28px 72px rgba(0, 0, 0, 0.65) !important;
+}
+
+:root[data-theme="dark"] .admin-dialog__heading h2 {
+    color: #ffffff !important;
+}
+
+:root[data-theme="dark"] .admin-dialog__heading button[data-close-dialog] {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+:root[data-theme="dark"] .admin-dialog__heading button[data-close-dialog]:hover {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+:root[data-theme="dark"] .admin-form-section {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+:root[data-theme="dark"] .admin-form-section strong {
+    color: #ffffff !important;
+}
+
+:root[data-theme="dark"] .admin-form-section small {
+    color: rgba(255, 255, 255, 0.55) !important;
+}
+
+/* All inputs across toolbar & dialogs */
+.admin-search input,
+.admin-toolbar select,
+.admin-dialog input,
+.admin-dialog select,
+.admin-dialog textarea {
+    background: var(--bs-card) !important;
+    color: var(--bs-ink) !important;
+    border: 1px solid color-mix(in srgb, var(--bs-line) 85%, transparent) !important;
+    border-radius: 12px !important;
+}
+
+:root[data-theme="dark"] .admin-search input,
+:root[data-theme="dark"] .admin-toolbar select,
+:root[data-theme="dark"] .admin-dialog input,
+:root[data-theme="dark"] .admin-dialog select,
+:root[data-theme="dark"] .admin-dialog textarea {
+    background: #1c2026 !important;
+    color: #f3f4f6 !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+:root[data-theme="dark"] .admin-search input::placeholder,
+:root[data-theme="dark"] .admin-dialog input::placeholder,
+:root[data-theme="dark"] .admin-dialog textarea::placeholder {
+    color: rgba(255, 255, 255, 0.38) !important;
+}
+
+:root[data-theme="dark"] .admin-search input:focus,
+:root[data-theme="dark"] .admin-toolbar select:focus,
+:root[data-theme="dark"] .admin-dialog input:focus,
+:root[data-theme="dark"] .admin-dialog select:focus,
+:root[data-theme="dark"] .admin-dialog textarea:focus {
+    border-color: var(--bs-orange) !important;
+    box-shadow: 0 0 0 3px rgba(255, 122, 26, 0.25) !important;
+}
+
+/* ==========================================================================
+   BADMINTON STORE — ROW SLIDE-IN & BADGE PULSE ANIMATIONS
+   ========================================================================== */
+.admin-table-card tbody tr {
+    animation: adminRowIn 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.admin-table-card tbody tr:nth-child(1) { animation-delay: 0.02s; }
+.admin-table-card tbody tr:nth-child(2) { animation-delay: 0.04s; }
+.admin-table-card tbody tr:nth-child(3) { animation-delay: 0.06s; }
+.admin-table-card tbody tr:nth-child(4) { animation-delay: 0.08s; }
+.admin-table-card tbody tr:nth-child(5) { animation-delay: 0.10s; }
+.admin-table-card tbody tr:nth-child(6) { animation-delay: 0.12s; }
+.admin-table-card tbody tr:nth-child(7) { animation-delay: 0.14s; }
+.admin-table-card tbody tr:nth-child(8) { animation-delay: 0.16s; }
+.admin-table-card tbody tr:nth-child(9) { animation-delay: 0.18s; }
+.admin-table-card tbody tr:nth-child(10) { animation-delay: 0.20s; }
+
+@keyframes adminRowIn {
+    0% {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Status Badges with Pulse Dot */
+.admin-badge {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 4px 10px !important;
+    border-radius: 999px !important;
+    font-weight: 750 !important;
+    letter-spacing: 0.02em !important;
+}
+
+.admin-badge::before {
+    content: "" !important;
+    display: inline-block !important;
+    width: 6px !important;
+    height: 6px !important;
+    border-radius: 50% !important;
+    background: currentColor !important;
+}
+
+.admin-badge:not(.admin-badge--success):not(.admin-badge--danger)::before {
+    animation: adminDotBlink 1.5s infinite ease-in-out !important;
+}
+
+@keyframes adminDotBlink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.7); }
+}
+
+/* Responsive Grid for KPI */
+@media (max-width: 1024px) {
+    .admin-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .admin-kpi-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .admin-product {
+        grid-template-columns: 46px minmax(0, 1fr) !important;
+    }
+    .admin-product img {
+        width: 46px !important;
+        height: 46px !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-kpi-card,
+    .admin-view:not([hidden]),
+    .admin-table-card tbody tr,
+    .admin-badge::before {
+        animation: none !important;
+    }
+}
+
+

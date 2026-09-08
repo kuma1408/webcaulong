@@ -40,7 +40,7 @@
             </aside>
 
             <div class="admin-workspace">
-                <header class="admin-topbar"><div><p class="eyebrow">Trung tâm điều hành</p><h1 id="adminPageTitle">Tổng quan</h1></div><div class="admin-topbar__actions"><span class="admin-live"><i></i>Hệ thống trực tuyến</span><button type="button" id="adminRefresh" aria-label="Làm mới dữ liệu">↻ <span>Làm mới</span></button></div></header>
+                <header class="admin-topbar"><div><p class="eyebrow">Trung tâm điều hành</p><h1 id="adminPageTitle">Tổng quan</h1></div><div class="admin-topbar__actions"><span class="admin-live"><i></i>Hệ thống trực tuyến</span><button type="button" id="adminThemeToggle" class="admin-theme-toggle" aria-label="Chuyển chế độ sáng tối" title="Chuyển chế độ sáng/tối"><span class="admin-theme-icon" aria-hidden="true">🌙</span> <span class="admin-theme-label">Chế độ tối</span></button><button type="button" id="adminRefresh" aria-label="Làm mới dữ liệu">↻ <span>Làm mới</span></button></div></header>
 
                 <section class="admin-view" data-admin-panel="overview" aria-labelledby="adminPageTitle">
                     <div class="admin-health" aria-label="Tình trạng vận hành">
@@ -156,47 +156,408 @@
                 </section>
 
                 <section class="admin-view" data-admin-panel="products" hidden>
-                    <div class="admin-toolbar"><form class="admin-search" id="productSearch"><label class="bs-visually-hidden" for="productQuery">Tìm sản phẩm</label><input id="productQuery" type="search" placeholder="Tìm tên hoặc mã #164…"><button type="submit">Tìm</button></form><select id="productStatus" aria-label="Lọc trạng thái"><option value="all">Tất cả trạng thái</option><option value="active">Đang bán</option><option value="hidden">Đã ẩn</option></select><button class="admin-primary" type="button" id="addProduct">+ Thêm sản phẩm</button></div>
+                    <div class="admin-kpi-grid">
+                        <article class="admin-kpi-card" data-tone="orange">
+                            <div class="admin-kpi-card__head"><span>Tổng sản phẩm</span><span class="admin-kpi-icon">◇</span></div>
+                            <strong id="kpiProductTotal">0</strong>
+                            <small>Toàn bộ danh mục</small>
+                            <i class="metric-spark metric-spark--orange"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="green">
+                            <div class="admin-kpi-card__head"><span>Đang mở bán</span><span class="admin-kpi-icon">✓</span></div>
+                            <strong id="kpiProductActive">0</strong>
+                            <small id="kpiProductActiveSub">Hiển thị trên gian hàng</small>
+                            <i class="metric-spark metric-spark--green"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="red">
+                            <div class="admin-kpi-card__head"><span>Sắp hết hàng</span><span class="admin-kpi-icon">!</span></div>
+                            <strong id="kpiProductLowStock">0</strong>
+                            <small>Tồn kho dưới 10 cái</small>
+                            <i class="metric-spark metric-spark--red"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="gold">
+                            <div class="admin-kpi-card__head"><span>Khuyến mãi / Sale</span><span class="admin-kpi-icon">%</span></div>
+                            <strong id="kpiProductOnSale">0</strong>
+                            <small>Đang giảm giá gốc</small>
+                            <i class="metric-spark metric-spark--warm"></i>
+                        </article>
+                    </div>
+                    <div class="admin-toolbar">
+                        <form class="admin-search" id="productSearch">
+                            <label class="bs-visually-hidden" for="productQuery">Tìm sản phẩm</label>
+                            <input id="productQuery" type="search" placeholder="Tìm tên hoặc mã #164…">
+                            <button type="submit">Tìm</button>
+                        </form>
+                        <select id="productStatus" aria-label="Lọc trạng thái">
+                            <option value="all">Tất cả trạng thái</option>
+                            <option value="active">Đang bán</option>
+                            <option value="hidden">Đã ẩn</option>
+                        </select>
+                        <button class="admin-primary" type="button" id="addProduct">+ Thêm sản phẩm</button>
+                    </div>
+                    <div class="admin-filter-pills" id="productFilterPills" role="tablist" aria-label="Lọc nhanh sản phẩm">
+                        <button type="button" class="admin-pill-btn is-active" data-filter="all">Tất cả</button>
+                        <button type="button" class="admin-pill-btn" data-filter="active">Đang bán</button>
+                        <button type="button" class="admin-pill-btn" data-filter="hidden">Đã ẩn</button>
+                        <button type="button" class="admin-pill-btn" data-filter="lowstock">Sắp hết hàng (&lt;10)</button>
+                        <button type="button" class="admin-pill-btn" data-filter="sale">Đang Sale</button>
+                    </div>
                     <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Sản phẩm</th><th>Danh mục</th><th>Giá bán</th><th>Tồn kho</th><th>Trạng thái</th><th><span class="bs-visually-hidden">Thao tác</span></th></tr></thead><tbody id="productRows"><tr><td colspan="6" class="admin-empty-cell">Chọn mục để tải sản phẩm.</td></tr></tbody></table></div><div class="admin-pagination" id="productPagination"><button type="button" id="productPrev">← Trước</button><span id="productPageInfo">Trang 1</span><button type="button" id="productNext">Sau →</button></div></div>
                 </section>
 
                 <section class="admin-view" data-admin-panel="orders" hidden>
-                    <div class="admin-toolbar"><form class="admin-search" id="orderSearch"><label class="bs-visually-hidden" for="adminOrderQuery">Tìm đơn hàng</label><input id="adminOrderQuery" type="search" placeholder="Mã đơn, tên khách hàng…"><button type="submit">Tìm</button></form><select id="adminOrderStatus" aria-label="Lọc trạng thái đơn"><option value="all">Tất cả trạng thái</option><option value="CHO_XAC_NHAN">Chờ xác nhận</option><option value="DANG_GIAO">Đang giao</option><option value="HOAN_THANH">Hoàn thành</option><option value="DA_HUY">Đã hủy</option></select><button class="admin-primary" type="button" id="exportOrders">↓ Xuất CSV</button></div>
+                    <div class="admin-kpi-grid">
+                        <article class="admin-kpi-card" data-tone="blue">
+                            <div class="admin-kpi-card__head"><span>Tổng đơn hàng</span><span class="admin-kpi-icon">□</span></div>
+                            <strong id="kpiOrderTotal">0</strong>
+                            <small>Toàn bộ đơn phát sinh</small>
+                            <i class="metric-spark metric-spark--blue"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="orange">
+                            <div class="admin-kpi-card__head"><span>Chờ xác nhận</span><span class="admin-kpi-icon">⏳</span></div>
+                            <strong id="kpiOrderPending">0</strong>
+                            <small>Cần duyệt sớm</small>
+                            <i class="metric-spark metric-spark--orange"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="violet">
+                            <div class="admin-kpi-card__head"><span>Đang giao hàng</span><span class="admin-kpi-icon">🚚</span></div>
+                            <strong id="kpiOrderShipping">0</strong>
+                            <small>Đơn vị vận chuyển</small>
+                            <i class="metric-spark metric-spark--deep"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="green">
+                            <div class="admin-kpi-card__head"><span>Doanh thu đơn chốt</span><span class="admin-kpi-icon">₫</span></div>
+                            <strong id="kpiOrderCompletedRevenue">0 ₫</strong>
+                            <small id="kpiOrderCompletedCount">0 đơn hoàn thành</small>
+                            <i class="metric-spark metric-spark--green"></i>
+                        </article>
+                    </div>
+                    <div class="admin-toolbar">
+                        <form class="admin-search" id="orderSearch">
+                            <label class="bs-visually-hidden" for="adminOrderQuery">Tìm đơn hàng</label>
+                            <input id="adminOrderQuery" type="search" placeholder="Mã đơn, tên khách hàng…">
+                            <button type="submit">Tìm</button>
+                        </form>
+                        <select id="adminOrderStatus" aria-label="Lọc trạng thái đơn">
+                            <option value="all">Tất cả trạng thái</option>
+                            <option value="CHO_XAC_NHAN">Chờ xác nhận</option>
+                            <option value="DANG_GIAO">Đang giao</option>
+                            <option value="HOAN_THANH">Hoàn thành</option>
+                            <option value="DA_HUY">Đã hủy</option>
+                        </select>
+                        <button class="admin-primary" type="button" id="exportOrders">↓ Xuất CSV</button>
+                    </div>
+                    <div class="admin-filter-pills" id="orderFilterPills" role="tablist" aria-label="Lọc nhanh đơn hàng">
+                        <button type="button" class="admin-pill-btn is-active" data-filter="all">Tất cả đơn</button>
+                        <button type="button" class="admin-pill-btn" data-filter="CHO_XAC_NHAN">Chờ xác nhận</button>
+                        <button type="button" class="admin-pill-btn" data-filter="DANG_GIAO">Đang giao</button>
+                        <button type="button" class="admin-pill-btn" data-filter="HOAN_THANH">Hoàn thành</button>
+                        <button type="button" class="admin-pill-btn" data-filter="DA_HUY">Đã hủy</button>
+                    </div>
                     <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Ngày đặt</th><th>Tổng tiền</th><th>Thanh toán</th><th>Trạng thái</th><th>Chuyển trạng thái</th></tr></thead><tbody id="adminOrderRows"><tr><td colspan="7" class="admin-empty-cell">Chọn mục để tải đơn hàng.</td></tr></tbody></table></div><div class="admin-pagination"><button type="button" id="adminOrderPrev">← Trước</button><span id="adminOrderPageInfo">Trang 1</span><button type="button" id="adminOrderNext">Sau →</button></div></div>
                 </section>
 
                 <section class="admin-view" data-admin-panel="users" hidden>
-                    <div class="admin-toolbar"><form class="admin-search" id="userSearch"><label class="bs-visually-hidden" for="userQuery">Tìm người dùng</label><input id="userQuery" type="search" placeholder="Tên, email, tài khoản…"><button type="submit">Tìm</button></form><select id="userRole" aria-label="Lọc vai trò"><option value="all">Mọi vai trò</option><option value="user">Khách hàng</option><option value="admin">Quản trị viên</option></select><button class="admin-primary" type="button" id="addUser">+ Thêm người dùng</button></div>
+                    <div class="admin-kpi-grid">
+                        <article class="admin-kpi-card" data-tone="violet">
+                            <div class="admin-kpi-card__head"><span>Tổng tài khoản</span><span class="admin-kpi-icon">◎</span></div>
+                            <strong id="kpiUserTotal">0</strong>
+                            <small>Đăng ký trên hệ thống</small>
+                            <i class="metric-spark metric-spark--deep"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="red">
+                            <div class="admin-kpi-card__head"><span>Quản trị viên</span><span class="admin-kpi-icon">★</span></div>
+                            <strong id="kpiUserAdmins">0</strong>
+                            <small>Admin &amp; Super Admin</small>
+                            <i class="metric-spark metric-spark--red"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="blue">
+                            <div class="admin-kpi-card__head"><span>Khách hàng thành viên</span><span class="admin-kpi-icon">👤</span></div>
+                            <strong id="kpiUserMembers">0</strong>
+                            <small>Tài khoản mua sắm</small>
+                            <i class="metric-spark metric-spark--blue"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="gold">
+                            <div class="admin-kpi-card__head"><span>Tổng số dư ví</span><span class="admin-kpi-icon">₫</span></div>
+                            <strong id="kpiUserTotalBalance">0 ₫</strong>
+                            <small>Số dư toàn hệ thống</small>
+                            <i class="metric-spark metric-spark--warm"></i>
+                        </article>
+                    </div>
+                    <div class="admin-toolbar">
+                        <form class="admin-search" id="userSearch">
+                            <label class="bs-visually-hidden" for="userQuery">Tìm người dùng</label>
+                            <input id="userQuery" type="search" placeholder="Tên, email, tài khoản…">
+                            <button type="submit">Tìm</button>
+                        </form>
+                        <select id="userRole" aria-label="Lọc vai trò">
+                            <option value="all">Mọi vai trò</option>
+                            <option value="user">Khách hàng</option>
+                            <option value="admin">Quản trị viên</option>
+                        </select>
+                        <button class="admin-primary" type="button" id="addUser">+ Thêm người dùng</button>
+                    </div>
+                    <div class="admin-filter-pills" id="userFilterPills" role="tablist" aria-label="Lọc nhanh người dùng">
+                        <button type="button" class="admin-pill-btn is-active" data-filter="all">Mọi tài khoản</button>
+                        <button type="button" class="admin-pill-btn" data-filter="user">Khách hàng</button>
+                        <button type="button" class="admin-pill-btn" data-filter="admin">Quản trị viên</button>
+                    </div>
                     <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Người dùng</th><th>Liên hệ</th><th>Số dư</th><th>Vai trò</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="userRows"><tr><td colspan="6" class="admin-empty-cell">Chọn mục để tải người dùng.</td></tr></tbody></table></div><div class="admin-pagination"><button type="button" id="userPrev">← Trước</button><span id="userPageInfo">Trang 1</span><button type="button" id="userNext">Sau →</button></div></div>
                 </section>
 
                 <section class="admin-view" data-admin-panel="content" hidden>
-                    <div class="admin-toolbar"><div class="admin-toolbar__copy"><p>Quản lý Tin tức và Hướng dẫn đang hiển thị trên website.</p></div><select id="contentTypeFilter"><option value="all">Tất cả nội dung</option><option value="TIN_TUC">Tin tức</option><option value="HUONG_DAN">Hướng dẫn</option></select><button class="admin-primary" type="button" id="addContent">+ Thêm nội dung</button></div>
+                    <div class="admin-kpi-grid">
+                        <article class="admin-kpi-card" data-tone="orange">
+                            <div class="admin-kpi-card__head"><span>Tổng bài viết</span><span class="admin-kpi-icon">✎</span></div>
+                            <strong id="kpiContentTotal">0</strong>
+                            <small>Tin tức &amp; kiến thức</small>
+                            <i class="metric-spark metric-spark--orange"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="blue">
+                            <div class="admin-kpi-card__head"><span>Bản tin thể thao</span><span class="admin-kpi-icon">📰</span></div>
+                            <strong id="kpiContentNews">0</strong>
+                            <small>Chuyên mục Tin tức</small>
+                            <i class="metric-spark metric-spark--blue"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="green">
+                            <div class="admin-kpi-card__head"><span>Hướng dẫn kỹ thuật</span><span class="admin-kpi-icon">📖</span></div>
+                            <strong id="kpiContentGuides">0</strong>
+                            <small>Cẩm nang cầu lông</small>
+                            <i class="metric-spark metric-spark--green"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="gold">
+                            <div class="admin-kpi-card__head"><span>Đang công khai</span><span class="admin-kpi-icon">🌐</span></div>
+                            <strong id="kpiContentPublished">0</strong>
+                            <small>Đang hiển thị trên web</small>
+                            <i class="metric-spark metric-spark--warm"></i>
+                        </article>
+                    </div>
+                    <div class="admin-toolbar">
+                        <div class="admin-toolbar__copy"><p>Quản lý Tin tức và Hướng dẫn đang hiển thị trên website.</p></div>
+                        <select id="contentTypeFilter">
+                            <option value="all">Tất cả nội dung</option>
+                            <option value="TIN_TUC">Tin tức</option>
+                            <option value="HUONG_DAN">Hướng dẫn</option>
+                        </select>
+                        <button class="admin-primary" type="button" id="addContent">+ Thêm nội dung</button>
+                    </div>
+                    <div class="admin-filter-pills" id="contentFilterPills" role="tablist" aria-label="Lọc nhanh nội dung">
+                        <button type="button" class="admin-pill-btn is-active" data-filter="all">Tất cả</button>
+                        <button type="button" class="admin-pill-btn" data-filter="TIN_TUC">Tin tức</button>
+                        <button type="button" class="admin-pill-btn" data-filter="HUONG_DAN">Hướng dẫn</button>
+                    </div>
                     <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Tiêu đề</th><th>Loại</th><th>Ngày đăng</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="contentRows"><tr><td colspan="5" class="admin-empty-cell">Chọn mục để tải nội dung.</td></tr></tbody></table></div></div>
                 </section>
 
                 <section class="admin-view" data-admin-panel="support" hidden>
-                    <div class="admin-toolbar"><form class="admin-search" id="supportSearch"><label class="bs-visually-hidden" for="supportQuery">Tìm phiếu hỗ trợ</label><input id="supportQuery" type="search" placeholder="Mã phiếu, tên, email, mã đơn…"><button type="submit">Tìm</button></form><select id="supportStatus" aria-label="Lọc phiếu hỗ trợ"><option value="all">Tất cả trạng thái</option><option value="MOI">Mới tiếp nhận</option><option value="DANG_XU_LY">Đang xử lý</option><option value="DA_PHAN_HOI">Đã phản hồi</option><option value="DA_DONG">Đã đóng</option></select></div>
+                    <div class="admin-kpi-grid">
+                        <article class="admin-kpi-card" data-tone="orange">
+                            <div class="admin-kpi-card__head"><span>Tổng phiếu hỗ trợ</span><span class="admin-kpi-icon">✉</span></div>
+                            <strong id="kpiSupportTotal">0</strong>
+                            <small>Yêu cầu từ khách hàng</small>
+                            <i class="metric-spark metric-spark--orange"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="red">
+                            <div class="admin-kpi-card__head"><span>Mới tiếp nhận</span><span class="admin-kpi-icon">⚡</span></div>
+                            <strong id="kpiSupportNew">0</strong>
+                            <small>Chưa được xử lý</small>
+                            <i class="metric-spark metric-spark--red"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="blue">
+                            <div class="admin-kpi-card__head"><span>Đang trao đổi</span><span class="admin-kpi-icon">💬</span></div>
+                            <strong id="kpiSupportProcessing">0</strong>
+                            <small>Đang giải quyết</small>
+                            <i class="metric-spark metric-spark--blue"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="green">
+                            <div class="admin-kpi-card__head"><span>Đã giải quyết</span><span class="admin-kpi-icon">✓</span></div>
+                            <strong id="kpiSupportResolved">0</strong>
+                            <small>Đã hoàn tất hỗ trợ</small>
+                            <i class="metric-spark metric-spark--green"></i>
+                        </article>
+                    </div>
+                    <div class="admin-toolbar">
+                        <form class="admin-search" id="supportSearch">
+                            <label class="bs-visually-hidden" for="supportQuery">Tìm phiếu hỗ trợ</label>
+                            <input id="supportQuery" type="search" placeholder="Mã phiếu, tên, email, mã đơn…">
+                            <button type="submit">Tìm</button>
+                        </form>
+                        <select id="supportStatus" aria-label="Lọc phiếu hỗ trợ">
+                            <option value="all">Tất cả trạng thái</option>
+                            <option value="MOI">Mới tiếp nhận</option>
+                            <option value="DANG_XU_LY">Đang xử lý</option>
+                            <option value="DA_PHAN_HOI">Đã phản hồi</option>
+                            <option value="DA_DONG">Đã đóng</option>
+                        </select>
+                    </div>
+                    <div class="admin-filter-pills" id="supportFilterPills" role="tablist" aria-label="Lọc nhanh hỗ trợ">
+                        <button type="button" class="admin-pill-btn is-active" data-filter="all">Tất cả</button>
+                        <button type="button" class="admin-pill-btn" data-filter="MOI">Mới tiếp nhận</button>
+                        <button type="button" class="admin-pill-btn" data-filter="DANG_XU_LY">Đang xử lý</button>
+                        <button type="button" class="admin-pill-btn" data-filter="DA_DONG">Đã đóng</button>
+                    </div>
                     <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Mã phiếu</th><th>Người gửi</th><th>Chủ đề</th><th>Nội dung</th><th>Thời gian</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="supportRows"><tr><td colspan="7" class="admin-empty-cell">Chọn mục để tải yêu cầu hỗ trợ.</td></tr></tbody></table></div><div class="admin-pagination"><button type="button" id="supportPrev">← Trước</button><span id="supportPageInfo">Trang 1</span><button type="button" id="supportNext">Sau →</button></div></div>
                 </section>
 
                 <section class="admin-view" data-admin-panel="vouchers" hidden>
-                    <div class="admin-toolbar"><div class="admin-toolbar__copy"><p>Tạo mã giảm theo phần trăm hoặc số tiền, giới hạn đơn tối thiểu, số lượt và thời hạn.</p></div><button class="admin-primary" type="button" id="addVoucher">+ Thêm voucher</button></div>
+                    <div class="admin-kpi-grid">
+                        <article class="admin-kpi-card" data-tone="gold">
+                            <div class="admin-kpi-card__head"><span>Tổng mã Voucher</span><span class="admin-kpi-icon">%</span></div>
+                            <strong id="kpiVoucherTotal">0</strong>
+                            <small>Chương trình khuyến mãi</small>
+                            <i class="metric-spark metric-spark--warm"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="green">
+                            <div class="admin-kpi-card__head"><span>Đang hiệu lực</span><span class="admin-kpi-icon">✓</span></div>
+                            <strong id="kpiVoucherActive">0</strong>
+                            <small>Có thể áp dụng ngay</small>
+                            <i class="metric-spark metric-spark--green"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="blue">
+                            <div class="admin-kpi-card__head"><span>Lượt sử dụng</span><span class="admin-kpi-icon">🎟️</span></div>
+                            <strong id="kpiVoucherUsed">0</strong>
+                            <small>Lượt khách hàng nhập</small>
+                            <i class="metric-spark metric-spark--blue"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="orange">
+                            <div class="admin-kpi-card__head"><span>Mức giảm cao nhất</span><span class="admin-kpi-icon">🔥</span></div>
+                            <strong id="kpiVoucherMaxDiscount">0%</strong>
+                            <small>Khuyến mãi lớn nhất</small>
+                            <i class="metric-spark metric-spark--orange"></i>
+                        </article>
+                    </div>
+                    <div class="admin-toolbar">
+                        <div class="admin-toolbar__copy"><p>Tạo mã giảm theo phần trăm hoặc số tiền, giới hạn đơn tối thiểu, số lượt và thời hạn.</p></div>
+                        <button class="admin-primary" type="button" id="addVoucher">+ Thêm voucher</button>
+                    </div>
+                    <div class="admin-filter-pills" id="voucherFilterPills" role="tablist" aria-label="Lọc nhanh voucher">
+                        <button type="button" class="admin-pill-btn is-active" data-filter="all">Tất cả</button>
+                        <button type="button" class="admin-pill-btn" data-filter="active">Đang hiệu lực</button>
+                        <button type="button" class="admin-pill-btn" data-filter="expired">Hết hạn / Khóa</button>
+                    </div>
                     <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Mã</th><th>Mức giảm</th><th>Đơn tối thiểu</th><th>Đã dùng</th><th>Thời hạn</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="voucherRows"><tr><td colspan="7" class="admin-empty-cell">Chọn mục để tải voucher.</td></tr></tbody></table></div></div>
                 </section>
 
                 <section class="admin-view" data-admin-panel="deposits" hidden>
-                    <div class="admin-toolbar"><div class="admin-toolbar__copy"><p>Đối soát trước khi duyệt. Mỗi yêu cầu chỉ được xử lý một lần.</p></div><select id="depositAdminStatus" aria-label="Lọc yêu cầu nạp"><option value="CHO_DUYET">Đang chờ duyệt</option><option value="DA_DUYET">Đã duyệt</option><option value="TU_CHOI">Đã từ chối</option><option value="all">Tất cả</option></select></div>
+                    <div class="admin-kpi-grid">
+                        <article class="admin-kpi-card" data-tone="orange">
+                            <div class="admin-kpi-card__head"><span>Chờ duyệt nạp</span><span class="admin-kpi-icon">⏳</span></div>
+                            <strong id="kpiDepositPending">0</strong>
+                            <small>Cần đối soát ngân hàng</small>
+                            <i class="metric-spark metric-spark--orange"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="green">
+                            <div class="admin-kpi-card__head"><span>Đã duyệt thành công</span><span class="admin-kpi-icon">✓</span></div>
+                            <strong id="kpiDepositApproved">0</strong>
+                            <small>Cộng tiền thành công</small>
+                            <i class="metric-spark metric-spark--green"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="gold">
+                            <div class="admin-kpi-card__head"><span>Tổng tiền nạp duyệt</span><span class="admin-kpi-icon">₫</span></div>
+                            <strong id="kpiDepositTotalMoney">0 ₫</strong>
+                            <small>Đã vào ví khách hàng</small>
+                            <i class="metric-spark metric-spark--warm"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="red">
+                            <div class="admin-kpi-card__head"><span>Bị từ chối</span><span class="admin-kpi-icon">✕</span></div>
+                            <strong id="kpiDepositRejected">0</strong>
+                            <small>Sai mã / lỗi giao dịch</small>
+                            <i class="metric-spark metric-spark--red"></i>
+                        </article>
+                    </div>
+                    <div class="admin-toolbar">
+                        <div class="admin-toolbar__copy"><p>Đối soát trước khi duyệt. Mỗi yêu cầu chỉ được xử lý một lần.</p></div>
+                        <select id="depositAdminStatus" aria-label="Lọc yêu cầu nạp">
+                            <option value="CHO_DUYET">Đang chờ duyệt</option>
+                            <option value="DA_DUYET">Đã duyệt</option>
+                            <option value="TU_CHOI">Đã từ chối</option>
+                            <option value="all">Tất cả</option>
+                        </select>
+                    </div>
+                    <div class="admin-filter-pills" id="depositFilterPills" role="tablist" aria-label="Lọc nhanh nạp tiền">
+                        <button type="button" class="admin-pill-btn is-active" data-filter="CHO_DUYET">Chờ duyệt</button>
+                        <button type="button" class="admin-pill-btn" data-filter="DA_DUYET">Đã duyệt</button>
+                        <button type="button" class="admin-pill-btn" data-filter="TU_CHOI">Từ chối</button>
+                        <button type="button" class="admin-pill-btn" data-filter="all">Tất cả</button>
+                    </div>
                     <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Mã tham chiếu</th><th>Người yêu cầu</th><th>Thời gian</th><th>Số tiền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="depositAdminRows"><tr><td colspan="6" class="admin-empty-cell">Chọn mục để tải yêu cầu.</td></tr></tbody></table></div></div>
                 </section>
 
                 <section class="admin-view" data-admin-panel="audit" hidden>
-                    <div class="admin-toolbar"><div class="admin-toolbar__copy"><p>Nhật ký chỉ đọc giúp truy vết các thao tác quản trị quan trọng.</p></div></div>
+                    <div class="admin-kpi-grid">
+                        <article class="admin-kpi-card" data-tone="blue">
+                            <div class="admin-kpi-card__head"><span>Tổng sự kiện nhật ký</span><span class="admin-kpi-icon">≡</span></div>
+                            <strong id="kpiAuditTotal">0</strong>
+                            <small>Truy vết hệ thống</small>
+                            <i class="metric-spark metric-spark--blue"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="gold">
+                            <div class="admin-kpi-card__head"><span>Thao tác Cập nhật</span><span class="admin-kpi-icon">✏️</span></div>
+                            <strong id="kpiAuditUpdates">0</strong>
+                            <small>Sửa đổi thông tin</small>
+                            <i class="metric-spark metric-spark--warm"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="orange">
+                            <div class="admin-kpi-card__head"><span>Đổi trạng thái</span><span class="admin-kpi-icon">🔄</span></div>
+                            <strong id="kpiAuditStatusChanges">0</strong>
+                            <small>Duyệt / khóa / hủy</small>
+                            <i class="metric-spark metric-spark--orange"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="violet">
+                            <div class="admin-kpi-card__head"><span>IP gần nhất</span><span class="admin-kpi-icon">🌐</span></div>
+                            <strong id="kpiAuditLatestIp" style="font-size:14px;word-break:break-all;">127.0.0.1</strong>
+                            <small>Địa chỉ truy cập cuối</small>
+                            <i class="metric-spark metric-spark--deep"></i>
+                        </article>
+                    </div>
+                    <div class="admin-toolbar">
+                        <div class="admin-toolbar__copy"><p>Nhật ký chỉ đọc giúp truy vết các thao tác quản trị quan trọng.</p></div>
+                    </div>
                     <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Thời gian</th><th>Quản trị viên</th><th>Hành động</th><th>Đối tượng</th><th>Chi tiết</th><th>IP</th></tr></thead><tbody id="auditRows"><tr><td colspan="6" class="admin-empty-cell">Chọn mục để tải nhật ký.</td></tr></tbody></table></div></div>
                 </section>
 
                 <section class="admin-view" data-admin-panel="approvals" hidden>
-                    <div class="admin-toolbar"><div class="admin-toolbar__copy"><p>Thông báo thao tác của admin thường. Super Admin có thể xác nhận hoặc hoàn tác các thay đổi hỗ trợ khôi phục.</p></div><select id="approvalStatus" aria-label="Lọc phê duyệt"><option value="CHO_XEM">Chờ xem</option><option value="DA_XAC_NHAN">Đã xác nhận</option><option value="DA_HOAN_TAC">Đã hoàn tác</option><option value="all">Tất cả</option></select></div>
+                    <div class="admin-kpi-grid">
+                        <article class="admin-kpi-card" data-tone="orange">
+                            <div class="admin-kpi-card__head"><span>Chờ Super Admin</span><span class="admin-kpi-icon">👀</span></div>
+                            <strong id="kpiApprovalPending">0</strong>
+                            <small>Hành động cần giám sát</small>
+                            <i class="metric-spark metric-spark--orange"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="green">
+                            <div class="admin-kpi-card__head"><span>Đã xác nhận</span><span class="admin-kpi-icon">✓</span></div>
+                            <strong id="kpiApprovalConfirmed">0</strong>
+                            <small>Chấp thuận thay đổi</small>
+                            <i class="metric-spark metric-spark--green"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="red">
+                            <div class="admin-kpi-card__head"><span>Đã hoàn tác</span><span class="admin-kpi-icon">↩</span></div>
+                            <strong id="kpiApprovalReverted">0</strong>
+                            <small>Khôi phục dữ liệu gốc</small>
+                            <i class="metric-spark metric-spark--red"></i>
+                        </article>
+                        <article class="admin-kpi-card" data-tone="violet">
+                            <div class="admin-kpi-card__head"><span>Có thể khôi phục</span><span class="admin-kpi-icon">🛡️</span></div>
+                            <strong id="kpiApprovalRollbackable">0</strong>
+                            <small>Hỗ trợ rollback tức thì</small>
+                            <i class="metric-spark metric-spark--deep"></i>
+                        </article>
+                    </div>
+                    <div class="admin-toolbar">
+                        <div class="admin-toolbar__copy"><p>Thông báo thao tác của admin thường. Super Admin có thể xác nhận hoặc hoàn tác các thay đổi hỗ trợ khôi phục.</p></div>
+                        <select id="approvalStatus" aria-label="Lọc phê duyệt">
+                            <option value="CHO_XEM">Chờ xem</option>
+                            <option value="DA_XAC_NHAN">Đã xác nhận</option>
+                            <option value="DA_HOAN_TAC">Đã hoàn tác</option>
+                            <option value="all">Tất cả</option>
+                        </select>
+                    </div>
+                    <div class="admin-filter-pills" id="approvalFilterPills" role="tablist" aria-label="Lọc nhanh phê duyệt">
+                        <button type="button" class="admin-pill-btn is-active" data-filter="CHO_XEM">Chờ xem</button>
+                        <button type="button" class="admin-pill-btn" data-filter="DA_XAC_NHAN">Đã xác nhận</button>
+                        <button type="button" class="admin-pill-btn" data-filter="DA_HOAN_TAC">Đã hoàn tác</button>
+                        <button type="button" class="admin-pill-btn" data-filter="all">Tất cả</button>
+                    </div>
                     <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Thời gian</th><th>Admin</th><th>Thay đổi</th><th>Đối tượng</th><th>Nội dung</th><th>Quyết định</th></tr></thead><tbody id="approvalRows"><tr><td colspan="6" class="admin-empty-cell">Chỉ Super Admin được xem mục này.</td></tr></tbody></table></div></div>
                 </section>
             </div>

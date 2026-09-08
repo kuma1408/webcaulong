@@ -1550,6 +1550,7 @@
         $('#productPageInfo').textContent = `Trang ${state.productPage}/${pages}`;
         $('#productPrev').disabled = state.productPage <= 1;
         $('#productNext').disabled = state.productPage >= pages;
+        updateProductKpis(state.products);
     }
 
     function buildProductDetailRow(product) {
@@ -1707,6 +1708,7 @@
             detailButton.addEventListener('click',()=>{detailRow.hidden=!detailRow.hidden;detailButton.textContent=detailRow.hidden?'Xem sản phẩm':'Thu gọn';});
         });
         const pages=Math.max(1,Math.ceil(state.orderTotal/20)); $('#adminOrderPageInfo').textContent=`Trang ${state.orderPage}/${pages}`; $('#adminOrderPrev').disabled=state.orderPage<=1; $('#adminOrderNext').disabled=state.orderPage>=pages;
+        updateOrderKpis(state.orders);
     }
 
     async function updateOrderStatus(id, nextStatus, select) {
@@ -1772,6 +1774,7 @@
             const actionCell=element('td');const actions=element('div','admin-row-actions');const isSelf=Number(user.MaND)===Number(state.admin.id);const isSuper=state.admin.role==='superadmin';const protectedAdmin=user.VaiTro==='superadmin'||(!isSuper&&user.VaiTro==='admin');const edit=element('button','','Sửa hồ sơ');edit.type='button';edit.disabled=protectedAdmin;edit.addEventListener('click',()=>openUserDialog(user));const roleButton=element('button','',user.VaiTro==='admin'?'Hạ quyền':'Cấp admin');roleButton.type='button';roleButton.hidden=!isSuper||user.VaiTro==='superadmin';roleButton.disabled=isSelf;roleButton.addEventListener('click',()=>updateUser(user,{role:user.VaiTro==='admin'?'user':'admin'}));const activeButton=element('button',active?'danger':'',active?'Khóa':'Mở khóa');activeButton.type='button';activeButton.disabled=isSelf||protectedAdmin;activeButton.addEventListener('click',()=>updateUser(user,{active:!active}));actions.append(edit,roleButton,activeButton);actionCell.appendChild(actions);row.appendChild(actionCell);tbody.appendChild(row);
         });
         const pages=Math.max(1,Math.ceil(state.userTotal/20));$('#userPageInfo').textContent=`Trang ${state.userPage}/${pages}`;$('#userPrev').disabled=state.userPage<=1;$('#userNext').disabled=state.userPage>=pages;
+        updateUserKpis(state.users);
     }
 
     async function updateUser(user,change){
@@ -1855,6 +1858,7 @@
     function renderDeposits(){
         const tbody=$('#depositAdminRows');tbody.innerHTML='';if(!state.deposits.length)emptyRow(tbody,6,'Không có yêu cầu phù hợp.');
         state.deposits.forEach((item)=>{const row=element('tr');row.append(element('td','',item.MaThamChieu));const userCell=element('td');const user=element('div','admin-user-cell');const avatar=element('i','',(item.HoTen||item.TenDangNhap||'U').charAt(0).toUpperCase());const copy=element('div');copy.append(element('strong','',item.HoTen||item.TenDangNhap),element('span','',`@${item.TenDangNhap}`));user.append(avatar,copy);userCell.appendChild(user);row.append(userCell,element('td','',formatDate(item.NgayTao)),element('td','',formatMoney(item.SoTien)));const statusCell=element('td');statusCell.appendChild(badge(item.TrangThai));row.appendChild(statusCell);const actionCell=element('td');const actions=element('div','admin-row-actions');if(item.TrangThai==='CHO_DUYET'){const approve=element('button','','Duyệt');approve.type='button';approve.addEventListener('click',()=>openDepositDialog(item,'DA_DUYET'));const reject=element('button','danger','Từ chối');reject.type='button';reject.addEventListener('click',()=>openDepositDialog(item,'TU_CHOI'));actions.append(approve,reject);}else actions.appendChild(element('span','',formatDate(item.NgayXuLy)));actionCell.appendChild(actions);row.appendChild(actionCell);tbody.appendChild(row);});
+        updateDepositKpis(state.deposits);
     }
 
     function openDepositDialog(item,status){
@@ -1890,7 +1894,7 @@
     function displayValue(key,value){if(value===null||value===undefined||value==='')return 'Không có';if(['GiaBan','GiaGoc','price','original_price','balance','SoDu','SoTien','amount','SoTienNap','SoDuKhachHang','SoDuTruoc','SoDuSau'].includes(key))return formatMoney(value);if(['TrangThai','active'].includes(key)&&[0,1,true,false].includes(value))return value?'Đang bật / hiển thị':'Đang tắt / đã ẩn';if(['VaiTro','role','VaiTroTruoc','VaiTroSau'].includes(key))return value==='superadmin'?'Super Admin':value==='admin'?'Quản trị viên':'Khách hàng';if(['TrangThaiYeuCau','TrangThaiPheDuyet'].includes(key))return badgeText(value);if(key==='QuyetDinh')return value==='HOAN_TAC'?'Hoàn tác':value==='XAC_NHAN'?'Xác nhận':value==='DA_DUYET'?'Duyệt và cộng tiền':value==='TU_CHOI'?'Từ chối':String(value);if(key==='HanhDongGoc')return actionLabels[value]||String(value);if(['target','DoiTuongGoc'].includes(key))return entityLabels[value]||String(value);if(['target_id','MaDoiTuongGoc'].includes(key))return `#${value}`;if(Array.isArray(value))return value.join('\n');if(typeof value==='object')return JSON.stringify(value,null,2);return String(value);}
     function appendDetailRow(container,key,before,after,compare=false){const row=element('div','change-detail-row');row.appendChild(element('strong','',fieldLabels[key]||key));const values=element('div','change-detail-values');const isImage=['Avatar','HinhAnh','image'].includes(key);const isRollback=/hoàn tác/i.test($('#changeDetailTitle')?.textContent||'')||(key==='TrangThaiPheDuyet'&&after==='DA_HOAN_TAC');const valueBox=(label,value,className)=>{const box=element('span',className);if(label)box.appendChild(element('small','',label));if(isImage&&value){const image=document.createElement('img');let source=String(value);if(key==='Avatar'&&!/^(?:https?:)?\/\//i.test(source)&&window.API_BASE)source=`${window.API_BASE.replace(/\/$/,'')}/${source.replace(/^\//,'')}`;image.src=safeImage(source);image.alt=label?`Ảnh ${label.toLowerCase()}`:'Ảnh đã lưu';image.className='change-detail-image';box.appendChild(image);}else box.appendChild(element('b','',displayValue(key,value)));return box;};if(compare){values.append(valueBox('Trước',before,'change-detail-old'),element('i','','→'),valueBox('Sau',after,`change-detail-new${isRollback?' change-detail-rollback':''}`));}else values.appendChild(valueBox('',after,isRollback?'change-detail-rollback':''));row.appendChild(values);container.appendChild(row);}
     function openChangeDetail({title,eyebrow,meta,before,after,compare=false,entity='',entityId='',snapshot={}}){const dialog=$('#changeDetailDialog');$('#changeDetailTitle').textContent=title;$('#changeDetailEyebrow').textContent=eyebrow;const oldData=parsedObject(before),newData=parsedObject(after),record={...parsedObject(snapshot),...oldData,...newData};const card=$('#changeProductCard');card.innerHTML='';card.hidden=!['SanPham','NguoiDung'].includes(entity);if(entity==='SanPham'){const image=element('img');image.src=safeImage(record.HinhAnh||record.image);image.alt=record.TenSP||record.name||`Sản phẩm #${entityId}`;const copy=element('div');copy.append(element('span','',`${record.ThuongHieu||record.brand||'Chưa có thương hiệu'} · Mã #${entityId}`),element('strong','',record.TenSP||record.name||`Sản phẩm #${entityId}`),element('b','',formatMoney(record.GiaBan??record.price)),element('p','',`Tồn kho: ${record.TonKho??record.stock??'—'} · ${displayValue('TrangThai',record.TrangThai??record.active)}`));const find=element('button','admin-detail-button','Tìm sản phẩm này trong quản trị →');find.type='button';find.addEventListener('click',()=>{dialog.close();$('#productQuery').value=`#${entityId}`;$('#productStatus').value='all';state.productPage=1;activateView('products',true);});copy.appendChild(find);card.append(image,copy);}if(entity==='NguoiDung'){const avatar=userAvatar(record);avatar.classList.add('change-user-avatar');const copy=element('div');copy.append(element('span','',`Tài khoản #${entityId}`),element('strong','',record.HoTen||record.fullname||record.TenDangNhap||`Người dùng #${entityId}`),element('b','',`@${record.TenDangNhap||'không rõ'}`),element('p','',`${record.Email||record.email||'Chưa có email'} · ${record.SoDienThoai||record.phone||'Chưa có SĐT'}`));const find=element('button','admin-detail-button','Tìm tài khoản này trong quản trị →');find.type='button';find.addEventListener('click',()=>{dialog.close();$('#userQuery').value=record.TenDangNhap||`#${entityId}`;state.userPage=1;activateView('users',true);});copy.appendChild(find);card.append(avatar,copy);}const metaBox=$('#changeDetailMeta');metaBox.innerHTML='';meta.filter(Boolean).forEach(item=>metaBox.appendChild(element('span','',item)));const body=$('#changeDetailBody');body.innerHTML='';const ignored=new Set(['NgayTao','NgayCapNhat','NgayXuLy']);const keys=[...new Set([...Object.keys(oldData),...Object.keys(newData)])].filter(key=>!ignored.has(key));const changedKeys=compare?keys.filter(key=>JSON.stringify(oldData[key])!==JSON.stringify(newData[key])):keys;if(!changedKeys.length)body.appendChild(element('p','admin-empty','Không có dữ liệu chi tiết được lưu.'));else changedKeys.forEach(key=>appendDetailRow(body,key,oldData[key],newData[key],compare));dialog.showModal();}
-    function renderAudit(items){const tbody=$('#auditRows');tbody.innerHTML='';if(!items.length)emptyRow(tbody,6,'Chưa có hoạt động quản trị.');items.forEach((log)=>{const row=element('tr');const detail=parsedObject(log.ChiTiet);const hasComparison=Boolean(log.DuLieuTruoc);const after=log.DuLieuSau||detail;const changed=hasComparison?[...new Set([...Object.keys(parsedObject(log.DuLieuTruoc)),...Object.keys(parsedObject(after))])].filter(key=>JSON.stringify(parsedObject(log.DuLieuTruoc)[key])!==JSON.stringify(parsedObject(after)[key])):Object.keys(detail);const detailCell=element('td');const summary=element('span','admin-detail-summary',changed.map(key=>fieldLabels[key]||key).join(', ')||'Không có dữ liệu');const view=element('button','admin-detail-button',hasComparison?'Xem trước và sau':'Xem đầy đủ');view.type='button';view.addEventListener('click',()=>openChangeDetail({title:`${actionLabels[log.HanhDong]||log.HanhDong} ${entityLabels[log.DoiTuong]||log.DoiTuong}`,eyebrow:'Chi tiết nhật ký quản trị',meta:[`@${log.TenDangNhap}`,formatDate(log.NgayTao),`${entityLabels[log.DoiTuong]||log.DoiTuong}${log.MaDoiTuong?` #${log.MaDoiTuong}`:''}`,`IP: ${log.DiaChiIP||'—'}`,log.TrangThaiPheDuyet?badgeText(log.TrangThaiPheDuyet):''],before:log.DuLieuTruoc,after,compare:hasComparison,entity:log.DoiTuong,entityId:log.MaDoiTuong,snapshot:{TenDangNhap:log.DoiTuongTenDangNhap,HoTen:log.DoiTuongHoTen,Email:log.DoiTuongEmail,SoDienThoai:log.DoiTuongSoDienThoai,Avatar:log.DoiTuongAvatar}}));detailCell.append(summary,view);const adminCell=element('td');const adminWrap=element('div','admin-user-cell');const adminAvatar=userAvatar({TenDangNhap:log.TenDangNhap,HoTen:log.HoTenAdmin,Avatar:log.AvatarAdmin});const adminCopy=element('div');adminCopy.append(element('strong','',log.HoTenAdmin||log.TenDangNhap),element('span','',`@${log.TenDangNhap}`));adminWrap.append(adminAvatar,adminCopy);adminCell.appendChild(adminWrap);row.append(element('td','',formatDate(log.NgayTao)),adminCell,element('td','',actionLabels[log.HanhDong]||log.HanhDong),element('td','',`${entityLabels[log.DoiTuong]||log.DoiTuong}${log.MaDoiTuong?` #${log.MaDoiTuong}`:''}`),detailCell,element('td','',log.DiaChiIP||'—'));tbody.appendChild(row);});}
+    function renderAudit(items){const tbody=$('#auditRows');tbody.innerHTML='';if(!items.length)emptyRow(tbody,6,'Chưa có hoạt động quản trị.');items.forEach((log)=>{const row=element('tr');const detail=parsedObject(log.ChiTiet);const hasComparison=Boolean(log.DuLieuTruoc);const after=log.DuLieuSau||detail;const changed=hasComparison?[...new Set([...Object.keys(parsedObject(log.DuLieuTruoc)),...Object.keys(parsedObject(after))])].filter(key=>JSON.stringify(parsedObject(log.DuLieuTruoc)[key])!==JSON.stringify(parsedObject(after)[key])):Object.keys(detail);const detailCell=element('td');const summary=element('span','admin-detail-summary',changed.map(key=>fieldLabels[key]||key).join(', ')||'Không có dữ liệu');const view=element('button','admin-detail-button',hasComparison?'Xem trước và sau':'Xem đầy đủ');view.type='button';view.addEventListener('click',()=>openChangeDetail({title:`${actionLabels[log.HanhDong]||log.HanhDong} ${entityLabels[log.DoiTuong]||log.DoiTuong}`,eyebrow:'Chi tiết nhật ký quản trị',meta:[`@${log.TenDangNhap}`,formatDate(log.NgayTao),`${entityLabels[log.DoiTuong]||log.DoiTuong}${log.MaDoiTuong?` #${log.MaDoiTuong}`:''}`,`IP: ${log.DiaChiIP||'—'}`,log.TrangThaiPheDuyet?badgeText(log.TrangThaiPheDuyet):''],before:log.DuLieuTruoc,after,compare:hasComparison,entity:log.DoiTuong,entityId:log.MaDoiTuong,snapshot:{TenDangNhap:log.DoiTuongTenDangNhap,HoTen:log.DoiTuongHoTen,Email:log.DoiTuongEmail,SoDienThoai:log.DoiTuongSoDienThoai,Avatar:log.DoiTuongAvatar}}));detailCell.append(summary,view);const adminCell=element('td');const adminWrap=element('div','admin-user-cell');const adminAvatar=userAvatar({TenDangNhap:log.TenDangNhap,HoTen:log.HoTenAdmin,Avatar:log.AvatarAdmin});const adminCopy=element('div');adminCopy.append(element('strong','',log.HoTenAdmin||log.TenDangNhap),element('span','',`@${log.TenDangNhap}`));adminWrap.append(adminAvatar,adminCopy);adminCell.appendChild(adminWrap);row.append(element('td','',formatDate(log.NgayTao)),adminCell,element('td','',actionLabels[log.HanhDong]||log.HanhDong),element('td','',`${entityLabels[log.DoiTuong]||log.DoiTuong}${log.MaDoiTuong?` #${log.MaDoiTuong}`:''}`),detailCell,element('td','',log.DiaChiIP||'—'));tbody.appendChild(row);});updateAuditKpis(items);}
 
     async function loadApprovals(){
         const tbody=$('#approvalRows');emptyRow(tbody,6,'Đang tải thay đổi…');
@@ -1902,7 +1906,7 @@
         }
     }
     function changeSummary(item){const after=item.DuLieuSau||{};if(item.DoiTuong==='YeuCauNapTien')return `${item.HanhDong==='APPROVE'?'Duyệt':'Từ chối'} yêu cầu nạp ${formatMoney(after.SoTien||after.amount||0)}`;if(item.DoiTuong==='SanPham'){if(item.HanhDong==='DELETE')return 'Ngừng bán và đưa tồn kho về 0';const keys=Object.keys(after).filter(key=>!['NgayCapNhat','NgayTao'].includes(key));return `Cập nhật: ${keys.slice(0,4).join(', ')}${keys.length>4?'…':''}`;}return auditDetail(after);}
-    function renderApprovals(items){const tbody=$('#approvalRows');tbody.innerHTML='';if(!items.length){emptyRow(tbody,6,'Không có thay đổi phù hợp.');return;}items.forEach(item=>{const row=element('tr');row.append(element('td','',formatDate(item.NgayTao)),element('td','',`@${item.TenDangNhap}`),element('td','',actionLabels[item.HanhDong]||item.HanhDong),element('td','',`${entityLabels[item.DoiTuong]||item.DoiTuong}${item.MaDoiTuong?` #${item.MaDoiTuong}`:''}`));const detail=element('td');detail.appendChild(element('span','admin-detail-summary',changeSummary(item)));const view=element('button','admin-detail-button','Xem thay đổi trước và sau');view.type='button';view.addEventListener('click',()=>openChangeDetail({title:`${actionLabels[item.HanhDong]||item.HanhDong} ${entityLabels[item.DoiTuong]||item.DoiTuong}`,eyebrow:'Đối chiếu thay đổi của Admin',meta:[`@${item.TenDangNhap}`,formatDate(item.NgayTao),`Mã thay đổi #${item.MaThayDoi}`,badgeText(item.TrangThai)],before:item.DuLieuTruoc,after:item.DuLieuSau,compare:Boolean(item.DuLieuTruoc),entity:item.DoiTuong,entityId:item.MaDoiTuong}));detail.appendChild(view);row.appendChild(detail);const action=element('td');const actions=element('div','admin-row-actions');if(item.TrangThai==='CHO_XEM'){const accept=element('button','','Xác nhận');accept.type='button';accept.addEventListener('click',()=>reviewChange(item.MaThayDoi,'XAC_NHAN'));actions.appendChild(accept);if(item.CoTheHoanTac){const undo=element('button','danger','Hoàn tác');undo.type='button';undo.addEventListener('click',()=>reviewChange(item.MaThayDoi,'HOAN_TAC'));actions.appendChild(undo);}}else actions.appendChild(badge(item.TrangThai));action.appendChild(actions);row.appendChild(action);tbody.appendChild(row);});}
+    function renderApprovals(items){const tbody=$('#approvalRows');tbody.innerHTML='';if(!items.length){emptyRow(tbody,6,'Không có thay đổi phù hợp.');return;}items.forEach(item=>{const row=element('tr');row.append(element('td','',formatDate(item.NgayTao)),element('td','',`@${item.TenDangNhap}`),element('td','',actionLabels[item.HanhDong]||item.HanhDong),element('td','',`${entityLabels[item.DoiTuong]||item.DoiTuong}${item.MaDoiTuong?` #${item.MaDoiTuong}`:''}`));const detail=element('td');detail.appendChild(element('span','admin-detail-summary',changeSummary(item)));const view=element('button','admin-detail-button','Xem thay đổi trước và sau');view.type='button';view.addEventListener('click',()=>openChangeDetail({title:`${actionLabels[item.HanhDong]||item.HanhDong} ${entityLabels[item.DoiTuong]||item.DoiTuong}`,eyebrow:'Đối chiếu thay đổi của Admin',meta:[`@${item.TenDangNhap}`,formatDate(item.NgayTao),`Mã thay đổi #${item.MaThayDoi}`,badgeText(item.TrangThai)],before:item.DuLieuTruoc,after:item.DuLieuSau,compare:Boolean(item.DuLieuTruoc),entity:item.DoiTuong,entityId:item.MaDoiTuong}));detail.appendChild(view);row.appendChild(detail);const action=element('td');const actions=element('div','admin-row-actions');if(item.TrangThai==='CHO_XEM'){const accept=element('button','','Xác nhận');accept.type='button';accept.addEventListener('click',()=>reviewChange(item.MaThayDoi,'XAC_NHAN'));actions.appendChild(accept);if(item.CoTheHoanTac){const undo=element('button','danger','Hoàn tác');undo.type='button';undo.addEventListener('click',()=>reviewChange(item.MaThayDoi,'HOAN_TAC'));actions.appendChild(undo);}}else actions.appendChild(badge(item.TrangThai));action.appendChild(actions);row.appendChild(action);tbody.appendChild(row);});updateApprovalKpis(items);}
     function badgeText(status){return statusMeta[status]?.[0]||status||'Không rõ';}
     async function reviewChange(id,decision){const promptText=decision==='HOAN_TAC'?'Nhập lý do hoàn tác (không bắt buộc):':'Ghi chú xác nhận (không bắt buộc):';const note=window.prompt(promptText,'');if(note===null)return;try{const data=await Auth.request(`/api/admin/phe-duyet-thay-doi/${id}`,{method:'PATCH',json:{decision,note}});showToast(data.message,'success');loadApprovals();if(decision==='HOAN_TAC'){state.loaded.delete('products');state.loaded.delete('deposits');loadDashboard();}}catch(error){showToast(error.message,'error');}}
 
@@ -1913,7 +1917,7 @@
         renderSupport();
     }}
     function supportSubject(value){return {TU_VAN_SAN_PHAM:'Tư vấn sản phẩm',DON_HANG:'Đơn hàng',THANH_TOAN:'Thanh toán',TAI_KHOAN:'Tài khoản',BAO_LOI:'Báo lỗi',KHAC:'Khác'}[value]||value||'—';}
-    function renderSupport(){const tbody=$('#supportRows');tbody.innerHTML='';if(!state.support.length)emptyRow(tbody,7,'Không có yêu cầu phù hợp.');state.support.forEach(item=>{const row=element('tr');row.append(element('td','',`HT-${String(item.MaYeuCau).padStart(6,'0')}`));const sender=element('td');sender.append(element('strong','',item.HoTen),element('span','admin-detail-summary',`${item.Email}${item.SoDienThoai?` · ${item.SoDienThoai}`:''}`));row.append(sender,element('td','',supportSubject(item.ChuDe)),element('td','admin-support-preview',item.NoiDung),element('td','',formatDate(item.NgayTao)));const status=element('td');status.appendChild(badge(item.TrangThai));row.appendChild(status);const action=element('td');const button=element('button','admin-detail-button','Mở phiếu');button.type='button';button.addEventListener('click',()=>openSupport(item));action.appendChild(button);row.appendChild(action);tbody.appendChild(row);});const pages=Math.max(1,Math.ceil(state.supportTotal/20));$('#supportPageInfo').textContent=`Trang ${state.supportPage}/${pages}`;$('#supportPrev').disabled=state.supportPage<=1;$('#supportNext').disabled=state.supportPage>=pages;const pending=state.support.filter(item=>item.TrangThai==='MOI').length;updateNavBadge($('#navPendingSupport'),pending);}
+    function renderSupport(){const tbody=$('#supportRows');tbody.innerHTML='';if(!state.support.length)emptyRow(tbody,7,'Không có yêu cầu phù hợp.');state.support.forEach(item=>{const row=element('tr');row.append(element('td','',`HT-${String(item.MaYeuCau).padStart(6,'0')}`));const sender=element('td');sender.append(element('strong','',item.HoTen),element('span','admin-detail-summary',`${item.Email}${item.SoDienThoai?` · ${item.SoDienThoai}`:''}`));row.append(sender,element('td','',supportSubject(item.ChuDe)),element('td','admin-support-preview',item.NoiDung),element('td','',formatDate(item.NgayTao)));const status=element('td');status.appendChild(badge(item.TrangThai));row.appendChild(status);const action=element('td');const button=element('button','admin-detail-button','Mở phiếu');button.type='button';button.addEventListener('click',()=>openSupport(item));action.appendChild(button);row.appendChild(action);tbody.appendChild(row);});const pages=Math.max(1,Math.ceil(state.supportTotal/20));$('#supportPageInfo').textContent=`Trang ${state.supportPage}/${pages}`;$('#supportPrev').disabled=state.supportPage<=1;$('#supportNext').disabled=state.supportPage>=pages;const pending=state.support.filter(item=>item.TrangThai==='MOI').length;updateNavBadge($('#navPendingSupport'),pending);updateSupportKpis(state.support);}
     function openSupport(item){$('#supportId').value=item.MaYeuCau;$('#supportDialogStatus').value=item.TrangThai;$('#supportAdminNote').value=item.GhiChuAdmin||'';$('#supportDialogTitle').textContent=`Phiếu HT-${String(item.MaYeuCau).padStart(6,'0')}`;const detail=$('#supportDetail');detail.innerHTML='';[['Người gửi',item.HoTen],['Liên hệ',`${item.Email}${item.SoDienThoai?` · ${item.SoDienThoai}`:''}`],['Chủ đề',supportSubject(item.ChuDe)],['Mã đơn',item.MaDonHang||'Không có'],['Kênh phản hồi',item.KenhPhanHoi==='DIEN_THOAI'?'Điện thoại':'Email'],['Nội dung',item.NoiDung],['Tiếp nhận lúc',formatDate(item.NgayTao)]].forEach(([label,value])=>{const fact=element('div');fact.append(element('span','',label),element('strong','',value));detail.appendChild(fact);});setStatus($('#supportFormStatus'));$('#supportDialog').showModal();}
     async function saveSupport(event){event.preventDefault();const id=Number($('#supportId').value);const button=$('#supportSave');setBusy(button,true,'Đang lưu…');try{const data=await Auth.request(`/api/admin/ho-tro/${id}`,{method:'PATCH',json:{status:$('#supportDialogStatus').value,note:$('#supportAdminNote').value.trim()}});$('#supportDialog').close();showToast(data.message,'success');loadSupport();}catch(error){setStatus($('#supportFormStatus'),error.message);}finally{setBusy(button,false);}}
 
@@ -1922,7 +1926,7 @@
         state.content=FALLBACK_ADMIN_CONTENT;
         renderContent();
     }}
-    function renderContent(){const tbody=$('#contentRows');tbody.innerHTML='';if(!state.content.length)emptyRow(tbody,5,'Chưa có nội dung. Hãy tạo bài đầu tiên và chọn “Xuất bản ngay”.');state.content.forEach((item)=>{const row=element('tr');const titleCell=element('td');titleCell.append(element('strong','admin-content-title',item.TieuDe),element('span','admin-content-summary',item.TomTat||'Chưa có tóm tắt'));row.append(titleCell,element('td','',item.Loai==='TIN_TUC'?'Tin tức':'Hướng dẫn'),element('td','',formatDate(item.NgayDang)));const status=element('td');status.appendChild(element('span',`admin-badge ${item.TrangThai?'admin-badge--success':'admin-badge--info'}`,item.TrangThai?'Công khai':'Bản nháp'));row.appendChild(status);const action=element('td');const actions=element('div','admin-row-actions');if(item.TrangThai){const preview=element('a','','Xem trên web');preview.href=`baiviet.html?id=${encodeURIComponent(item.MaBV)}`;preview.target='_blank';preview.rel='noopener';actions.appendChild(preview);}const edit=element('button','','Sửa');edit.type='button';edit.addEventListener('click',()=>openContentDialog(item));const toggle=element('button',item.TrangThai?'danger':'',item.TrangThai?'Chuyển về nháp':'Xuất bản');toggle.type='button';toggle.addEventListener('click',()=>saveContentStatus(item,!Boolean(item.TrangThai)));actions.append(edit,toggle);action.appendChild(actions);row.appendChild(action);tbody.appendChild(row);});}
+    function renderContent(){const tbody=$('#contentRows');tbody.innerHTML='';if(!state.content.length)emptyRow(tbody,5,'Chưa có nội dung. Hãy tạo bài đầu tiên và chọn “Xuất bản ngay”.');state.content.forEach((item)=>{const row=element('tr');const titleCell=element('td');titleCell.append(element('strong','admin-content-title',item.TieuDe),element('span','admin-content-summary',item.TomTat||'Chưa có tóm tắt'));row.append(titleCell,element('td','',item.Loai==='TIN_TUC'?'Tin tức':'Hướng dẫn'),element('td','',formatDate(item.NgayDang)));const status=element('td');status.appendChild(element('span',`admin-badge ${item.TrangThai?'admin-badge--success':'admin-badge--info'}`,item.TrangThai?'Công khai':'Bản nháp'));row.appendChild(status);const action=element('td');const actions=element('div','admin-row-actions');if(item.TrangThai){const preview=element('a','','Xem trên web');preview.href=`baiviet.html?id=${encodeURIComponent(item.MaBV)}`;preview.target='_blank';preview.rel='noopener';actions.appendChild(preview);}const edit=element('button','','Sửa');edit.type='button';edit.addEventListener('click',()=>openContentDialog(item));const toggle=element('button',item.TrangThai?'danger':'',item.TrangThai?'Chuyển về nháp':'Xuất bản');toggle.type='button';toggle.addEventListener('click',()=>saveContentStatus(item,!Boolean(item.TrangThai)));actions.append(edit,toggle);action.appendChild(actions);row.appendChild(action);tbody.appendChild(row);});updateContentKpis(state.content);}
     function syncContentPublishHint(){const checkbox=$('#contentActive');const label=checkbox.closest('label');const textNode=[...label.childNodes].find(node=>node.nodeType===Node.TEXT_NODE&&node.textContent.trim());if(textNode)textNode.textContent=' Xuất bản ngay';let hint=$('#contentPublishHint');if(!hint){hint=element('p','admin-publish-note');hint.id='contentPublishHint';label.insertAdjacentElement('afterend',hint);}hint.textContent=checkbox.checked?'Bài sẽ xuất hiện ngay tại Tin tức/Hướng dẫn sau khi lưu.':'Bài được lưu an toàn dưới dạng bản nháp và chưa hiện với khách hàng.';}
     function openContentDialog(item=null){$('#contentForm').reset();$('#contentId').value=item?.MaBV||'';$('#contentDialogTitle').textContent=item?'Chỉnh sửa nội dung':'Thêm nội dung';$('#contentType').value=item?.Loai||'TIN_TUC';$('#contentTitle').value=item?.TieuDe||'';$('#contentSummary').value=item?.TomTat||'';$('#contentBody').value=item?.NoiDung||'';$('#contentImage').value=item?.HinhAnh||'';renderContentImagePreview();$('#contentSource').value=item?.NguonURL||'';$('#contentActive').checked=item?Boolean(item.TrangThai):true;syncContentPublishHint();setStatus($('#contentFormStatus'));$('#contentDialog').showModal();}
     async function saveContent(event){event.preventDefault();const id=Number($('#contentId').value)||0;const payload={type:$('#contentType').value,title:$('#contentTitle').value.trim(),summary:$('#contentSummary').value.trim(),content:$('#contentBody').value.trim(),image:$('#contentImage').value.trim(),source_url:$('#contentSource').value.trim(),active:$('#contentActive').checked};const button=$('#contentSave');setBusy(button,true,'Đang lưu…');try{const data=await Auth.request(id?`/api/admin/noi-dung/${id}`:'/api/admin/noi-dung',{method:id?'PATCH':'POST',json:payload});$('#contentDialog').close();showToast(data.message,'success');loadContent();}catch(error){setStatus($('#contentFormStatus'),error.message);}finally{setBusy(button,false);}}
@@ -1933,11 +1937,321 @@
         state.vouchers=FALLBACK_ADMIN_VOUCHERS;
         renderVouchers();
     }}
-    function renderVouchers(){const tbody=$('#voucherRows');tbody.innerHTML='';if(!state.vouchers.length){emptyRow(tbody,7,'Chưa có voucher.');return;}state.vouchers.forEach(v=>{const row=element('tr');let value=formatMoney(v.GiaTri);if(v.LoaiGiam==='PHAN_TRAM'){value=`${Number(v.GiaTri)}%`;if(v.GiamToiDa)value+=` · tối đa ${formatMoney(v.GiamToiDa)}`;}row.append(element('td','',v.MaVoucher),element('td','',value),element('td','',formatMoney(v.DonToiThieu)),element('td','',`${v.DaSuDung}/${v.SoLuong}`),element('td','',v.NgayHetHan?formatDate(v.NgayHetHan):'Không giới hạn'));const status=element('td');status.append(element('span',`admin-badge ${v.TrangThai?'admin-badge--success':'admin-badge--danger'}`,v.TrangThai?'Hoạt động':'Tạm tắt'));row.append(status);const action=element('td');const toggle=element('button',v.TrangThai?'danger':'',v.TrangThai?'Tắt':'Bật');toggle.type='button';toggle.addEventListener('click',async()=>{try{const data=await Auth.request(`/api/admin/vouchers/${encodeURIComponent(v.MaVoucher)}`,{method:'PATCH',json:{active:!Boolean(v.TrangThai)}});showToast(data.message,'success');loadVouchers();}catch(error){showToast(error.message,'error');}});action.append(toggle);row.append(action);tbody.append(row);});}
+    function renderVouchers(){const tbody=$('#voucherRows');tbody.innerHTML='';if(!state.vouchers.length){emptyRow(tbody,7,'Chưa có voucher.');return;}state.vouchers.forEach(v=>{const row=element('tr');let value=formatMoney(v.GiaTri);if(v.LoaiGiam==='PHAN_TRAM'){value=`${Number(v.GiaTri)}%`;if(v.GiamToiDa)value+=` · tối đa ${formatMoney(v.GiamToiDa)}`;}row.append(element('td','',v.MaVoucher),element('td','',value),element('td','',formatMoney(v.DonToiThieu)),element('td','',`${v.DaSuDung}/${v.SoLuong}`),element('td','',v.NgayHetHan?formatDate(v.NgayHetHan):'Không giới hạn'));const status=element('td');status.append(element('span',`admin-badge ${v.TrangThai?'admin-badge--success':'admin-badge--danger'}`,v.TrangThai?'Hoạt động':'Tạm tắt'));row.append(status);const action=element('td');const toggle=element('button',v.TrangThai?'danger':'',v.TrangThai?'Tắt':'Bật');toggle.type='button';toggle.addEventListener('click',async()=>{try{const data=await Auth.request(`/api/admin/vouchers/${encodeURIComponent(v.MaVoucher)}`,{method:'PATCH',json:{active:!Boolean(v.TrangThai)}});showToast(data.message,'success');loadVouchers();}catch(error){showToast(error.message,'error');}});action.append(toggle);row.append(action);tbody.append(row);});updateVoucherKpis(state.vouchers);}
     function openVoucherDialog(){const form=$('#voucherForm');form.reset();$('#voucherQuantity').value='100';$('#voucherMinimum').value='0';$('#voucherActive').checked=true;setStatus($('#voucherFormStatus'));$('#voucherDialog').showModal();}
     async function saveVoucher(event){event.preventDefault();const payload={code:$('#voucherCode').value.trim().toUpperCase(),type:$('#voucherType').value,value:$('#voucherValue').value,maximum:$('#voucherMaximum').value||null,minimum:$('#voucherMinimum').value||0,quantity:$('#voucherQuantity').value,starts_at:$('#voucherStarts').value||null,expires_at:$('#voucherExpires').value||null,active:$('#voucherActive').checked};const button=$('#voucherSave');setBusy(button,true,'Đang tạo…');try{const data=await Auth.request('/api/admin/vouchers',{method:'POST',json:payload});$('#voucherDialog').close();showToast(data.message,'success');loadVouchers();}catch(error){setStatus($('#voucherFormStatus'),error.message);}finally{setBusy(button,false);}}
 
+    /* ==========================================================================
+       BADMINTON STORE — ADMIN SUB-PANEL KPI METRIC UPDATERS
+       ========================================================================== */
+    function updateProductKpis(products) {
+        if (!Array.isArray(products)) return;
+        animateMetric($('#kpiProductTotal'), state.productTotal || products.length);
+        const active = products.filter(p => p.TrangThai !== 0).length;
+        animateMetric($('#kpiProductActive'), active);
+        const lowStock = products.filter(p => (Number(p.TonKho) || 0) < 10).length;
+        animateMetric($('#kpiProductLowStock'), lowStock);
+        const sale = products.filter(p => Number(p.GiaGoc || 0) > Number(p.GiaBan || 0)).length;
+        animateMetric($('#kpiProductOnSale'), sale);
+    }
+
+    function updateOrderKpis(orders) {
+        if (!Array.isArray(orders)) return;
+        animateMetric($('#kpiOrderTotal'), state.orderTotal || orders.length);
+        const pending = orders.filter(o => o.TrangThai === 'CHO_XAC_NHAN').length;
+        animateMetric($('#kpiOrderPending'), pending);
+        const shipping = orders.filter(o => o.TrangThai === 'DANG_GIAO').length;
+        animateMetric($('#kpiOrderShipping'), shipping);
+        const completed = orders.filter(o => o.TrangThai === 'HOAN_THANH');
+        const revenue = completed.reduce((sum, o) => sum + (Number(o.TongTien) || 0), 0);
+        animateMetric($('#kpiOrderCompletedRevenue'), revenue, formatMoney);
+        const countNode = $('#kpiOrderCompletedCount');
+        if (countNode) countNode.textContent = `${completed.length} đơn hoàn thành`;
+    }
+
+    function updateUserKpis(users) {
+        if (!Array.isArray(users)) return;
+        animateMetric($('#kpiUserTotal'), state.userTotal || users.length);
+        const admins = users.filter(u => ['admin', 'superadmin'].includes(u.VaiTro)).length;
+        animateMetric($('#kpiUserAdmins'), admins);
+        const members = users.filter(u => !['admin', 'superadmin'].includes(u.VaiTro)).length;
+        animateMetric($('#kpiUserMembers'), members);
+        const totalBalance = users.reduce((sum, u) => sum + (Number(u.SoDu) || 0), 0);
+        animateMetric($('#kpiUserTotalBalance'), totalBalance, formatMoney);
+    }
+
+    function updateContentKpis(content) {
+        if (!Array.isArray(content)) return;
+        animateMetric($('#kpiContentTotal'), content.length);
+        const news = content.filter(c => c.Loai === 'TIN_TUC').length;
+        animateMetric($('#kpiContentNews'), news);
+        const guides = content.filter(c => c.Loai === 'HUONG_DAN').length;
+        animateMetric($('#kpiContentGuides'), guides);
+        const published = content.filter(c => c.TrangThai !== 0).length;
+        animateMetric($('#kpiContentPublished'), published);
+    }
+
+    function updateSupportKpis(support) {
+        if (!Array.isArray(support)) return;
+        animateMetric($('#kpiSupportTotal'), state.supportTotal || support.length);
+        const newTickets = support.filter(s => s.TrangThai === 'MOI').length;
+        animateMetric($('#kpiSupportNew'), newTickets);
+        const processing = support.filter(s => s.TrangThai === 'DANG_XU_LY').length;
+        animateMetric($('#kpiSupportProcessing'), processing);
+        const resolved = support.filter(s => ['DA_DONG', 'DA_PHAN_HOI'].includes(s.TrangThai)).length;
+        animateMetric($('#kpiSupportResolved'), resolved);
+    }
+
+    function updateVoucherKpis(vouchers) {
+        if (!Array.isArray(vouchers)) return;
+        animateMetric($('#kpiVoucherTotal'), vouchers.length);
+        const active = vouchers.filter(v => v.TrangThai !== 0).length;
+        animateMetric($('#kpiVoucherActive'), active);
+        const used = vouchers.reduce((sum, v) => sum + (Number(v.DaSuDung) || 0), 0);
+        animateMetric($('#kpiVoucherUsed'), used);
+        let maxDiscount = 0;
+        vouchers.forEach(v => {
+            if (v.LoaiGiam === 'PHAN_TRAM' && Number(v.GiaTri) > maxDiscount) {
+                maxDiscount = Number(v.GiaTri);
+            }
+        });
+        const maxNode = $('#kpiVoucherMaxDiscount');
+        if (maxNode) maxNode.textContent = maxDiscount > 0 ? `${maxDiscount}%` : '0%';
+    }
+
+    function updateDepositKpis(deposits) {
+        if (!Array.isArray(deposits)) return;
+        const pending = deposits.filter(d => d.TrangThai === 'CHO_DUYET').length;
+        animateMetric($('#kpiDepositPending'), pending);
+        const approved = deposits.filter(d => d.TrangThai === 'DA_DUYET');
+        animateMetric($('#kpiDepositApproved'), approved.length);
+        const totalApproved = approved.reduce((sum, d) => sum + (Number(d.SoTien) || 0), 0);
+        animateMetric($('#kpiDepositTotalMoney'), totalApproved, formatMoney);
+        const rejected = deposits.filter(d => d.TrangThai === 'TU_CHOI').length;
+        animateMetric($('#kpiDepositRejected'), rejected);
+    }
+
+    function updateAuditKpis(logs) {
+        if (!Array.isArray(logs)) return;
+        animateMetric($('#kpiAuditTotal'), logs.length);
+        const updates = logs.filter(l => /cap_nhat|update/i.test(l.HanhDong || '')).length;
+        animateMetric($('#kpiAuditUpdates'), updates);
+        const statusChanges = logs.filter(l => /trang_thai|status|duyet|tu_choi/i.test(l.HanhDong || '')).length;
+        animateMetric($('#kpiAuditStatusChanges'), statusChanges);
+        const ipNode = $('#kpiAuditLatestIp');
+        if (ipNode && logs[0]?.DiaChiIP) {
+            ipNode.textContent = logs[0].DiaChiIP;
+        }
+    }
+
+    function updateApprovalKpis(changes) {
+        if (!Array.isArray(changes)) return;
+        const pending = changes.filter(c => c.TrangThai === 'CHO_XEM').length;
+        animateMetric($('#kpiApprovalPending'), pending);
+        const confirmed = changes.filter(c => c.TrangThai === 'DA_XAC_NHAN').length;
+        animateMetric($('#kpiApprovalConfirmed'), confirmed);
+        const reverted = changes.filter(c => c.TrangThai === 'DA_HOAN_TAC').length;
+        animateMetric($('#kpiApprovalReverted'), reverted);
+        const rollbackable = changes.filter(c => c.CoTheHoanTac).length;
+        animateMetric($('#kpiApprovalRollbackable'), rollbackable);
+    }
+
+    /* ==========================================================================
+       BADMINTON STORE — ADMIN THEME TOGGLE (DARK / LIGHT) & QUICK FILTER PILLS
+       ========================================================================== */
+    function setupAdminTheme() {
+        const toggleBtn = $('#adminThemeToggle');
+        if (!toggleBtn) return;
+        const iconSpan = toggleBtn.querySelector('.admin-theme-icon');
+        const labelSpan = toggleBtn.querySelector('.admin-theme-label');
+
+        function applyTheme(theme, save = true) {
+            document.documentElement.dataset.theme = theme;
+            if (save) {
+                try { localStorage.setItem('badminton_theme', theme); } catch (e) {}
+            }
+            if (theme === 'dark') {
+                if (iconSpan) iconSpan.textContent = '☀️';
+                if (labelSpan) labelSpan.textContent = 'Chế độ sáng';
+                toggleBtn.setAttribute('title', 'Chuyển sang chế độ sáng');
+            } else {
+                if (iconSpan) iconSpan.textContent = '🌙';
+                if (labelSpan) labelSpan.textContent = 'Chế độ tối';
+                toggleBtn.setAttribute('title', 'Chuyển sang chế độ tối');
+            }
+            if (state.currentView === 'overview') {
+                setTimeout(replayAllDashboardAnimations, 60);
+            }
+        }
+
+        const savedTheme = localStorage.getItem('badminton_theme') || document.documentElement.dataset.theme || 'light';
+        applyTheme(savedTheme, false);
+
+        toggleBtn.addEventListener('click', () => {
+            const current = document.documentElement.dataset.theme || 'light';
+            const next = current === 'dark' ? 'light' : 'dark';
+            applyTheme(next, true);
+            showToast(`Đã chuyển sang ${next === 'dark' ? 'Chế độ tối (Dark Mode)' : 'Chế độ sáng (Light Mode)'}.`, 'success');
+        });
+    }
+
+    function renderFilteredProducts(products) {
+        const tbody = $('#productRows');
+        tbody.innerHTML = '';
+        if (!products.length) { emptyRow(tbody, 6, 'Không có sản phẩm trong danh mục lọc này.'); return; }
+        products.forEach((product) => {
+            const row = element('tr');
+            const productCell = element('td');
+            const productInfo = element('div', 'admin-product');
+            const image = document.createElement('img'); image.src = safeImage(product.HinhAnh); image.alt = ''; image.loading = 'lazy';
+            const copy = element('div'); copy.append(element('strong', '', product.TenSP), element('span', '', `${product.ThuongHieu || 'Chưa có thương hiệu'} · #${product.MaSP}`));
+            productInfo.append(image, copy); productCell.appendChild(productInfo);
+            row.append(productCell, element('td', '', product.TenDM || `#${product.MaDM}`), element('td', '', formatMoney(product.GiaBan)), element('td', '', String(product.TonKho ?? 0)));
+            const statusCell = element('td');
+            statusCell.appendChild(element('span', `admin-badge ${product.TrangThai ? 'admin-badge--success' : 'admin-badge--danger'}`, product.TrangThai ? 'Đang bán' : 'Đã ẩn'));
+            if (Number(product.GiaGoc || 0) > Number(product.GiaBan || 0)) statusCell.appendChild(element('span', 'admin-badge admin-badge--danger', 'Sale Off'));
+            row.appendChild(statusCell);
+            const actionsCell = element('td');
+            const actions = element('div', 'admin-row-actions');
+            const detailRow = buildProductDetailRow(product);
+            const detailButton = element('button', '', 'Xem chi tiết'); detailButton.type = 'button'; detailButton.setAttribute('aria-expanded', 'false'); detailButton.addEventListener('click', () => { const opening = detailRow.hidden; detailRow.hidden = !opening; detailButton.textContent = opening ? 'Thu gọn' : 'Xem chi tiết'; detailButton.setAttribute('aria-expanded', String(opening)); });
+            const edit = element('button', '', 'Sửa'); edit.type = 'button'; edit.addEventListener('click', () => openProductDialog(product));
+            const toggle = element('button', product.TrangThai ? 'danger' : '', product.TrangThai ? 'Ẩn' : 'Hiện'); toggle.type = 'button'; toggle.addEventListener('click', () => toggleProduct(product));
+            const remove = element('button', 'danger', 'Ngừng bán'); remove.type = 'button'; remove.addEventListener('click', () => removeProduct(product));
+            actions.append(detailButton, edit, toggle, remove); actionsCell.appendChild(actions); row.appendChild(actionsCell); tbody.append(row, detailRow);
+        });
+    }
+
+    function renderFilteredVouchers(vouchers) {
+        const tbody = $('#voucherRows');
+        tbody.innerHTML = '';
+        if (!vouchers.length) { emptyRow(tbody, 7, 'Không có voucher trong bộ lọc này.'); return; }
+        vouchers.forEach(v => {
+            const row = element('tr');
+            let value = formatMoney(v.GiaTri);
+            if (v.LoaiGiam === 'PHAN_TRAM') { value = `${Number(v.GiaTri)}%`; if (v.GiamToiDa) value += ` · tối đa ${formatMoney(v.GiamToiDa)}`; }
+            row.append(element('td', '', v.MaVoucher), element('td', '', value), element('td', '', formatMoney(v.DonToiThieu)), element('td', '', `${v.DaSuDung}/${v.SoLuong}`), element('td', '', v.NgayHetHan ? formatDate(v.NgayHetHan) : 'Không giới hạn'));
+            const status = element('td');
+            status.append(element('span', `admin-badge ${v.TrangThai ? 'admin-badge--success' : 'admin-badge--danger'}`, v.TrangThai ? 'Hoạt động' : 'Tạm tắt'));
+            row.append(status);
+            const action = element('td');
+            const toggle = element('button', v.TrangThai ? 'danger' : '', v.TrangThai ? 'Tắt' : 'Bật');
+            toggle.type = 'button';
+            toggle.addEventListener('click', async () => {
+                try {
+                    const data = await Auth.request(`/api/admin/vouchers/${encodeURIComponent(v.MaVoucher)}`, { method: 'PATCH', json: { active: !Boolean(v.TrangThai) } });
+                    showToast(data.message, 'success');
+                    loadVouchers();
+                } catch (error) { showToast(error.message, 'error'); }
+            });
+            action.append(toggle); row.append(action); tbody.append(row);
+        });
+    }
+
+    function setupFilterPills() {
+        // Products filter pills
+        $$('#productFilterPills .admin-pill-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                $$('#productFilterPills .admin-pill-btn').forEach((b) => b.classList.remove('is-active'));
+                btn.classList.add('is-active');
+                const filter = btn.dataset.filter;
+                if (filter === 'all' || filter === 'active' || filter === 'hidden') {
+                    $('#productStatus').value = filter;
+                    state.productPage = 1;
+                    loadProducts();
+                } else if (filter === 'lowstock') {
+                    const low = state.products.filter(p => (Number(p.TonKho) || 0) < 10);
+                    renderFilteredProducts(low);
+                } else if (filter === 'sale') {
+                    const sale = state.products.filter(p => Number(p.GiaGoc || 0) > Number(p.GiaBan || 0));
+                    renderFilteredProducts(sale);
+                }
+            });
+        });
+
+        // Orders filter pills
+        $$('#orderFilterPills .admin-pill-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                $$('#orderFilterPills .admin-pill-btn').forEach((b) => b.classList.remove('is-active'));
+                btn.classList.add('is-active');
+                $('#adminOrderStatus').value = btn.dataset.filter;
+                state.orderPage = 1;
+                loadOrders();
+            });
+        });
+
+        // Users filter pills
+        $$('#userFilterPills .admin-pill-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                $$('#userFilterPills .admin-pill-btn').forEach((b) => b.classList.remove('is-active'));
+                btn.classList.add('is-active');
+                $('#userRole').value = btn.dataset.filter;
+                state.userPage = 1;
+                loadUsers();
+            });
+        });
+
+        // Content filter pills
+        $$('#contentFilterPills .admin-pill-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                $$('#contentFilterPills .admin-pill-btn').forEach((b) => b.classList.remove('is-active'));
+                btn.classList.add('is-active');
+                $('#contentTypeFilter').value = btn.dataset.filter;
+                loadContent();
+            });
+        });
+
+        // Support filter pills
+        $$('#supportFilterPills .admin-pill-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                $$('#supportFilterPills .admin-pill-btn').forEach((b) => b.classList.remove('is-active'));
+                btn.classList.add('is-active');
+                $('#supportStatus').value = btn.dataset.filter;
+                state.supportPage = 1;
+                loadSupport();
+            });
+        });
+
+        // Vouchers filter pills
+        $$('#voucherFilterPills .admin-pill-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                $$('#voucherFilterPills .admin-pill-btn').forEach((b) => b.classList.remove('is-active'));
+                btn.classList.add('is-active');
+                const filter = btn.dataset.filter;
+                if (filter === 'active') {
+                    renderFilteredVouchers(state.vouchers.filter(v => v.TrangThai !== 0));
+                } else if (filter === 'expired') {
+                    renderFilteredVouchers(state.vouchers.filter(v => v.TrangThai === 0 || (v.NgayHetHan && new Date(v.NgayHetHan) < new Date())));
+                } else {
+                    renderVouchers();
+                }
+            });
+        });
+
+        // Deposits filter pills
+        $$('#depositFilterPills .admin-pill-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                $$('#depositFilterPills .admin-pill-btn').forEach((b) => b.classList.remove('is-active'));
+                btn.classList.add('is-active');
+                $('#depositAdminStatus').value = btn.dataset.filter;
+                loadDeposits();
+            });
+        });
+
+        // Approvals filter pills
+        $$('#approvalFilterPills .admin-pill-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                $$('#approvalFilterPills .admin-pill-btn').forEach((b) => b.classList.remove('is-active'));
+                btn.classList.add('is-active');
+                $('#approvalStatus').value = btn.dataset.filter;
+                loadApprovals();
+            });
+        });
+    }
+
     function installEvents(){
+        setupAdminTheme();
+        setupFilterPills();
         $$('[data-admin-view]').forEach((button)=>button.addEventListener('click',()=>activateView(button.dataset.adminView)));
         $$('[data-jump-view]').forEach((button)=>button.addEventListener('click',()=>activateView(button.dataset.jumpView)));
         $('#adminRefresh').addEventListener('click',async(event)=>{const button=event.currentTarget;button.classList.add('is-refreshing');button.disabled=true;try{await activateView(state.currentView,true);}finally{window.setTimeout(()=>{button.classList.remove('is-refreshing');button.disabled=false;},260);}});
