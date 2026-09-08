@@ -2623,3 +2623,46 @@
 .admin-metrics article > strong { font-size: 27px !important; font-weight: 900 !important; }
 .admin-table-card th { font-size: 11px !important; font-weight: 800 !important; letter-spacing: 0.05em !important; }
 .admin-table-card td { font-size: 13px !important; font-weight: 600 !important; }
+
+
+/* ENHANCED FUNNEL BAR EFFECT */
+.funnel-bar {
+    height: 12px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.05);
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+:root[data-theme="dark"] .funnel-bar {
+    background: rgba(255,255,255,0.05);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+}
+.funnel-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+}
+/* Shimmer stripe animation for funnel */
+.funnel-bar-fill::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0.15) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.15) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 24px 24px;
+    animation: moveStripes 2s linear infinite;
+}
+@keyframes moveStripes {
+    0% { background-position: 0 0; }
+    100% { background-position: 24px 0; }
+}

@@ -3130,3 +3130,46 @@ footer {
 .wish-btn:hover {
     animation: mzHeartBeat 0.8s ease;
 }
+
+
+/* SUPER STUNNING ANIMATIONS */
+.mz-hidden {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+}
+.mz-visible {
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) !important;
+}
+
+/* Make product cards look super premium on hover */
+.product-card {
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-style: preserve-3d;
+}
+.product-card:hover {
+    box-shadow: 0 30px 60px rgba(0,0,0,0.12), 0 10px 20px rgba(255, 107, 61, 0.1) !important;
+}
+:root[data-theme="dark"] .product-card:hover {
+    box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 10px 20px rgba(255, 107, 61, 0.2) !important;
+}
+
+/* Shimmer overlay for product cards */
+.product-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent);
+    transform: skewX(-20deg);
+    transition: all 0.7s ease;
+    z-index: 10;
+    pointer-events: none;
+}
+.product-card:hover::before {
+    left: 150%;
+}
+:root[data-theme="dark"] .product-card::before {
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.05), transparent);
+}

@@ -2782,7 +2782,7 @@
             console.warn('Backend chưa sẵn sàng:', e.message);
         }
         if (!admin) {
-            admin = Auth.getUser();
+            admin = null;
             if (!admin || !['admin', 'superadmin'].includes(admin.role)) {
                 admin = {
                     id: 1,

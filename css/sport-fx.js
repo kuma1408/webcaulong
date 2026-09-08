@@ -402,3 +402,56 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
     else boot();
 })();
+
+
+    // --- STUNNING FX INJECTION ---
+    function setupPremiumAnimations() {
+        // 1. Magnetic Buttons
+        const buttons = document.querySelectorAll('.button--primary, .btn-primary, .add-to-cart');
+        buttons.forEach(btn => {
+            btn.addEventListener('mousemove', e => {
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                btn.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px) scale(1.05)`;
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = '';
+            });
+        });
+
+        // 2. Parallax Banner
+        const banner = document.querySelector('.hero-banner, .home-banner');
+        if (banner) {
+            window.addEventListener('scroll', () => {
+                banner.style.backgroundPosition = `center ${window.scrollY * 0.4}px`;
+            }, { passive: true });
+        }
+
+        // 3. Staggered Fade Up
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('mz-visible');
+                } else {
+                    entry.target.classList.remove('mz-visible');
+                }
+            });
+        }, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
+
+        document.querySelectorAll('.product-card, .section-title, .brand-item, .news-card, .review-item, .admin-card, .stat-card, .admin-kpi-card').forEach((el, index) => {
+            if (!el.classList.contains('mz-hidden')) {
+                el.classList.add('mz-hidden');
+                // Calculate position in row roughly
+                const delay = (index % 5) * 0.08;
+                el.style.transitionDelay = `${delay}s, ${delay}s`;
+                observer.observe(el);
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupPremiumAnimations);
+    } else {
+        setupPremiumAnimations();
+    }

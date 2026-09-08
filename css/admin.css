@@ -4,7 +4,7 @@
 .admin-loading { min-height: 520px; display: flex; align-items: center; justify-content: center; gap: 12px; color: var(--bs-muted); font-size: 12px; }
 .admin-shell { width: 100%; margin: 0; display: grid; grid-template-columns: 226px minmax(0,1fr); align-items: start; gap: 20px; min-height: 760px; overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 .admin-loading[hidden], .admin-shell[hidden] { display: none !important; }
-.admin-sidebar { position: sticky; top: 16px; height: calc(100vh - 32px); min-height: 640px; max-height: 860px; display: flex; flex-direction: column; overflow: hidden; padding: 22px 14px 17px; border-radius: 24px; background: linear-gradient(165deg, #2b0e07, #4c1308 72%, #681806); color: #fff; box-shadow: 12px 20px 42px rgba(79,20,7,.16); }
+.admin-sidebar { position: sticky; top: 16px; height: calc(100vh - 32px); min-height: 640px; max-height: 1200px; display: flex; flex-direction: column; overflow: hidden; padding: 22px 14px 17px; border-radius: 24px; background: linear-gradient(165deg, #2b0e07, #4c1308 72%, #681806); color: #fff; box-shadow: 12px 20px 42px rgba(79,20,7,.16); }
 .admin-sidebar::after { content: ""; position: absolute; right: -70px; bottom: -80px; width: 220px; height: 220px; border: 44px solid rgba(255,122,26,.08); border-radius: 50%; pointer-events: none; }
 .admin-sidebar__heading { display: flex; align-items: center; gap: 11px; padding: 3px 6px 22px; border-bottom: 1px solid rgba(255,255,255,.1); }
 .admin-emblem { width: 39px; height: 39px; display: grid; place-items: center; border-radius: 13px; background: linear-gradient(135deg,var(--bs-red),var(--bs-orange)); box-shadow: 0 10px 22px rgba(0,0,0,.2); font-size: 14px; font-weight: 900; }
