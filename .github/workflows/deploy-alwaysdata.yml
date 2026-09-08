@@ -1,6 +1,8 @@
 name: Deploy Alwaysdata
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       apply_migration:
@@ -27,7 +29,7 @@ jobs:
       APP_PATH: ${{ secrets.ALWAYSDATA_APP_PATH }}
       SSH_PRIVATE_KEY: ${{ secrets.ALWAYSDATA_SSH_KEY }}
       SSH_KNOWN_HOSTS: ${{ secrets.ALWAYSDATA_KNOWN_HOSTS }}
-      APPLY_MIGRATION: ${{ inputs.apply_migration }}
+      APPLY_MIGRATION: ${{ inputs.apply_migration || 'true' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
