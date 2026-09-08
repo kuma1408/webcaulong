@@ -733,7 +733,6 @@
             '.san-pham-goi-y-item', '.wish-card', '.contact-card',
             '.cart-item', '.card-container > *', '.news-card', '.guide-card',
             '.bs-detail-tabs-section', '.footer-container > *',
-            '.admin-card', '.account-card', '.account-stat', '.profile-card'
             '.admin-card', '.account-card', '.account-stat', '.profile-card',
             '.tech-card', '.review-card', '.detail-price-card', '.specs-matrix > *',
             '.racket-configurator', '.admin-health', '.admin-operations'
@@ -749,7 +748,6 @@
                     entry.target.classList.add('is-revealed');
                     observer.unobserve(entry.target);
                 });
-            }, { threshold: 0.06, rootMargin: '0px 0px 70px' })
             }, { threshold: 0.05, rootMargin: '0px 0px 80px' })
             : null;
 

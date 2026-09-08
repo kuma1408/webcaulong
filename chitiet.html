@@ -34,9 +34,6 @@
 </head>
 <body>
     <div class="baotrang">
-</head>
-<body>
-    <div class="baotrang">
         <!-- Header chèn tự động -->
         <div class="header"></div>
 
@@ -964,12 +961,6 @@
 
         function renderFilteredReviews() {
             const list = document.getElementById('reviewsList');
-            const average = reviews.length ? reviews.reduce((sum, item) => sum + Number(item.Diem || 0), 0) / reviews.length : 0;
-            document.getElementById('reviewAverage').textContent = average.toFixed(1);
-            document.getElementById('reviewAverageStars').textContent = `${'★'.repeat(Math.round(average))}${'☆'.repeat(5 - Math.round(average))}`;
-            document.getElementById('reviewCountLabel').textContent = reviews.length ? `${reviews.length} nhận xét` : 'Chưa có đánh giá';
-            if (reviews.length === 0) {
-                list.innerHTML = '<div class="review-empty"><span>☆</span><strong>Chưa có nhận xét</strong><p>Hãy chia sẻ cảm nhận đầu tiên về sản phẩm này.</p></div>';
             if (!list) return;
 
             let filtered = [...currentReviewsData];
@@ -993,21 +984,9 @@
             }
 
             list.innerHTML = '';
-            reviews.forEach(r => {
             filtered.forEach(r => {
                 const card = document.createElement('div');
                 card.className = 'review-card';
-                const top = document.createElement('div'); top.className = 'review-header';
-                const identity = document.createElement('div'); identity.className = 'review-identity';
-                const avatar = document.createElement('span'); avatar.className = 'review-avatar'; avatar.textContent = String(r.HoTen || r.TenDangNhap || 'K').charAt(0).toUpperCase();
-                const copy = document.createElement('div'); const name = document.createElement('strong'); name.textContent = r.HoTen || r.TenDangNhap;
-                const meta = document.createElement('span'); meta.textContent = `@${r.TenDangNhap}`; copy.append(name, meta);
-                identity.append(avatar, copy); top.appendChild(identity);
-                const date = document.createElement('time'); date.className = 'review-date'; date.textContent = new Date(String(r.NgayDanhGia).replace(' ', 'T')).toLocaleDateString('vi-VN'); top.appendChild(date);
-                const rating = document.createElement('div'); rating.className = 'review-rating'; rating.textContent = `${'★'.repeat(Number(r.Diem))}${'☆'.repeat(5 - Number(r.Diem))}`;
-                if (r.DaMuaXacThuc) { const verified = document.createElement('span'); verified.className = 'review-verified'; verified.textContent = '✓ Đã mua hàng'; rating.appendChild(verified); }
-                const content = document.createElement('p'); content.textContent = r.NoiDung || '';
-                card.append(top, rating, content);
 
                 const initial = String(r.HoTen || r.TenDangNhap || 'K').trim().charAt(0).toUpperCase();
                 const formattedDate = new Date(String(r.NgayDanhGia).replace(' ', 'T')).toLocaleDateString('vi-VN', {
