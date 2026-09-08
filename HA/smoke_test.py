@@ -12,7 +12,9 @@ from werkzeug.datastructures import FileStorage
 
 from HA.app import (
     SlidingWindowLimiter,
+    add_to_cart,
     admin_content,
+    admin_products,
     admin_vouchers,
     app,
     checkout,
@@ -26,7 +28,10 @@ from HA.app import (
     normalized_avatar,
     normalized_public_image,
     optional_datetime_input,
+    review_product,
+    sanitize_plain_text,
     sanitize_rich_text,
+    update_cart,
     validate_racket_configuration,
     validated_product_specs,
     verify_password,
@@ -146,6 +151,47 @@ class ApiSmokeTest(unittest.TestCase):
             response, status = checkout.__wrapped__()
             self.assertEqual(status, 400)
             self.assertEqual(response.get_json()["code"], "invalid_voucher_code")
+
+    def test_cart_rejects_malformed_quantities_before_database(self):
+        cases = (
+            (add_to_cart.__wrapped__, "/api/gio-hang/them", "abc"),
+            (update_cart.__wrapped__, "/api/gio-hang/cap-nhat", "1.5"),
+        )
+        for view, path, quantity in cases:
+            with self.subTest(path=path), app.test_request_context(
+                path,
+                method="POST",
+                json={"ma_san_pham": 1, "so_luong": quantity},
+            ):
+                response, status = view()
+                self.assertEqual(status, 400)
+                self.assertEqual(response.get_json()["code"], "invalid_quantity")
+
+    def test_admin_product_rejects_malformed_stock_before_database(self):
+        with app.test_request_context(
+            "/api/admin/products",
+            method="POST",
+            json={
+                "name": "Vợt kiểm thử",
+                "category_id": 1,
+                "price": 500000,
+                "stock": "không-phải-số",
+                "active": True,
+            },
+        ):
+            response, status = admin_products.__wrapped__()
+            self.assertEqual(status, 400)
+            self.assertFalse(response.get_json()["success"])
+
+    def test_review_rejects_malformed_rating_before_database(self):
+        with app.test_request_context(
+            "/api/danh-gia",
+            method="POST",
+            json={"ma_san_pham": 1, "diem": "5.5", "noi_dung": "Sản phẩm tốt"},
+        ):
+            response, status = review_product.__wrapped__()
+            self.assertEqual(status, 400)
+            self.assertFalse(response.get_json()["success"])
 
     def test_fuzzy_search_handles_vietnamese_accents_and_typo(self):
         product = {
@@ -301,6 +347,14 @@ class ApiSmokeTest(unittest.TestCase):
         self.assertNotIn("onclick", clean)
         self.assertNotIn("<script", clean)
         self.assertNotIn("javascript:", clean)
+
+    def test_plain_text_sanitizer_removes_all_review_markup(self):
+        cleaned = sanitize_plain_text(
+            '<img src=x onerror=alert(1)><b>Vợt tốt</b><script>alert(2)</script>'
+        )
+        self.assertNotIn("<", cleaned)
+        self.assertNotIn("onerror", cleaned)
+        self.assertIn("Vợt tốt", cleaned)
 
     def test_public_url_validation_blocks_dangerous_schemes_and_traversal(self):
         self.assertIsNone(normalize_public_url("javascript:alert(1)", allow_relative=True))

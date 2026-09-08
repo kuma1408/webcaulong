@@ -508,6 +508,17 @@ def sanitize_rich_text(value) -> str:
     ).strip()
 
 
+def sanitize_plain_text(value) -> str:
+    """Loại toàn bộ thẻ HTML cho nội dung chỉ được phép là văn bản."""
+    return bleach.clean(
+        str(value or ""),
+        tags=set(),
+        attributes={},
+        strip=True,
+        strip_comments=True,
+    ).strip()
+
+
 def normalize_public_url(value, *, allow_relative: bool, max_length: int = 700) -> str | None:
     candidate = str(value or "").strip()[:max_length]
     if not candidate or any(ord(character) < 32 for character in candidate):
@@ -1756,13 +1767,29 @@ def create_deposit_request():
     amount = decimal_number(data.get("amount"))
     if amount is None or amount < Decimal("10000") or amount > Decimal("50000000"):
         return api_error("Số tiền yêu cầu phải từ 10.000 ₫ đến 50.000.000 ₫.")
-    limited = enforce_rate_limit("deposit-user", str(g.current_user["MaND"]), 5, 60 * 60)
-    if limited:
-        return limited
+    if not bank_transfer_configured():
+        return api_error(
+            "Cửa hàng chưa cấu hình tài khoản nhận chuyển khoản.",
+            503,
+            "bank_transfer_unavailable",
+        )
+    allowed, retry_after = RATE_LIMITER.check(
+        "deposit-user", str(g.current_user["MaND"]), 5, 60 * 60, consume=False
+    )
+    if not allowed:
+        response, status = api_error("Bạn thao tác quá nhanh. Vui lòng thử lại sau.", 429, "rate_limited")
+        response.headers["Retry-After"] = str(retry_after)
+        return response, status
     reference = f"NAP-{g.current_user['MaND']}-{secrets.token_hex(4).upper()}"
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        conn.start_transaction()
+        # Khóa người dùng để hai request song song không cùng vượt giới hạn 3 phiếu chờ.
+        cursor.execute("SELECT MaND FROM NguoiDung WHERE MaND=%s FOR UPDATE", (g.current_user["MaND"],))
+        if not cursor.fetchone():
+            conn.rollback()
+            return api_error("Tài khoản không còn tồn tại.", 404, "user_not_found")
         cursor.execute(
             "SELECT COUNT(*) FROM YeuCauNapTien WHERE MaND = %s AND TrangThai = 'CHO_DUYET'",
             (g.current_user["MaND"],),
@@ -1782,6 +1809,7 @@ def create_deposit_request():
         )
         request_id = cursor.lastrowid
         conn.commit()
+        RATE_LIMITER.check("deposit-user", str(g.current_user["MaND"]), 5, 60 * 60)
         return (
             jsonify(
                 {
@@ -1793,6 +1821,10 @@ def create_deposit_request():
             ),
             201,
         )
+    except mysql.connector.Error:
+        conn.rollback()
+        app.logger.exception("Không thể tạo yêu cầu nạp tiền")
+        return api_error("Không thể tạo yêu cầu nạp tiền lúc này.", 409, "deposit_create_failed")
     finally:
         cursor.close()
         conn.close()
@@ -1840,10 +1872,12 @@ def transaction_history():
 @auth_required
 def add_to_cart():
     data = body_json()
-    product_id = clamp_int(data.get("ma_san_pham"), 0, 0, 2_000_000_000)
-    quantity = clamp_int(data.get("so_luong"), 1, 1, 99)
-    if not product_id:
+    product_id = integer_number(data.get("ma_san_pham"), minimum=1, maximum=2_000_000_000)
+    quantity = integer_number(data.get("so_luong", 1), minimum=1, maximum=99)
+    if product_id is None:
         return api_error("Sản phẩm không hợp lệ.")
+    if quantity is None:
+        return api_error("Số lượng cần là số nguyên từ 1 đến 99.", 400, "invalid_quantity")
     try:
         configuration = validate_racket_configuration(data.get("cau_hinh"))
     except ValueError as error:
@@ -1852,10 +1886,11 @@ def add_to_cart():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
+        conn.start_transaction()
         cursor.execute(
             """SELECT sp.TonKho, sp.TrangThai, sp.MaDM, dm.TenDM
                FROM SanPham sp LEFT JOIN DanhMuc dm ON dm.MaDM=sp.MaDM
-               WHERE sp.MaSP=%s""",
+               WHERE sp.MaSP=%s FOR UPDATE""",
             (product_id,),
         )
         product = cursor.fetchone()
@@ -1870,7 +1905,7 @@ def add_to_cart():
                 "configuration_not_supported",
             )
         cursor.execute(
-            "SELECT SoLuong, CauHinh FROM GioHang WHERE MaND = %s AND MaSP = %s",
+            "SELECT SoLuong, CauHinh FROM GioHang WHERE MaND = %s AND MaSP = %s FOR UPDATE",
             (g.current_user["MaND"], product_id),
         )
         current = cursor.fetchone()
@@ -1894,6 +1929,10 @@ def add_to_cart():
         )
         conn.commit()
         return jsonify({"success": True, "message": "Đã thêm sản phẩm vào giỏ hàng.", "quantity": desired})
+    except mysql.connector.Error:
+        conn.rollback()
+        app.logger.exception("Không thể thêm sản phẩm %s vào giỏ", product_id)
+        return api_error("Không thể cập nhật giỏ hàng lúc này.", 409, "cart_update_failed")
     finally:
         cursor.close()
         conn.close()
@@ -1903,17 +1942,20 @@ def add_to_cart():
 @auth_required
 def update_cart():
     data = body_json()
-    product_id = clamp_int(data.get("ma_san_pham"), 0, 0, 2_000_000_000)
-    quantity = clamp_int(data.get("so_luong"), 0, 0, 99)
-    if not product_id:
+    product_id = integer_number(data.get("ma_san_pham"), minimum=1, maximum=2_000_000_000)
+    quantity = integer_number(data.get("so_luong"), minimum=0, maximum=99)
+    if product_id is None:
         return api_error("Sản phẩm không hợp lệ.")
+    if quantity is None:
+        return api_error("Số lượng cần là số nguyên từ 0 đến 99.", 400, "invalid_quantity")
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
+        conn.start_transaction()
         if quantity == 0:
             cursor.execute("DELETE FROM GioHang WHERE MaND = %s AND MaSP = %s", (g.current_user["MaND"], product_id))
         else:
-            cursor.execute("SELECT TonKho, TrangThai FROM SanPham WHERE MaSP = %s", (product_id,))
+            cursor.execute("SELECT TonKho, TrangThai FROM SanPham WHERE MaSP = %s FOR UPDATE", (product_id,))
             product = cursor.fetchone()
             if not product or not product["TrangThai"]:
                 return api_error("Sản phẩm không tồn tại.", 404, "product_not_found")
@@ -1928,6 +1970,10 @@ def update_cart():
             )
         conn.commit()
         return jsonify({"success": True, "message": "Đã cập nhật giỏ hàng."})
+    except mysql.connector.Error:
+        conn.rollback()
+        app.logger.exception("Không thể cập nhật sản phẩm %s trong giỏ", product_id)
+        return api_error("Không thể cập nhật giỏ hàng lúc này.", 409, "cart_update_failed")
     finally:
         cursor.close()
         conn.close()
@@ -2780,7 +2826,12 @@ def product_detail(product_id):
             """,
             (product_id,),
         )
-        reviews = [serialize_row(row) for row in cursor.fetchall()]
+        reviews = []
+        for row in cursor.fetchall():
+            review = serialize_row(row)
+            # Bảo vệ cả dữ liệu cũ được lưu trước khi đánh giá chỉ nhận văn bản thuần.
+            review["NoiDung"] = sanitize_plain_text(row.get("NoiDung"))
+            reviews.append(review)
         conn.commit()
         return jsonify({"success": True, "product": serialize_product(product), "reviews": reviews})
     finally:
@@ -2884,16 +2935,24 @@ def categories():
 @auth_required
 def review_product():
     data = body_json()
-    product_id = clamp_int(data.get("ma_san_pham"), 0, 0, 2_000_000_000)
-    rating = clamp_int(data.get("diem"), 0, 0, 5)
-    content = str(data.get("noi_dung", "")).strip()[:1000]
-    if not product_id or rating < 1:
+    product_id = integer_number(data.get("ma_san_pham"), minimum=1, maximum=2_000_000_000)
+    rating = integer_number(data.get("diem"), minimum=1, maximum=5)
+    content = sanitize_plain_text(str(data.get("noi_dung", ""))[:1000])
+    if product_id is None or rating is None:
         return api_error("Đánh giá cần từ 1 đến 5 sao.")
     if len(content) < 5:
         return api_error("Nội dung đánh giá cần ít nhất 5 ký tự.")
-    limited = enforce_rate_limit("review-user", str(g.current_user["MaND"]), 20, 60 * 60)
-    if limited:
-        return limited
+    allowed, retry_after = RATE_LIMITER.check(
+        "review-user", str(g.current_user["MaND"]), 20, 60 * 60, consume=False
+    )
+    if not allowed:
+        response, status = api_error(
+            "Bạn thao tác quá nhanh. Vui lòng thử lại sau.",
+            429,
+            "rate_limited",
+        )
+        response.headers["Retry-After"] = str(retry_after)
+        return response, status
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
@@ -2901,6 +2960,20 @@ def review_product():
         product = cursor.fetchone()
         if not product or not product.get("TrangThai"):
             return api_error("Sản phẩm không tồn tại hoặc đã ngừng bán.", 404, "product_not_found")
+        cursor.execute(
+            """SELECT 1
+               FROM ChiTietDonHang ct
+               JOIN DonHang dh ON dh.MaDH=ct.MaDH
+               WHERE dh.MaND=%s AND ct.MaSP=%s AND dh.TrangThai='HOAN_THANH'
+               LIMIT 1""",
+            (g.current_user["MaND"], product_id),
+        )
+        if not cursor.fetchone():
+            return api_error(
+                "Bạn chỉ có thể đánh giá sản phẩm trong đơn hàng đã hoàn thành.",
+                403,
+                "purchase_required",
+            )
         cursor.execute(
             """
             INSERT INTO DanhGia (MaND, MaSP, Diem, NoiDung)
@@ -2914,7 +2987,12 @@ def review_product():
             (product_id, product_id),
         )
         conn.commit()
+        RATE_LIMITER.check("review-user", str(g.current_user["MaND"]), 20, 60 * 60)
         return jsonify({"success": True, "message": "Cảm ơn bạn đã đánh giá."})
+    except mysql.connector.Error:
+        conn.rollback()
+        app.logger.exception("Không thể lưu đánh giá sản phẩm %s", product_id)
+        return api_error("Không thể lưu đánh giá lúc này.", 409, "review_failed")
     finally:
         cursor.close()
         conn.close()
@@ -3079,11 +3157,12 @@ def admin_dashboard():
         cursor.execute(
             """SELECT dm.MaDM, dm.TenDM,
                       COUNT(DISTINCT sp.MaSP) AS TongSP,
-                      COALESCE(SUM(ct.SoLuong), 0) AS DaBan,
-                      COALESCE(SUM(ct.SoLuong * ct.GiaBan), 0) AS DoanhThu
+                      COALESCE(SUM(CASE WHEN dh.TrangThai='HOAN_THANH' THEN ct.SoLuong ELSE 0 END), 0) AS DaBan,
+                      COALESCE(SUM(CASE WHEN dh.TrangThai='HOAN_THANH' THEN ct.SoLuong * ct.GiaBan ELSE 0 END), 0) AS DoanhThu
                FROM DanhMuc dm
                LEFT JOIN SanPham sp ON sp.MaDM = dm.MaDM
                LEFT JOIN ChiTietDonHang ct ON ct.MaSP = sp.MaSP
+               LEFT JOIN DonHang dh ON dh.MaDH = ct.MaDH
                GROUP BY dm.MaDM, dm.TenDM
                ORDER BY DoanhThu DESC, DaBan DESC"""
         )
@@ -3091,10 +3170,11 @@ def admin_dashboard():
 
         cursor.execute(
             """SELECT sp.MaSP, sp.TenSP, sp.HinhAnh, sp.GiaBan,
-                      COALESCE(SUM(ct.SoLuong), 0) AS DaBan,
-                      COALESCE(SUM(ct.SoLuong * ct.GiaBan), 0) AS DoanhThu
+                      COALESCE(SUM(CASE WHEN dh.TrangThai='HOAN_THANH' THEN ct.SoLuong ELSE 0 END), 0) AS DaBan,
+                      COALESCE(SUM(CASE WHEN dh.TrangThai='HOAN_THANH' THEN ct.SoLuong * ct.GiaBan ELSE 0 END), 0) AS DoanhThu
                FROM SanPham sp
                LEFT JOIN ChiTietDonHang ct ON ct.MaSP = sp.MaSP
+               LEFT JOIN DonHang dh ON dh.MaDH = ct.MaDH
                GROUP BY sp.MaSP, sp.TenSP, sp.HinhAnh, sp.GiaBan
                ORDER BY DaBan DESC, DoanhThu DESC
                LIMIT 6"""
@@ -3193,10 +3273,10 @@ def admin_products():
 
     data = body_json()
     name = str(data.get("name", "")).strip()
-    category_id = clamp_int(data.get("category_id"), 0, 0, 2_000_000_000)
+    category_id = integer_number(data.get("category_id"), minimum=1, maximum=2_000_000_000)
     price = decimal_number(data.get("price"))
     original_price = decimal_number(data.get("original_price"))
-    stock = clamp_int(data.get("stock"), 0, 0, 1_000_000)
+    stock = integer_number(data.get("stock", 0), minimum=0, maximum=1_000_000)
     active = data.get("active", True)
     try:
         specs = validated_product_specs(data)
@@ -3206,6 +3286,7 @@ def admin_products():
         len(name) < 3
         or len(name) > 200
         or not category_id
+        or stock is None
         or price is None
         or price < 0
         or price > PRODUCT_PRICE_MAX
@@ -3288,11 +3369,11 @@ def admin_update_product(product_id):
         return api_error(str(error), 400, "invalid_product_specs")
     mapping = {
         "name": ("TenSP", lambda value: str(value).strip()[:200]),
-        "category_id": ("MaDM", lambda value: clamp_int(value, 0, 0, 2_000_000_000)),
+        "category_id": ("MaDM", lambda value: integer_number(value, minimum=1, maximum=2_000_000_000)),
         "description": ("MoTa", lambda value: sanitize_rich_text(str(value)[:5000]) or None),
         "price": ("GiaBan", lambda value: decimal_number(value)),
         "original_price": ("GiaGoc", lambda value: decimal_number(value)),
-        "stock": ("TonKho", lambda value: clamp_int(value, 0, 0, 1_000_000)),
+        "stock": ("TonKho", lambda value: integer_number(value, minimum=0, maximum=1_000_000)),
         "image": ("HinhAnh", lambda value: normalize_public_url(value, allow_relative=True, max_length=255)),
         "brand": ("ThuongHieu", lambda value: str(value).strip()[:100] or None),
         "active": ("TrangThai", lambda value: 1 if value else 0),
@@ -3312,7 +3393,7 @@ def admin_update_product(product_id):
         if key not in data:
             continue
         value = converter(data[key])
-        if value is None and key in {"price", "category_id"}:
+        if value is None and key in {"price", "category_id", "stock"}:
             return api_error(f"Trường {key} không hợp lệ.")
         if key == "name" and not 3 <= len(value) <= 200:
             return api_error("Tên sản phẩm cần từ 3 đến 200 ký tự.")
@@ -4042,27 +4123,18 @@ def admin_content():
 @app.route("/api/admin/noi-dung/<int:content_id>", methods=["PATCH", "DELETE"])
 @admin_required
 def admin_update_content(content_id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        if request.method == "DELETE":
-            cursor.execute("UPDATE BaiViet SET TrangThai=0 WHERE MaBV=%s", (content_id,))
-            if cursor.rowcount != 1:
-                return api_error("Không tìm thấy nội dung.", 404, "content_not_found")
-            audit_admin(cursor, "HIDE", "BaiViet", content_id)
-            conn.commit()
-            return jsonify({"success": True, "message": "Đã ẩn nội dung."})
+    mapping = {
+        "type": ("Loai", lambda value: str(value).upper()),
+        "title": ("TieuDe", lambda value: str(value).strip()[:220]),
+        "summary": ("TomTat", lambda value: str(value).strip()[:500] or None),
+        "content": ("NoiDung", lambda value: sanitize_rich_text(str(value)[:20_000])),
+        "image": ("HinhAnh", lambda value: normalize_public_url(value, allow_relative=True, max_length=500)),
+        "source_url": ("NguonURL", lambda value: normalize_public_url(value, allow_relative=False, max_length=700)),
+        "active": ("TrangThai", lambda value: 1 if value else 0),
+    }
+    updates, values, changed = [], [], {}
+    if request.method == "PATCH":
         data = body_json()
-        mapping = {
-            "type": ("Loai", lambda value: str(value).upper()),
-            "title": ("TieuDe", lambda value: str(value).strip()[:220]),
-            "summary": ("TomTat", lambda value: str(value).strip()[:500] or None),
-            "content": ("NoiDung", lambda value: sanitize_rich_text(str(value)[:20_000])),
-            "image": ("HinhAnh", lambda value: normalize_public_url(value, allow_relative=True, max_length=500)),
-            "source_url": ("NguonURL", lambda value: normalize_public_url(value, allow_relative=False, max_length=700)),
-            "active": ("TrangThai", lambda value: 1 if value else 0),
-        }
-        updates, values, changed = [], [], {}
         for key, (column, converter) in mapping.items():
             if key not in data:
                 continue
@@ -4080,10 +4152,34 @@ def admin_update_content(content_id):
             changed[key] = value
         if not updates:
             return api_error("Không có thay đổi nào.")
-        cursor.execute(f"UPDATE BaiViet SET {', '.join(updates)} WHERE MaBV=%s", values + [content_id])
-        if cursor.rowcount != 1:
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        conn.start_transaction()
+        cursor.execute("SELECT * FROM BaiViet WHERE MaBV=%s FOR UPDATE", (content_id,))
+        before = cursor.fetchone()
+        if not before:
+            conn.rollback()
             return api_error("Không tìm thấy nội dung.", 404, "content_not_found")
-        audit_admin(cursor, "UPDATE", "BaiViet", content_id, changed)
+        if request.method == "DELETE":
+            if not bool(before.get("TrangThai")):
+                conn.rollback()
+                return jsonify({"success": True, "message": "Nội dung đã được ẩn trước đó.", "unchanged": True})
+            cursor.execute("UPDATE BaiViet SET TrangThai=0 WHERE MaBV=%s", (content_id,))
+            after = dict(before)
+            after["TrangThai"] = 0
+            audit_admin(cursor, "HIDE", "BaiViet", content_id, {"active": False}, serialize_row(before), serialize_row(after))
+            conn.commit()
+            return jsonify({"success": True, "message": "Đã ẩn nội dung."})
+        unchanged = all(before.get(mapping[key][0]) == value for key, value in changed.items())
+        if unchanged:
+            conn.rollback()
+            return jsonify({"success": True, "message": "Nội dung không có thông tin nào thay đổi.", "unchanged": True})
+        cursor.execute(f"UPDATE BaiViet SET {', '.join(updates)} WHERE MaBV=%s", values + [content_id])
+        cursor.execute("SELECT * FROM BaiViet WHERE MaBV=%s", (content_id,))
+        after = cursor.fetchone()
+        audit_admin(cursor, "UPDATE", "BaiViet", content_id, changed, serialize_row(before), serialize_row(after))
         conn.commit()
         return jsonify({"success": True, "message": "Đã cập nhật nội dung."})
     except mysql.connector.Error:
@@ -4353,9 +4449,34 @@ def superadmin_review_change(change_id):
                     "NguonTen", "TrongLuongCan", "LoiChoi", "DiemCanBang",
                     "DoCungDua", "LucCangToiDa",
                 ]
+                cursor.execute("SELECT * FROM SanPham WHERE MaSP=%s FOR UPDATE", (entity_id,))
+                current_product = cursor.fetchone()
+                if not current_product:
+                    raise ValueError("product_not_found")
+                changed_columns = [
+                    column for column in columns
+                    if column in (after or {}) and before.get(column) != (after or {}).get(column)
+                ]
+                if not changed_columns:
+                    conn.rollback()
+                    return api_error(
+                        "Thay đổi sản phẩm này không có dữ liệu cần hoàn tác.",
+                        409,
+                        "nothing_to_rollback",
+                    )
+                for column in changed_columns:
+                    current_value = json_value(current_product.get(column))
+                    expected_value = (after or {}).get(column)
+                    if current_value != expected_value:
+                        conn.rollback()
+                        return api_error(
+                            f"Không thể hoàn tác vì trường {column} của sản phẩm đã được thay đổi thêm sau đó.",
+                            409,
+                            "rollback_conflict",
+                        )
                 cursor.execute(
-                    f"UPDATE SanPham SET {', '.join(f'{column}=%s' for column in columns)}, NgayCapNhat=NOW() WHERE MaSP=%s",
-                    [before.get(column) for column in columns] + [entity_id],
+                    f"UPDATE SanPham SET {', '.join(f'{column}=%s' for column in changed_columns)}, NgayCapNhat=NOW() WHERE MaSP=%s",
+                    [before.get(column) for column in changed_columns] + [entity_id],
                 )
             elif change["DoiTuong"] == "NguoiDung":
                 cursor.execute(
