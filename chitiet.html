@@ -429,13 +429,11 @@
                                         <button type="button" onclick="setReviewRating(3)" aria-label="3 sao">★</button>
                                         <button type="button" onclick="setReviewRating(4)" aria-label="4 sao">★</button>
                                         <button type="button" onclick="setReviewRating(5)" aria-label="5 sao">★</button>
-                                        <button type="button" onclick="setReviewRating(5)" class="active-star" aria-label="5 sao">★</button>
                                     </div>
                                     <output id="ratingLabel">Tuyệt vời · 5 sao</output>
                                 </fieldset>
                                 <label for="reviewComment">Nhận xét của bạn</label>
                                 <textarea id="reviewComment" rows="5" minlength="5" maxlength="1000" required placeholder="Sản phẩm có đúng mô tả không? Cảm giác sử dụng như thế nào?"></textarea>
-                                <textarea id="reviewComment" rows="5" minlength="5" maxlength="1000" required placeholder="Cảm giác đánh, độ nảy cầu, độ cứng đũa, chất lượng sơn hoặc tư vấn căng cước..."></textarea>
                                 <div class="review-form-footer">
                                     <small><span id="reviewChars">0</span>/1000 ký tự</small>
                                     <button type="submit" class="review-submit" id="reviewSubmit">Gửi đánh giá <span>→</span></button>
@@ -462,46 +460,13 @@
     <!-- Scripts -->
     <script src="css/auth.js?v=20260908-1"></script>
     <script>
-        const API_BASE = window.BadmintonAuth?.apiBase?.() || window.API_BASE || 'https://haianh.alwaysdata.net';
+        // API_BASE is provided by auth.js; do not redeclare its global lexical binding.
         let currentProductId = null;
         let selectedRating = 5;
         let productPriceVal = 0;
         let productDetails = null;
         let thumbnailSwiper = null;
 
-        const FALLBACK_PRODUCT_164 = {
-            MaSP: 164,
-            TenSP: "Vợt Cầu Lông Vicleo Aero 555",
-            ThuongHieu: "Vicleo",
-            MaDM: 1,
-            TenDM: "Vợt Cầu Lông",
-            GiaBan: 490000,
-            GiaGoc: 750000,
-            TonKho: 38,
-            SoLuotMua: 268,
-            SoLuotXem: 1840,
-            DanhGiaTrungBinh: 5.0,
-            TrongLuongCan: "4U-G5",
-            LoiChoi: "CAN_BANG",
-            DiemCanBang: "CAN_BANG",
-            DoCungDua: "TRUNG_BINH",
-            LucCangToiDa: 30,
-            HinhAnh: "HA/imported-products/product-164-source-1.jpg",
-            AnhChiTiet: [
-                "HA/imported-products/product-164-source-1.jpg",
-                "HA/imported-products/product-164-source-2.jpg",
-                "HA/imported-products/product-164-source-3.jpg",
-                "HA/imported-products/product-164-source-4.jpg",
-                "HA/imported-products/product-164-source-5.jpg"
-            ],
-            MoTa: "<p><strong>Vợt Cầu Lông Vicleo Aero 555 Chính Hãng</strong> là dòng vợt công thủ toàn diện được thiết kế với khung vát Aero Frame khí động học, giúp giảm tối đa lực cản không khí và tăng tốc độ vung vợt đáng kể.</p><p>Trọng lượng 4U vừa vặn, điểm cân bằng ~295mm cùng thân vợt trợ lực tốt mang đến những pha đập cầu cắm sân uy lực và phản tạt linh hoạt ở khu vực lưới. Thích hợp cho người mới bắt đầu đến người chơi phong trào tìm kiếm một cây vợt bền bỉ, dễ chơi và công thủ toàn diện.</p>"
-        };
-
-        const FALLBACK_REVIEWS = [
-            { NguoiDung: "Hoàng Minh Tuấn", Diem: 5, BinhLuan: "Vợt đánh rất đầm tay, căng 10.5kg đánh tiếng nổ đanh vang, thủ cầu cực kỳ thoát và êm tay!", NgayDanhGia: "2026-09-02" },
-            { NguoiDung: "Nguyễn Hải Đăng", Diem: 5, BinhLuan: "Shop bọc hàng kỹ 3 lớp, giao siêu nhanh. Cây này smash cắm sân rất phê, đúng mô tả chính hãng.", NgayDanhGia: "2026-08-28" },
-            { NguoiDung: "Trần Bảo Long", Diem: 5, BinhLuan: "Đã quét tem QR chính hãng, nước sơn nhám rất xịn không tì vết. Sẽ ủng hộ shop thêm cước và phụ kiện.", NgayDanhGia: "2026-08-20" }
-        ];
 
         function resolveImageUrl(url, fallback = 'HA/cc-removebg-preview.png') {
             if (!url) return fallback;
@@ -716,8 +681,8 @@
             document.getElementById('productPrice').textContent = `${Number(p.GiaBan || 0).toLocaleString('vi-VN')} ₫`;
             document.getElementById('productStars').textContent = `⭐ ${Number(p.DanhGiaTrungBinh || 5).toFixed(1)}`;
             document.getElementById('productCode').textContent = `Mã SP: #${p.MaSP}`;
-            document.getElementById('productSold').textContent = Number(p.SoLuotMua || 120).toLocaleString('vi-VN');
-            document.getElementById('productViews').textContent = Number(p.SoLuotXem || 580).toLocaleString('vi-VN');
+            document.getElementById('productSold').textContent = Number(p.SoLuotMua || 0).toLocaleString('vi-VN');
+            document.getElementById('productViews').textContent = Number(p.SoLuotXem || 0).toLocaleString('vi-VN');
 
             // Breadcrumb
             const catLink = document.getElementById('breadcrumbCategory');
@@ -803,7 +768,7 @@
             initGallery(p.HinhAnh, p.AnhChiTiet);
 
             // Load Đánh giá
-            const reviewList = (reviews && reviews.length > 0) ? reviews : FALLBACK_REVIEWS;
+            const reviewList = Array.isArray(reviews) ? reviews : [];
             initReviews(reviewList);
 
             // Load Sản phẩm liên quan
@@ -820,46 +785,56 @@
         }
 
         async function initProductDetail() {
+            if (initProductDetail.loading) return;
+            const actions = document.querySelectorAll('.btn-buy-now, .btn-add-cart, #wishlistDetailButton');
+            actions.forEach(button => { button.disabled = true; });
+            productDetails = null;
+            const oldError = document.getElementById('productLoadError');
+            if (oldError) oldError.remove();
+            document.getElementById('productName').textContent = 'Đang tải thông tin sản phẩm…';
             const params = new URLSearchParams(window.location.search);
-            let paramId = params.get('id');
-            if (!paramId) {
-                currentProductId = 164;
-                try {
-                    window.history.replaceState(null, '', '?id=164');
-                } catch (_) {}
-            } else {
-                currentProductId = parseInt(paramId, 10) || 164;
-            }
-
-            let loadedData = null;
-            const endpoints = [
-                `${API_BASE}/api/san-pham/${currentProductId}`,
-                `https://haianh.alwaysdata.net/api/san-pham/${currentProductId}`,
-                `http://127.0.0.1:5000/api/san-pham/${currentProductId}`
-            ];
-            const uniqueEndpoints = [...new Set(endpoints)];
-
-            for (const url of uniqueEndpoints) {
-                try {
-                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data && data.success && data.product) {
-                            loadedData = data;
-                            break;
-                        }
-                    }
-                } catch (_) {
-                    // Tiếp tục endpoint tiếp theo
+            const paramId = params.get('id');
+            currentProductId = /^\d+$/.test(paramId || '') ? Number(paramId) : null;
+            initProductDetail.loading = true;
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000);
+            try {
+                if (!Number.isSafeInteger(currentProductId) || currentProductId < 1) {
+                    throw new Error('Liên kết sản phẩm không hợp lệ. Vui lòng chọn lại sản phẩm.');
                 }
-            }
-
-            if (loadedData && loadedData.product) {
-                populateProductUI(loadedData.product, loadedData.reviews || []);
-            } else {
-                // Fallback offline an toàn tuyệt đối
-                const fallbackProd = { ...FALLBACK_PRODUCT_164, MaSP: currentProductId };
-                populateProductUI(fallbackProd, FALLBACK_REVIEWS);
+                const res = await fetch(`${API_BASE}/api/san-pham/${currentProductId}`, {
+                    headers: { Accept: 'application/json' }, signal: controller.signal
+                });
+                if (res.status === 404) throw new Error('Sản phẩm không tồn tại hoặc đã ngừng bán.');
+                if (!res.ok) throw new Error('Chưa tải được sản phẩm. Vui lòng thử lại.');
+                const data = await res.json();
+                if (!data.success || !data.product || Number(data.product.MaSP) !== currentProductId) {
+                    throw new Error('Dữ liệu sản phẩm không hợp lệ. Vui lòng thử lại.');
+                }
+                populateProductUI(data.product, data.reviews || []);
+                actions.forEach(button => { button.disabled = Number(data.product.TonKho || 0) <= 0; });
+            } catch (error) {
+                productDetails = null;
+                const message = error.name === 'AbortError'
+                    ? 'Kết nối quá lâu. Vui lòng thử tải lại sản phẩm.'
+                    : (error.message || 'Không thể tải sản phẩm lúc này.');
+                document.getElementById('productName').textContent = 'Chưa tải được sản phẩm';
+                document.getElementById('breadcrumbCurrent').textContent = 'Không thể tải';
+                document.getElementById('productPrice').textContent = '—';
+                document.getElementById('productStock').textContent = 'Chưa có thông tin';
+                document.getElementById('productFullDescription').textContent = message;
+                const panel = document.createElement('div');
+                panel.id = 'productLoadError';
+                panel.setAttribute('role', 'alert');
+                const text = document.createElement('p'); text.textContent = message;
+                const retry = document.createElement('button');
+                retry.type = 'button'; retry.textContent = 'Thử tải lại';
+                retry.addEventListener('click', initProductDetail);
+                panel.append(text, retry);
+                document.getElementById('productName').after(panel);
+            } finally {
+                clearTimeout(timeout);
+                initProductDetail.loading = false;
             }
         }
 
@@ -1222,6 +1197,7 @@
         }
 
         async function addConfiguredProduct(goToCart = false) {
+            if (!productDetails || Number(productDetails.TonKho || 0) <= 0) return;
             if (!window.BadmintonAuth?.getToken?.()) {
                 showToast('Vui lòng đăng nhập để thêm sản phẩm.', 'warning');
                 const next = encodeURIComponent(`chitiet.html?id=${currentProductId}`);
