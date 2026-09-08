@@ -79,22 +79,83 @@
         const parsed = new Date(String(value).replace(' ', 'T'));
         return Number.isNaN(parsed.getTime()) ? String(value) : dateTime.format(parsed);
     }
+    function cubicEase(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function animate(duration, onFrame) {
+        if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+            onFrame(1);
+            return () => {};
+        }
+        const start = performance.now();
+        let stopped = false;
+        function step(now) {
+            if (stopped) return;
+            const p = Math.min((now - start) / duration, 1);
+            onFrame(cubicEase(p));
+            if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+        return () => { stopped = true; };
+    }
+
     function animateMetric(node, target, formatter = (value) => String(Math.round(value))) {
         if (!node) return;
         const finalValue = Number(target) || 0;
+        node._metricTarget = finalValue;
+        node._metricFormatter = formatter;
+
         if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
             node.textContent = formatter(finalValue);
             return;
         }
-        const started = performance.now();
-        const duration = 1200;
-        const frame = (now) => {
-            const progress = Math.min((now - started) / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            node.textContent = formatter(finalValue * eased);
-            if (progress < 1) requestAnimationFrame(frame);
-        };
-        requestAnimationFrame(frame);
+
+        if (node._metricCancel) {
+            node._metricCancel();
+            node._metricCancel = null;
+        }
+
+        node.textContent = formatter(0);
+        node._metricCancel = animate(1100, (t) => {
+            node.textContent = formatter(finalValue * t);
+            if (t >= 1) {
+                node.textContent = formatter(finalValue);
+                node._metricCancel = null;
+            }
+        });
+    }
+
+    function replayMetric(node) {
+        if (!node || node._metricTarget === undefined) return;
+        animateMetric(node, node._metricTarget, node._metricFormatter);
+    }
+
+    function attachScrollReTrigger(element, onEnter, onExit) {
+        if (!element) return null;
+        if (!('IntersectionObserver' in window)) {
+            if (onEnter) onEnter();
+            return null;
+        }
+        let armed = true;
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    if (armed) {
+                        armed = false;
+                        if (onEnter) onEnter();
+                    }
+                } else {
+                    armed = true;
+                    if (onExit) onExit();
+                }
+            });
+        }, {
+            threshold: 0.12,
+            rootMargin: '20px 0px 20px 0px'
+        });
+        observer.observe(element);
+        return observer;
     }
     function element(tag, className, text) {
         const node = document.createElement(tag);
@@ -614,63 +675,91 @@
 
     function setupAdminChartScrollWatcher() {
         if (chartScrollObserver) return;
-        const targets = [
-            $('.admin-metrics'),
-            $('.admin-chart-card'),
-            $('.admin-status-card'),
-            $('.admin-category-card'),
-            $('.admin-top-products-card'),
-            $('.admin-funnel')
-        ].filter(Boolean);
+        chartScrollObserver = true;
 
-        if (!targets.length) return;
+        // 1. Health Bar
+        const healthBar = $('.admin-health');
+        if (healthBar) {
+            attachScrollReTrigger(healthBar, () => {
+                healthBar.querySelectorAll('strong').forEach(replayMetric);
+            });
+        }
 
-        chartScrollObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                const now = Date.now();
-                const lastTime = Number(entry.target.dataset.lastAnimated || 0);
-                if (entry.isIntersecting) {
-                    if (entry.target.dataset.chartExited === 'true' && (now - lastTime > 400)) {
-                        entry.target.dataset.lastAnimated = String(now);
-                        entry.target.dataset.chartExited = 'false';
-                        if (entry.target.classList.contains('admin-metrics')) {
-                            replayMetricsAnimation();
-                        } else if (entry.target.classList.contains('admin-chart-card')) {
-                            replaySplineAnimation(entry.target);
-                        } else if (entry.target.classList.contains('admin-status-card')) {
-                            replayDonutAnimation(entry.target);
-                        } else if (entry.target.classList.contains('admin-category-card')) {
-                            replayCategoryAnimation(entry.target);
-                        } else if (entry.target.classList.contains('admin-top-products-card')) {
-                            replayTopProductsAnimation(entry.target);
-                        } else if (entry.target.classList.contains('admin-funnel')) {
-                            replayFunnelAnimation(entry.target);
-                        }
-                    }
-                } else {
-                    entry.target.dataset.chartExited = 'true';
+        // 2. Metrics Grid - Observe each card individually for instant response on scroll
+        const metricCards = document.querySelectorAll('.admin-metrics article');
+        metricCards.forEach(card => {
+            attachScrollReTrigger(card, () => {
+                card.querySelectorAll('strong, b').forEach(replayMetric);
+            });
+        });
+
+        // 3. Trend Spline Chart
+        const chartCard = $('.admin-chart-card');
+        if (chartCard) {
+            attachScrollReTrigger(chartCard, () => {
+                if (typeof window._playAdminTrend === 'function') {
+                    window._playAdminTrend();
                 }
             });
-        }, { threshold: 0.12 });
+        }
 
-        targets.forEach(t => {
-            t.dataset.chartExited = 'false';
-            chartScrollObserver.observe(t);
+        // 4. Order Status Donut Card
+        const statusCard = $('.admin-status-card');
+        if (statusCard) {
+            attachScrollReTrigger(statusCard, () => {
+                if (typeof window._playAdminStatusDonut === 'function') {
+                    window._playAdminStatusDonut();
+                }
+            });
+        }
+
+        // 5. Category Distribution Donut Card
+        const catCard = $('.admin-category-card');
+        if (catCard) {
+            attachScrollReTrigger(catCard, () => {
+                if (typeof window._playAdminCategoryDonut === 'function') {
+                    window._playAdminCategoryDonut();
+                }
+            });
+        }
+
+        // 6. Top Selling Products Card
+        const topCard = $('.admin-top-products-card');
+        if (topCard) {
+            attachScrollReTrigger(topCard, () => {
+                if (typeof window._playAdminTopProducts === 'function') {
+                    window._playAdminTopProducts();
+                }
+            });
+        }
+
+        // 7. Funnel Card
+        const funnelCard = $('.admin-funnel');
+        if (funnelCard) {
+            attachScrollReTrigger(funnelCard, () => {
+                if (typeof window._playAdminFunnel === 'function') {
+                    window._playAdminFunnel();
+                }
+            });
+        }
+
+        // 8. KPI Cards across all other admin panels
+        document.querySelectorAll('.admin-kpi-card').forEach(kpi => {
+            attachScrollReTrigger(kpi, () => {
+                kpi.querySelectorAll('strong').forEach(replayMetric);
+            });
         });
     }
 
     function replayAllDashboardAnimations() {
         replayMetricsAnimation();
-        const splineCard = $('.admin-chart-card');
-        if (splineCard) replaySplineAnimation(splineCard);
-        const statusCard = $('.admin-status-card');
-        if (statusCard) replayDonutAnimation(statusCard);
-        const catCard = $('.admin-category-card');
-        if (catCard) replayCategoryAnimation(catCard);
-        const topCard = $('.admin-top-products-card');
-        if (topCard) replayTopProductsAnimation(topCard);
-        const funnelCard = $('.admin-funnel');
-        if (funnelCard) replayFunnelAnimation(funnelCard);
+        const healthBar = $('.admin-health');
+        if (healthBar) healthBar.querySelectorAll('strong').forEach(replayMetric);
+        if (typeof window._playAdminTrend === 'function') window._playAdminTrend();
+        if (typeof window._playAdminStatusDonut === 'function') window._playAdminStatusDonut();
+        if (typeof window._playAdminCategoryDonut === 'function') window._playAdminCategoryDonut();
+        if (typeof window._playAdminTopProducts === 'function') window._playAdminTopProducts();
+        if (typeof window._playAdminFunnel === 'function') window._playAdminFunnel();
     }
 
     function replayMetricsAnimation() {
@@ -687,81 +776,6 @@
         animateMetric($('#adminLowStock'), m.low_stock);
         const attention = (m.low_stock || 0) + (m.pending_deposits || 0) + (m.pending_support || 0);
         animateMetric($('#adminAttention'), attention);
-    }
-
-    function replaySplineAnimation(card) {
-        const line = card.querySelector('.admin-spline-line');
-        const area = card.querySelector('.admin-spline-area');
-        const dots = card.querySelectorAll('.admin-svg-dot');
-        const totalDisplay = $('#adminRevenue');
-        if (line) {
-            line.style.animation = 'none';
-            line.style.strokeDashoffset = '2200';
-            void line.offsetWidth;
-            line.style.animation = 'splineLineDraw 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-        }
-        if (area) {
-            area.style.animation = 'none';
-            area.style.opacity = '0';
-            void area.offsetWidth;
-            area.style.animation = 'splineAreaEnter 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-        }
-        dots.forEach((d, idx) => {
-            d.style.animation = 'none';
-            d.style.opacity = '0';
-            void d.offsetWidth;
-            d.style.animation = `adminMetricEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${0.08 + idx * 0.03}s forwards`;
-        });
-        if (totalDisplay && cachedTrendData.length) {
-            const isRev = currentTrendMode === 'revenue';
-            const totalVal = cachedTrendData.reduce((sum, item) => sum + (isRev ? (Number(item.revenue) || 0) : (Number(item.orders) || 0)), 0);
-            animateMetric(totalDisplay, totalVal, isRev ? formatMoney : (v => String(Math.round(v)) + ' đơn'));
-        }
-    }
-
-    function replayDonutAnimation(card) {
-        const segs = card.querySelectorAll('.admin-donut-seg');
-        const center = card.querySelector('#adminStatusTotal');
-        segs.forEach((seg, idx) => {
-            seg.style.animation = 'none';
-            void seg.offsetWidth;
-            seg.style.animation = `donutSegDraw 1.1s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 0.08}s both`;
-        });
-        if (center && cachedOrderStatusData.length) {
-            const total = cachedOrderStatusData.reduce((sum, item) => sum + (Number(item.SoLuong) || 0), 0);
-            animateMetric(center, total);
-        }
-    }
-
-    function replayCategoryAnimation(card) {
-        const segs = card.querySelectorAll('.admin-donut-seg');
-        const center = card.querySelector('#adminCategoryTotal');
-        segs.forEach((seg, idx) => {
-            seg.style.animation = 'none';
-            void seg.offsetWidth;
-            seg.style.animation = `donutSegDraw 1.1s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 0.08}s both`;
-        });
-        if (center && cachedCategoryData.length) {
-            const total = cachedCategoryData.reduce((sum, item) => sum + (Number(item.TongSP) || 0), 0);
-            animateMetric(center, total);
-        }
-    }
-
-    function replayTopProductsAnimation(card) {
-        const fills = card.querySelectorAll('.top-product-bar-fill');
-        fills.forEach(f => {
-            const targetW = f.dataset.width || '0%';
-            f.style.width = '0%';
-            f.style.transition = 'none';
-            void f.offsetWidth;
-            f.style.transition = 'width 1.1s cubic-bezier(0.16, 1, 0.3, 1)';
-            f.style.width = targetW;
-        });
-    }
-
-    function replayFunnelAnimation(card) {
-        if (!cachedFunnelData) return;
-        renderFunnel(cachedFunnelData);
     }
 
     function formatShortMoney(value) {
@@ -964,23 +978,61 @@
                 const dateStr = `${dayName}, ${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
                 const aov = p.orders > 0 ? Math.round(p.revenue / p.orders) : 0;
 
+                let trendRevBadge = '';
+                if (idx > 0) {
+                    const diffR = p.revenue - points[idx - 1].revenue;
+                    if (diffR > 0) {
+                        const pctR = points[idx - 1].revenue > 0 ? Math.round((diffR / points[idx - 1].revenue) * 100) : 100;
+                        trendRevBadge = `<span class="tip-badge up">▲ +${pctR}%</span>`;
+                    } else if (diffR < 0) {
+                        const pctR = points[idx - 1].revenue > 0 ? Math.round((Math.abs(diffR) / points[idx - 1].revenue) * 100) : 100;
+                        trendRevBadge = `<span class="tip-badge down">▼ -${pctR}%</span>`;
+                    } else {
+                        trendRevBadge = `<span class="tip-badge same">━ 0%</span>`;
+                    }
+                }
+
+                let trendOrdBadge = '';
+                if (idx > 0) {
+                    const diffO = p.orders - points[idx - 1].orders;
+                    if (diffO > 0) {
+                        trendOrdBadge = `<span class="tip-badge up">▲ +${diffO}</span>`;
+                    } else if (diffO < 0) {
+                        trendOrdBadge = `<span class="tip-badge down">▼ ${diffO}</span>`;
+                    } else {
+                        trendOrdBadge = `<span class="tip-badge same">━ 0</span>`;
+                    }
+                }
+
+                const sumRev = points.reduce((acc, pt) => acc + pt.revenue, 0) || 1;
+                const sharePct = ((p.revenue / sumRev) * 100).toFixed(1);
+
                 tooltip.innerHTML = `
-                    <div class="chart-tip-header">${dateStr}</div>
+                    <div class="chart-tip-header" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>📅 ${dateStr}</span>
+                        <span class="tip-index-tag" style="font-size:10px; opacity:0.75;">Mốc ${idx + 1}/${points.length}</span>
+                    </div>
                     <div class="chart-tip-row">
                         <span class="tip-dot tip-dot--orange"></span>
                         <span class="tip-label">Doanh thu:</span>
-                        <strong class="tip-val tip-val--rev">${formatMoney(p.revenue)}</strong>
+                        ${trendRevBadge}
+                        <strong class="tip-val tip-val--rev" style="margin-left:auto;">${formatMoney(p.revenue)}</strong>
                     </div>
                     <div class="chart-tip-row">
                         <span class="tip-dot tip-dot--blue"></span>
                         <span class="tip-label">Đơn hàng:</span>
-                        <strong class="tip-val">${p.orders} đơn</strong>
+                        ${trendOrdBadge}
+                        <strong class="tip-val" style="margin-left:auto;">${p.orders} đơn</strong>
                     </div>
                     ${p.orders > 0 ? `
                     <div class="chart-tip-row chart-tip-row--sub">
-                        <span class="tip-label">AOV trung bình:</span>
-                        <span class="tip-val">${formatMoney(aov)}</span>
+                        <span class="tip-label">💎 AOV trung bình:</span>
+                        <span class="tip-val" style="margin-left:auto; font-weight:700;">${formatMoney(aov)}</span>
                     </div>` : ''}
+                    <div class="chart-tip-row chart-tip-row--sub">
+                        <span class="tip-label">📊 Tỷ trọng kỳ:</span>
+                        <span class="tip-val" style="margin-left:auto; font-weight:700;">${sharePct}%</span>
+                    </div>
                 `;
 
                 const wrapperRect = chartWrapper.getBoundingClientRect();
@@ -1001,6 +1053,51 @@
 
             colsContainer.appendChild(col);
         });
+
+        let trendCancel = null;
+        function playTrend() {
+            const line = chartWrapper.querySelector('.admin-spline-line');
+            const area = chartWrapper.querySelector('.admin-spline-area');
+            const dots = chartWrapper.querySelectorAll('.admin-svg-dot');
+            const totalDisplay = $('#adminRevenue');
+            if (!line) return;
+
+            if (trendCancel) {
+                trendCancel();
+                trendCancel = null;
+            }
+
+            const len = line.getTotalLength() || 1800;
+            line.style.strokeDasharray = len;
+            line.style.strokeDashoffset = len;
+            if (area) area.style.opacity = '0';
+            dots.forEach(d => {
+                d.style.opacity = '0';
+                d.setAttribute('r', '0');
+            });
+
+            if (totalDisplay) {
+                animateMetric(totalDisplay, totalVal, isRev ? formatMoney : (v => String(Math.round(v)) + ' đơn'));
+            }
+
+            trendCancel = animate(1100, (t) => {
+                line.style.strokeDashoffset = (len * (1 - t)).toFixed(1);
+                if (area) area.style.opacity = (t * 0.95).toFixed(2);
+                dots.forEach((d, i) => {
+                    const appear = (i + 0.35) / dots.length;
+                    if (t >= appear) {
+                        d.style.opacity = '1';
+                        d.setAttribute('r', '4');
+                    } else {
+                        d.style.opacity = '0';
+                        d.setAttribute('r', '0');
+                    }
+                });
+            });
+        }
+
+        window._playAdminTrend = playTrend;
+        playTrend();
     }
 
     function renderOrderStatus(items) {
@@ -1147,7 +1244,7 @@
                     </div>
                 </div>
                 <div class="legend-track">
-                    <div class="legend-fill" style="width:${pct}%; background:${color};"></div>
+                    <div class="legend-fill" data-pct="${pct}" style="width:0%; background:${color};"></div>
                 </div>
             `;
 
@@ -1166,6 +1263,79 @@
         if (!normalized.length) {
             legend.appendChild(element('p', 'admin-empty', 'Chưa có đơn hàng phát sinh.'));
         }
+
+        let donutCancel = null;
+        function playStatusDonut() {
+            const segs = donut.querySelectorAll('.admin-donut-seg');
+            const center = donut.querySelector('#adminStatusTotal');
+            const legendFills = legend.querySelectorAll('.legend-fill');
+            if (!segs.length) return;
+
+            if (donutCancel) {
+                donutCancel();
+                donutCancel = null;
+            }
+
+            const R = 52;
+            const C = 2 * Math.PI * R;
+
+            segs.forEach(seg => {
+                seg.style.strokeDasharray = `0 ${C.toFixed(2)}`;
+                seg.style.strokeDashoffset = '0';
+            });
+            legendFills.forEach(f => {
+                f.style.transition = 'none';
+                f.style.width = '0%';
+            });
+
+            if (center) {
+                animateMetric(center, total);
+            }
+
+            donutCancel = animate(950, (t) => {
+                let acc = 0;
+                normalized.forEach((item, idx) => {
+                    const seg = segs[idx];
+                    if (!seg) return;
+                    const frac = total ? item.count / total : 0;
+                    const startFrac = total ? acc / total : 0;
+                    acc += item.count;
+
+                    const localT = Math.max(0, Math.min((t - startFrac * 0.5) / (frac * 0.5 || 0.1), 1));
+                    const currentDash = frac * C * localT;
+                    const gap = C - currentDash;
+                    const offset = - (startFrac * C);
+
+                    seg.style.strokeDasharray = `${currentDash.toFixed(2)} ${gap.toFixed(2)}`;
+                    seg.style.strokeDashoffset = `${offset.toFixed(2)}`;
+                });
+
+                if (t >= 1) {
+                    let finalAcc = 0;
+                    const gapPx = normalized.length > 1 ? 5 : 0;
+                    normalized.forEach((item, idx) => {
+                        const seg = segs[idx];
+                        if (!seg) return;
+                        const fraction = total ? item.count / total : 0;
+                        const fullDash = fraction * C;
+                        const actualDash = Math.max(0.1, fullDash - gapPx);
+                        const gap = C - actualDash;
+                        const offset = - (finalAcc / total) * C;
+                        finalAcc += item.count;
+                        seg.style.strokeDasharray = `${actualDash.toFixed(2)} ${gap.toFixed(2)}`;
+                        seg.style.strokeDashoffset = `${offset.toFixed(2)}`;
+                    });
+
+                    legendFills.forEach(f => {
+                        f.style.transition = 'width 0.7s cubic-bezier(0.16, 1, 0.3, 1)';
+                        f.style.width = (f.dataset.pct || 0) + '%';
+                    });
+                }
+            });
+        }
+
+        window._playAdminStatusDonut = playStatusDonut;
+        playStatusDonut();
     }
 
     function renderCategoryDistribution(items) {
@@ -1312,7 +1482,7 @@
                     </div>
                 </div>
                 <div class="legend-track">
-                    <div class="legend-fill" style="width:${pct}%; background:${color};"></div>
+                    <div class="legend-fill" data-pct="${pct}" style="width:0%; background:${color};"></div>
                 </div>
                 <div style="display:flex; justify-content:space-between; margin-top:5px; font-size:10px; color:var(--bs-muted);">
                     <span>Đã bán: <b style="color:var(--bs-ink)">${sold}</b></span>
@@ -1331,6 +1501,81 @@
 
             legend.appendChild(card);
         });
+
+        let catCancel = null;
+        function playCategoryDonut() {
+            const segs = donut.querySelectorAll('.admin-donut-seg');
+            const center = donut.querySelector('#adminCategoryTotal');
+            const legendFills = legend.querySelectorAll('.legend-fill');
+            if (!segs.length) return;
+
+            if (catCancel) {
+                catCancel();
+                catCancel = null;
+            }
+
+            const R = 52;
+            const C = 2 * Math.PI * R;
+
+            segs.forEach(seg => {
+                seg.style.strokeDasharray = `0 ${C.toFixed(2)}`;
+                seg.style.strokeDashoffset = '0';
+            });
+            legendFills.forEach(f => {
+                f.style.transition = 'none';
+                f.style.width = '0%';
+            });
+
+            if (center) {
+                animateMetric(center, totalItems);
+            }
+
+            catCancel = animate(950, (t) => {
+                let acc = 0;
+                catList.forEach((item, idx) => {
+                    const seg = segs[idx];
+                    if (!seg) return;
+                    const count = Number(item.TongSP) || 0;
+                    const frac = totalItems ? count / totalItems : 0;
+                    const startFrac = totalItems ? acc / totalItems : 0;
+                    acc += count;
+
+                    const localT = Math.max(0, Math.min((t - startFrac * 0.5) / (frac * 0.5 || 0.1), 1));
+                    const currentDash = frac * C * localT;
+                    const gap = C - currentDash;
+                    const offset = - (startFrac * C);
+
+                    seg.style.strokeDasharray = `${currentDash.toFixed(2)} ${gap.toFixed(2)}`;
+                    seg.style.strokeDashoffset = `${offset.toFixed(2)}`;
+                });
+
+                if (t >= 1) {
+                    let finalAcc = 0;
+                    const gapPx = catList.length > 1 ? 4 : 0;
+                    catList.forEach((item, idx) => {
+                        const seg = segs[idx];
+                        if (!seg) return;
+                        const count = Number(item.TongSP) || 0;
+                        const fraction = totalItems ? (count / totalItems) : 0;
+                        const fullDash = fraction * C;
+                        const actualDash = Math.max(0.1, fullDash - gapPx);
+                        const gap = C - actualDash;
+                        const offset = - (finalAcc / totalItems) * C;
+                        finalAcc += count;
+                        seg.style.strokeDasharray = `${actualDash.toFixed(2)} ${gap.toFixed(2)}`;
+                        seg.style.strokeDashoffset = `${offset.toFixed(2)}`;
+                    });
+
+                    legendFills.forEach(f => {
+                        f.style.transition = 'width 0.7s cubic-bezier(0.16, 1, 0.3, 1)';
+                        f.style.width = (f.dataset.pct || 0) + '%';
+                    });
+                }
+            });
+        }
+
+        window._playAdminCategoryDonut = playCategoryDonut;
+        playCategoryDonut();
     }
 
     function renderTopSellingProducts(items) {
@@ -1380,46 +1625,82 @@
             container.appendChild(row);
         });
 
-        // Trigger smooth progress bar fill
-        requestAnimationFrame(() => {
-            setTimeout(() => {
-                container.querySelectorAll('.top-product-bar-fill').forEach(fill => {
-                    fill.style.width = fill.dataset.width;
-                });
-            }, 60);
-        });
+        function playTopProducts() {
+            const fills = container.querySelectorAll('.top-product-bar-fill');
+            fills.forEach(fill => {
+                fill.style.transition = 'none';
+                fill.style.width = '0%';
+                void fill.offsetWidth;
+                fill.style.transition = 'width 1s cubic-bezier(0.16, 1, 0.3, 1)';
+                fill.style.width = fill.dataset.width || '0%';
+            });
+        }
+
+        window._playAdminTopProducts = playTopProducts;
+        playTopProducts();
     }
 
     function renderFunnel(funnel) {
-        const users = Number(funnel.registered_users) || 0;
-        const carts = Number(funnel.users_with_cart) || 0;
-        const buyers = Number(funnel.buyers_30d) || 0;
-        const completed = Number(funnel.completed_orders_30d) || 0;
-        const base = Math.max(1, users);
-        [['#funnelUsers', users], ['#funnelCarts', carts], ['#funnelBuyers', buyers], ['#funnelCompleted30', completed]]
-            .forEach(([selector, value]) => animateMetric($(selector), value));
+        if (funnel) cachedFunnelData = funnel;
+        const funnelData = cachedFunnelData || {};
 
-        const cartRate = Math.min(100, Math.round(carts / base * 100));
-        const buyerRate = carts ? Math.min(100, Math.round(buyers / carts * 100)) : 0;
-        const completedRate = buyers ? Math.min(100, Math.round(completed / buyers * 100)) : 0;
+        function playFunnel() {
+            const users = Number(funnelData.registered_users) || 0;
+            const carts = Number(funnelData.users_with_cart) || 0;
+            const buyers = Number(funnelData.buyers_30d) || 0;
+            const completed = Number(funnelData.completed_orders_30d) || 0;
+            const base = Math.max(1, users);
 
-        $('#funnelCartBar').style.setProperty('--funnel-width', `${Math.min(100, carts / base * 100)}%`);
-        $('#funnelBuyerBar').style.setProperty('--funnel-width', `${Math.min(100, buyers / base * 100)}%`);
-        $('#funnelCompleted30Bar').style.setProperty('--funnel-width', `${Math.min(100, completed / base * 100)}%`);
+            [['#funnelUsers', users], ['#funnelCarts', carts], ['#funnelBuyers', buyers], ['#funnelCompleted30', completed]]
+                .forEach(([selector, value]) => animateMetric($(selector), value));
 
-        // Gắn tỷ lệ chuyển đổi cho từng bước phễu
-        const steps = document.querySelectorAll('.admin-funnel__steps > div');
-        if (steps.length >= 4) {
-            const rates = ['100% người dùng', `${cartRate}% đã thêm giỏ`, `${buyerRate}% tiến hành đặt`, `${completedRate}% giao thành công`];
-            steps.forEach((step, i) => {
-                let badge = step.querySelector('.admin-funnel__step-rate');
-                if (!badge) {
-                    badge = element('span', 'admin-funnel__step-rate');
-                    step.insertBefore(badge, step.querySelector('i'));
+            const cartRate = Math.min(100, Math.round(carts / base * 100));
+            const buyerRate = carts ? Math.min(100, Math.round(buyers / carts * 100)) : 0;
+            const completedRate = buyers ? Math.min(100, Math.round(completed / buyers * 100)) : 0;
+
+            const cartBar = $('#funnelCartBar');
+            const buyerBar = $('#funnelBuyerBar');
+            const completedBar = $('#funnelCompleted30Bar');
+
+            [cartBar, buyerBar, completedBar].forEach(b => {
+                if (b) {
+                    b.style.transition = 'none';
+                    b.style.setProperty('--funnel-width', '0%');
                 }
-                badge.textContent = rates[i] || '';
             });
+
+            setTimeout(() => {
+                if (cartBar) {
+                    cartBar.style.transition = 'width 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+                    cartBar.style.setProperty('--funnel-width', `${Math.min(100, carts / base * 100)}%`);
+                }
+                if (buyerBar) {
+                    buyerBar.style.transition = 'width 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+                    buyerBar.style.setProperty('--funnel-width', `${Math.min(100, buyers / base * 100)}%`);
+                }
+                if (completedBar) {
+                    completedBar.style.transition = 'width 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+                    completedBar.style.setProperty('--funnel-width', `${Math.min(100, completed / base * 100)}%`);
+                }
+            }, 60);
+
+            // Gắn tỷ lệ chuyển đổi cho từng bước phễu
+            const steps = document.querySelectorAll('.admin-funnel__steps > div');
+            if (steps.length >= 4) {
+                const rates = ['100% người dùng', `${cartRate}% đã thêm giỏ`, `${buyerRate}% tiến hành đặt`, `${completedRate}% giao thành công`];
+                steps.forEach((step, i) => {
+                    let badge = step.querySelector('.admin-funnel__step-rate');
+                    if (!badge) {
+                        badge = element('span', 'admin-funnel__step-rate');
+                        step.insertBefore(badge, step.querySelector('i'));
+                    }
+                    badge.textContent = rates[i] || '';
+                });
+            }
         }
+
+        window._playAdminFunnel = playFunnel;
+        playFunnel();
     }
 
     function updateNavBadge(node, value) {
@@ -1894,6 +2175,7 @@
     function displayValue(key,value){if(value===null||value===undefined||value==='')return 'Không có';if(['GiaBan','GiaGoc','price','original_price','balance','SoDu','SoTien','amount','SoTienNap','SoDuKhachHang','SoDuTruoc','SoDuSau'].includes(key))return formatMoney(value);if(['TrangThai','active'].includes(key)&&[0,1,true,false].includes(value))return value?'Đang bật / hiển thị':'Đang tắt / đã ẩn';if(['VaiTro','role','VaiTroTruoc','VaiTroSau'].includes(key))return value==='superadmin'?'Super Admin':value==='admin'?'Quản trị viên':'Khách hàng';if(['TrangThaiYeuCau','TrangThaiPheDuyet'].includes(key))return badgeText(value);if(key==='QuyetDinh')return value==='HOAN_TAC'?'Hoàn tác':value==='XAC_NHAN'?'Xác nhận':value==='DA_DUYET'?'Duyệt và cộng tiền':value==='TU_CHOI'?'Từ chối':String(value);if(key==='HanhDongGoc')return actionLabels[value]||String(value);if(['target','DoiTuongGoc'].includes(key))return entityLabels[value]||String(value);if(['target_id','MaDoiTuongGoc'].includes(key))return `#${value}`;if(Array.isArray(value))return value.join('\n');if(typeof value==='object')return JSON.stringify(value,null,2);return String(value);}
     function appendDetailRow(container,key,before,after,compare=false){const row=element('div','change-detail-row');row.appendChild(element('strong','',fieldLabels[key]||key));const values=element('div','change-detail-values');const isImage=['Avatar','HinhAnh','image'].includes(key);const isRollback=/hoàn tác/i.test($('#changeDetailTitle')?.textContent||'')||(key==='TrangThaiPheDuyet'&&after==='DA_HOAN_TAC');const valueBox=(label,value,className)=>{const box=element('span',className);if(label)box.appendChild(element('small','',label));if(isImage&&value){const image=document.createElement('img');let source=String(value);if(key==='Avatar'&&!/^(?:https?:)?\/\//i.test(source)&&window.API_BASE)source=`${window.API_BASE.replace(/\/$/,'')}/${source.replace(/^\//,'')}`;image.src=safeImage(source);image.alt=label?`Ảnh ${label.toLowerCase()}`:'Ảnh đã lưu';image.className='change-detail-image';box.appendChild(image);}else box.appendChild(element('b','',displayValue(key,value)));return box;};if(compare){values.append(valueBox('Trước',before,'change-detail-old'),element('i','','→'),valueBox('Sau',after,`change-detail-new${isRollback?' change-detail-rollback':''}`));}else values.appendChild(valueBox('',after,isRollback?'change-detail-rollback':''));row.appendChild(values);container.appendChild(row);}
     function openChangeDetail({title,eyebrow,meta,before,after,compare=false,entity='',entityId='',snapshot={}}){const dialog=$('#changeDetailDialog');$('#changeDetailTitle').textContent=title;$('#changeDetailEyebrow').textContent=eyebrow;const oldData=parsedObject(before),newData=parsedObject(after),record={...parsedObject(snapshot),...oldData,...newData};const card=$('#changeProductCard');card.innerHTML='';card.hidden=!['SanPham','NguoiDung'].includes(entity);if(entity==='SanPham'){const image=element('img');image.src=safeImage(record.HinhAnh||record.image);image.alt=record.TenSP||record.name||`Sản phẩm #${entityId}`;const copy=element('div');copy.append(element('span','',`${record.ThuongHieu||record.brand||'Chưa có thương hiệu'} · Mã #${entityId}`),element('strong','',record.TenSP||record.name||`Sản phẩm #${entityId}`),element('b','',formatMoney(record.GiaBan??record.price)),element('p','',`Tồn kho: ${record.TonKho??record.stock??'—'} · ${displayValue('TrangThai',record.TrangThai??record.active)}`));const find=element('button','admin-detail-button','Tìm sản phẩm này trong quản trị →');find.type='button';find.addEventListener('click',()=>{dialog.close();$('#productQuery').value=`#${entityId}`;$('#productStatus').value='all';state.productPage=1;activateView('products',true);});copy.appendChild(find);card.append(image,copy);}if(entity==='NguoiDung'){const avatar=userAvatar(record);avatar.classList.add('change-user-avatar');const copy=element('div');copy.append(element('span','',`Tài khoản #${entityId}`),element('strong','',record.HoTen||record.fullname||record.TenDangNhap||`Người dùng #${entityId}`),element('b','',`@${record.TenDangNhap||'không rõ'}`),element('p','',`${record.Email||record.email||'Chưa có email'} · ${record.SoDienThoai||record.phone||'Chưa có SĐT'}`));const find=element('button','admin-detail-button','Tìm tài khoản này trong quản trị →');find.type='button';find.addEventListener('click',()=>{dialog.close();$('#userQuery').value=record.TenDangNhap||`#${entityId}`;state.userPage=1;activateView('users',true);});copy.appendChild(find);card.append(avatar,copy);}const metaBox=$('#changeDetailMeta');metaBox.innerHTML='';meta.filter(Boolean).forEach(item=>metaBox.appendChild(element('span','',item)));const body=$('#changeDetailBody');body.innerHTML='';const ignored=new Set(['NgayTao','NgayCapNhat','NgayXuLy']);const keys=[...new Set([...Object.keys(oldData),...Object.keys(newData)])].filter(key=>!ignored.has(key));const changedKeys=compare?keys.filter(key=>JSON.stringify(oldData[key])!==JSON.stringify(newData[key])):keys;if(!changedKeys.length)body.appendChild(element('p','admin-empty','Không có dữ liệu chi tiết được lưu.'));else changedKeys.forEach(key=>appendDetailRow(body,key,oldData[key],newData[key],compare));dialog.showModal();}
+    function renderAudit(items){const tbody=$('#auditRows');tbody.innerHTML='';if(!items.length)emptyRow(tbody,6,'Chưa có hoạt động quản trị.');items.forEach((log)=>{const row=element('tr');const detail=parsedObject(log.ChiTiet);const hasComparison=Boolean(log.DuLieuTruoc);const after=log.DuLieuSau||detail;const changed=hasComparison?[...new Set([...Object.keys(parsedObject(log.DuLieuTruoc)),...Object.keys(parsedObject(after))])].filter(key=>JSON.stringify(parsedObject(log.DuLieuTruoc)[key])!==JSON.stringify(parsedObject(after)[key])):Object.keys(detail);const detailCell=element('td');const summary=element('span','admin-detail-summary',changed.map(key=>fieldLabels[key]||key).join(', ')||'Không có dữ liệu');const view=element('button','admin-detail-button',hasComparison?'Xem trước và sau':'Xem đầy đủ');view.type='button';view.addEventListener('click',()=>openChangeDetail({title:`${actionLabels[log.HanhDong]||log.HanhDong} ${entityLabels[log.DoiTuong]||log.DoiTuong}`,eyebrow:'Chi tiết nhật ký quản trị',meta:[`@${log.TenDangNhap}`,formatDate(log.NgayTao),`${entityLabels[log.DoiTuong]||log.DoiTuong}${log.MaDoiTuong?` #${log.MaDoiTuong}`:''}`,`IP: ${log.DiaChiIP||'—'}`,log.TrangThaiPheDuyet?badgeText(log.TrangThaiPheDuyet):''],before:log.DuLieuTruoc,after,compare:hasComparison,entity:log.DoiTuong,entityId:log.MaDoiTuong,snapshot:{TenDangNhap:log.DoiTuongTenDangNhap,HoTen:log.DoiTuongHoTen,Email:log.DoiTuongEmail,SoDienThoai:log.DoiTuongSoDienThoai,Avatar:log.DoiTuongAvatar}}));detailCell.append(summary,view);const adminCell=element('td');const adminWrap=element('div','admin-user-cell');const adminAvatar=userAvatar({TenDangNhap:log.TenDangNhap,HoTen:log.HoTenAdmin,Avatar:log.AvatarAdmin});const adminCopy=element('div');adminCopy.append(element('strong','',log.HoTenAdmin||log.TenDangNhap),element('span','',`@${log.TenDangNhap}`));adminWrap.append(adminAvatar,adminCopy);adminCell.appendChild(adminWrap);row.append(element('td','',formatDate(log.NgayTao)),adminCell,element('td','',actionLabels[log.HanhDong]||log.HanhDong),element('td','',`${entityLabels[log.DoiTuong]||log.DoiTuong}${log.MaDoiTuong?` #${log.MaDoiTuong}`:''}`),detailCell,element('td','',log.DiaChiIP||'—'));tbody.appendChild(row);});}
     function renderAudit(items){const tbody=$('#auditRows');tbody.innerHTML='';if(!items.length)emptyRow(tbody,6,'Chưa có hoạt động quản trị.');items.forEach((log)=>{const row=element('tr');const detail=parsedObject(log.ChiTiet);const hasComparison=Boolean(log.DuLieuTruoc);const after=log.DuLieuSau||detail;const changed=hasComparison?[...new Set([...Object.keys(parsedObject(log.DuLieuTruoc)),...Object.keys(parsedObject(after))])].filter(key=>JSON.stringify(parsedObject(log.DuLieuTruoc)[key])!==JSON.stringify(parsedObject(after)[key])):Object.keys(detail);const detailCell=element('td');const summary=element('span','admin-detail-summary',changed.map(key=>fieldLabels[key]||key).join(', ')||'Không có dữ liệu');const view=element('button','admin-detail-button',hasComparison?'Xem trước và sau':'Xem đầy đủ');view.type='button';view.addEventListener('click',()=>openChangeDetail({title:`${actionLabels[log.HanhDong]||log.HanhDong} ${entityLabels[log.DoiTuong]||log.DoiTuong}`,eyebrow:'Chi tiết nhật ký quản trị',meta:[`@${log.TenDangNhap}`,formatDate(log.NgayTao),`${entityLabels[log.DoiTuong]||log.DoiTuong}${log.MaDoiTuong?` #${log.MaDoiTuong}`:''}`,`IP: ${log.DiaChiIP||'—'}`,log.TrangThaiPheDuyet?badgeText(log.TrangThaiPheDuyet):''],before:log.DuLieuTruoc,after,compare:hasComparison,entity:log.DoiTuong,entityId:log.MaDoiTuong,snapshot:{TenDangNhap:log.DoiTuongTenDangNhap,HoTen:log.DoiTuongHoTen,Email:log.DoiTuongEmail,SoDienThoai:log.DoiTuongSoDienThoai,Avatar:log.DoiTuongAvatar}}));detailCell.append(summary,view);const adminCell=element('td');const adminWrap=element('div','admin-user-cell');const adminAvatar=userAvatar({TenDangNhap:log.TenDangNhap,HoTen:log.HoTenAdmin,Avatar:log.AvatarAdmin});const adminCopy=element('div');adminCopy.append(element('strong','',log.HoTenAdmin||log.TenDangNhap),element('span','',`@${log.TenDangNhap}`));adminWrap.append(adminAvatar,adminCopy);adminCell.appendChild(adminWrap);row.append(element('td','',formatDate(log.NgayTao)),adminCell,element('td','',actionLabels[log.HanhDong]||log.HanhDong),element('td','',`${entityLabels[log.DoiTuong]||log.DoiTuong}${log.MaDoiTuong?` #${log.MaDoiTuong}`:''}`),detailCell,element('td','',log.DiaChiIP||'—'));tbody.appendChild(row);});updateAuditKpis(items);}
 
     async function loadApprovals(){
@@ -1906,6 +2188,7 @@
         }
     }
     function changeSummary(item){const after=item.DuLieuSau||{};if(item.DoiTuong==='YeuCauNapTien')return `${item.HanhDong==='APPROVE'?'Duyệt':'Từ chối'} yêu cầu nạp ${formatMoney(after.SoTien||after.amount||0)}`;if(item.DoiTuong==='SanPham'){if(item.HanhDong==='DELETE')return 'Ngừng bán và đưa tồn kho về 0';const keys=Object.keys(after).filter(key=>!['NgayCapNhat','NgayTao'].includes(key));return `Cập nhật: ${keys.slice(0,4).join(', ')}${keys.length>4?'…':''}`;}return auditDetail(after);}
+    function renderApprovals(items){const tbody=$('#approvalRows');tbody.innerHTML='';if(!items.length){emptyRow(tbody,6,'Không có thay đổi phù hợp.');return;}items.forEach(item=>{const row=element('tr');row.append(element('td','',formatDate(item.NgayTao)),element('td','',`@${item.TenDangNhap}`),element('td','',actionLabels[item.HanhDong]||item.HanhDong),element('td','',`${entityLabels[item.DoiTuong]||item.DoiTuong}${item.MaDoiTuong?` #${item.MaDoiTuong}`:''}`));const detail=element('td');detail.appendChild(element('span','admin-detail-summary',changeSummary(item)));const view=element('button','admin-detail-button','Xem thay đổi trước và sau');view.type='button';view.addEventListener('click',()=>openChangeDetail({title:`${actionLabels[item.HanhDong]||item.HanhDong} ${entityLabels[item.DoiTuong]||item.DoiTuong}`,eyebrow:'Đối chiếu thay đổi của Admin',meta:[`@${item.TenDangNhap}`,formatDate(item.NgayTao),`Mã thay đổi #${item.MaThayDoi}`,badgeText(item.TrangThai)],before:item.DuLieuTruoc,after:item.DuLieuSau,compare:Boolean(item.DuLieuTruoc),entity:item.DoiTuong,entityId:item.MaDoiTuong}));detail.appendChild(view);row.appendChild(detail);const action=element('td');const actions=element('div','admin-row-actions');if(item.TrangThai==='CHO_XEM'){const accept=element('button','','Xác nhận');accept.type='button';accept.addEventListener('click',()=>reviewChange(item.MaThayDoi,'XAC_NHAN'));actions.appendChild(accept);if(item.CoTheHoanTac){const undo=element('button','danger','Hoàn tác');undo.type='button';undo.addEventListener('click',()=>reviewChange(item.MaThayDoi,'HOAN_TAC'));actions.appendChild(undo);}}else actions.appendChild(badge(item.TrangThai));action.appendChild(actions);row.appendChild(action);tbody.appendChild(row);});}
     function renderApprovals(items){const tbody=$('#approvalRows');tbody.innerHTML='';if(!items.length){emptyRow(tbody,6,'Không có thay đổi phù hợp.');return;}items.forEach(item=>{const row=element('tr');row.append(element('td','',formatDate(item.NgayTao)),element('td','',`@${item.TenDangNhap}`),element('td','',actionLabels[item.HanhDong]||item.HanhDong),element('td','',`${entityLabels[item.DoiTuong]||item.DoiTuong}${item.MaDoiTuong?` #${item.MaDoiTuong}`:''}`));const detail=element('td');detail.appendChild(element('span','admin-detail-summary',changeSummary(item)));const view=element('button','admin-detail-button','Xem thay đổi trước và sau');view.type='button';view.addEventListener('click',()=>openChangeDetail({title:`${actionLabels[item.HanhDong]||item.HanhDong} ${entityLabels[item.DoiTuong]||item.DoiTuong}`,eyebrow:'Đối chiếu thay đổi của Admin',meta:[`@${item.TenDangNhap}`,formatDate(item.NgayTao),`Mã thay đổi #${item.MaThayDoi}`,badgeText(item.TrangThai)],before:item.DuLieuTruoc,after:item.DuLieuSau,compare:Boolean(item.DuLieuTruoc),entity:item.DoiTuong,entityId:item.MaDoiTuong}));detail.appendChild(view);row.appendChild(detail);const action=element('td');const actions=element('div','admin-row-actions');if(item.TrangThai==='CHO_XEM'){const accept=element('button','','Xác nhận');accept.type='button';accept.addEventListener('click',()=>reviewChange(item.MaThayDoi,'XAC_NHAN'));actions.appendChild(accept);if(item.CoTheHoanTac){const undo=element('button','danger','Hoàn tác');undo.type='button';undo.addEventListener('click',()=>reviewChange(item.MaThayDoi,'HOAN_TAC'));actions.appendChild(undo);}}else actions.appendChild(badge(item.TrangThai));action.appendChild(actions);row.appendChild(action);tbody.appendChild(row);});updateApprovalKpis(items);}
     function badgeText(status){return statusMeta[status]?.[0]||status||'Không rõ';}
     async function reviewChange(id,decision){const promptText=decision==='HOAN_TAC'?'Nhập lý do hoàn tác (không bắt buộc):':'Ghi chú xác nhận (không bắt buộc):';const note=window.prompt(promptText,'');if(note===null)return;try{const data=await Auth.request(`/api/admin/phe-duyet-thay-doi/${id}`,{method:'PATCH',json:{decision,note}});showToast(data.message,'success');loadApprovals();if(decision==='HOAN_TAC'){state.loaded.delete('products');state.loaded.delete('deposits');loadDashboard();}}catch(error){showToast(error.message,'error');}}
@@ -1917,6 +2200,7 @@
         renderSupport();
     }}
     function supportSubject(value){return {TU_VAN_SAN_PHAM:'Tư vấn sản phẩm',DON_HANG:'Đơn hàng',THANH_TOAN:'Thanh toán',TAI_KHOAN:'Tài khoản',BAO_LOI:'Báo lỗi',KHAC:'Khác'}[value]||value||'—';}
+    function renderSupport(){const tbody=$('#supportRows');tbody.innerHTML='';if(!state.support.length)emptyRow(tbody,7,'Không có yêu cầu phù hợp.');state.support.forEach(item=>{const row=element('tr');row.append(element('td','',`HT-${String(item.MaYeuCau).padStart(6,'0')}`));const sender=element('td');sender.append(element('strong','',item.HoTen),element('span','admin-detail-summary',`${item.Email}${item.SoDienThoai?` · ${item.SoDienThoai}`:''}`));row.append(sender,element('td','',supportSubject(item.ChuDe)),element('td','admin-support-preview',item.NoiDung),element('td','',formatDate(item.NgayTao)));const status=element('td');status.appendChild(badge(item.TrangThai));row.appendChild(status);const action=element('td');const button=element('button','admin-detail-button','Mở phiếu');button.type='button';button.addEventListener('click',()=>openSupport(item));action.appendChild(button);row.appendChild(action);tbody.appendChild(row);});const pages=Math.max(1,Math.ceil(state.supportTotal/20));$('#supportPageInfo').textContent=`Trang ${state.supportPage}/${pages}`;$('#supportPrev').disabled=state.supportPage<=1;$('#supportNext').disabled=state.supportPage>=pages;const pending=state.support.filter(item=>item.TrangThai==='MOI').length;updateNavBadge($('#navPendingSupport'),pending);}
     function renderSupport(){const tbody=$('#supportRows');tbody.innerHTML='';if(!state.support.length)emptyRow(tbody,7,'Không có yêu cầu phù hợp.');state.support.forEach(item=>{const row=element('tr');row.append(element('td','',`HT-${String(item.MaYeuCau).padStart(6,'0')}`));const sender=element('td');sender.append(element('strong','',item.HoTen),element('span','admin-detail-summary',`${item.Email}${item.SoDienThoai?` · ${item.SoDienThoai}`:''}`));row.append(sender,element('td','',supportSubject(item.ChuDe)),element('td','admin-support-preview',item.NoiDung),element('td','',formatDate(item.NgayTao)));const status=element('td');status.appendChild(badge(item.TrangThai));row.appendChild(status);const action=element('td');const button=element('button','admin-detail-button','Mở phiếu');button.type='button';button.addEventListener('click',()=>openSupport(item));action.appendChild(button);row.appendChild(action);tbody.appendChild(row);});const pages=Math.max(1,Math.ceil(state.supportTotal/20));$('#supportPageInfo').textContent=`Trang ${state.supportPage}/${pages}`;$('#supportPrev').disabled=state.supportPage<=1;$('#supportNext').disabled=state.supportPage>=pages;const pending=state.support.filter(item=>item.TrangThai==='MOI').length;updateNavBadge($('#navPendingSupport'),pending);updateSupportKpis(state.support);}
     function openSupport(item){$('#supportId').value=item.MaYeuCau;$('#supportDialogStatus').value=item.TrangThai;$('#supportAdminNote').value=item.GhiChuAdmin||'';$('#supportDialogTitle').textContent=`Phiếu HT-${String(item.MaYeuCau).padStart(6,'0')}`;const detail=$('#supportDetail');detail.innerHTML='';[['Người gửi',item.HoTen],['Liên hệ',`${item.Email}${item.SoDienThoai?` · ${item.SoDienThoai}`:''}`],['Chủ đề',supportSubject(item.ChuDe)],['Mã đơn',item.MaDonHang||'Không có'],['Kênh phản hồi',item.KenhPhanHoi==='DIEN_THOAI'?'Điện thoại':'Email'],['Nội dung',item.NoiDung],['Tiếp nhận lúc',formatDate(item.NgayTao)]].forEach(([label,value])=>{const fact=element('div');fact.append(element('span','',label),element('strong','',value));detail.appendChild(fact);});setStatus($('#supportFormStatus'));$('#supportDialog').showModal();}
     async function saveSupport(event){event.preventDefault();const id=Number($('#supportId').value);const button=$('#supportSave');setBusy(button,true,'Đang lưu…');try{const data=await Auth.request(`/api/admin/ho-tro/${id}`,{method:'PATCH',json:{status:$('#supportDialogStatus').value,note:$('#supportAdminNote').value.trim()}});$('#supportDialog').close();showToast(data.message,'success');loadSupport();}catch(error){setStatus($('#supportFormStatus'),error.message);}finally{setBusy(button,false);}}
@@ -1926,6 +2210,7 @@
         state.content=FALLBACK_ADMIN_CONTENT;
         renderContent();
     }}
+    function renderContent(){const tbody=$('#contentRows');tbody.innerHTML='';if(!state.content.length)emptyRow(tbody,5,'Chưa có nội dung. Hãy tạo bài đầu tiên và chọn “Xuất bản ngay”.');state.content.forEach((item)=>{const row=element('tr');const titleCell=element('td');titleCell.append(element('strong','admin-content-title',item.TieuDe),element('span','admin-content-summary',item.TomTat||'Chưa có tóm tắt'));row.append(titleCell,element('td','',item.Loai==='TIN_TUC'?'Tin tức':'Hướng dẫn'),element('td','',formatDate(item.NgayDang)));const status=element('td');status.appendChild(element('span',`admin-badge ${item.TrangThai?'admin-badge--success':'admin-badge--info'}`,item.TrangThai?'Công khai':'Bản nháp'));row.appendChild(status);const action=element('td');const actions=element('div','admin-row-actions');if(item.TrangThai){const preview=element('a','','Xem trên web');preview.href=`baiviet.html?id=${encodeURIComponent(item.MaBV)}`;preview.target='_blank';preview.rel='noopener';actions.appendChild(preview);}const edit=element('button','','Sửa');edit.type='button';edit.addEventListener('click',()=>openContentDialog(item));const toggle=element('button',item.TrangThai?'danger':'',item.TrangThai?'Chuyển về nháp':'Xuất bản');toggle.type='button';toggle.addEventListener('click',()=>saveContentStatus(item,!Boolean(item.TrangThai)));actions.append(edit,toggle);action.appendChild(actions);row.appendChild(action);tbody.appendChild(row);});}
     function renderContent(){const tbody=$('#contentRows');tbody.innerHTML='';if(!state.content.length)emptyRow(tbody,5,'Chưa có nội dung. Hãy tạo bài đầu tiên và chọn “Xuất bản ngay”.');state.content.forEach((item)=>{const row=element('tr');const titleCell=element('td');titleCell.append(element('strong','admin-content-title',item.TieuDe),element('span','admin-content-summary',item.TomTat||'Chưa có tóm tắt'));row.append(titleCell,element('td','',item.Loai==='TIN_TUC'?'Tin tức':'Hướng dẫn'),element('td','',formatDate(item.NgayDang)));const status=element('td');status.appendChild(element('span',`admin-badge ${item.TrangThai?'admin-badge--success':'admin-badge--info'}`,item.TrangThai?'Công khai':'Bản nháp'));row.appendChild(status);const action=element('td');const actions=element('div','admin-row-actions');if(item.TrangThai){const preview=element('a','','Xem trên web');preview.href=`baiviet.html?id=${encodeURIComponent(item.MaBV)}`;preview.target='_blank';preview.rel='noopener';actions.appendChild(preview);}const edit=element('button','','Sửa');edit.type='button';edit.addEventListener('click',()=>openContentDialog(item));const toggle=element('button',item.TrangThai?'danger':'',item.TrangThai?'Chuyển về nháp':'Xuất bản');toggle.type='button';toggle.addEventListener('click',()=>saveContentStatus(item,!Boolean(item.TrangThai)));actions.append(edit,toggle);action.appendChild(actions);row.appendChild(action);tbody.appendChild(row);});updateContentKpis(state.content);}
     function syncContentPublishHint(){const checkbox=$('#contentActive');const label=checkbox.closest('label');const textNode=[...label.childNodes].find(node=>node.nodeType===Node.TEXT_NODE&&node.textContent.trim());if(textNode)textNode.textContent=' Xuất bản ngay';let hint=$('#contentPublishHint');if(!hint){hint=element('p','admin-publish-note');hint.id='contentPublishHint';label.insertAdjacentElement('afterend',hint);}hint.textContent=checkbox.checked?'Bài sẽ xuất hiện ngay tại Tin tức/Hướng dẫn sau khi lưu.':'Bài được lưu an toàn dưới dạng bản nháp và chưa hiện với khách hàng.';}
     function openContentDialog(item=null){$('#contentForm').reset();$('#contentId').value=item?.MaBV||'';$('#contentDialogTitle').textContent=item?'Chỉnh sửa nội dung':'Thêm nội dung';$('#contentType').value=item?.Loai||'TIN_TUC';$('#contentTitle').value=item?.TieuDe||'';$('#contentSummary').value=item?.TomTat||'';$('#contentBody').value=item?.NoiDung||'';$('#contentImage').value=item?.HinhAnh||'';renderContentImagePreview();$('#contentSource').value=item?.NguonURL||'';$('#contentActive').checked=item?Boolean(item.TrangThai):true;syncContentPublishHint();setStatus($('#contentFormStatus'));$('#contentDialog').showModal();}
@@ -1937,6 +2222,7 @@
         state.vouchers=FALLBACK_ADMIN_VOUCHERS;
         renderVouchers();
     }}
+    function renderVouchers(){const tbody=$('#voucherRows');tbody.innerHTML='';if(!state.vouchers.length){emptyRow(tbody,7,'Chưa có voucher.');return;}state.vouchers.forEach(v=>{const row=element('tr');let value=formatMoney(v.GiaTri);if(v.LoaiGiam==='PHAN_TRAM'){value=`${Number(v.GiaTri)}%`;if(v.GiamToiDa)value+=` · tối đa ${formatMoney(v.GiamToiDa)}`;}row.append(element('td','',v.MaVoucher),element('td','',value),element('td','',formatMoney(v.DonToiThieu)),element('td','',`${v.DaSuDung}/${v.SoLuong}`),element('td','',v.NgayHetHan?formatDate(v.NgayHetHan):'Không giới hạn'));const status=element('td');status.append(element('span',`admin-badge ${v.TrangThai?'admin-badge--success':'admin-badge--danger'}`,v.TrangThai?'Hoạt động':'Tạm tắt'));row.append(status);const action=element('td');const toggle=element('button',v.TrangThai?'danger':'',v.TrangThai?'Tắt':'Bật');toggle.type='button';toggle.addEventListener('click',async()=>{try{const data=await Auth.request(`/api/admin/vouchers/${encodeURIComponent(v.MaVoucher)}`,{method:'PATCH',json:{active:!Boolean(v.TrangThai)}});showToast(data.message,'success');loadVouchers();}catch(error){showToast(error.message,'error');}});action.append(toggle);row.append(action);tbody.append(row);});}
     function renderVouchers(){const tbody=$('#voucherRows');tbody.innerHTML='';if(!state.vouchers.length){emptyRow(tbody,7,'Chưa có voucher.');return;}state.vouchers.forEach(v=>{const row=element('tr');let value=formatMoney(v.GiaTri);if(v.LoaiGiam==='PHAN_TRAM'){value=`${Number(v.GiaTri)}%`;if(v.GiamToiDa)value+=` · tối đa ${formatMoney(v.GiamToiDa)}`;}row.append(element('td','',v.MaVoucher),element('td','',value),element('td','',formatMoney(v.DonToiThieu)),element('td','',`${v.DaSuDung}/${v.SoLuong}`),element('td','',v.NgayHetHan?formatDate(v.NgayHetHan):'Không giới hạn'));const status=element('td');status.append(element('span',`admin-badge ${v.TrangThai?'admin-badge--success':'admin-badge--danger'}`,v.TrangThai?'Hoạt động':'Tạm tắt'));row.append(status);const action=element('td');const toggle=element('button',v.TrangThai?'danger':'',v.TrangThai?'Tắt':'Bật');toggle.type='button';toggle.addEventListener('click',async()=>{try{const data=await Auth.request(`/api/admin/vouchers/${encodeURIComponent(v.MaVoucher)}`,{method:'PATCH',json:{active:!Boolean(v.TrangThai)}});showToast(data.message,'success');loadVouchers();}catch(error){showToast(error.message,'error');}});action.append(toggle);row.append(action);tbody.append(row);});updateVoucherKpis(state.vouchers);}
     function openVoucherDialog(){const form=$('#voucherForm');form.reset();$('#voucherQuantity').value='100';$('#voucherMinimum').value='0';$('#voucherActive').checked=true;setStatus($('#voucherFormStatus'));$('#voucherDialog').showModal();}
     async function saveVoucher(event){event.preventDefault();const payload={code:$('#voucherCode').value.trim().toUpperCase(),type:$('#voucherType').value,value:$('#voucherValue').value,maximum:$('#voucherMaximum').value||null,minimum:$('#voucherMinimum').value||0,quantity:$('#voucherQuantity').value,starts_at:$('#voucherStarts').value||null,expires_at:$('#voucherExpires').value||null,active:$('#voucherActive').checked};const button=$('#voucherSave');setBusy(button,true,'Đang tạo…');try{const data=await Auth.request('/api/admin/vouchers',{method:'POST',json:payload});$('#voucherDialog').close();showToast(data.message,'success');loadVouchers();}catch(error){setStatus($('#voucherFormStatus'),error.message);}finally{setBusy(button,false);}}
