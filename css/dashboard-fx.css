@@ -2126,6 +2126,7 @@
     box-shadow: 0 4px 12px rgba(255, 122, 26, 0.15);
 }
 
+/* 2. Mini Sparklines on Stat Cards */
 /* 2. Thẻ Thống Kê Toàn Diện & Mini Sparklines */
 .stat-grid {
     display: grid !important;

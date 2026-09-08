@@ -735,18 +735,18 @@
         }
     }
 
-    function setupAdminChartScrollWatcher() {
+        function setupAdminChartScrollWatcher() {
         if (chartScrollObserver) return;
         chartScrollObserver = true;
 
         const cards = document.querySelectorAll(
-            '.admin-metrics .stat-card, .admin-kpi-card, .conversion-funnel-card, .admin-chart-card, .admin-status-card, .admin-category-card, .admin-top-products-card, .system-health-bar'
+            '.admin-metrics .stat-card, .admin-kpi-card, .conversion-funnel-card, .admin-chart-card, .admin-status-card, .admin-category-card, .admin-top-products-card, .system-health-bar, .stat-grid .stat-card'
         );
 
-        const enterObs = new IntersectionObserver((entries) => {
+        const obs = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
+                const el = entry.target;
                 if (entry.isIntersecting) {
-                    const el = entry.target;
                     if (el._scrollArmed !== false) {
                         el._scrollArmed = false;
                         if (el.classList.contains('stat-card') || el.classList.contains('system-health-bar') || el.classList.contains('admin-kpi-card')) {
@@ -760,39 +760,22 @@
                         } else if (el.classList.contains('admin-chart-card')) {
                             if (typeof window._playAdminTrend === 'function') window._playAdminTrend();
                         } else if (el.classList.contains('admin-status-card')) {
-                            if (currentStatusViewMode === 'donut' && typeof window._playAdminStatusDonut === 'function') {
-                                window._playAdminStatusDonut();
-                            } else if (typeof window._playAdminStatusBar === 'function') {
-                                window._playAdminStatusBar();
-                            }
+                            if (typeof window._playAdminStatusDonut === 'function') window._playAdminStatusDonut();
                         } else if (el.classList.contains('admin-category-card')) {
-                            if (currentCatViewMode === 'donut' && typeof window._playAdminCategoryDonut === 'function') {
-                                window._playAdminCategoryDonut();
-                            } else if (typeof window._playAdminCategoryBar === 'function') {
-                                window._playAdminCategoryBar();
-                            }
+                            if (typeof window._playAdminCategoryDonut === 'function') window._playAdminCategoryDonut();
                         } else if (el.classList.contains('conversion-funnel-card')) {
                             if (typeof window._playAdminFunnel === 'function') window._playAdminFunnel();
                         } else if (el.classList.contains('admin-top-products-card')) {
                             if (typeof window._playAdminTopProducts === 'function') window._playAdminTopProducts();
                         }
                     }
+                } else {
+                    el._scrollArmed = true;
                 }
             });
-        }, { threshold: 0.15, rootMargin: '10px 0px 10px 0px' });
+        }, { threshold: 0.15, rootMargin: '0px' });
 
-        const exitObs = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (!entry.isIntersecting) {
-                    entry.target._scrollArmed = true;
-                }
-            });
-        }, { rootMargin: '60px 0px 60px 0px' });
-
-        cards.forEach(c => {
-            enterObs.observe(c);
-            exitObs.observe(c);
-        });
+        cards.forEach(c => obs.observe(c));
     }
 
     function replayAllDashboardAnimations() {

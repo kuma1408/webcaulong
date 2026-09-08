@@ -725,3 +725,19 @@
     border-color: rgba(255, 255, 255, 0.14) !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
 }
+
+
+/* UNIVERSAL SHOWCASE TILE STYLES */
+:where(.product-card__media, .img-container, .detail-img-main, .detail-img-thumbnails .swiper-slide) {
+    background: #ffffff !important;
+    border-radius: var(--sport-radius, 12px) !important;
+    overflow: hidden;
+}
+
+:where(.product-card__media img, .img-container img, .detail-img-main img, .sanpham img, .san-pham-goi-y-item img, .detail-img-thumbnails .swiper-slide img) {
+    object-fit: contain !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: transparent !important;
+    padding: 4px;
+}
