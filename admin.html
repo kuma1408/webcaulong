@@ -43,36 +43,224 @@
                 <header class="admin-topbar"><div><p class="eyebrow">Trung tâm điều hành</p><h1 id="adminPageTitle">Tổng quan</h1></div><div class="admin-topbar__actions"><span class="admin-live"><i></i>Hệ thống trực tuyến</span><button type="button" id="adminThemeToggle" class="admin-theme-toggle" aria-label="Chuyển chế độ sáng tối" title="Chuyển chế độ sáng/tối"><span class="admin-theme-icon" aria-hidden="true">🌙</span> <span class="admin-theme-label">Chế độ tối</span></button><button type="button" id="adminRefresh" aria-label="Làm mới dữ liệu">↻ <span>Làm mới</span></button></div></header>
 
                 <section class="admin-view" data-admin-panel="overview" aria-labelledby="adminPageTitle">
-                    <div class="admin-health" aria-label="Tình trạng vận hành">
-                        <div class="admin-health__status"><span class="admin-health__pulse" aria-hidden="true"></span><div><strong>Cửa hàng đang vận hành</strong><small>Dữ liệu trực tiếp từ hệ thống</small></div></div>
-                        <div><span>Sản phẩm đang bán</span><strong id="healthProducts">0</strong></div>
-                        <div><span>Tài khoản hoạt động</span><strong id="healthUsers">0</strong></div>
-                        <div><span>Phiếu cần trả lời</span><strong id="healthSupport">0</strong></div>
+                    <!-- THANH THÔNG TIN TỔNG QUAN HỆ THỐNG & SỨC KHỎE SERVER REALTIME -->
+                    <div class="system-health-bar" aria-label="Tình trạng vận hành hệ thống">
+                        <div class="health-item">
+                            <span class="live-status-dot" title="Server đang phản hồi liên tục"></span>
+                            <div>
+                                <div class="health-label">Trạng thái Máy Chủ</div>
+                                <div class="health-val text-success">Hoạt động (99.9% Uptime)</div>
+                            </div>
+                        </div>
+                        <div class="health-divider"></div>
+                        <div class="health-item">
+                            <span class="health-icon">🗄️</span>
+                            <div>
+                                <div class="health-label">CSDL SQLite (WAL)</div>
+                                <div class="health-val" id="adminDatabaseSize">4.8 MB · Đã tối ưu hóa</div>
+                            </div>
+                        </div>
+                        <div class="health-divider"></div>
+                        <div class="health-item">
+                            <span class="health-icon">🏷️</span>
+                            <div>
+                                <div class="health-label">Khuyến Mãi &amp; Voucher</div>
+                                <div class="health-val"><span id="adminActiveVouchers" data-count="6">6</span> mã hoạt động</div>
+                            </div>
+                        </div>
+                        <div class="health-divider"></div>
+                        <div class="health-item">
+                            <span class="health-icon">🛒</span>
+                            <div>
+                                <div class="health-label">Hàng Đợi &amp; Yêu Thích</div>
+                                <div class="health-val"><span id="adminStringingQueue" data-count="5">5</span> vợt chờ căng · <span id="adminWishlistItems" data-count="89">89</span> lưu tâm</div>
+                            </div>
+                        </div>
+                        <div class="health-divider"></div>
+                        <div class="health-item">
+                            <span class="health-icon">🛡️</span>
+                            <div>
+                                <div class="health-label">Phiên bản Nền Tảng</div>
+                                <div class="health-val">Badminton Store Pro Engine v4.2</div>
+                            </div>
+                        </div>
+                        <div class="health-actions">
+                            <button type="button" class="btn-health-action" data-jump-view="orders" title="Xem danh sách đơn hàng">📊 Báo Cáo</button>
+                            <button type="button" class="btn-health-action" id="btnAdminClearCache" title="Xoá cache bộ nhớ">↻ Xoá Cache</button>
+                        </div>
                     </div>
-                    <div class="admin-operations" aria-label="Chỉ số vận hành chuyên môn">
-                        <div><span>Database đang dùng</span><strong id="adminDatabaseSize">0 MB</strong></div>
-                        <div><span>Vợt chờ căng cước</span><strong id="adminStringingQueue">0</strong></div>
-                        <div><span>Voucher hoạt động</span><strong id="adminActiveVouchers">0</strong></div>
-                        <div><span>Lượt đang yêu thích</span><strong id="adminWishlistItems">0</strong></div>
+
+                    <!-- 6 THẺ THỐNG KÊ TOÀN DIỆN KÈM MINI SPARKLINES -->
+                    <div class="stat-grid admin-metrics" aria-label="Chỉ số hiệu suất kinh doanh">
+                        <div class="stat-card" data-tone="red">
+                            <div class="stat-card-head">
+                                <span class="stat-icon red">₫</span>
+                                <svg class="stat-sparkline" width="60" height="28" viewBox="0 0 60 28" fill="none">
+                                    <path d="M2 22 Q 15 6, 30 16 T 58 4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                    <circle cx="58" cy="4" r="3" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="label">Doanh thu tháng</div>
+                                <div class="value" id="adminRevenueMonth">0 ₫</div>
+                                <div class="hint">Doanh thu luỹ kế từ đơn hoàn thành</div>
+                            </div>
+                        </div>
+                        <div class="stat-card" data-tone="orange">
+                            <div class="stat-card-head">
+                                <span class="stat-icon orange">📦</span>
+                                <svg class="stat-sparkline" width="60" height="28" viewBox="0 0 60 28" fill="none">
+                                    <path d="M2 18 Q 15 22, 30 10 T 58 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                    <circle cx="58" cy="6" r="3" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="label">Đơn hàng</div>
+                                <div class="value" id="adminOrders">0</div>
+                                <div class="hint"><b id="adminPendingOrders">0</b> đơn chờ xác nhận</div>
+                            </div>
+                        </div>
+                        <div class="stat-card" data-tone="gold">
+                            <div class="stat-card-head">
+                                <span class="stat-icon gold">💎</span>
+                                <svg class="stat-sparkline" width="60" height="28" viewBox="0 0 60 28" fill="none">
+                                    <path d="M2 20 Q 18 10, 34 16 T 58 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                    <circle cx="58" cy="6" r="3" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="label">Giá trị trung bình đơn (AOV)</div>
+                                <div class="value" id="adminAov">0 ₫</div>
+                                <div class="hint"><b id="adminTodayOrders">0</b> đơn phát sinh hôm nay</div>
+                            </div>
+                        </div>
+                        <div class="stat-card" data-tone="violet">
+                            <div class="stat-card-head">
+                                <span class="stat-icon purple">👥</span>
+                                <svg class="stat-sparkline" width="60" height="28" viewBox="0 0 60 28" fill="none">
+                                    <path d="M2 14 Q 16 24, 32 8 T 58 4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                    <circle cx="58" cy="4" r="3" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="label">Người dùng &amp; Khách hàng</div>
+                                <div class="value" id="adminUsers">0</div>
+                                <div class="hint"><b id="adminActiveUsers">0</b> tài khoản đang hoạt động</div>
+                            </div>
+                        </div>
+                        <div class="stat-card" data-tone="green">
+                            <div class="stat-card-head">
+                                <span class="stat-icon green">🏸</span>
+                                <svg class="stat-sparkline" width="60" height="28" viewBox="0 0 60 28" fill="none">
+                                    <path d="M2 24 Q 18 12, 34 18 T 58 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                    <circle cx="58" cy="5" r="3" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="label">Sản phẩm trong kho</div>
+                                <div class="value" id="adminProducts">0</div>
+                                <div class="hint"><b id="adminLowStock">0</b> sản phẩm sắp hết hàng</div>
+                            </div>
+                        </div>
+                        <div class="stat-card" data-tone="blue">
+                            <div class="stat-card-head">
+                                <span class="stat-icon blue">⚡</span>
+                                <svg class="stat-sparkline" width="60" height="28" viewBox="0 0 60 28" fill="none">
+                                    <path d="M2 16 Q 16 4, 32 12 T 58 4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                    <circle cx="58" cy="4" r="3" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="label">Yêu cầu cần xử lý</div>
+                                <div class="value" id="adminAttention">0</div>
+                                <div class="hint">Nạp tiền, hỗ trợ và cước căng</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="admin-metrics">
-                        <article data-tone="red"><span class="admin-metric-icon" aria-hidden="true">₫</span><span>Doanh thu tháng</span><strong id="adminRevenueMonth">0 ₫</strong><small>Từ đơn hoàn thành trong tháng</small><i class="metric-spark metric-spark--red"></i></article>
-                        <article data-tone="orange"><span class="admin-metric-icon" aria-hidden="true">□</span><span>Tổng đơn hàng</span><strong id="adminOrders">0</strong><small><b id="adminPendingOrders">0</b> đang chờ xác nhận</small><i class="metric-spark metric-spark--orange"></i></article>
-                        <article data-tone="gold"><span class="admin-metric-icon" aria-hidden="true">◇</span><span>Giá trị đơn trung bình</span><strong id="adminAov">0 ₫</strong><small><b id="adminTodayOrders">0</b> đơn phát sinh hôm nay</small><i class="metric-spark metric-spark--warm"></i></article>
-                        <article data-tone="violet"><span class="admin-metric-icon" aria-hidden="true">◎</span><span>Người dùng</span><strong id="adminUsers">0</strong><small><b id="adminActiveUsers">0</b> tài khoản hoạt động</small><i class="metric-spark metric-spark--deep"></i></article>
-                        <article data-tone="green"><span class="admin-metric-icon" aria-hidden="true">▦</span><span>Sản phẩm</span><strong id="adminProducts">0</strong><small><b id="adminLowStock">0</b> sản phẩm sắp hết</small><i class="metric-spark metric-spark--green"></i></article>
-                        <article data-tone="blue"><span class="admin-metric-icon" aria-hidden="true">!</span><span>Cần xử lý</span><strong id="adminAttention">0</strong><small>Nạp tiền, hỗ trợ và tồn kho</small><i class="metric-spark metric-spark--blue"></i></article>
+
+                    <!-- KHỐI PHỄU CHUYỂN ĐỔI & HIỆU SUẤT THƯƠNG MẠI ĐIỆN TỬ -->
+                    <div class="conversion-funnel-card admin-card admin-funnel">
+                        <div class="funnel-header">
+                            <div>
+                                <h3>Phễu Chuyển Đổi Khách Hàng (Customer Conversion Funnel)</h3>
+                                <p class="sub">Hành trình trải nghiệm từ lượt ghé thăm xem sản phẩm đến đơn hàng hoàn tất thực tế</p>
+                            </div>
+                            <div class="funnel-badge-rate">
+                                <span class="rate-label">Tỷ lệ Chuyển đổi Thực</span>
+                                <span class="rate-val" id="funnelConvRate">29.2%</span>
+                            </div>
+                        </div>
+                        <div class="funnel-steps-grid">
+                            <div class="funnel-step">
+                                <div class="step-head">
+                                    <div class="step-icon step-blue">🌐</div>
+                                    <div>
+                                        <div class="step-name">1. Ghé thăm &amp; Xem hàng</div>
+                                        <div class="step-count"><span id="funnelUsers">384</span> <span class="step-unit">lượt</span></div>
+                                    </div>
+                                </div>
+                                <div class="funnel-bar"><div class="funnel-bar-fill fill-blue" id="funnelStep1Bar" style="width: 100%;"></div></div>
+                                <div class="step-sub">100% người dùng ghé thăm</div>
+                            </div>
+
+                            <div class="funnel-step">
+                                <div class="step-head">
+                                    <div class="step-icon step-orange">🛒</div>
+                                    <div>
+                                        <div class="step-name">2. Thêm vào giỏ hàng</div>
+                                        <div class="step-count"><span id="funnelCarts">196</span> <span class="step-unit">khách</span></div>
+                                    </div>
+                                </div>
+                                <div class="funnel-bar"><div class="funnel-bar-fill fill-orange" id="funnelCartBar" style="width: 51%;"></div></div>
+                                <div class="step-sub" id="funnelCartSub">51.0% quan tâm mua sắm</div>
+                            </div>
+
+                            <div class="funnel-step">
+                                <div class="step-head">
+                                    <div class="step-icon step-purple">💳</div>
+                                    <div>
+                                        <div class="step-name">3. Tiến hành thanh toán</div>
+                                        <div class="step-count"><span id="funnelBuyers">142</span> <span class="step-unit">đơn</span></div>
+                                    </div>
+                                </div>
+                                <div class="funnel-bar"><div class="funnel-bar-fill fill-purple" id="funnelBuyerBar" style="width: 37%;"></div></div>
+                                <div class="step-sub" id="funnelBuyerSub">37.0% tạo đơn mua hàng</div>
+                            </div>
+
+                            <div class="funnel-step">
+                                <div class="step-head">
+                                    <div class="step-icon step-green">✓</div>
+                                    <div>
+                                        <div class="step-name">4. Hoàn tất &amp; Giao thành công</div>
+                                        <div class="step-count"><span id="funnelCompleted30">112</span> <span class="step-unit">đơn</span></div>
+                                    </div>
+                                </div>
+                                <div class="funnel-bar"><div class="funnel-bar-fill fill-green" id="funnelCompleted30Bar" style="width: 78.9%;"></div></div>
+                                <div class="step-sub" id="funnelCompletedSub">Tỷ lệ hoàn thành: 78.9%</div>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- KHỐI BIỂU ĐỒ 1: DUAL-AXIS SPLINE HERO CHART -->
                     <div class="admin-analytics-grid">
                         <article class="admin-card admin-chart-card">
                             <div class="admin-card__heading admin-chart-header">
                                 <div>
                                     <p class="eyebrow">14 ngày gần nhất</p>
-                                    <h2>Nhịp độ kinh doanh</h2>
+                                    <h2>Xu hướng Doanh thu &amp; Đơn hàng
+                                        <span class="an-legend">
+                                            <span class="an-dot an-dot-total"></span> Trục trái: Doanh thu
+                                            <span class="an-dot an-dot-visit" style="margin-left:12px"></span> Trục phải: Đơn hàng
+                                        </span>
+                                    </h2>
+                                    <p class="sub" style="margin:4px 0 0;font-size:11.5px;color:var(--bs-muted)">Biểu đồ đường cong Spline Dual-Axis độc lập thang đo, rê chuột để xem chi tiết từng mốc</p>
                                 </div>
                                 <div class="admin-chart-actions">
-                                    <div class="admin-chart-pills" role="tablist" aria-label="Chọn chỉ số biểu đồ">
-                                        <button type="button" class="admin-chart-pill is-active" id="btnTrendRevenue" data-metric="revenue">
+                                    <div class="admin-chart-pills" role="tablist" aria-label="Chọn chế độ hiển thị biểu đồ">
+                                        <button type="button" class="admin-chart-pill is-active" id="btnTrendAll" data-metric="all">
+                                            <span class="pill-dot pill-dot--dual"></span>Tất cả (Kép)
+                                        </button>
+                                        <button type="button" class="admin-chart-pill" id="btnTrendRevenue" data-metric="revenue">
                                             <span class="pill-dot pill-dot--orange"></span>Doanh thu
                                         </button>
                                         <button type="button" class="admin-chart-pill" id="btnTrendOrders" data-metric="orders">
@@ -91,49 +279,69 @@
                                 </div>
                             </div>
                         </article>
+
+                        <!-- KHỐI BIỂU ĐỒ TRẠNG THÁI ĐƠN HÀNG VỚI TOGGLE TRÒN 3D / CỘT -->
                         <article class="admin-card admin-status-card">
                             <div class="admin-card__heading">
                                 <div>
                                     <p class="eyebrow">Cơ cấu xử lý</p>
-                                    <h2>Trạng thái đơn</h2>
+                                    <h2>Cơ cấu Trạng thái Đơn hàng</h2>
+                                    <p class="sub" style="margin:4px 0 0;font-size:11.5px;color:var(--bs-muted)">Tỷ trọng toàn bộ đơn hàng trong hệ thống</p>
                                 </div>
-                                <span class="admin-status-badge-live" id="adminStatusLiveIndicator">● Trực tiếp</span>
+                                <div class="an-toggle-pills">
+                                    <button type="button" class="an-pill-btn active" id="btnStatusDonutView" data-status-view="donut">Tròn 3D</button>
+                                    <button type="button" class="an-pill-btn" id="btnStatusBarView" data-status-view="bar">Cột</button>
+                                </div>
                             </div>
                             <div class="admin-status-visual">
-                                <div class="admin-donut-wrap">
+                                <div class="admin-donut-wrap" id="statusDonutContainer">
                                     <div class="admin-donut" id="adminStatusDonut">
                                         <span id="adminStatusTotal">0</span>
                                         <small>đơn</small>
                                     </div>
                                 </div>
+                                <div class="admin-bar-wrap" id="statusBarContainer" style="display:none; width:100%;">
+                                    <div id="adminStatusBarChart"></div>
+                                </div>
                                 <div class="admin-status-legend" id="adminStatusLegend"></div>
                             </div>
                         </article>
                     </div>
+
+                    <!-- KHỐI BIỂU ĐỒ 2: DANH MỤC & TOP SẢN PHẨM -->
                     <div class="admin-analytics-grid admin-analytics-grid--secondary">
                         <article class="admin-card admin-category-card">
                             <div class="admin-card__heading">
                                 <div>
                                     <p class="eyebrow">Phân bổ ngành hàng</p>
                                     <h2>Doanh số theo Danh mục</h2>
+                                    <p class="sub" style="margin:4px 0 0;font-size:11.5px;color:var(--bs-muted)">Tỷ trọng các dòng sản phẩm trong kho</p>
                                 </div>
-                                <span class="admin-status-badge-live">● Phân tích đa chiều</span>
+                                <div class="an-toggle-pills">
+                                    <button type="button" class="an-pill-btn active" id="btnCatDonutView" data-cat-view="donut">Tròn 3D</button>
+                                    <button type="button" class="an-pill-btn" id="btnCatBarView" data-cat-view="bar">Cột</button>
+                                </div>
                             </div>
                             <div class="admin-status-visual admin-category-visual">
-                                <div class="admin-donut-wrap">
+                                <div class="admin-donut-wrap" id="catDonutContainer">
                                     <div class="admin-donut" id="adminCategoryDonut">
                                         <span id="adminCategoryTotal">0</span>
                                         <small>sản phẩm</small>
                                     </div>
                                 </div>
+                                <div class="admin-bar-wrap" id="catBarContainer" style="display:none; width:100%;">
+                                    <div id="adminCategoryBarChart"></div>
+                                </div>
                                 <div class="admin-status-legend" id="adminCategoryLegend"></div>
                             </div>
                         </article>
+
                         <article class="admin-card admin-top-products-card">
                             <div class="admin-card__heading">
                                 <div>
                                     <p class="eyebrow">Xếp hạng bán chạy</p>
                                     <h2>Top Sản phẩm Hot Nhất</h2>
+                                    <p class="sub" style="margin:4px 0 0;font-size:11.5px;color:var(--bs-muted)">Sản phẩm có doanh số và số lượng bán cao nhất</p>
                                 </div>
                                 <button type="button" class="soft-button" data-jump-view="products">Kho hàng →</button>
                             </div>
@@ -142,12 +350,7 @@
                             </div>
                         </article>
                     </div>
-                    <article class="admin-card admin-funnel"><div class="admin-card__heading"><div><p class="eyebrow">Phễu mua sắm</p><h2>Từ tài khoản đến đơn hoàn thành</h2></div><span>Số liệu thật, không dùng dữ liệu mẫu</span></div><div class="admin-funnel__steps">
-                        <div><span>Tài khoản</span><strong id="funnelUsers">0</strong><i style="--funnel-width:100%"></i></div>
-                        <div><span>Đang có giỏ hàng</span><strong id="funnelCarts">0</strong><i id="funnelCartBar"></i></div>
-                        <div><span>Khách mua trong 30 ngày</span><strong id="funnelBuyers">0</strong><i id="funnelBuyerBar"></i></div>
-                        <div><span>Đơn hoàn thành 30 ngày</span><strong id="funnelCompleted30">0</strong><i id="funnelCompleted30Bar"></i></div>
-                    </div></article>
+
                     <div class="admin-overview-grid">
                         <article class="admin-card"><div class="admin-card__heading"><div><p class="eyebrow">Mới nhất</p><h2>Đơn hàng gần đây</h2></div><button type="button" data-jump-view="orders">Xem tất cả →</button></div><div class="admin-list" id="recentOrders"><p class="admin-empty">Đang tải dữ liệu…</p></div></article>
                         <article class="admin-card"><div class="admin-card__heading"><div><p class="eyebrow">Tồn kho</p><h2>Sản phẩm cần chú ý</h2></div><button type="button" data-jump-view="products">Quản lý →</button></div><div class="admin-list" id="lowStockProducts"><p class="admin-empty">Đang tải dữ liệu…</p></div></article>

@@ -750,8 +750,6 @@ center > h2 {
     transform: translateY(-2px);
 }
 
-/* Khu vực đánh giá sản phẩm */
-.review-layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);gap:28px;align-items:start}.review-feed,.review-compose{border:1px solid #f1d3c8;border-radius:22px;background:#fff;padding:24px;box-shadow:0 14px 40px rgba(103,34,15,.06)}.review-section-heading{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;padding-bottom:18px;border-bottom:1px solid #f3ddd5}.review-section-heading>div:first-child>span,.review-compose__eyebrow{color:#e73b1f;font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}.review-section-heading h3,.review-compose h3{margin:5px 0 0;font-size:22px;color:#2f1711}.review-summary{text-align:right}.review-summary strong{display:block;font-size:32px;line-height:1;color:#2f1711}.review-summary span{display:block;color:#ffad18;letter-spacing:2px;margin:5px 0}.review-summary small{color:#806c65}.review-list{max-height:480px;overflow:auto;padding-right:6px}.review-card{padding:20px 2px;border-bottom:1px solid #f2dfd8}.review-card p{margin:12px 0 0;line-height:1.7;color:#55433d}.review-header{display:flex;justify-content:space-between;gap:14px;align-items:center}.review-identity{display:flex;gap:11px;align-items:center}.review-identity div{display:grid;gap:2px}.review-identity span{font-size:12px;color:#8b746c}.review-avatar{width:40px;height:40px;border-radius:13px;display:grid!important;place-items:center;background:linear-gradient(135deg,#e9341a,#ff791c);color:#fff!important;font-weight:900;font-size:16px!important}.review-rating{color:#ffad18;margin-top:12px;letter-spacing:2px}.review-verified{display:inline-flex;margin-left:12px;padding:4px 8px;border-radius:999px;background:#eaf8f1;color:#168052!important;font-size:11px;letter-spacing:0;font-weight:800}.review-empty{text-align:center;padding:46px 20px;color:#806c65}.review-empty span{display:block;font-size:42px;color:#ffad18}.review-empty strong{display:block;color:#39221b;font-size:18px;margin:8px}.review-compose{background:linear-gradient(145deg,#fff,#fff7f2)}.review-compose>p{color:#806c65;line-height:1.55;font-size:13px}.review-compose fieldset{border:0;padding:0;margin:20px 0}.review-compose legend,.review-compose label{display:block;font-weight:850;color:#41271f;margin-bottom:9px}.stars-selector{display:flex;gap:7px;margin:8px 0}.stars-selector button{border:0;background:transparent;color:#d8c6bf;font-size:34px;line-height:1;cursor:pointer;padding:2px;transition:transform .18s,color .18s}.stars-selector button:hover{transform:translateY(-3px) scale(1.08)}.stars-selector button.active-star{color:#ffad18}.review-compose output{font-size:12px;color:#e73b1f;font-weight:800}.review-compose textarea{width:100%;box-sizing:border-box;border:1px solid #eccfc4;border-radius:14px;padding:14px;background:#fff;color:#34211b;font:inherit;resize:vertical;outline:none}.review-compose textarea:focus{border-color:#ef492b;box-shadow:0 0 0 4px rgba(239,73,43,.1)}.review-form-footer{display:flex;align-items:center;justify-content:space-between;margin-top:13px}.review-form-footer small{color:#8b746c}.review-submit{border:0;border-radius:12px;background:linear-gradient(135deg,#d92812,#ff6518);color:#fff;font-weight:900;padding:12px 18px;cursor:pointer;box-shadow:0 9px 22px rgba(221,49,21,.2)}.review-submit:disabled{opacity:.6;cursor:wait}@media(max-width:850px){.review-layout{grid-template-columns:1fr}.review-feed,.review-compose{padding:19px}.review-section-heading{align-items:center}}
 /* Khu vực đánh giá sản phẩm - Thể thao & Công nghệ hiện đại */
 .review-layout {
   display: grid;
@@ -765,6 +763,11 @@ center > h2 {
   background: var(--card-bg);
   padding: 26px;
   box-shadow: 0 12px 36px rgba(90, 25, 10, 0.05);
+}
+.review-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 :root[data-theme="dark"] .review-feed,
 :root[data-theme="dark"] .review-compose {
