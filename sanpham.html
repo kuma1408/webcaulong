@@ -440,6 +440,134 @@
             }
         }
 
+        const FALLBACK_CATALOG_PRODUCTS = [
+            {
+                MaSP: 164, TenSP: "Vợt Cầu Lông Vicleo Aero 555", ThuongHieu: "Vicleo", MaDM: 1,
+                GiaBan: 490000, GiaGoc: 750000, DanhGiaTrungBinh: 5.0,
+                HinhAnh: "HA/imported-products/product-164-source-1.jpg",
+                TrongLuongCan: "4U-G5", LoiChoi: "CAN_BANG", DiemCanBang: "CAN_BANG", DoCungDua: "TRUNG_BINH"
+            },
+            {
+                MaSP: 101, TenSP: "Set Vợt Cầu Lông Yonex Nanoflare 1000Z Trắng", ThuongHieu: "Yonex", MaDM: 1,
+                GiaBan: 15000000, GiaGoc: 16500000, DanhGiaTrungBinh: 5.0,
+                HinhAnh: "HA/anh vot/Set Vợt Cầu Lông Yonex Nanoflare 1000Z Trắng 15.000.000 ₫.png",
+                TrongLuongCan: "4U-G5", LoiChoi: "TAN_CONG", DiemCanBang: "NANG_DAU", DoCungDua: "CUNG"
+            },
+            {
+                MaSP: 103, TenSP: "Vợt Cầu Lông Lining Axforce 10", ThuongHieu: "Lining", MaDM: 1,
+                GiaBan: 950000, GiaGoc: 1300000, DanhGiaTrungBinh: 4.8,
+                HinhAnh: "HA/anh vot/Vợt Cầu Lông Lining Axforce 10 950.000 ₫.png",
+                TrongLuongCan: "4U-G5", LoiChoi: "TAN_CONG", DiemCanBang: "NANG_DAU", DoCungDua: "TRUNG_BINH"
+            },
+            {
+                MaSP: 102, TenSP: "Giày Cầu Lông Lining AYAT005-6 Chính Hãng", ThuongHieu: "Lining", MaDM: 2,
+                GiaBan: 2330000, GiaGoc: 2600000, DanhGiaTrungBinh: 4.9,
+                HinhAnh: "HA/Giày/Giày cầu lông Lining AYAT005-6 chính hãng 2.330.000 ₫.png"
+            },
+            {
+                MaSP: 107, TenSP: "Áo Cầu Lông Lining A320 Nam - Hồng Đen", ThuongHieu: "Lining", MaDM: 3,
+                GiaBan: 130000, GiaGoc: 180000, DanhGiaTrungBinh: 4.7,
+                HinhAnh: "HA/Áo/Áo Cầu Lông Lining A320 Nam - Hồng Đen 130.000 ₫ .png"
+            },
+            {
+                MaSP: 108, TenSP: "Váy Cầu Lông Kamito Galaxy 1 KMVS240223 - Navy", ThuongHieu: "Kamito", MaDM: 4,
+                GiaBan: 350000, GiaGoc: 420000, DanhGiaTrungBinh: 4.9,
+                HinhAnh: "HA/váy/Váy cầu lông Kamito Galaxy 1 KMVS240223 - Navy chính hãng 350.000 ₫.png"
+            },
+            {
+                MaSP: 109, TenSP: "Quần Cầu Lông Lining Nam Đen - Mã 124", ThuongHieu: "Lining", MaDM: 5,
+                GiaBan: 124000, GiaGoc: 160000, DanhGiaTrungBinh: 4.6,
+                HinhAnh: "HA/Quần/Quần cầu lông Lining nam Đen 124.000 ₫.png"
+            },
+            {
+                MaSP: 110, TenSP: "Quần Cầu Lông Yonex 9224 - Đỏ", ThuongHieu: "Yonex", MaDM: 5,
+                GiaBan: 150000, GiaGoc: 200000, DanhGiaTrungBinh: 4.8,
+                HinhAnh: "HA/Quần/Quần cầu lông Yonex 9224 - Đỏ 150.000 ₫.png"
+            },
+            {
+                MaSP: 105, TenSP: "Túi Cầu Lông Kumpoo KB463 Tráng Bạc", ThuongHieu: "Kumpoo", MaDM: 6,
+                GiaBan: 820000, GiaGoc: 1050000, DanhGiaTrungBinh: 4.8,
+                HinhAnh: "HA/túi/Túi cầu lông Kumpoo KB463 820.000 ₫.png"
+            },
+            {
+                MaSP: 104, TenSP: "Balo Cầu Lông Kawasaki 8245 Đa Năng", ThuongHieu: "Kawasaki", MaDM: 7,
+                GiaBan: 750000, GiaGoc: 900000, DanhGiaTrungBinh: 4.9,
+                HinhAnh: "HA/balo/Balo cầu lông Kawasaki 8245 750.000 ₫ .png"
+            },
+            {
+                MaSP: 106, TenSP: "Dây Cước Căng Vợt Lining L9", ThuongHieu: "Lining", MaDM: 8,
+                GiaBan: 60000, GiaGoc: 80000, DanhGiaTrungBinh: 4.7,
+                HinhAnh: "HA/phụ kien/Dây cước căng vợt Lining L9 60.000 ₫.png"
+            },
+            {
+                MaSP: 111, TenSP: "Quấn Cán Kamito KMCC2401 Thấm Hút", ThuongHieu: "Kamito", MaDM: 8,
+                GiaBan: 20000, GiaGoc: 30000, DanhGiaTrungBinh: 5.0,
+                HinhAnh: "HA/phụ kien/Quấn cán Kamito KMCC2401 20.000 ₫.png"
+            },
+            {
+                MaSP: 112, TenSP: "Dây Cước Căng Vợt Yonex BG EXBOLT 68", ThuongHieu: "Yonex", MaDM: 8,
+                GiaBan: 185000, GiaGoc: 210000, DanhGiaTrungBinh: 5.0,
+                HinhAnh: "HA/phụ kien/Dây cước căng vợt Yonex BG EXBOLT 68  185.000 ₫.png"
+            },
+            {
+                MaSP: 113, TenSP: "Ống Cầu Lông Yonex Aerosensa 50 (AS50)", ThuongHieu: "Yonex", MaDM: 8,
+                GiaBan: 1019000, GiaGoc: 1150000, DanhGiaTrungBinh: 5.0,
+                HinhAnh: "HA/phụ kien/Ống cầu lông Yonex AS50 1.019.000 ₫.png"
+            }
+        ];
+
+        function renderCatalogList(products, total) {
+            const grid = document.getElementById('productGrid');
+            const countLabel = document.getElementById('resultCount');
+            if (!products || products.length === 0) {
+                grid.innerHTML = '<div style="text-align:center;grid-column:1/-1;color:var(--text-muted);padding:40px;">Không có sản phẩm nào khớp với bộ lọc của bạn!</div>';
+                countLabel.textContent = "0 sản phẩm";
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+
+            grid.innerHTML = '';
+            countLabel.textContent = `Tìm thấy ${Number(total || products.length)} sản phẩm`;
+
+            products.forEach((p, idx) => {
+                const productId = Number(p.MaSP);
+                if (!Number.isInteger(productId) || productId <= 0) return;
+                const saleActive = Number(p.GiaGoc || 0) > Number(p.GiaBan || 0);
+                const card = document.createElement('div');
+                card.className = 'product-card-upgraded';
+                const href = `chitiet.html?id=${productId}`;
+                const media = document.createElement('a');
+                media.href = href; media.className = 'img-container';
+                const image = document.createElement('img');
+                image.src = window.BadmintonAuth ? window.BadmintonAuth.safeUrl(p.HinhAnh, 'HA/cc-removebg-preview.png') : p.HinhAnh;
+                image.alt = String(p.TenSP || 'Sản phẩm cầu lông');
+                if (idx < 6) {
+                    image.loading = 'eager';
+                    image.decoding = 'async';
+                } else {
+                    image.loading = 'lazy';
+                    image.decoding = 'async';
+                }
+                image.onerror = () => { image.src = 'HA/cc-removebg-preview.png'; image.classList.add('is-fallback-image'); };
+                media.appendChild(image);
+                const info = document.createElement('div'); info.className = 'card-info';
+                const brand = document.createElement('span'); brand.className = 'brand-tag'; brand.textContent = p.ThuongHieu || 'Chính hãng';
+                const title = document.createElement('h3'); title.className = 'title';
+                const titleLink = document.createElement('a'); titleLink.href = href; titleLink.textContent = p.TenSP || 'Sản phẩm cầu lông';
+                titleLink.style.textDecoration = 'none'; titleLink.style.color = 'inherit'; title.appendChild(titleLink);
+                const priceRow = document.createElement('div'); priceRow.className = 'price-row';
+                const priceStack = document.createElement('span'); priceStack.className = 'price-stack';
+                if (saleActive) { const original = document.createElement('span'); original.className = 'original-price'; original.textContent = `${Number(p.GiaGoc).toLocaleString('vi-VN')} ₫`; priceStack.appendChild(original); }
+                const price = document.createElement('span'); price.className = 'price'; price.textContent = `${Number(p.GiaBan || 0).toLocaleString('vi-VN')} ₫`; priceStack.appendChild(price);
+                const rating = document.createElement('span'); rating.className = 'rating'; rating.textContent = `⭐ ${Number(p.DanhGiaTrungBinh || 5).toFixed(1)}`;
+                const specs = document.createElement('div'); specs.className = 'cart-item-config';
+                [p.TrongLuongCan, p.LoiChoi && String(p.LoiChoi).replaceAll('_', ' '), p.DiemCanBang && String(p.DiemCanBang).replaceAll('_', ' ')].filter(Boolean).forEach(value => { const chip = document.createElement('span'); chip.textContent = value; specs.appendChild(chip); });
+                priceRow.append(priceStack, rating); info.append(brand, title); if (specs.childElementCount) info.appendChild(specs); info.appendChild(priceRow);
+                card.append(media, info);
+                grid.appendChild(card);
+            });
+        }
+
         async function fetchCatalogProducts() {
             const grid = document.getElementById('productGrid');
             const countLabel = document.getElementById('resultCount');
@@ -449,8 +577,8 @@
             const checkedBrands = Array.from(document.querySelectorAll('#brandList input:checked')).map(cb => cb.value);
             
             // Thu thập khoảng giá
-            const minPrice = document.getElementById('priceMin').value || 0;
-            const maxPrice = document.getElementById('priceMax').value || 999999999;
+            const minPrice = Number(document.getElementById('priceMin').value) || 0;
+            const maxPrice = Number(document.getElementById('priceMax').value) || 999999999;
             const sortBy = document.getElementById('sortSelect').value;
 
             // Lọc tại backend để tổng số và phân trang luôn chính xác.
@@ -469,71 +597,47 @@
             const url = `${API_BASE}/api/tim-kiem?${query}`;
 
             try {
-                const res = await fetch(url);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3500);
+                const res = await fetch(url, { signal: controller.signal });
+                clearTimeout(timeoutId);
                 const data = await res.json();
 
-                if (data.success && data.products.length > 0) {
-                    let products = data.products;
-
-                    if (products.length === 0) {
-                        grid.innerHTML = '<div style="text-align:center;grid-column:1/-1;color:var(--text-muted);padding:40px;">Không có sản phẩm nào khớp với bộ lọc của bạn!</div>';
-                        countLabel.textContent = "0 sản phẩm";
-                        document.getElementById('pagination').innerHTML = '';
-                        return;
-                    }
-
-                    grid.innerHTML = '';
-                    countLabel.textContent = `Tìm thấy ${Number(data.total || products.length)} sản phẩm`;
-
-                    products.forEach((p, idx) => {
-                        const productId = Number(p.MaSP);
-                        if (!Number.isInteger(productId) || productId <= 0) return;
-                        const saleActive = Number(p.GiaGoc || 0) > Number(p.GiaBan || 0);
-                        const card = document.createElement('div');
-                        card.className = 'product-card-upgraded';
-                        const href = `chitiet.html?id=${productId}`;
-                        const media = document.createElement('a');
-                        media.href = href; media.className = 'img-container';
-                        const image = document.createElement('img');
-                        image.src = window.BadmintonAuth.safeUrl(p.HinhAnh, 'HA/cc-removebg-preview.png');
-                        image.alt = String(p.TenSP || 'Sản phẩm cầu lông');
-                        if (idx < 6) {
-                            image.loading = 'eager';
-                            image.decoding = 'async';
-                        } else {
-                            image.loading = 'lazy';
-                            image.decoding = 'async';
-                        }
-                        image.onerror = () => { image.src = 'HA/cc-removebg-preview.png'; image.classList.add('is-fallback-image'); };
-                        media.appendChild(image);
-                        const info = document.createElement('div'); info.className = 'card-info';
-                        const brand = document.createElement('span'); brand.className = 'brand-tag'; brand.textContent = p.ThuongHieu || 'Chính hãng';
-                        const title = document.createElement('h3'); title.className = 'title';
-                        const titleLink = document.createElement('a'); titleLink.href = href; titleLink.textContent = p.TenSP || 'Sản phẩm cầu lông';
-                        titleLink.style.textDecoration = 'none'; titleLink.style.color = 'inherit'; title.appendChild(titleLink);
-                        const priceRow = document.createElement('div'); priceRow.className = 'price-row';
-                        const priceStack = document.createElement('span'); priceStack.className = 'price-stack';
-                        if (saleActive) { const original = document.createElement('span'); original.className = 'original-price'; original.textContent = `${Number(p.GiaGoc).toLocaleString('vi-VN')} ₫`; priceStack.appendChild(original); }
-                        const price = document.createElement('span'); price.className = 'price'; price.textContent = `${Number(p.GiaBan || 0).toLocaleString('vi-VN')} ₫`; priceStack.appendChild(price);
-                        const rating = document.createElement('span'); rating.className = 'rating'; rating.textContent = `⭐ ${Number(p.DanhGiaTrungBinh || 5).toFixed(1)}`;
-                        const specs = document.createElement('div'); specs.className = 'cart-item-config';
-                        [p.TrongLuongCan, p.LoiChoi && String(p.LoiChoi).replaceAll('_', ' '), p.DiemCanBang && String(p.DiemCanBang).replaceAll('_', ' ')].filter(Boolean).forEach(value => { const chip = document.createElement('span'); chip.textContent = value; specs.appendChild(chip); });
-                        priceRow.append(priceStack, rating); info.append(brand, title); if (specs.childElementCount) info.appendChild(specs); info.appendChild(priceRow);
-                        card.append(media, info);
-                        grid.appendChild(card);
-                    });
-
-                    // Vẽ phân trang
+                if (data.success && data.products && data.products.length > 0) {
+                    renderCatalogList(data.products, data.total);
                     renderPagination(data.total, 20);
-                } else {
-                    grid.innerHTML = '<div style="text-align:center;grid-column:1/-1;color:var(--text-muted);padding:40px;">Không tìm thấy sản phẩm nào!</div>';
-                    countLabel.textContent = "0 sản phẩm";
-                    document.getElementById('pagination').innerHTML = '';
+                    return;
                 }
             } catch (e) {
-                console.error("Lỗi cào API:", e);
-                grid.innerHTML = '<div style="text-align:center;grid-column:1/-1;color:red;padding:40px;">Lỗi kết nối tới máy chủ backend!</div>';
+                console.warn("Backend chưa sẵn sàng hoặc ngoại tuyến, sử dụng bộ lọc sản phẩm dự phòng:", e.message);
             }
+
+            // Fallback lọc cục bộ khi backend chưa mở
+            let filtered = FALLBACK_CATALOG_PRODUCTS.slice();
+            if (currentCategory) {
+                filtered = filtered.filter(p => p.MaDM === currentCategory);
+            }
+            if (currentSearchQuery) {
+                const q = currentSearchQuery.toLowerCase();
+                filtered = filtered.filter(p => (p.TenSP && p.TenSP.toLowerCase().includes(q)) || (p.ThuongHieu && p.ThuongHieu.toLowerCase().includes(q)));
+            }
+            if (isSale) {
+                filtered = filtered.filter(p => Number(p.GiaGoc || 0) > Number(p.GiaBan || 0));
+            }
+            if (checkedBrands.length) {
+                filtered = filtered.filter(p => checkedBrands.some(b => (p.ThuongHieu || '').toLowerCase().includes(b.toLowerCase())));
+            }
+            filtered = filtered.filter(p => Number(p.GiaBan || 0) >= minPrice && Number(p.GiaBan || 0) <= maxPrice);
+            if (specFilters.trong_luong) filtered = filtered.filter(p => p.TrongLuongCan === specFilters.trong_luong);
+            if (specFilters.loi_choi) filtered = filtered.filter(p => p.LoiChoi === specFilters.loi_choi);
+            if (specFilters.can_bang) filtered = filtered.filter(p => p.DiemCanBang === specFilters.can_bang);
+            if (specFilters.do_cung) filtered = filtered.filter(p => p.DoCungDua === specFilters.do_cung);
+
+            if (sortBy === 'gia_tang') filtered.sort((a, b) => a.GiaBan - b.GiaBan);
+            else if (sortBy === 'gia_giam') filtered.sort((a, b) => b.GiaBan - a.GiaBan);
+
+            renderCatalogList(filtered, filtered.length);
+            renderPagination(filtered.length, 20);
         }
 
         function renderPagination(totalItems, itemsPerPage) {

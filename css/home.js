@@ -6,60 +6,76 @@
 
     const FALLBACK_PRODUCTS = [
         {
+            id: 164,
+            name: 'Vợt Cầu Lông Vicleo Aero 555',
+            price: 490000,
+            originalPrice: 750000,
+            type: 'Vợt Cầu Lông',
+            image: 'HA/imported-products/product-164-source-1.jpg',
+            href: 'chitiet.html?id=164'
+        },
+        {
+            id: 101,
+            name: 'Set Vợt Cầu Lông Yonex Nanoflare 1000Z Trắng',
+            price: 15000000,
+            originalPrice: 16500000,
+            type: 'Vợt Cầu Lông',
+            image: 'HA/anh vot/Set Vợt Cầu Lông Yonex Nanoflare 1000Z Trắng 15.000.000 ₫.png',
+            href: 'chitiet.html?id=101'
+        },
+        {
+            id: 103,
             name: 'Vợt Cầu Lông Lining Axforce 10',
             price: 950000,
-            type: 'Vợt cầu lông',
+            originalPrice: 1300000,
+            type: 'Vợt Cầu Lông',
             image: 'HA/anh vot/Vợt Cầu Lông Lining Axforce 10 950.000 ₫.png',
-            href: 'sanpham.html?q=Lining Axforce 10'
+            href: 'chitiet.html?id=103'
         },
         {
-            name: 'Giày Cầu Lông Lining AYAT005-6',
+            id: 102,
+            name: 'Giày Cầu Lông Lining AYAT005-6 Chính Hãng',
             price: 2330000,
-            type: 'Giày cầu lông',
+            originalPrice: 2600000,
+            type: 'Giày Cầu Lông',
             image: 'HA/Giày/Giày cầu lông Lining AYAT005-6 chính hãng 2.330.000 ₫.png',
-            href: 'sanpham.html?q=Lining AYAT005-6'
+            href: 'chitiet.html?id=102'
         },
         {
-            name: 'Áo Cầu Lông Lining A320 Nam',
+            id: 107,
+            name: 'Áo Cầu Lông Lining A320 Nam - Hồng Đen',
             price: 130000,
-            type: 'Trang phục',
+            originalPrice: 180000,
+            type: 'Áo Cầu Lông',
             image: 'HA/Áo/Áo Cầu Lông Lining A320 Nam - Hồng Đen 130.000 ₫ .png',
-            href: 'sanpham.html?q=Lining A320'
+            href: 'chitiet.html?id=107'
         },
         {
-            name: 'Balo Cầu Lông Kawasaki 8245',
+            id: 104,
+            name: 'Balo Cầu Lông Kawasaki 8245 Đa Năng',
             price: 750000,
-            type: 'Túi & balo',
+            originalPrice: 900000,
+            type: 'Balo Cầu Lông',
             image: 'HA/balo/Balo cầu lông Kawasaki 8245 750.000 ₫ .png',
-            href: 'sanpham.html?q=Kawasaki 8245'
+            href: 'chitiet.html?id=104'
         },
         {
-            name: 'Túi Cầu Lông Kumpoo KB463',
+            id: 105,
+            name: 'Túi Cầu Lông Kumpoo KB463 Tráng Bạc',
             price: 820000,
-            type: 'Túi & balo',
+            originalPrice: 1050000,
+            type: 'Túi Vợt Cầu Lông',
             image: 'HA/túi/Túi cầu lông Kumpoo KB463 820.000 ₫.png',
-            href: 'sanpham.html?q=Kumpoo KB463'
+            href: 'chitiet.html?id=105'
         },
         {
+            id: 106,
             name: 'Dây Cước Căng Vợt Lining L9',
             price: 60000,
-            type: 'Phụ kiện',
+            originalPrice: 80000,
+            type: 'Phụ Kiện',
             image: 'HA/phụ kien/Dây cước căng vợt Lining L9 60.000 ₫.png',
-            href: 'sanpham.html?q=Lining L9'
-        },
-        {
-            name: 'Váy Cầu Lông Kamito Galaxy 1',
-            price: 350000,
-            type: 'Trang phục',
-            image: 'HA/váy/Váy cầu lông Kamito Galaxy 1 KMVS240223 - Navy chính hãng 350.000 ₫.png',
-            href: 'sanpham.html?q=Kamito Galaxy 1'
-        },
-        {
-            name: 'Vợt Yonex Nanoflare 1000Z Trắng',
-            price: 15000000,
-            type: 'Vợt cầu lông',
-            image: 'HA/anh vot/Set Vợt Cầu Lông Yonex Nanoflare 1000Z Trắng 15.000.000 ₫.png',
-            href: 'sanpham.html?q=Nanoflare 1000Z'
+            href: 'chitiet.html?id=106'
         }
     ];
 
@@ -107,6 +123,11 @@
     }
 
     function apiBase() {
+        if (typeof window.BadmintonAuth?.apiBase === 'function') {
+            const authBase = window.BadmintonAuth.apiBase();
+            if (authBase) return authBase.replace(/\/$/, '');
+        }
+        if (window.API_BASE) return String(window.API_BASE).replace(/\/$/, '');
         const configured = document.querySelector('meta[name="api-base"]')?.content.trim();
         if (configured) return configured.replace(/\/$/, '');
         if (!window.location.hostname || ['localhost', '127.0.0.1'].includes(window.location.hostname)) {
