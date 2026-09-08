@@ -2126,7 +2126,85 @@
     box-shadow: 0 4px 12px rgba(255, 122, 26, 0.15);
 }
 
-/* 2. Mini Sparklines on Stat Cards */
+/* 2. Thẻ Thống Kê Toàn Diện & Mini Sparklines */
+.stat-grid {
+    display: grid !important;
+    gap: 18px !important;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+    margin-bottom: 24px !important;
+}
+.stat-card {
+    background: var(--bs-card) !important;
+    border: 1px solid var(--bs-line) !important;
+    border-radius: 18px !important;
+    padding: 18px 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    min-height: 135px !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04) !important;
+    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+.stat-card:hover {
+    transform: translateY(-3px) !important;
+    border-color: var(--bs-orange) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1) !important;
+}
+.stat-card-head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 12px !important;
+    width: 100% !important;
+}
+.stat-icon {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 12px !important;
+    flex-shrink: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    color: #fff !important;
+    font-size: 19px !important;
+    font-weight: 800 !important;
+}
+.stat-icon.red { background: linear-gradient(135deg, #ff7a52, #cf3c1c) !important; }
+.stat-icon.orange { background: linear-gradient(135deg, #fb923c, #ea580c) !important; }
+.stat-icon.gold { background: linear-gradient(135deg, #f59e0b, #d97706) !important; }
+.stat-icon.purple { background: linear-gradient(135deg, #a855f7, #7c3aed) !important; }
+.stat-icon.green { background: linear-gradient(135deg, #22c55e, #15803d) !important; }
+.stat-icon.blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important; }
+
+.stat-card-body {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+}
+.stat-card .label {
+    font-size: 13px !important;
+    color: var(--bs-muted) !important;
+    font-weight: 600 !important;
+    margin-bottom: 4px !important;
+    line-height: 1.35 !important;
+}
+.stat-card .value {
+    font-size: 23px !important;
+    font-weight: 850 !important;
+    line-height: 1.25 !important;
+    color: var(--bs-ink) !important;
+    letter-spacing: -0.02em !important;
+}
+.stat-card .hint {
+    font-size: 12px !important;
+    color: var(--bs-muted) !important;
+    margin-top: 5px !important;
+    line-height: 1.35 !important;
+}
+.stat-card .hint b { color: var(--bs-ink) !important; }
+
 .stat-sparkline {
     margin-left: auto;
     flex-shrink: 0;
