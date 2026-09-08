@@ -10,7 +10,7 @@ stamp="$(date -u +%Y%m%dT%H%M%SZ)"
 stage="$release_dir/webcaulong-$stamp"
 
 case "$app_path" in
-  "$HOME"/www/*) ;;
+  "$HOME"/www|"$HOME"/www/*) ;;
   *) echo "Đường dẫn triển khai nằm ngoài thư mục www của tài khoản." >&2; exit 2 ;;
 esac
 case "$apply_migration" in
