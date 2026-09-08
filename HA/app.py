@@ -2098,12 +2098,7 @@ def validate_voucher():
 @app.route("/api/admin/vouchers", methods=["GET", "POST"])
 @admin_required
 def admin_vouchers():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    try:
-        if request.method == "GET":
-            cursor.execute("SELECT * FROM Voucher ORDER BY TrangThai DESC, NgayHetHan DESC, MaVoucher")
-            return jsonify({"success": True, "items": [serialize_row(row) for row in cursor.fetchall()]})
+    if request.method == "POST":
         data = body_json()
         code = str(data.get("code", "")).strip().upper()
         kind = str(data.get("type", "PHAN_TRAM")).upper()
@@ -2133,6 +2128,13 @@ def admin_vouchers():
             return api_error("Trạng thái voucher không hợp lệ.")
         if starts_at and expires_at and starts_at > expires_at:
             return api_error("Ngày bắt đầu phải trước ngày hết hạn.")
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        if request.method == "GET":
+            cursor.execute("SELECT * FROM Voucher ORDER BY TrangThai DESC, NgayHetHan DESC, MaVoucher")
+            return jsonify({"success": True, "items": [serialize_row(row) for row in cursor.fetchall()]})
         cursor.execute(
             """INSERT INTO Voucher
                (MaVoucher,LoaiGiam,GiaTri,GiamToiDa,DonToiThieu,SoLuong,DaSuDung,NgayBatDau,NgayHetHan,TrangThai)
