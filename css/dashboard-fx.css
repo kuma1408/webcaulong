@@ -623,6 +623,19 @@
     overflow: visible;
 }
 
+.admin-donut-cyber-ring {
+    fill: none;
+    stroke: color-mix(in srgb, var(--bs-line) 75%, transparent);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 6;
+    animation: donutCyberSpin 28s linear infinite;
+    transform-origin: 72px 72px;
+}
+
+@keyframes donutCyberSpin {
+    to { transform: rotate(360deg); }
+}
+
 .admin-donut-bg {
     fill: none;
     stroke: color-mix(in srgb, var(--bs-line) 70%, transparent);
@@ -635,16 +648,26 @@
     stroke-linecap: round;
     transition: stroke-width 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, filter 0.25s ease;
     cursor: pointer;
+    animation: donutSegDraw 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes donutSegDraw {
+    from {
+        stroke-dasharray: 0 400;
+        opacity: 0;
+    }
 }
 
 .admin-donut-seg.is-focus {
     stroke-width: 20;
     filter: drop-shadow(0 0 10px var(--seg-color));
+    filter: drop-shadow(0 0 12px var(--seg-color));
     opacity: 1 !important;
 }
 
 .admin-donut-seg.is-dimmed {
     opacity: 0.25;
+    opacity: 0.22;
 }
 
 .admin-donut-center {

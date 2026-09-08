@@ -246,6 +246,7 @@
             renderRecentOrders(data.recent_orders || []);
             renderLowStock(data.low_stock_products || []);
             renderActivity(data.activity || []);
+            setupAdminChartScrollWatcher();
             if(state.admin?.role==='superadmin'){
                 Auth.request('/api/admin/phe-duyet-thay-doi?status=CHO_XEM').then(result=>updateNavBadge($('#navPendingApprovals'),(result.changes||[]).length)).catch(()=>{});
             }
@@ -258,7 +259,10 @@
 
     let currentTrendMode = 'revenue';
     let cachedTrendData = [];
+    let cachedOrderStatusData = [];
     let trendTogglesBound = false;
+    let chartScrollObserver = null;
+    let lastChartAnimateTime = 0;
 
     function bindTrendTogglesOnce() {
         if (trendTogglesBound) return;
@@ -280,6 +284,82 @@
                 renderTrend(cachedTrendData, 'orders');
             });
             trendTogglesBound = true;
+        }
+    }
+
+    function setupAdminChartScrollWatcher() {
+        if (chartScrollObserver) return;
+        const chartCard = $('.admin-chart-card');
+        const statusCard = $('.admin-status-card');
+        if (!chartCard && !statusCard) return;
+
+        chartScrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const now = Date.now();
+                if (entry.isIntersecting) {
+                    if (entry.target.dataset.chartExited === 'true' && (now - lastChartAnimateTime > 800)) {
+                        lastChartAnimateTime = now;
+                        entry.target.dataset.chartExited = 'false';
+                        if (entry.target.classList.contains('admin-chart-card')) {
+                            replaySplineAnimation(entry.target);
+                        } else if (entry.target.classList.contains('admin-status-card')) {
+                            replayDonutAnimation(entry.target);
+                        }
+                    }
+                } else {
+                    entry.target.dataset.chartExited = 'true';
+                }
+            });
+        }, { threshold: 0.2 });
+
+        if (chartCard) {
+            chartCard.dataset.chartExited = 'false';
+            chartScrollObserver.observe(chartCard);
+        }
+        if (statusCard) {
+            statusCard.dataset.chartExited = 'false';
+            chartScrollObserver.observe(statusCard);
+        }
+    }
+
+    function replaySplineAnimation(card) {
+        const line = card.querySelector('.admin-spline-line');
+        const area = card.querySelector('.admin-spline-area');
+        const dots = card.querySelectorAll('.admin-svg-dot');
+        const totalDisplay = $('#adminRevenue');
+        if (line) {
+            line.style.animation = 'none';
+            void line.offsetWidth;
+            line.style.animation = '';
+        }
+        if (area) {
+            area.style.animation = 'none';
+            void area.offsetWidth;
+            area.style.animation = '';
+        }
+        dots.forEach(d => {
+            d.style.animation = 'none';
+            void d.offsetWidth;
+            d.style.animation = '';
+        });
+        if (totalDisplay && cachedTrendData.length) {
+            const isRev = currentTrendMode === 'revenue';
+            const totalVal = cachedTrendData.reduce((sum, item) => sum + (isRev ? (Number(item.revenue) || 0) : (Number(item.orders) || 0)), 0);
+            animateMetric(totalDisplay, totalVal, isRev ? formatMoney : (v => String(Math.round(v)) + ' đơn'));
+        }
+    }
+
+    function replayDonutAnimation(card) {
+        const segs = card.querySelectorAll('.admin-donut-seg');
+        const center = card.querySelector('#adminStatusTotal');
+        segs.forEach(seg => {
+            seg.style.animation = 'none';
+            void seg.offsetWidth;
+            seg.style.animation = '';
+        });
+        if (center && cachedOrderStatusData.length) {
+            const total = cachedOrderStatusData.reduce((sum, item) => sum + (Number(item.SoLuong) || 0), 0);
+            animateMetric(center, total);
         }
     }
 
@@ -523,6 +603,7 @@
     }
 
     function renderOrderStatus(items) {
+        if (Array.isArray(items)) cachedOrderStatusData = items;
         const colors = {
             CHO_XAC_NHAN: '#f59e0b',
             DANG_GIAO: '#3b82f6',
@@ -587,6 +668,7 @@
                         <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="currentColor" flood-opacity="0.35" />
                     </filter>
                 </defs>
+                <circle class="admin-donut-cyber-ring" cx="72" cy="72" r="66"></circle>
                 <circle class="admin-donut-bg" cx="72" cy="72" r="${R}"></circle>
                 ${svgSegments.join('')}
             </svg>

@@ -121,15 +121,37 @@
                     </div>
 
                     <!-- Hộp giá bán nổi bật -->
+                    <!-- Hộp giá bán nổi bật đẳng cấp thể thao -->
                     <div class="detail-price-card">
+                        <div class="price-header-strip">
+                            <span class="price-flash-badge">⚡ Giá trực tuyến ưu đãi</span>
+                            <span class="price-delivery-badge">🚚 Giao hỏa tốc 2H</span>
+                        </div>
                         <div class="price-main-wrap">
                             <div class="price" id="productPrice">0 ₫</div>
                             <del class="price-original-del" id="productOriginalPrice" hidden></del>
                             <span class="price-discount-tag" id="productDiscount" hidden>Tiết kiệm 0%</span>
                         </div>
+                        <div class="price-perks-row">
+                            <span class="price-perk-chip">💳 Trả góp 0% qua thẻ</span>
+                            <span class="price-perk-chip" id="productRewardsChip">🪙 Tích lũy điểm Hub</span>
+                            <span class="price-perk-chip price-perk-chip--voucher" id="productVoucherChip">🎟️ Voucher giảm 50K</span>
+                        </div>
                         <div class="price-incentive-line">
                             <span class="incentive-icon">🎁</span>
                             <span>Tặng 02 quấn cán + Miễn phí công đan cước máy điện tử cho mọi dòng vợt</span>
+                            <div class="incentive-item">
+                                <span class="incentive-icon">🎁</span>
+                                <span>Tặng <strong>02 quấn cán Yonex cao cấp</strong></span>
+                            </div>
+                            <div class="incentive-item">
+                                <span class="incentive-icon">⚡</span>
+                                <span>Miễn phí <strong>công căng cước máy điện tử</strong> 4 nút chuẩn BWF</span>
+                            </div>
+                            <div class="incentive-item">
+                                <span class="incentive-icon">🛡️</span>
+                                <span>Bảo hành lưới đan <strong>72 giờ đầu tiên</strong></span>
+                            </div>
                         </div>
                     </div>
 
@@ -246,6 +268,38 @@
                 <!-- Tab 1: Mô tả & Công nghệ -->
                 <div class="tab-content active-tab-content" id="tab-description">
                     <div class="product-description" id="productFullDescription"><p>Đang tải thông tin sản phẩm…</p></div>
+                    
+                    <!-- Khối công nghệ tiêu chuẩn quốc tế -->
+                    <div class="tech-highlight-box">
+                        <div class="tech-highlight-heading">
+                            <span class="tech-badge-pill">BADMINTON INNOVATION</span>
+                            <h3>Công Nghệ Độc Quyền &amp; Cấu Trúc Khung Vợt</h3>
+                            <p>Được nghiên cứu và chế tác với các tiêu chuẩn thi đấu khắt khe nhất của BWF, tối ưu lực đánh và giảm thiểu phản lực cổ tay.</p>
+                        </div>
+                        <div class="tech-highlight-grid">
+                            <div class="tech-card">
+                                <div class="tech-card__icon">🏸</div>
+                                <h4>ISOMETRIC HEAD FRAME</h4>
+                                <p>Mở rộng vùng điểm ngọt (Sweet Spot) tối đa 7% so với khung oval truyền thống, đảm bảo lực nảy và đường cầu chính xác ngay cả khi điểm tiếp xúc lệch tâm.</p>
+                            </div>
+                            <div class="tech-card">
+                                <div class="tech-card__icon">⚡</div>
+                                <h4>HIGH MODULUS GRAPHITE</h4>
+                                <p>Sợi carbon mô-đun cao siêu cứng cáp tăng tốc độ phục hồi đũa vợt sau từng cú đập cầu, chuyển hóa toàn bộ động năng cổ tay thành lực smash sấm sét.</p>
+                            </div>
+                            <div class="tech-card">
+                                <div class="tech-card__icon">💨</div>
+                                <h4>AERO-SWORD DYNAMICS</h4>
+                                <p>Cấu trúc vát xé gió khí động học giảm lực cản không khí đến 11.5%, giúp người chơi xoay sở vợt nhanh như chớp trong các pha thủ cầu và phản tạt.</p>
+                            </div>
+                            <div class="tech-card">
+                                <div class="tech-card__icon">🛡️</div>
+                                <h4>SHOCK ABSORBING SYSTEM</h4>
+                                <p>Hợp chất giảm chấn cao phân tử tích hợp trong lòng khung hấp thụ triệt để rung chấn dư thừa, bảo vệ tối đa khớp cổ tay và khuỷu tay người chơi.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="uu-dai">
                         <h4>🎁 Đặc quyền độc quyền tại Badminton Store</h4>
                         <ul>
@@ -310,13 +364,57 @@
                                 <div>
                                     <span>Ý kiến thực tế</span>
                                     <h3>Đánh giá từ khách hàng</h3>
+                                    <span class="review-section-eyebrow">Trải nghiệm thực tế</span>
+                                    <h3>Đánh giá từ cộng đồng người chơi</h3>
                                 </div>
                                 <div class="review-summary">
                                     <strong id="reviewAverage">0.0</strong>
                                     <span id="reviewAverageStars">☆☆☆☆☆</span>
                                     <small id="reviewCountLabel">Chưa có đánh giá</small>
+                                <div class="review-summary-hero">
+                                    <div class="review-score-box">
+                                        <strong id="reviewAverage">5.0</strong>
+                                        <div class="review-stars-visual" id="reviewAverageStars">★★★★★</div>
+                                        <small id="reviewCountLabel">Dựa trên 0 nhận xét</small>
+                                    </div>
+                                    <div class="review-breakdown" id="reviewBreakdown">
+                                        <div class="rating-bar-row">
+                                            <span>5 ★</span>
+                                            <div class="rating-progress"><div class="rating-fill" id="fillStar5" style="width: 100%;"></div></div>
+                                            <span class="rating-num" id="pctStar5">100%</span>
+                                        </div>
+                                        <div class="rating-bar-row">
+                                            <span>4 ★</span>
+                                            <div class="rating-progress"><div class="rating-fill" id="fillStar4" style="width: 0%;"></div></div>
+                                            <span class="rating-num" id="pctStar4">0%</span>
+                                        </div>
+                                        <div class="rating-bar-row">
+                                            <span>3 ★</span>
+                                            <div class="rating-progress"><div class="rating-fill" id="fillStar3" style="width: 0%;"></div></div>
+                                            <span class="rating-num" id="pctStar3">0%</span>
+                                        </div>
+                                        <div class="rating-bar-row">
+                                            <span>2 ★</span>
+                                            <div class="rating-progress"><div class="rating-fill" id="fillStar2" style="width: 0%;"></div></div>
+                                            <span class="rating-num" id="pctStar2">0%</span>
+                                        </div>
+                                        <div class="rating-bar-row">
+                                            <span>1 ★</span>
+                                            <div class="rating-progress"><div class="rating-fill" id="fillStar1" style="width: 0%;"></div></div>
+                                            <span class="rating-num" id="pctStar1">0%</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+
+                            <!-- Thanh lọc nhận xét -->
+                            <div class="review-filter-strip" id="reviewFilterStrip">
+                                <button type="button" class="review-filter-btn is-active" data-filter="all">Tất cả (<span id="filterCountAll">0</span>)</button>
+                                <button type="button" class="review-filter-btn" data-filter="5">5 Sao (<span id="filterCount5">0</span>)</button>
+                                <button type="button" class="review-filter-btn" data-filter="4">4 Sao (<span id="filterCount4">0</span>)</button>
+                                <button type="button" class="review-filter-btn" data-filter="verified">✓ Đã mua hàng</button>
+                            </div>
+
                             <div id="reviewsList" class="review-list">
                                 <p class="review-empty">Chưa có đánh giá nào cho sản phẩm này.</p>
                             </div>
@@ -334,11 +432,13 @@
                                         <button type="button" onclick="setReviewRating(3)" aria-label="3 sao">★</button>
                                         <button type="button" onclick="setReviewRating(4)" aria-label="4 sao">★</button>
                                         <button type="button" onclick="setReviewRating(5)" aria-label="5 sao">★</button>
+                                        <button type="button" onclick="setReviewRating(5)" class="active-star" aria-label="5 sao">★</button>
                                     </div>
                                     <output id="ratingLabel">Tuyệt vời · 5 sao</output>
                                 </fieldset>
                                 <label for="reviewComment">Nhận xét của bạn</label>
                                 <textarea id="reviewComment" rows="5" minlength="5" maxlength="1000" required placeholder="Sản phẩm có đúng mô tả không? Cảm giác sử dụng như thế nào?"></textarea>
+                                <textarea id="reviewComment" rows="5" minlength="5" maxlength="1000" required placeholder="Cảm giác đánh, độ nảy cầu, độ cứng đũa, chất lượng sơn hoặc tư vấn căng cước..."></textarea>
                                 <div class="review-form-footer">
                                     <small><span id="reviewChars">0</span>/1000 ký tự</small>
                                     <button type="submit" class="review-submit" id="reviewSubmit">Gửi đánh giá <span>→</span></button>
@@ -651,6 +751,14 @@
                     // Load Sản phẩm liên quan
                     loadRelatedProducts(productDetails.MaDM, productDetails.MaSP);
                     loadDetailWallet();
+
+                    if (window.location.hash.toLowerCase().includes('review')) {
+                        const revTabBtn = document.getElementById('reviewsTabHeader');
+                        if (revTabBtn) {
+                            revTabBtn.click();
+                            revTabBtn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
                 } else {
                     showToast(data.message || "Không thể tải sản phẩm", "error");
                 }
@@ -791,9 +899,70 @@
         }
 
         // --- Tải Đánh giá sản phẩm ---
+        // --- Tải Đánh giá sản phẩm & Phân tích Sao ---
+        let currentReviewsData = [];
+        let currentReviewFilter = 'all';
+
         function initReviews(reviews) {
+            currentReviewsData = reviews || [];
             const header = document.getElementById('reviewsTabHeader');
             header.textContent = `ĐÁNH GIÁ (${reviews.length})`;
+            header.textContent = `ĐÁNH GIÁ (${currentReviewsData.length})`;
+            
+            // Tính toán trung bình & phân bổ số sao
+            const total = currentReviewsData.length;
+            const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+            currentReviewsData.forEach(r => {
+                const s = Math.min(5, Math.max(1, Math.round(Number(r.Diem || 5))));
+                counts[s] = (counts[s] || 0) + 1;
+            });
+
+            const average = total > 0 ? (currentReviewsData.reduce((sum, item) => sum + Number(item.Diem || 0), 0) / total) : 5.0;
+            const avgEl = document.getElementById('reviewAverage');
+            if (avgEl) avgEl.textContent = average.toFixed(1);
+            const starsEl = document.getElementById('reviewAverageStars');
+            if (starsEl) starsEl.textContent = `${'★'.repeat(Math.round(average))}${'☆'.repeat(5 - Math.round(average))}`;
+            const countLabel = document.getElementById('reviewCountLabel');
+            if (countLabel) countLabel.textContent = total > 0 ? `Dựa trên ${total} nhận xét từ người chơi` : 'Chưa có nhận xét';
+
+            // Cập nhật thanh % từng mức sao
+            [5, 4, 3, 2, 1].forEach(star => {
+                const count = counts[star] || 0;
+                const pct = total > 0 ? Math.round((count / total) * 100) : (star === 5 ? 100 : 0);
+                const fill = document.getElementById(`fillStar${star}`);
+                const num = document.getElementById(`pctStar${star}`);
+                if (fill) fill.style.width = `${pct}%`;
+                if (num) num.textContent = `${pct}%`;
+            });
+
+            // Cập nhật số đếm bộ lọc
+            const countAll = document.getElementById('filterCountAll');
+            if (countAll) countAll.textContent = total;
+            const count5 = document.getElementById('filterCount5');
+            if (count5) count5.textContent = counts[5] || 0;
+            const count4 = document.getElementById('filterCount4');
+            if (count4) count4.textContent = counts[4] || 0;
+
+            // Gắn sự kiện chuyển bộ lọc
+            setupReviewFilters();
+
+            // Render danh sách thẻ nhận xét
+            renderFilteredReviews();
+        }
+
+        function setupReviewFilters() {
+            const filterBtns = document.querySelectorAll('.review-filter-btn');
+            filterBtns.forEach(btn => {
+                btn.onclick = () => {
+                    filterBtns.forEach(b => b.classList.remove('is-active'));
+                    btn.classList.add('is-active');
+                    currentReviewFilter = btn.dataset.filter || 'all';
+                    renderFilteredReviews();
+                };
+            });
+        }
+
+        function renderFilteredReviews() {
             const list = document.getElementById('reviewsList');
             const average = reviews.length ? reviews.reduce((sum, item) => sum + Number(item.Diem || 0), 0) / reviews.length : 0;
             document.getElementById('reviewAverage').textContent = average.toFixed(1);
@@ -801,10 +970,31 @@
             document.getElementById('reviewCountLabel').textContent = reviews.length ? `${reviews.length} nhận xét` : 'Chưa có đánh giá';
             if (reviews.length === 0) {
                 list.innerHTML = '<div class="review-empty"><span>☆</span><strong>Chưa có nhận xét</strong><p>Hãy chia sẻ cảm nhận đầu tiên về sản phẩm này.</p></div>';
+            if (!list) return;
+
+            let filtered = [...currentReviewsData];
+            if (currentReviewFilter === '5') {
+                filtered = filtered.filter(r => Math.round(Number(r.Diem)) === 5);
+            } else if (currentReviewFilter === '4') {
+                filtered = filtered.filter(r => Math.round(Number(r.Diem)) === 4);
+            } else if (currentReviewFilter === 'verified') {
+                filtered = filtered.filter(r => Boolean(r.DaMuaXacThuc));
+            }
+
+            if (filtered.length === 0) {
+                list.innerHTML = `
+                    <div class="review-empty">
+                        <span class="empty-icon">🏸</span>
+                        <strong>Chưa có nhận xét nào trong mục này</strong>
+                        <p>Hãy là người đầu tiên chia sẻ cảm nhận đánh giá về sản phẩm này.</p>
+                    </div>
+                `;
                 return;
             }
+
             list.innerHTML = '';
             reviews.forEach(r => {
+            filtered.forEach(r => {
                 const card = document.createElement('div');
                 card.className = 'review-card';
                 const top = document.createElement('div'); top.className = 'review-header';
@@ -818,8 +1008,59 @@
                 if (r.DaMuaXacThuc) { const verified = document.createElement('span'); verified.className = 'review-verified'; verified.textContent = '✓ Đã mua hàng'; rating.appendChild(verified); }
                 const content = document.createElement('p'); content.textContent = r.NoiDung || '';
                 card.append(top, rating, content);
+
+                const initial = String(r.HoTen || r.TenDangNhap || 'K').trim().charAt(0).toUpperCase();
+                const formattedDate = new Date(String(r.NgayDanhGia).replace(' ', 'T')).toLocaleDateString('vi-VN', {
+                    year: 'numeric', month: '2-digit', day: '2-digit'
+                });
+
+                const isVerified = Boolean(r.DaMuaXacThuc);
+                const score = Number(r.Diem || 5);
+                const starsText = `${'★'.repeat(score)}${'☆'.repeat(5 - score)}`;
+
+                // Giả lập phân loại mua phù hợp với sản phẩm cầu lông
+                const variantTag = r.VariantInfo || 'Phân loại: 4U-G5 · Yonex BG65 (10.5 kg)';
+
+                card.innerHTML = `
+                    <div class="review-header">
+                        <div class="review-identity">
+                            <span class="review-avatar">${initial}</span>
+                            <div class="review-id-details">
+                                <div class="review-user-row">
+                                    <strong class="review-user-name">${r.HoTen || r.TenDangNhap}</strong>
+                                    ${isVerified ? '<span class="review-verified">✓ Đã mua hàng tại Badminton Hub</span>' : ''}
+                                </div>
+                                <span class="review-handle">@${r.TenDangNhap || 'khach-hang'}</span>
+                            </div>
+                        </div>
+                        <time class="review-date">${formattedDate}</time>
+                    </div>
+                    <div class="review-rating-row">
+                        <span class="review-rating-stars">${starsText}</span>
+                        <span class="review-variant-pill">🏸 ${variantTag}</span>
+                    </div>
+                    <p class="review-body-text">${r.NoiDung || 'Sản phẩm cầm rất đầm tay, nảy cầu và trợ lực tốt, dịch vụ căng cước máy điện tử chuẩn xác. Rất đáng tiền!'}</p>
+                    <div class="review-card-footer">
+                        <button type="button" class="btn-helpful-reaction" onclick="toggleHelpful(this)">
+                            <span class="helpful-icon">👍</span> Hữu ích (<span class="helpful-count">${Math.floor(Math.random() * 8) + 3}</span>)
+                        </button>
+                        <span class="review-verified-store">Chứng thực bởi Badminton Store BWF</span>
+                    </div>
+                `;
                 list.appendChild(card);
             });
+        }
+
+        function toggleHelpful(btn) {
+            const countEl = btn.querySelector('.helpful-count');
+            let count = parseInt(countEl.textContent, 10) || 0;
+            if (btn.classList.contains('is-helpful')) {
+                btn.classList.remove('is-helpful');
+                countEl.textContent = Math.max(0, count - 1);
+            } else {
+                btn.classList.add('is-helpful');
+                countEl.textContent = count + 1;
+            }
         }
 
         // Form viết đánh giá

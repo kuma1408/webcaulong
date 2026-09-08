@@ -140,6 +140,7 @@
         // để mọi trang chỉ có duy nhất một điều khiển cuộn lên đầu.
         document.querySelectorAll('#bsBackToTop, .bs-back-to-top').forEach((node) => node.remove());
         if (document.querySelector('.sport-back-to-top')) return;
+        if (document.getElementById('bsBackToTop') || document.querySelector('.sport-back-to-top')) return;
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'sport-back-to-top';
