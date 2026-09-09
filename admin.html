@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="css/admin-refinements.css?v=20260909-5">
     <script src="css/auth.js?v=20260909-4" defer></script>
     <script src="css/admin.js?v=20260909-5" defer></script>
+    <link rel="stylesheet" href="css/mega-animations.css?v=20260909-1">
 </head>
 <body class="account-body admin-body">
     <a class="skip-link" href="#adminMain">Bỏ qua điều hướng</a>
@@ -1063,5 +1064,6 @@
         </form>
     </dialog>
     <dialog class="admin-dialog" id="voucherDialog" aria-labelledby="voucherDialogTitle"><form class="admin-dialog__form" id="voucherForm" method="dialog"><div class="admin-dialog__heading"><div><p class="eyebrow">Khuyến mãi</p><h2 id="voucherDialogTitle">Thêm voucher</h2></div><button type="button" data-close-dialog="voucherDialog" aria-label="Đóng">×</button></div><div class="field-grid"><div class="field"><label for="voucherCode">Mã voucher</label><input id="voucherCode" required minlength="3" maxlength="20" placeholder="CHAOMUNG20"></div><div class="field"><label for="voucherType">Loại giảm</label><select id="voucherType"><option value="PHAN_TRAM">Phần trăm (%)</option><option value="SO_TIEN">Số tiền (₫)</option></select></div></div><div class="field-grid field-grid--three"><div class="field"><label for="voucherValue">Giá trị giảm</label><input id="voucherValue" type="number" min="1" required></div><div class="field"><label for="voucherMaximum">Giảm tối đa</label><input id="voucherMaximum" type="number" min="0"></div><div class="field"><label for="voucherMinimum">Đơn tối thiểu</label><input id="voucherMinimum" type="number" min="0" value="0"></div></div><div class="field-grid field-grid--three"><div class="field"><label for="voucherQuantity">Số lượt</label><input id="voucherQuantity" type="number" min="1" value="100" required></div><div class="field"><label for="voucherStarts">Bắt đầu</label><input id="voucherStarts" type="datetime-local"></div><div class="field"><label for="voucherExpires">Hết hạn</label><input id="voucherExpires" type="datetime-local"></div></div><label class="admin-switch"><input id="voucherActive" type="checkbox" checked><span></span>Voucher đang hoạt động</label><p class="form-status" id="voucherFormStatus" role="alert"></p><div class="admin-dialog__actions"><button type="button" data-close-dialog="voucherDialog">Hủy</button><button class="admin-primary" id="voucherSave" type="submit">Tạo voucher</button></div></form></dialog>
+    <script src="css/mega-animations.js?v=20260909-1" defer></script>
 </body>
 </html>

@@ -1,0 +1,646 @@
+/* ============================================================
+   MEGA ANIMATIONS CSS - webcaulong
+   Bộ hiệu ứng animation toàn diện cho cả trang web & Admin
+   ============================================================ */
+
+/* ---- 1. KEYFRAMES CỐT LÕI ---- */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-40px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeLeft {
+    from { opacity: 0; transform: translateX(50px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeRight {
+    from { opacity: 0; transform: translateX(-50px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes popIn {
+    0%   { opacity: 0; transform: scale(0.6); }
+    70%  { transform: scale(1.08); }
+    100% { opacity: 1; transform: scale(1); }
+}
+@keyframes slideInUp {
+    from { opacity: 0; transform: translateY(60px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes flipIn {
+    from { opacity: 0; transform: perspective(600px) rotateX(-30deg) translateY(20px); }
+    to   { opacity: 1; transform: perspective(600px) rotateX(0) translateY(0); }
+}
+@keyframes zoomBlur {
+    from { opacity: 0; transform: scale(1.15); filter: blur(8px); }
+    to   { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+@keyframes shimmerSlide {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+@keyframes neonPulse {
+    0%, 100% { box-shadow: 0 0 5px var(--neon-color, #ff5520), 0 0 20px var(--neon-color, #ff5520), 0 0 40px var(--neon-color, #ff5520); }
+    50%       { box-shadow: 0 0 10px var(--neon-color, #ff5520), 0 0 40px var(--neon-color, #ff5520), 0 0 80px var(--neon-color, #ff5520); }
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-12px); }
+}
+@keyframes floatRotate {
+    0%   { transform: translateY(0) rotate(0deg); }
+    25%  { transform: translateY(-8px) rotate(2deg); }
+    75%  { transform: translateY(-4px) rotate(-2deg); }
+    100% { transform: translateY(0) rotate(0deg); }
+}
+@keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    15%       { transform: rotate(-6deg); }
+    30%       { transform: rotate(6deg); }
+    45%       { transform: rotate(-4deg); }
+    60%       { transform: rotate(4deg); }
+    75%       { transform: rotate(-2deg); }
+    90%       { transform: rotate(2deg); }
+}
+@keyframes heartBeat {
+    0%   { transform: scale(1); }
+    14%  { transform: scale(1.15); }
+    28%  { transform: scale(1); }
+    42%  { transform: scale(1.12); }
+    70%  { transform: scale(1); }
+}
+@keyframes rippleExpand {
+    0%   { transform: scale(0); opacity: 0.8; }
+    100% { transform: scale(4); opacity: 0; }
+}
+@keyframes gradientShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+@keyframes borderGlow {
+    0%, 100% { border-color: rgba(255, 85, 32, 0.4); }
+    50%       { border-color: rgba(255, 85, 32, 1); box-shadow: 0 0 20px rgba(255, 85, 32, 0.6); }
+}
+@keyframes rotateIn {
+    from { opacity: 0; transform: rotate(-180deg) scale(0.3); }
+    to   { opacity: 1; transform: rotate(0deg) scale(1); }
+}
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); animation-timing-function: cubic-bezier(0.8,0,1,1); }
+    50%       { transform: translateY(-20px); animation-timing-function: cubic-bezier(0,0,0.2,1); }
+}
+@keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+    50%       { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+@keyframes progressFill {
+    from { width: 0%; }
+}
+@keyframes sweepLight {
+    0%   { left: -100%; }
+    100% { left: 150%; }
+}
+@keyframes blinkCaret {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+}
+@keyframes morphBlob {
+    0%   { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    50%  { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+    100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+}
+@keyframes starburstPulse {
+    0%   { opacity: 0.6; transform: scale(1); }
+    100% { opacity: 0;   transform: scale(2.8); }
+}
+@keyframes waveText {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-8px); }
+}
+@keyframes adminCardEnter {
+    from { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(4px); }
+    to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes trendLineGrow {
+    from { stroke-dashoffset: 1000; }
+    to   { stroke-dashoffset: 0; }
+}
+
+/* ---- 2. UTILITY ANIMATION CLASSES ---- */
+.anim-fade-up        { animation: fadeUp       0.7s cubic-bezier(0.16,1,0.3,1) both; }
+.anim-fade-down      { animation: fadeDown     0.7s cubic-bezier(0.16,1,0.3,1) both; }
+.anim-fade-left      { animation: fadeLeft     0.7s cubic-bezier(0.16,1,0.3,1) both; }
+.anim-fade-right     { animation: fadeRight    0.7s cubic-bezier(0.16,1,0.3,1) both; }
+.anim-pop-in         { animation: popIn        0.6s cubic-bezier(0.34,1.56,0.64,1) both; }
+.anim-flip-in        { animation: flipIn       0.8s cubic-bezier(0.16,1,0.3,1) both; }
+.anim-zoom-blur      { animation: zoomBlur     1s ease both; }
+.anim-float          { animation: float        3s ease-in-out infinite; }
+.anim-float-rotate   { animation: floatRotate  4s ease-in-out infinite; }
+.anim-bounce         { animation: bounce       1s infinite; }
+.anim-wiggle         { animation: wiggle       0.8s ease; }
+.anim-heartbeat      { animation: heartBeat    1.4s ease infinite; }
+.anim-rotate-in      { animation: rotateIn     0.6s cubic-bezier(0.34,1.56,0.64,1) both; }
+.anim-neon-pulse     { animation: neonPulse    2s ease-in-out infinite; }
+.anim-sparkle        { animation: sparkle      2s ease-in-out infinite; }
+
+.delay-1   { animation-delay: 0.1s; }
+.delay-2   { animation-delay: 0.2s; }
+.delay-3   { animation-delay: 0.3s; }
+.delay-4   { animation-delay: 0.4s; }
+.delay-5   { animation-delay: 0.5s; }
+.delay-6   { animation-delay: 0.6s; }
+.delay-7   { animation-delay: 0.7s; }
+.delay-8   { animation-delay: 0.8s; }
+
+/* ---- 3. SCROLL REVEAL [data-aos] ---- */
+[data-aos] {
+    transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1),
+                transform 0.8s cubic-bezier(0.16,1,0.3,1);
+    will-change: opacity, transform;
+}
+[data-aos="fade-up"]    { opacity: 0; transform: translateY(50px); }
+[data-aos="fade-left"]  { opacity: 0; transform: translateX(60px); }
+[data-aos="fade-right"] { opacity: 0; transform: translateX(-60px); }
+[data-aos="zoom-in"]    { opacity: 0; transform: scale(0.8); }
+[data-aos="flip-up"]    { opacity: 0; transform: perspective(600px) rotateX(-30deg); }
+[data-aos].aos-animate  { opacity: 1 !important; transform: none !important; }
+
+/* ---- 4. PRODUCT CARDS ---- */
+.product-card {
+    transition: transform 0.45s cubic-bezier(0.16,1,0.3,1),
+                box-shadow 0.45s ease !important;
+    position: relative;
+    overflow: hidden;
+}
+.product-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    border-radius: inherit;
+}
+.product-card:hover::after { opacity: 1; }
+/* Sweep shimmer */
+.product-card .product-card__media { position: relative; overflow: hidden; }
+.product-card .product-card__media::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 60%; height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent);
+    transform: skewX(-20deg);
+    pointer-events: none;
+}
+.product-card:hover .product-card__media::after {
+    animation: sweepLight 0.7s ease forwards;
+}
+.product-card:hover {
+    transform: translateY(-8px) scale(1.02) !important;
+    box-shadow: 0 28px 60px rgba(0,0,0,0.15), 0 10px 24px rgba(255,85,32,0.1) !important;
+}
+:root[data-theme="dark"] .product-card:hover {
+    box-shadow: 0 28px 60px rgba(0,0,0,0.5), 0 10px 24px rgba(255,85,32,0.25) !important;
+}
+
+/* ---- 5. HERO BANNER ---- */
+.home-banner, .hero-banner, .hero-section {
+    animation: zoomBlur 1.2s ease both;
+}
+
+/* ---- 6. NAVIGATION ---- */
+.primary-nav, .main-header {
+    animation: fadeDown 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+.primary-nav a { position: relative; transition: color 0.3s ease; }
+.primary-nav a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 50%; right: 50%;
+    height: 2px;
+    background: linear-gradient(90deg, #ff5520, #ffb703);
+    transition: left 0.3s ease, right 0.3s ease;
+    border-radius: 2px;
+}
+.primary-nav a:hover::after,
+.primary-nav a.active::after { left: 0; right: 0; }
+
+/* ---- 7. BUTTONS ---- */
+button, .btn, .button, .add-to-cart, .btn-primary, .button--primary {
+    position: relative; overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.3s ease !important;
+}
+button:hover, .add-to-cart:hover, .btn-primary:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 8px 24px rgba(255, 85, 32, 0.35) !important;
+}
+button:active, .add-to-cart:active { transform: scale(0.97); }
+
+/* ---- 8. ADMIN CARDS ---- */
+.admin-card, .stat-card, .admin-kpi-card {
+    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease !important;
+    animation: adminCardEnter 0.7s cubic-bezier(0.16,1,0.3,1) both;
+}
+.admin-card:nth-child(1) { animation-delay: 0s; }
+.admin-card:nth-child(2) { animation-delay: 0.08s; }
+.admin-card:nth-child(3) { animation-delay: 0.16s; }
+.admin-card:nth-child(4) { animation-delay: 0.24s; }
+.admin-card:nth-child(5) { animation-delay: 0.32s; }
+.admin-card:nth-child(6) { animation-delay: 0.40s; }
+.admin-card:hover, .stat-card:hover {
+    transform: translateY(-6px) scale(1.015) !important;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.18), 0 8px 20px rgba(255,85,32,0.12) !important;
+}
+:root[data-theme="dark"] .admin-card:hover {
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 8px 20px rgba(255,85,32,0.2) !important;
+}
+
+/* ---- 9. ADMIN SIDEBAR ---- */
+.admin-sidebar { animation: fadeRight 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+.admin-nav button, .admin-nav a {
+    transition: all 0.25s ease !important;
+    position: relative; overflow: hidden;
+}
+.admin-nav button::before, .admin-nav a::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(255,85,32,0.15), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    pointer-events: none;
+}
+.admin-nav button:hover::before,
+.admin-nav a:hover::before,
+.admin-nav button.active::before { transform: translateX(0); }
+.admin-nav button:hover, .admin-nav a:hover {
+    transform: translateX(6px) !important;
+    color: #ff5520;
+}
+
+/* ---- 10. ADMIN TOPBAR ---- */
+.admin-topbar { animation: fadeDown 0.5s cubic-bezier(0.16,1,0.3,1) 0.1s both; }
+
+/* ---- 11. DONUT CHART ---- */
+.admin-donut-container { animation: rotateIn 1s cubic-bezier(0.34,1.56,0.64,1) 0.3s both; }
+.admin-donut-seg {
+    transition: stroke-width 0.4s cubic-bezier(0.34,1.56,0.64,1),
+                filter 0.3s ease !important;
+}
+.admin-donut-seg:hover {
+    stroke-width: 22 !important;
+    filter: drop-shadow(0 0 14px currentColor) !important;
+}
+
+/* ---- 12. FUNNEL BARS ---- */
+.funnel-bar-fill {
+    position: relative; overflow: hidden;
+    animation: progressFill 1.2s cubic-bezier(0.16,1,0.3,1) 0.5s both;
+}
+.funnel-bar-fill::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+        -45deg,
+        rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 8px,
+        transparent 8px, transparent 16px
+    );
+    animation: sweepLight 2s linear infinite;
+}
+
+/* ---- 13. TABLE ROWS ---- */
+.admin-table-wrap tbody tr {
+    animation: fadeLeft 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+.admin-table-wrap tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.admin-table-wrap tbody tr:nth-child(2) { animation-delay: 0.10s; }
+.admin-table-wrap tbody tr:nth-child(3) { animation-delay: 0.15s; }
+.admin-table-wrap tbody tr:nth-child(4) { animation-delay: 0.20s; }
+.admin-table-wrap tbody tr:nth-child(5) { animation-delay: 0.25s; }
+.admin-table-wrap tbody tr:nth-child(6) { animation-delay: 0.30s; }
+.admin-table-wrap tbody tr:nth-child(7) { animation-delay: 0.35s; }
+.admin-table-wrap tbody tr:nth-child(8) { animation-delay: 0.40s; }
+.admin-table-wrap tbody tr:hover {
+    background: rgba(255, 85, 32, 0.06) !important;
+    transform: translateX(4px);
+}
+
+/* ---- 14. BADGES ---- */
+.admin-badge, .badge, .tag {
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+    transition: transform 0.2s ease;
+}
+.admin-badge:hover { transform: scale(1.1); }
+
+/* ---- 15. TOAST ---- */
+.admin-toast, .toast, [role="alert"] {
+    animation: slideInUp 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+/* ---- 16. MODAL / DIALOG ---- */
+dialog, .admin-dialog { animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+/* ---- 17. SWIPER THUMBNAILS ---- */
+.detail-img-thumbnails .swiper-slide {
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.detail-img-thumbnails .swiper-slide:nth-child(1) { animation-delay: 0.05s; }
+.detail-img-thumbnails .swiper-slide:nth-child(2) { animation-delay: 0.12s; }
+.detail-img-thumbnails .swiper-slide:nth-child(3) { animation-delay: 0.18s; }
+.detail-img-thumbnails .swiper-slide:nth-child(4) { animation-delay: 0.24s; }
+.detail-img-thumbnails .swiper-slide img {
+    transition: transform 0.35s cubic-bezier(0.16,1,0.3,1),
+                border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+.detail-img-thumbnails .swiper-slide img:hover {
+    transform: scale(1.1) translateY(-3px) !important;
+}
+.detail-img-thumbnails .swiper-slide img.active-thumbnail {
+    animation: neonPulse 2s ease-in-out infinite;
+    --neon-color: #ff5520;
+}
+
+/* ---- 18. MAIN PRODUCT IMAGE ---- */
+.detail-img-main img, #mainProductImage {
+    transition: transform 0.6s cubic-bezier(0.16,1,0.3,1) !important;
+    animation: zoomBlur 0.8s ease both;
+}
+.detail-img-main:hover img { transform: scale(1.06) !important; }
+
+/* ---- 19. BACK TO TOP ---- */
+.sport-back-to-top, .to-top {
+    animation: float 3s ease-in-out infinite;
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+.sport-back-to-top:hover, .to-top:hover {
+    transform: translateY(-6px) scale(1.1) !important;
+    box-shadow: 0 12px 30px rgba(255,85,32,0.5) !important;
+    animation: none;
+}
+
+/* ---- 20. SCROLL PROGRESS ---- */
+.scroll-progress {
+    background: linear-gradient(90deg, #ff2a2a, #ff7a1a, #ffea00, #00ff88) !important;
+    background-size: 200% 100% !important;
+    animation: gradientShift 2s ease infinite !important;
+}
+
+/* ---- 21. FOOTER LINKS ---- */
+footer a {
+    transition: transform 0.25s ease, color 0.25s ease !important;
+    display: inline-block;
+}
+footer a:hover { transform: translateX(4px); color: #ff5520 !important; }
+
+/* ---- 22. SEARCH BAR ---- */
+[type="search"]:focus, .search-input:focus {
+    box-shadow: 0 0 0 3px rgba(255,85,32,0.3), 0 8px 24px rgba(255,85,32,0.15) !important;
+    animation: borderGlow 2s ease infinite;
+}
+
+/* ---- 23. CART ITEMS ---- */
+.cart-item, .wishlist-item {
+    animation: fadeLeft 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    transition: transform 0.3s ease;
+}
+.cart-item:nth-child(1) { animation-delay: 0.05s; }
+.cart-item:nth-child(2) { animation-delay: 0.1s; }
+.cart-item:nth-child(3) { animation-delay: 0.15s; }
+.cart-item:hover { transform: translateX(4px); }
+
+/* ---- 24. BRAND CHIPS ---- */
+.brand-chip, .brand-item {
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease !important;
+}
+.brand-chip:hover, .brand-item:hover {
+    transform: translateY(-6px) rotate(-1deg) scale(1.04) !important;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.15) !important;
+}
+
+/* ---- 25. CATEGORY CARDS ---- */
+.category-card, .playstyle-card {
+    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease !important;
+    position: relative; overflow: hidden;
+}
+.category-card::before, .playstyle-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #ff2a2a, #ffea00, #00ff88, #00d2ff);
+    background-size: 300% 100%;
+    animation: gradientShift 3s ease infinite;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+}
+.category-card:hover::before, .playstyle-card:hover::before { transform: scaleX(1); }
+.category-card:hover, .playstyle-card:hover {
+    transform: translateY(-10px) !important;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.2) !important;
+}
+
+/* ---- 26. REVIEW ITEMS ---- */
+.review-item {
+    animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+.review-item:nth-child(odd)  { animation-name: fadeRight; }
+.review-item:nth-child(even) { animation-name: fadeLeft; }
+.review-item:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.12) !important;
+}
+
+/* ---- 27. STAR RATINGS ---- */
+.star, .rating-star {
+    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1) !important;
+    display: inline-block;
+}
+.star:hover { animation: wiggle 0.5s ease; }
+.star.active { color: #ffb703 !important; animation: heartBeat 0.5s ease; }
+
+/* ---- 28. HEALTH PULSES ---- */
+.admin-health__pulse, .status-dot, .live-indicator {
+    animation: heartBeat 1.4s ease infinite;
+}
+
+/* ---- 29. INPUT FOCUS ---- */
+input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
+textarea, select {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+input:focus, textarea:focus, select:focus {
+    box-shadow: 0 0 0 3px rgba(255,85,32,0.2) !important;
+    border-color: #ff5520 !important;
+}
+
+/* ---- 30. ADMIN TABS ---- */
+.tab-btn, .tab-nav a, .tab-nav button {
+    position: relative;
+    transition: color 0.3s ease, background 0.3s ease !important;
+    overflow: hidden;
+}
+.tab-btn::after, .tab-nav a::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; height: 3px; width: 100%;
+    background: linear-gradient(90deg, #ff5520, #ffb703);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s ease;
+}
+.tab-btn.active::after, .tab-btn:hover::after,
+.tab-nav a.active::after, .tab-nav a:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+}
+
+/* ---- 31. SKELETON SHIMMER ---- */
+.skeleton, .placeholder-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmerSlide 1.5s ease infinite;
+}
+:root[data-theme="dark"] .skeleton, :root[data-theme="dark"] .placeholder-shimmer {
+    background: linear-gradient(90deg, #2a2a2a 25%, #333 50%, #2a2a2a 75%);
+    background-size: 200% 100%;
+}
+
+/* ---- 32. THEME TOGGLE ---- */
+.theme-toggle, [id*="theme"] button {
+    transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.theme-toggle:hover { transform: rotate(30deg) scale(1.15) !important; }
+
+/* ---- 33. NEWS CARDS ---- */
+.news-card, .blog-card {
+    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease !important;
+    overflow: hidden;
+}
+.news-card img, .blog-card img { transition: transform 0.6s cubic-bezier(0.16,1,0.3,1) !important; }
+.news-card:hover img, .blog-card:hover img { transform: scale(1.08) !important; }
+.news-card:hover, .blog-card:hover {
+    transform: translateY(-8px) !important;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.15) !important;
+}
+
+/* ---- 34. QUANTITY BUTTONS ---- */
+.quantity-btn, .qty-btn {
+    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.quantity-btn:hover { transform: scale(1.2) !important; }
+.quantity-btn:active { transform: scale(0.9) !important; }
+
+/* ---- 35. PROGRESS BARS ---- */
+.progress-bar, [class*="progress-fill"], .level-fill {
+    animation: progressFill 1.5s cubic-bezier(0.16,1,0.3,1) 0.4s both;
+    position: relative; overflow: hidden;
+}
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; width: 40px; height: 100%;
+    background: rgba(255,255,255,0.4);
+    filter: blur(8px);
+    animation: sweepLight 2s ease-in-out infinite;
+}
+
+/* ---- 36. AVATARS ---- */
+.admin-avatar, .user-avatar, .avatar {
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease !important;
+}
+.admin-avatar:hover, .user-avatar:hover, .avatar:hover {
+    transform: scale(1.12) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2) !important;
+}
+
+/* ---- 37. WISHLIST / HEART ---- */
+.wishlist-btn, .heart-btn {
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), color 0.3s ease !important;
+}
+.wishlist-btn:hover, .heart-btn:hover {
+    animation: heartBeat 0.6s ease;
+    color: #ff2a2a !important;
+}
+.wishlist-btn.active, .heart-btn.active {
+    animation: heartBeat 1s ease;
+    color: #ff2a2a !important;
+}
+
+/* ---- 38. ADMIN SECTION HEADINGS ---- */
+.admin-section-head, .admin-card__heading {
+    animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+/* ---- 39. LEGEND CARDS ---- */
+.admin-legend-card {
+    transition: transform 0.3s cubic-bezier(0.16,1,0.3,1),
+                border-color 0.3s ease,
+                box-shadow 0.3s ease !important;
+}
+.admin-legend-card:hover, .admin-legend-card.is-active {
+    transform: translateX(6px) scale(1.02) !important;
+}
+
+/* ---- 40. SVG TREND LINES ---- */
+.admin-trend-svg path,
+.admin-trend-svg polyline,
+.admin-trend-svg line {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: trendLineGrow 1.5s cubic-bezier(0.16,1,0.3,1) both;
+    animation-delay: 0.3s;
+}
+
+/* ---- 41. FEATURE ITEMS ---- */
+.feature-item {
+    animation: flipIn 0.7s cubic-bezier(0.16,1,0.3,1) both;
+}
+.feature-item:nth-child(1) { animation-delay: 0.05s; }
+.feature-item:nth-child(2) { animation-delay: 0.15s; }
+.feature-item:nth-child(3) { animation-delay: 0.25s; }
+.feature-item:nth-child(4) { animation-delay: 0.35s; }
+.feature-item { transition: transform 0.35s ease; }
+.feature-item:hover { transform: translateY(-6px); }
+
+/* ---- 42. FORM LABELS ---- */
+label {
+    transition: color 0.25s ease;
+}
+input:focus + label, input:focus ~ label {
+    color: #ff5520 !important;
+}
+
+/* ---- 43. SCROLLBAR STYLING ---- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #ff5520, #ffb703);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover { background: #ff5520; }
+
+/* ---- 44. GLOBAL LINK HOVER ---- */
+a { transition: color 0.25s ease !important; }
+
+/* ---- 45. SCROLL INDICATOR ---- */
+.scroll-indicator, .scroll-down-arrow { animation: bounce 1.5s ease-in-out infinite; }
+
+/* ---- 46. BACK-TO-TOP VISIBLE ---- */
+.sport-back-to-top.visible, .to-top.visible {
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+/* ---- SAFE: prefers-reduced-motion ---- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
