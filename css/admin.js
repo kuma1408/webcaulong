@@ -1242,8 +1242,8 @@
             'Phụ Kiện': '#ffea00'
         };
 
-        const totalItems = totalRevenue; // User wants Sales
-        const totalRevenue = catList.reduce((sum, item) => sum + (Number(item.TongDoanhThu) || 0), 0);
+        const totalRevenue = catList.reduce((sum, item) => sum + (Number(item.DoanhThu ?? item.TongDoanhThu) || 0), 0);
+        const totalItems = totalRevenue;
 
         // 1. Donut View
         const R = 52;
@@ -1253,12 +1253,12 @@
         const gapPx = hasMultiple ? 4 : 0;
 
         const svgSegments = catList.map((item, idx) => {
-            const count = Number(item.TongSP) || 0;
+            const count = Number(item.DoanhThu ?? item.TongDoanhThu) || 0;
             const fraction = totalItems ? (count / totalItems) : 0;
             const fullDash = fraction * C;
             const actualDash = Math.max(0.1, fullDash - gapPx);
             const gap = C - actualDash;
-            const offset = - (accumulated / totalItems) * C;
+            const offset = totalItems ? - (accumulated / totalItems) * C : 0;
             accumulated += count;
             const color = categoryPalette[item.TenDM] || '#9b776a';
 
@@ -1294,7 +1294,7 @@
         donutContainer.appendChild(centerKpi);
         donut.appendChild(donutContainer);
 
-        animateMetric(centerKpi.querySelector('#adminCategoryTotal'), totalItems);
+        animateMetric(centerKpi.querySelector('#adminCategoryTotal'), totalItems, formatMoney);
 
         const setCatFocus = (item) => {
             donut.querySelectorAll('.admin-donut-seg').forEach(seg => {
@@ -1331,10 +1331,10 @@
         });
 
         catList.forEach((item) => {
-            const count = Number(item.TongSP) || 0;
+            const count = Number(item.DoanhThu ?? item.TongDoanhThu) || 0;
             const pct = totalItems ? Math.round((count / totalItems) * 100) : 0;
             const color = categoryPalette[item.TenDM] || '#9b776a';
-            const rev = Number(item.TongDoanhThu) || 0;
+            const rev = Number(item.DoanhThu ?? item.TongDoanhThu) || 0;
 
             const card = document.createElement('div');
             card.className = 'admin-legend-card';
@@ -1382,7 +1382,7 @@
                 catList.forEach((item, idx) => {
                     const seg = segs[idx];
                     if (!seg) return;
-                    const count = Number(item.TongSP) || 0;
+                    const count = Number(item.DoanhThu ?? item.TongDoanhThu) || 0;
                     const frac = totalItems ? count / totalItems : 0;
                     const startFrac = totalItems ? acc / totalItems : 0;
                     acc += count;
@@ -1408,7 +1408,7 @@
         const catBarBox = $('#adminCategoryBarChart');
         if (catBarBox) {
             catBarBox.innerHTML = '';
-            const maxVal = Math.max(1, ...catList.map(c => Number(c.TongSP) || 0));
+            const maxVal = Math.max(1, ...catList.map(c => Number(c.DoanhThu ?? c.TongDoanhThu) || 0));
             const barSvgW = 460;
             const barH = 20;
             const rowH = 38;
@@ -1423,7 +1423,7 @@
 
             catList.forEach((item, i) => {
                 const y = 14 + i * rowH;
-                const count = Number(item.TongSP) || 0;
+                const count = Number(item.DoanhThu ?? item.TongDoanhThu) || 0;
                 const targetW = (count / maxVal) * barTrackW;
                 const color = categoryPalette[item.TenDM] || '#e9381b';
                 const pct = totalItems ? ((count / totalItems) * 100).toFixed(1) : '0';
