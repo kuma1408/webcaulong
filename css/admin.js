@@ -1315,8 +1315,9 @@
             const totalSpan = centerKpi.querySelector('#adminCategoryTotal');
             const labelSmall = centerKpi.querySelector('#adminCategoryLabel');
             if (totalSpan && labelSmall) {
-                totalSpan.textContent = String(item.TongSP);
-                labelSmall.textContent = `${item.TenDM} (${Math.round((item.TongSP / totalItems) * 100)}%)`;
+                const revenue = Number(item.DoanhThu ?? item.TongDoanhThu) || 0;
+                totalSpan.textContent = formatShortMoney(revenue);
+                labelSmall.textContent = `${item.TenDM} (${totalItems ? Math.round(revenue / totalItems * 100) : 0}%)`;
                 totalSpan.style.color = categoryPalette[item.TenDM] || 'var(--bs-ink)';
             }
         };
@@ -1326,8 +1327,8 @@
             const totalSpan = centerKpi.querySelector('#adminCategoryTotal');
             const labelSmall = centerKpi.querySelector('#adminCategoryLabel');
             if (totalSpan && labelSmall) {
-                totalSpan.textContent = String(totalItems);
-                labelSmall.textContent = 'Tổng mẫu SP';
+                totalSpan.textContent = formatShortMoney(totalItems);
+                labelSmall.textContent = 'Tổng doanh thu';
                 totalSpan.style.color = 'var(--bs-ink)';
             }
         };
@@ -1356,7 +1357,7 @@
                         <span class="legend-title">${item.TenDM}</span>
                     </div>
                     <div class="legend-stat">
-                        <strong class="legend-count">${count} mẫu</strong>
+                        <strong class="legend-count">${formatMoney(count)}</strong>
                         <span class="legend-pct">${pct}%</span>
                     </div>
                 </div>
@@ -1385,7 +1386,7 @@
                 seg.style.strokeDashoffset = '0';
             });
             legendFills.forEach(f => { f.style.width = '0%'; });
-            if (center) animateMetric(center, totalItems);
+            if (center) animateMetric(center, totalItems, formatShortMoney);
 
             catCancel = animate(850, (t) => {
                 let acc = 0;

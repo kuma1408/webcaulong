@@ -1,4 +1,33 @@
 /* Responsive, readable admin surfaces and accessible motion. */
+.admin-body #adminTopProductsList { display: grid; gap: 12px; padding: 18px; }
+.admin-body .top-product-card {
+    display: grid; grid-template-columns: 30px 64px minmax(0, 1fr); align-items: center;
+    gap: 12px; padding: 14px; border: 1px solid var(--bs-line); border-radius: 14px;
+    background: var(--bs-card); color: var(--bs-ink); min-width: 0;
+}
+.admin-body .top-product-card .top-product-thumb {
+    width: 64px !important; height: 64px !important; padding: 4px !important;
+    overflow: hidden; border-radius: 10px; background: #fff;
+}
+.admin-body .top-product-thumb img { display: block; width: 100%; height: 100%; max-width: 100%; object-fit: contain; }
+.admin-body .top-product-info { min-width: 0; width: auto; }
+.admin-body .top-product-title { display: block; color: var(--bs-ink); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.admin-body .top-product-metrics { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 6px; color: var(--bs-muted); font-size: 12px; }
+.admin-body .top-product-progress { height: 5px; margin-top: 10px; background: var(--bs-line); border-radius: 8px; overflow: hidden; }
+.admin-body .top-product-progress-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--bs-red), var(--bs-orange)); }
+@media (prefers-reduced-motion: no-preference) {
+    .admin-body .top-product-card { transition: border-color .2s, box-shadow .2s, transform .2s; }
+    .admin-body .top-product-thumb img { transition: transform .3s ease; }
+    @media (hover: hover) {
+        .admin-body .top-product-card:hover { transform: translateY(-2px); border-color: var(--bs-orange); box-shadow: 0 8px 22px rgba(0,0,0,.12); }
+        .admin-body .top-product-card:hover img { transform: scale(1.07); }
+    }
+}
+@media (max-width: 480px) {
+    .admin-body #adminTopProductsList { padding: 10px; }
+    .admin-body .top-product-card { grid-template-columns: 24px 48px minmax(0,1fr); gap: 8px; padding: 10px; }
+    .admin-body .top-product-card .top-product-thumb { width: 48px !important; height: 48px !important; }
+}
 .admin-body *, .admin-body *::before, .admin-body *::after { box-sizing: border-box; }
 .admin-body .admin-app { width: 100%; min-width: 0; padding: clamp(10px, 2vw, 24px); }
 .admin-body .admin-shell { display: grid; grid-template-columns: 226px minmax(0, 1fr); overflow: visible; }
