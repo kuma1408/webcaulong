@@ -1,0 +1,859 @@
+/* =============================================================
+   ADMIN REDESIGN + PERFORMANCE FIX + ULTRA ANIMATIONS
+   Tối ưu hiệu suất + Bố cục đẹp + Animation mọi nơi
+   ============================================================= */
+
+/* --- GPU PERFORMANCE LAYER --- */
+/* Chỉ dùng transform/opacity để tránh layout reflow gây lag */
+.admin-card,
+.admin-kpi-card,
+.stat-card,
+.admin-nav button,
+.admin-legend-card,
+.admin-table-wrap tbody tr,
+.admin-badge,
+.admin-donut-container,
+.funnel-bar-fill,
+.admin-topbar,
+.admin-sidebar {
+    will-change: transform, opacity;
+    contain: layout style;
+}
+/* Remove contain from containers that need overflow */
+.admin-table-wrap,
+.admin-workspace,
+.admin-shell {
+    contain: none;
+}
+
+/* ============================================================
+   PHẦN 1: REDESIGN BỐ CỤC ADMIN
+   ============================================================ */
+
+/* Body & App Wrapper */
+.admin-body {
+    background: #f0e8e4 !important;
+    background-image:
+        radial-gradient(circle at 20% 20%, rgba(255,85,32,0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255,183,3,0.04) 0%, transparent 50%) !important;
+}
+:root[data-theme="dark"] .admin-body {
+    background: #0e0907 !important;
+    background-image:
+        radial-gradient(circle at 20% 20%, rgba(255,85,32,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255,183,3,0.06) 0%, transparent 50%) !important;
+}
+
+.admin-app {
+    padding: 20px !important;
+    background: transparent !important;
+}
+
+/* Shell grid */
+.admin-shell {
+    grid-template-columns: 240px minmax(0, 1fr) !important;
+    gap: 18px !important;
+    align-items: start !important;
+}
+
+/* --- SIDEBAR REDESIGN --- */
+.admin-sidebar {
+    background: linear-gradient(160deg, #1a0805 0%, #3d1209 40%, #5a1c0a 75%, #2a0b05 100%) !important;
+    border-radius: 20px !important;
+    padding: 20px 12px 16px !important;
+    box-shadow:
+        0 30px 60px rgba(0,0,0,0.3),
+        0 0 0 1px rgba(255,255,255,0.04),
+        inset 0 1px 0 rgba(255,255,255,0.1) !important;
+    position: relative;
+    overflow: hidden;
+}
+.admin-sidebar::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(255,85,32,0.2) 0%, transparent 70%);
+    pointer-events: none;
+    animation: floatRotate 8s ease-in-out infinite;
+}
+.admin-sidebar::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: -60px;
+    width: 180px; height: 180px;
+    background: radial-gradient(circle, rgba(255,183,3,0.12) 0%, transparent 70%);
+    pointer-events: none;
+    animation: floatRotate 10s ease-in-out reverse infinite;
+}
+
+/* Sidebar logo */
+.admin-sidebar__heading {
+    padding: 4px 8px 18px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+    position: relative; z-index: 1;
+}
+.admin-emblem {
+    width: 42px !important; height: 42px !important;
+    border-radius: 14px !important;
+    background: linear-gradient(135deg, #ff2a2a, #ff8a00) !important;
+    box-shadow: 0 8px 24px rgba(255,85,32,0.4), inset 0 1px 0 rgba(255,255,255,0.2) !important;
+    font-size: 18px !important;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.admin-emblem:hover {
+    transform: rotate(15deg) scale(1.1);
+}
+
+/* NAV ITEMS */
+.admin-nav {
+    padding: 16px 0 !important;
+    gap: 3px !important;
+    position: relative; z-index: 1;
+}
+.admin-nav button {
+    min-height: 44px !important;
+    border-radius: 12px !important;
+    padding: 0 12px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: rgba(255,255,255,0.65) !important;
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        transform 0.25s cubic-bezier(0.16,1,0.3,1),
+        box-shadow 0.25s ease !important;
+    position: relative;
+    overflow: hidden;
+}
+.admin-nav button::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(255,85,32,0.2), rgba(255,183,3,0.1), transparent);
+    transform: translateX(-110%);
+    transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+    border-radius: inherit;
+}
+.admin-nav button:hover::before,
+.admin-nav button.is-active::before {
+    transform: translateX(0);
+}
+.admin-nav button:hover {
+    transform: translateX(5px) !important;
+    color: #fff !important;
+    background: rgba(255,255,255,0.08) !important;
+}
+.admin-nav button.is-active {
+    background: linear-gradient(90deg, rgba(255,85,32,0.25), rgba(255,183,3,0.08)) !important;
+    color: #fff !important;
+    border-color: rgba(255,85,32,0.3) !important;
+    box-shadow: 0 4px 16px rgba(255,85,32,0.2), inset 0 1px 0 rgba(255,255,255,0.05) !important;
+    transform: translateX(5px) !important;
+}
+/* Active indicator */
+.admin-nav button.is-active::after {
+    content: '';
+    position: absolute;
+    right: 10px; top: 50%;
+    transform: translateY(-50%);
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #ff5520;
+    box-shadow: 0 0 8px #ff5520, 0 0 16px #ff5520;
+    animation: heartBeat 1.4s ease infinite;
+}
+
+/* Nav icon */
+.admin-nav button > span:first-child {
+    font-size: 17px !important;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.admin-nav button:hover > span:first-child,
+.admin-nav button.is-active > span:first-child {
+    transform: scale(1.2) rotate(5deg);
+}
+
+/* Account section */
+.admin-sidebar__account {
+    background: rgba(255,255,255,0.05);
+    border-radius: 14px;
+    padding: 12px !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    border-top: none !important;
+    margin-top: auto !important;
+    position: relative; z-index: 1;
+    transition: background 0.3s ease;
+}
+.admin-sidebar__account:hover {
+    background: rgba(255,255,255,0.09);
+}
+.admin-mini-avatar {
+    border-radius: 12px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.admin-mini-avatar:hover {
+    transform: scale(1.1) rotate(5deg) !important;
+}
+
+/* --- WORKSPACE REDESIGN --- */
+.admin-workspace {
+    border-radius: 20px !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    background: rgba(255,255,255,0.9) !important;
+    backdrop-filter: blur(20px);
+    box-shadow:
+        0 4px 6px rgba(0,0,0,0.04),
+        0 20px 40px rgba(0,0,0,0.06) !important;
+    padding: 24px 28px 40px !important;
+}
+:root[data-theme="dark"] .admin-workspace {
+    background: rgba(18,10,7,0.9) !important;
+    border-color: rgba(255,255,255,0.05) !important;
+    box-shadow:
+        0 4px 6px rgba(0,0,0,0.2),
+        0 20px 40px rgba(0,0,0,0.4) !important;
+}
+
+/* --- TOPBAR REDESIGN --- */
+.admin-topbar {
+    background: transparent !important;
+    padding-bottom: 20px !important;
+    border-bottom: 1px solid rgba(0,0,0,0.06) !important;
+    margin-bottom: 28px !important;
+}
+:root[data-theme="dark"] .admin-topbar {
+    border-color: rgba(255,255,255,0.06) !important;
+}
+.admin-topbar h1 {
+    background: linear-gradient(135deg, var(--bs-ink), rgba(255,85,32,0.8));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: clamp(22px, 2.5vw, 30px) !important;
+    letter-spacing: -0.04em !important;
+}
+:root[data-theme="dark"] .admin-topbar h1 {
+    background: linear-gradient(135deg, #fff, rgba(255,150,80,0.9));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.admin-topbar__actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.admin-topbar__actions button {
+    border-radius: 12px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    padding: 8px 16px !important;
+    transition: all 0.25s ease !important;
+    border: 1px solid rgba(0,0,0,0.08) !important;
+    background: rgba(255,255,255,0.7) !important;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+}
+:root[data-theme="dark"] .admin-topbar__actions button {
+    background: rgba(255,255,255,0.07) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #fff !important;
+}
+.admin-topbar__actions button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+    border-color: rgba(255,85,32,0.3) !important;
+}
+
+/* ============================================================
+   PHẦN 2: ADMIN CARDS REDESIGN
+   ============================================================ */
+
+/* KPI Cards */
+.admin-metrics article,
+.admin-kpi-card {
+    border-radius: 16px !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    background: rgba(255,255,255,0.8) !important;
+    backdrop-filter: blur(12px);
+    padding: 18px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.04) !important;
+    transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), box-shadow 0.35s ease !important;
+    position: relative;
+    overflow: hidden;
+}
+:root[data-theme="dark"] .admin-metrics article,
+:root[data-theme="dark"] .admin-kpi-card {
+    background: rgba(255,255,255,0.04) !important;
+    border-color: rgba(255,255,255,0.07) !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
+}
+/* Gradient accent bar on top of KPI cards */
+.admin-metrics article::before,
+.admin-kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ff2a2a, #ff8a00, #ffea00);
+    background-size: 200% 100%;
+    animation: gradientShift 3s ease infinite;
+    border-radius: 16px 16px 0 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.admin-metrics article:hover::before,
+.admin-kpi-card:hover::before {
+    opacity: 1;
+}
+.admin-metrics article:hover,
+.admin-kpi-card:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.12) !important;
+}
+:root[data-theme="dark"] .admin-metrics article:hover {
+    box-shadow: 0 16px 48px rgba(0,0,0,0.4) !important;
+}
+
+/* KPI value number */
+.admin-metrics strong,
+.admin-kpi-value {
+    font-size: 26px !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.04em !important;
+    background: linear-gradient(135deg, var(--bs-ink), #ff5520);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+}
+:root[data-theme="dark"] .admin-metrics strong,
+:root[data-theme="dark"] .admin-kpi-value {
+    background: linear-gradient(135deg, #fff, #ff8a00);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+/* ============================================================
+   PHẦN 3: ADMIN TABLE REDESIGN
+   ============================================================ */
+
+.admin-table-card {
+    border-radius: 16px !important;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05) !important;
+}
+:root[data-theme="dark"] .admin-table-card {
+    border-color: rgba(255,255,255,0.06) !important;
+}
+.admin-table-card th {
+    background: linear-gradient(90deg, rgba(255,85,32,0.06), rgba(255,183,3,0.03)) !important;
+    font-weight: 800 !important;
+    font-size: 11px !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+    color: var(--bs-muted) !important;
+    padding: 14px 16px !important;
+    border-bottom: 2px solid rgba(255,85,32,0.1) !important;
+}
+.admin-table-card td {
+    padding: 14px 16px !important;
+    font-size: 12px !important;
+    border-bottom: 1px solid rgba(0,0,0,0.04) !important;
+    transition: background 0.2s ease;
+}
+:root[data-theme="dark"] .admin-table-card td {
+    border-color: rgba(255,255,255,0.04) !important;
+}
+.admin-table-card tbody tr {
+    transition: background 0.2s ease, transform 0.2s ease !important;
+}
+.admin-table-card tbody tr:hover td {
+    background: rgba(255,85,32,0.04) !important;
+}
+:root[data-theme="dark"] .admin-table-card tbody tr:hover td {
+    background: rgba(255,85,32,0.08) !important;
+}
+
+/* ============================================================
+   PHẦN 4: SYSTEM HEALTH BAR REDESIGN
+   ============================================================ */
+
+.admin-health {
+    gap: 12px !important;
+    margin-bottom: 24px;
+}
+.system-health-bar,
+.admin-health > div:first-child {
+    border-radius: 16px !important;
+    padding: 16px 20px !important;
+    background: linear-gradient(135deg, rgba(255,85,32,0.08), rgba(255,183,3,0.04)) !important;
+    border: 1px solid rgba(255,85,32,0.12) !important;
+    overflow-x: auto !important;
+    display: flex !important;
+    gap: 20px !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+}
+:root[data-theme="dark"] .system-health-bar {
+    background: linear-gradient(135deg, rgba(255,85,32,0.1), rgba(255,183,3,0.06)) !important;
+    border-color: rgba(255,85,32,0.15) !important;
+}
+
+/* Health bar status pills */
+.system-health-bar strong,
+.health-stat {
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    white-space: nowrap;
+    position: relative;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.5);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+:root[data-theme="dark"] .system-health-bar strong {
+    background: rgba(255,255,255,0.06);
+}
+.system-health-bar strong:hover {
+    transform: scale(1.05);
+    background: rgba(255,85,32,0.1);
+}
+
+/* ============================================================
+   PHẦN 5: CARD HEADING REDESIGN
+   ============================================================ */
+
+.admin-card__heading {
+    padding: 18px 20px 14px !important;
+    border-bottom: 1px solid rgba(0,0,0,0.06) !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+}
+:root[data-theme="dark"] .admin-card__heading {
+    border-color: rgba(255,255,255,0.06) !important;
+}
+.admin-card__heading h2,
+.admin-card__heading h3 {
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.03em !important;
+}
+.admin-card__heading .eyebrow {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    color: #ff5520 !important;
+    display: block;
+    margin-bottom: 3px;
+}
+
+/* ============================================================
+   PHẦN 6: PAGINATION REDESIGN
+   ============================================================ */
+
+.admin-pagination {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 0;
+}
+.admin-pagination button {
+    min-width: 34px;
+    height: 34px;
+    border-radius: 10px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    transition: all 0.25s cubic-bezier(0.16,1,0.3,1) !important;
+    border: 1px solid rgba(0,0,0,0.08) !important;
+}
+.admin-pagination button:hover {
+    transform: translateY(-2px) !important;
+    border-color: #ff5520 !important;
+    color: #ff5520 !important;
+}
+.admin-pagination button.is-active {
+    background: linear-gradient(135deg, #ff5520, #ff8a00) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+    box-shadow: 0 4px 16px rgba(255,85,32,0.35) !important;
+}
+
+/* ============================================================
+   PHẦN 7: SEARCH & TOOLBAR REDESIGN
+   ============================================================ */
+
+.admin-search input {
+    border-radius: 12px !important;
+    border: 1.5px solid rgba(0,0,0,0.1) !important;
+    padding: 10px 14px !important;
+    font-size: 12px !important;
+    background: rgba(255,255,255,0.8) !important;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease !important;
+}
+:root[data-theme="dark"] .admin-search input {
+    background: rgba(255,255,255,0.05) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #fff !important;
+}
+.admin-search input:focus {
+    border-color: #ff5520 !important;
+    box-shadow: 0 0 0 3px rgba(255,85,32,0.15) !important;
+    background: #fff !important;
+}
+:root[data-theme="dark"] .admin-search input:focus {
+    background: rgba(255,255,255,0.08) !important;
+}
+
+.admin-primary {
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, #ff5520, #ff8a00) !important;
+    color: #fff !important;
+    font-weight: 800 !important;
+    font-size: 11px !important;
+    padding: 10px 18px !important;
+    border: none !important;
+    box-shadow: 0 4px 16px rgba(255,85,32,0.3) !important;
+    transition: all 0.25s ease !important;
+}
+.admin-primary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(255,85,32,0.45) !important;
+}
+.admin-primary:active {
+    transform: scale(0.97) !important;
+}
+
+/* ============================================================
+   PHẦN 8: BADGES REDESIGN
+   ============================================================ */
+
+.admin-badge {
+    border-radius: 7px !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    padding: 3px 8px !important;
+    letter-spacing: 0.04em !important;
+    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.admin-badge--success {
+    background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.08)) !important;
+    color: #059669 !important;
+    border: 1px solid rgba(16,185,129,0.2) !important;
+}
+.admin-badge--warning {
+    background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.08)) !important;
+    color: #d97706 !important;
+    border: 1px solid rgba(245,158,11,0.2) !important;
+}
+.admin-badge--danger {
+    background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.08)) !important;
+    color: #dc2626 !important;
+    border: 1px solid rgba(239,68,68,0.2) !important;
+}
+.admin-badge--info {
+    background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(59,130,246,0.08)) !important;
+    color: #2563eb !important;
+    border: 1px solid rgba(59,130,246,0.2) !important;
+}
+.admin-badge:hover {
+    transform: scale(1.08) translateY(-1px) !important;
+}
+
+/* ============================================================
+   PHẦN 9: DIALOG / MODAL REDESIGN
+   ============================================================ */
+
+.admin-dialog {
+    border-radius: 20px !important;
+    border: 1px solid rgba(0,0,0,0.08) !important;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.1) !important;
+    padding: 0 !important;
+    overflow: hidden;
+    animation: slideInUp 0.4s cubic-bezier(0.16,1,0.3,1) both !important;
+}
+:root[data-theme="dark"] .admin-dialog {
+    background: #1a0c09 !important;
+    border-color: rgba(255,255,255,0.08) !important;
+}
+.admin-dialog__header {
+    padding: 20px 24px 16px !important;
+    border-bottom: 1px solid rgba(0,0,0,0.06) !important;
+    background: linear-gradient(135deg, rgba(255,85,32,0.04), transparent) !important;
+}
+:root[data-theme="dark"] .admin-dialog__header {
+    border-color: rgba(255,255,255,0.06) !important;
+    background: rgba(255,255,255,0.03) !important;
+}
+.admin-dialog__form {
+    padding: 20px 24px !important;
+}
+.admin-dialog__actions {
+    padding: 16px 24px !important;
+    border-top: 1px solid rgba(0,0,0,0.06) !important;
+    background: rgba(0,0,0,0.02) !important;
+}
+
+/* ============================================================
+   PHẦN 10: FORM FIELDS REDESIGN
+   ============================================================ */
+
+.admin-field label {
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.04em !important;
+    color: var(--bs-muted) !important;
+    display: block;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    transition: color 0.25s ease;
+}
+.admin-field:focus-within label {
+    color: #ff5520 !important;
+}
+.admin-field input,
+.admin-field select,
+.admin-field textarea {
+    border-radius: 10px !important;
+    border: 1.5px solid rgba(0,0,0,0.1) !important;
+    padding: 10px 12px !important;
+    font-size: 12px !important;
+    width: 100%;
+    transition: all 0.25s ease !important;
+    background: rgba(255,255,255,0.8) !important;
+}
+:root[data-theme="dark"] .admin-field input,
+:root[data-theme="dark"] .admin-field select,
+:root[data-theme="dark"] .admin-field textarea {
+    background: rgba(255,255,255,0.05) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #fff !important;
+}
+.admin-field input:focus,
+.admin-field select:focus,
+.admin-field textarea:focus {
+    border-color: #ff5520 !important;
+    box-shadow: 0 0 0 3px rgba(255,85,32,0.15) !important;
+    outline: none !important;
+}
+
+/* ============================================================
+   PHẦN 11: ANIMATION MỌI CHỖ
+   ============================================================ */
+
+/* --- Every clickable element gets hover feedback --- */
+.admin-nav button,
+.admin-topbar__actions button,
+.admin-primary,
+.admin-pagination button,
+.admin-badge,
+.admin-detail-button,
+.admin-dialog__actions button,
+.an-pill-btn {
+    cursor: pointer;
+}
+
+/* --- Section transitions --- */
+.admin-section,
+.admin-tab-panel,
+[id$="-panel"],
+[id$="-tab"] {
+    animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+/* --- Stats Animation --- */
+.admin-metrics {
+    gap: 14px !important;
+}
+.admin-metrics article:nth-child(1) { animation: adminCardEnter 0.5s 0.00s both; }
+.admin-metrics article:nth-child(2) { animation: adminCardEnter 0.5s 0.07s both; }
+.admin-metrics article:nth-child(3) { animation: adminCardEnter 0.5s 0.14s both; }
+.admin-metrics article:nth-child(4) { animation: adminCardEnter 0.5s 0.21s both; }
+.admin-metrics article:nth-child(5) { animation: adminCardEnter 0.5s 0.28s both; }
+.admin-metrics article:nth-child(6) { animation: adminCardEnter 0.5s 0.35s both; }
+.admin-metrics article:nth-child(7) { animation: adminCardEnter 0.5s 0.42s both; }
+.admin-metrics article:nth-child(8) { animation: adminCardEnter 0.5s 0.49s both; }
+.admin-metrics article:nth-child(9) { animation: adminCardEnter 0.5s 0.56s both; }
+.admin-metrics article:nth-child(10){ animation: adminCardEnter 0.5s 0.63s both; }
+
+/* --- Analytics cards --- */
+.admin-analytics-grid > *,
+.admin-analytics-grid--secondary > * {
+    animation: flipIn 0.7s cubic-bezier(0.16,1,0.3,1) both;
+}
+.admin-analytics-grid > *:nth-child(2) { animation-delay: 0.1s; }
+.admin-analytics-grid > *:nth-child(3) { animation-delay: 0.2s; }
+
+/* --- Tab buttons --- */
+.an-pill-btn {
+    border-radius: 10px !important;
+    padding: 6px 14px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    transition: all 0.25s ease !important;
+    border: 1.5px solid rgba(0,0,0,0.08) !important;
+}
+.an-pill-btn:hover {
+    transform: translateY(-1px) !important;
+    border-color: rgba(255,85,32,0.3) !important;
+}
+.an-pill-btn.active {
+    background: linear-gradient(135deg, #ff5520, #ff8a00) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+    box-shadow: 0 4px 12px rgba(255,85,32,0.3) !important;
+}
+
+/* --- Eyebrow labels --- */
+.eyebrow {
+    animation: fadeLeft 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    color: #ff5520 !important;
+}
+
+/* --- Top products list --- */
+.admin-top-product-row {
+    transition: transform 0.25s ease, background 0.25s ease !important;
+    border-radius: 10px !important;
+    padding: 10px 12px !important;
+}
+.admin-top-product-row:hover {
+    transform: translateX(6px) !important;
+    background: rgba(255,85,32,0.06) !important;
+}
+
+/* --- Order status items --- */
+.order-status-item,
+.admin-legend-card {
+    animation: fadeLeft 0.5s cubic-bezier(0.16,1,0.3,1) both;
+}
+.order-status-item:nth-child(1) { animation-delay: 0.05s; }
+.order-status-item:nth-child(2) { animation-delay: 0.12s; }
+.order-status-item:nth-child(3) { animation-delay: 0.19s; }
+.order-status-item:nth-child(4) { animation-delay: 0.26s; }
+
+/* --- Bar charts (horizontal) --- */
+.admin-cat-bar,
+.an-bar-row {
+    transition: transform 0.3s ease, background 0.3s ease !important;
+}
+.admin-cat-bar:hover,
+.an-bar-row:hover {
+    transform: translateX(4px) !important;
+}
+
+/* --- Trend bars --- */
+.admin-trend-bar {
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1) !important;
+    position: relative;
+}
+.admin-trend-bar:hover {
+    transform: scaleY(1.1) !important;
+}
+.admin-trend-bar::before {
+    content: attr(data-value);
+    position: absolute;
+    top: -20px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--bs-muted);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+}
+.admin-trend-bar:hover::before {
+    opacity: 1;
+}
+
+/* ============================================================
+   PHẦN 12: PERFORMANCE OPTIMIZATIONS
+   - Chỉ dùng opacity + transform (không gây layout reflow)
+   - Giới hạn will-change để tránh VRAM waste
+   ============================================================ */
+
+/* Remove expensive operations from scroll */
+.admin-table-wrap {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+}
+
+/* Reduce paint cost for dashboard FX stars */
+.admin-app .star-field,
+.admin-app [class*="particle"],
+.admin-app canvas {
+    will-change: auto !important;
+}
+
+/* Fix heavy shimmer on low-end devices */
+@media (prefers-reduced-motion: no-preference) {
+    .admin-card,
+    .admin-metrics article {
+        transition-duration: 0.35s !important;
+    }
+}
+
+/* Remove will-change after animation completes */
+.admin-card.animation-done,
+.admin-metrics article.animation-done {
+    will-change: auto;
+}
+
+/* ============================================================
+   PHẦN 13: DARK MODE REFINEMENTS
+   ============================================================ */
+
+:root[data-theme="dark"] .admin-card__heading h2,
+:root[data-theme="dark"] .admin-card__heading h3 {
+    color: #fff !important;
+}
+:root[data-theme="dark"] .admin-topbar .eyebrow {
+    color: #ff8a00 !important;
+}
+:root[data-theme="dark"] .admin-table-card th {
+    background: rgba(255,85,32,0.08) !important;
+    color: rgba(255,255,255,0.5) !important;
+}
+:root[data-theme="dark"] .admin-field label {
+    color: rgba(255,255,255,0.5) !important;
+}
+:root[data-theme="dark"] .admin-primary {
+    box-shadow: 0 4px 16px rgba(255,85,32,0.4) !important;
+}
+
+/* ============================================================
+   PHẦN 14: CLEAN UP CONFLICTING STYLES
+   ============================================================ */
+
+/* Remove 3D tilt from admin (causes lag on complex pages) */
+.admin-body .product-card,
+.admin-body .admin-card,
+.admin-body .stat-card {
+    transform-style: flat !important;
+}
+
+/* Disable expensive parallax on admin */
+.admin-body .home-banner,
+.admin-body .hero-banner {
+    animation: none !important;
+}
+
+/* Limit mega-animations on admin to reduce jank */
+.admin-body [data-aos] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+/* Restore specific admin animations */
+.admin-body .admin-card { animation: adminCardEnter 0.5s cubic-bezier(0.16,1,0.3,1) both !important; }
+.admin-body .admin-sidebar { animation: fadeRight 0.5s cubic-bezier(0.16,1,0.3,1) both !important; }
+.admin-body .admin-topbar { animation: fadeDown 0.4s cubic-bezier(0.16,1,0.3,1) 0.1s both !important; }
+.admin-body .admin-metrics article { animation: adminCardEnter 0.5s cubic-bezier(0.16,1,0.3,1) both !important; }

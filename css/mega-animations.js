@@ -7,6 +7,8 @@
     'use strict';
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // On admin page: disable heavy 3D tilt, parallax, page transitions to prevent lag
+    const isAdmin = document.body.classList.contains('admin-body') || document.querySelector('.admin-shell') !== null;
 
     /* ---- 1. AOS - Scroll Reveal Engine ---- */
     function initAOS() {
@@ -335,22 +337,35 @@
 
     /* ---- BOOT ---- */
     function boot() {
-        tagForAOS();
-        initAOS();
-        if (!reduced) {
+        // On admin: skip tagForAOS (CSS handles it), skip heavy features
+        if (!isAdmin) {
+            tagForAOS();
+            initAOS();
+        }
+        if (!reduced && !isAdmin) {
             init3DTilt();
-            initRipple();
             initMagnetic();
             initParallax();
             initWaveTitles();
             initSparkles();
+            initPageTransitions();
+        }
+        if (!reduced) {
+            initRipple(); // Ripple is OK everywhere (lightweight)
         }
         initCounters();
         initLazyImages();
         initScrollProgress();
 
-        // Re-tag dynamically added elements
-        if (typeof MutationObserver !== 'undefined') {
+        // Cleanup will-change after animations complete (prevents VRAM waste)
+        setTimeout(() => {
+            document.querySelectorAll('.admin-card, .admin-metrics article, .stat-card').forEach(el => {
+                el.classList.add('animation-done');
+            });
+        }, 2000);
+
+        // Re-tag dynamically added elements (only on non-admin)
+        if (!isAdmin && typeof MutationObserver !== 'undefined') {
             new MutationObserver(() => {
                 tagForAOS();
                 initAOS();
@@ -364,3 +379,4 @@
         boot();
     }
 })();
+

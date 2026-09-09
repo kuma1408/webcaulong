@@ -1,0 +1,500 @@
+/* =============================================================
+   UNIVERSAL ANIMATIONS - Mọi phần tử đều có animation
+   Bổ sung cho mega-animations.css - phủ sóng TOÀN BỘ trang web
+   ============================================================= */
+
+/* ---- PAGE LOAD: Staggered header elements ---- */
+.main-header > *,
+.header-inner > * {
+    animation: fadeDown 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+.main-header > *:nth-child(1) { animation-delay: 0.05s; }
+.main-header > *:nth-child(2) { animation-delay: 0.12s; }
+.main-header > *:nth-child(3) { animation-delay: 0.19s; }
+
+/* ---- LOGO: Float animation ---- */
+.logo, .site-logo, .logo-large, .logo-small {
+    animation: float 5s ease-in-out infinite;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.logo:hover, .site-logo:hover {
+    animation-play-state: paused;
+    transform: scale(1.05) rotate(-2deg) !important;
+}
+
+/* ---- HEADER ICONS: Pop in ---- */
+.header-btn, .cart-icon, .login-icon, .wishlist-icon {
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), color 0.3s ease !important;
+}
+.header-btn:hover, .cart-icon:hover, .login-icon:hover, .wishlist-icon:hover {
+    transform: scale(1.15) translateY(-2px) !important;
+}
+/* Cart badge pulse */
+.cart-count, .badge-count, [class*="cart-badge"] {
+    animation: heartBeat 2s ease-in-out infinite;
+}
+
+/* ---- BREADCRUMB: Slide in ---- */
+.breadcrumb, .breadcrumb-nav {
+    animation: fadeLeft 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+.breadcrumb > *, .breadcrumb-item {
+    animation: fadeRight 0.4s cubic-bezier(0.16,1,0.3,1) both;
+}
+.breadcrumb > *:nth-child(1) { animation-delay: 0.05s; }
+.breadcrumb > *:nth-child(2) { animation-delay: 0.12s; }
+.breadcrumb > *:nth-child(3) { animation-delay: 0.19s; }
+
+/* ---- FILTER/TAG PILLS: Bounce in ---- */
+.filter-tag, .filter-pill, .filter-btn,
+.tag-pill, [class*="filter-"] button,
+.price-filter, .cat-filter {
+    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1) !important;
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.filter-tag:hover, .filter-pill:hover, .filter-btn:hover {
+    transform: scale(1.08) translateY(-2px) !important;
+}
+.filter-tag.active, .filter-btn.active {
+    animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+/* ---- DROPDOWN MENUS: Slide down ---- */
+.dropdown-menu, .sub-menu, [class*="dropdown"],
+.nav-dropdown, .mega-menu {
+    animation: slideInUp 0.3s cubic-bezier(0.16,1,0.3,1) both !important;
+    transform-origin: top center;
+}
+.dropdown-menu li, .sub-menu li, .nav-dropdown li {
+    animation: fadeLeft 0.3s cubic-bezier(0.16,1,0.3,1) both;
+}
+.dropdown-menu li:nth-child(1) { animation-delay: 0.02s; }
+.dropdown-menu li:nth-child(2) { animation-delay: 0.05s; }
+.dropdown-menu li:nth-child(3) { animation-delay: 0.08s; }
+.dropdown-menu li:nth-child(4) { animation-delay: 0.11s; }
+.dropdown-menu li:nth-child(5) { animation-delay: 0.14s; }
+
+/* ---- PRODUCT PRICE: Highlight ---- */
+.product-price, .price, [class*="price"] {
+    transition: color 0.3s ease, transform 0.3s ease !important;
+    display: inline-block;
+}
+.product-card:hover .product-price,
+.product-card:hover .price {
+    color: #ff5520 !important;
+    transform: scale(1.05);
+}
+
+/* ---- PRODUCT ACTIONS (Quick add buttons) ---- */
+.product-card__actions,
+[class*="card-actions"],
+.quick-add-btn {
+    transition: opacity 0.3s ease, transform 0.3s ease !important;
+    opacity: 0;
+    transform: translateY(8px);
+}
+.product-card:hover .product-card__actions,
+.product-card:hover [class*="card-actions"] {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ---- PAGINATION ---- */
+.pagination, .page-nav {
+    animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+.pagination a, .pagination button, .page-nav a {
+    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.pagination a:hover, .pagination button:hover {
+    transform: scale(1.12) !important;
+}
+.pagination a.active, .pagination .current {
+    animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+/* ---- SELECT DROPDOWN ---- */
+select {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
+    cursor: pointer;
+}
+select:focus {
+    border-color: #ff5520 !important;
+    box-shadow: 0 0 0 3px rgba(255,85,32,0.15) !important;
+}
+
+/* ---- CHECKBOXES & RADIOS ---- */
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: #ff5520;
+    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1) !important;
+    cursor: pointer;
+}
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+    animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+input[type="checkbox"]:hover,
+input[type="radio"]:hover {
+    transform: scale(1.2) !important;
+}
+
+/* ---- TABS (product detail, etc.) ---- */
+.tab-list, .tab-nav, [role="tablist"] {
+    position: relative;
+}
+[role="tab"], .tab-btn, .tab-link {
+    position: relative;
+    transition: color 0.3s ease, background 0.3s ease !important;
+    overflow: hidden;
+}
+[role="tab"]::after, .tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; width: 100%; height: 2.5px;
+    background: linear-gradient(90deg, #ff5520, #ffb703);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s ease;
+    border-radius: 2px;
+}
+[role="tab"]:hover::after, [role="tab"][aria-selected="true"]::after,
+.tab-btn:hover::after, .tab-btn.active::after {
+    transform: scaleX(1);
+    transform-origin: left;
+}
+
+/* ---- ACCORDION / DETAILS ---- */
+details {
+    transition: all 0.3s ease;
+}
+details[open] summary + * {
+    animation: slideInUp 0.3s cubic-bezier(0.16,1,0.3,1) both;
+}
+summary {
+    cursor: pointer;
+    transition: color 0.25s ease !important;
+    list-style: none;
+}
+summary:hover { color: #ff5520 !important; }
+details[open] summary { color: #ff5520 !important; }
+
+/* ---- ALERT / NOTIFICATION BOXES ---- */
+.alert, .notice, .notification, [class*="alert-"] {
+    animation: slideInUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    position: relative;
+    overflow: hidden;
+}
+.alert::before, .notice::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 4px;
+    border-radius: 2px;
+    background: currentColor;
+    opacity: 0.4;
+}
+
+/* ---- SECTION DIVIDERS ---- */
+hr, .divider {
+    animation: fadeUp 0.6s ease both;
+}
+
+/* ---- BLOCKQUOTES ---- */
+blockquote {
+    animation: fadeLeft 0.6s cubic-bezier(0.16,1,0.3,1) both;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+    border-left: 4px solid rgba(255,85,32,0.3) !important;
+}
+blockquote:hover {
+    border-color: #ff5520 !important;
+    transform: translateX(4px);
+}
+
+/* ---- IMAGE GALLERY ---- */
+.gallery, .photo-grid, .media-grid {
+    display: grid;
+    gap: 12px;
+}
+.gallery img, .photo-grid img {
+    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.3s ease !important;
+    border-radius: 10px;
+    overflow: hidden;
+}
+.gallery img:hover, .photo-grid img:hover {
+    transform: scale(1.04) !important;
+    filter: brightness(1.05) contrast(1.03) !important;
+    z-index: 2;
+}
+
+/* ---- CONTACT FORM ---- */
+.contact-form, form[class*="contact"] {
+    animation: fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) both;
+}
+.contact-form .field, .form-row {
+    animation: fadeLeft 0.5s cubic-bezier(0.16,1,0.3,1) both;
+}
+.contact-form .field:nth-child(1) { animation-delay: 0.05s; }
+.contact-form .field:nth-child(2) { animation-delay: 0.12s; }
+.contact-form .field:nth-child(3) { animation-delay: 0.19s; }
+.contact-form .field:nth-child(4) { animation-delay: 0.26s; }
+
+/* ---- SOCIAL MEDIA ICONS ---- */
+.social-media, .social-links {
+    animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.3s both;
+}
+.social-icon {
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1),
+                filter 0.3s ease !important;
+    display: inline-block;
+}
+.social-icon:hover {
+    transform: translateY(-6px) scale(1.15) !important;
+    filter: brightness(1.1) !important;
+}
+/* Stagger social icons */
+.social-icon:nth-child(1) { animation: popIn 0.4s 0.1s both; }
+.social-icon:nth-child(2) { animation: popIn 0.4s 0.18s both; }
+.social-icon:nth-child(3) { animation: popIn 0.4s 0.26s both; }
+.social-icon:nth-child(4) { animation: popIn 0.4s 0.34s both; }
+.social-icon:nth-child(5) { animation: popIn 0.4s 0.42s both; }
+
+/* ---- FOOTER COLUMNS ---- */
+.footer-col, .footer-section, footer > * {
+    animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) both;
+}
+.footer-col:nth-child(1) { animation-delay: 0.05s; }
+.footer-col:nth-child(2) { animation-delay: 0.12s; }
+.footer-col:nth-child(3) { animation-delay: 0.19s; }
+.footer-col:nth-child(4) { animation-delay: 0.26s; }
+
+/* ---- LOGIN / REGISTER FORMS ---- */
+.login-form, .register-form, .auth-form,
+[class*="login-"], [class*="register-"] {
+    animation: zoomBlur 0.8s cubic-bezier(0.16,1,0.3,1) both;
+}
+.login-form .field,
+.register-form .field {
+    animation: fadeLeft 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    transition: all 0.3s ease;
+}
+
+/* ---- EMPTY STATES ---- */
+.empty-state, [class*="empty"], .no-data {
+    animation: popIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.empty-state > * {
+    animation: float 4s ease-in-out infinite;
+}
+
+/* ---- LOADING SPINNERS ---- */
+[class*="spinner"], [class*="loader"], .loading-icon {
+    animation: rotateIn 0.5s ease both, spinner-rotate 1s linear infinite;
+}
+@keyframes spinner-rotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+/* ---- ORDER DETAIL PAGE ---- */
+.order-timeline > * {
+    animation: fadeLeft 0.5s cubic-bezier(0.16,1,0.3,1) both;
+}
+.order-timeline > *:nth-child(1) { animation-delay: 0.05s; }
+.order-timeline > *:nth-child(2) { animation-delay: 0.12s; }
+.order-timeline > *:nth-child(3) { animation-delay: 0.19s; }
+.order-timeline > *:nth-child(4) { animation-delay: 0.26s; }
+
+/* ---- TRUST BADGES & FEATURES ---- */
+.trust-badge, .trust-item, .warranty-badge {
+    animation: flipIn 0.6s cubic-bezier(0.16,1,0.3,1) both;
+    transition: transform 0.3s ease !important;
+}
+.trust-badge:hover, .trust-item:hover {
+    transform: translateY(-4px) !important;
+}
+
+/* ---- COOKIE CONSENT BAR ---- */
+.cookie-bar, .consent-bar, [id*="cookie"] {
+    animation: slideInUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+/* ---- FLOATING CART / STICKY ELEMENTS ---- */
+.floating-cart, .sticky-cart, .sticky-cta {
+    animation: fadeLeft 0.5s cubic-bezier(0.16,1,0.3,1) 0.5s both;
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+.floating-cart:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.2) !important;
+}
+
+/* ---- RELATED PRODUCTS SECTION ---- */
+.related-products, .san-pham-goi-y, [class*="related"] {
+    animation: fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+/* ---- PRODUCT SPECS TABLE ---- */
+.specs-table tr, .product-specs tr {
+    animation: fadeLeft 0.4s cubic-bezier(0.16,1,0.3,1) both;
+    transition: background 0.2s ease !important;
+}
+.specs-table tr:hover, .product-specs tr:hover {
+    background: rgba(255,85,32,0.04) !important;
+}
+
+/* ---- DISCOUNT TAG ---- */
+.discount-tag, .sale-badge, [class*="discount"],
+.admin-card .badge {
+    animation: bounce 2s ease-in-out 1s infinite;
+}
+/* Stop bouncing on hover */
+.discount-tag:hover, .sale-badge:hover {
+    animation: none;
+    transform: scale(1.1) !important;
+}
+
+/* ---- STOCK INDICATOR ---- */
+.stock-status, .in-stock, .out-of-stock {
+    animation: fadeUp 0.4s ease both;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.in-stock::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: heartBeat 1.5s ease infinite;
+}
+.out-of-stock::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+}
+
+/* ---- COUNTER / QUANTITY INPUT ---- */
+.qty-wrapper, .quantity-wrapper {
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+/* ---- BACK BUTTON ---- */
+.back-btn, [class*="back-link"], .go-back {
+    transition: transform 0.25s ease, color 0.25s ease !important;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.back-btn:hover, [class*="back-link"]:hover {
+    transform: translateX(-6px) !important;
+    color: #ff5520 !important;
+}
+
+/* ---- SALE OFF PAGE BANNER ---- */
+.sale-hero, .promo-banner {
+    animation: zoomBlur 1.2s ease both;
+    position: relative; overflow: hidden;
+}
+.sale-hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(
+        -45deg,
+        rgba(255,85,32,0.05) 25%, transparent 25%,
+        transparent 50%, rgba(255,85,32,0.05) 50%,
+        rgba(255,85,32,0.05) 75%, transparent 75%
+    );
+    background-size: 60px 60px;
+    animation: moveStripes 3s linear infinite;
+}
+@keyframes moveStripes {
+    from { background-position: 0 0; }
+    to   { background-position: 60px 60px; }
+}
+
+/* ---- ACCOUNT PAGE ---- */
+.account-layout > * {
+    animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+.account-menu a {
+    transition: all 0.25s ease !important;
+    position: relative;
+}
+.account-menu a:hover {
+    transform: translateX(6px) !important;
+    color: #ff5520 !important;
+}
+.account-menu a.active {
+    color: #ff5520 !important;
+    font-weight: 800 !important;
+}
+
+/* ---- 404 / ERROR PAGE ---- */
+.error-code, .error-number {
+    animation: bounce 2s ease-in-out infinite;
+    font-size: clamp(80px, 15vw, 160px) !important;
+    background: linear-gradient(135deg, #ff2a2a, #ff8a00, #ffea00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: gradientShift 3s ease infinite, bounce 3s ease-in-out infinite !important;
+}
+
+/* ---- MINI CART POPUP ---- */
+.mini-cart, [class*="mini-cart"] {
+    animation: slideInUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
+}
+.mini-cart-item {
+    animation: fadeLeft 0.35s cubic-bezier(0.16,1,0.3,1) both;
+    transition: background 0.2s ease !important;
+}
+.mini-cart-item:hover {
+    background: rgba(255,85,32,0.05) !important;
+}
+
+/* ---- TOOLTIP ---- */
+[data-tooltip], [title]:not(html):not(body) {
+    position: relative;
+    cursor: help;
+}
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    background: rgba(20,20,20,0.9);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 7px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 1000;
+}
+[data-tooltip]:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+}
+
+/* ---- IMAGE HOVER ZOOM for entire site ---- */
+.img-zoom-wrap { overflow: hidden; border-radius: inherit; }
+.img-zoom-wrap img {
+    transition: transform 0.5s cubic-bezier(0.16,1,0.3,1) !important;
+}
+.img-zoom-wrap:hover img {
+    transform: scale(1.08) !important;
+}
+
+/* ---- HIGHLIGHT SEARCH RESULTS ---- */
+mark, .highlight, [class*="search-highlight"] {
+    background: linear-gradient(135deg, rgba(255,183,3,0.3), rgba(255,85,32,0.2)) !important;
+    border-radius: 3px;
+    padding: 0 2px;
+    transition: background 0.3s ease;
+}
