@@ -259,7 +259,7 @@
         history.replaceState(null, '', `#${view}`);
         if (reload || !state.loaded.has(view)) {
             state.loaded.add(view);
-            loadView(view);
+            return loadView(view);
         } else if (view === 'overview') {
             setTimeout(replayAllDashboardAnimations, 80);
         }
@@ -278,315 +278,6 @@
         if (view === 'audit') return loadAudit();
     }
 
-    const FALLBACK_CATEGORIES = [
-        { MaDM: 1, TenDM: 'Vợt Cầu Lông' },
-        { MaDM: 2, TenDM: 'Giày Cầu Lông' },
-        { MaDM: 3, TenDM: 'Áo Cầu Lông' },
-        { MaDM: 4, TenDM: 'Váy Cầu Lông' },
-        { MaDM: 5, TenDM: 'Quần Cầu Lông' },
-        { MaDM: 6, TenDM: 'Túi Vợt Cầu Lông' },
-        { MaDM: 7, TenDM: 'Balo Cầu Lông' },
-        { MaDM: 8, TenDM: 'Phụ Kiện Cầu Lông' }
-    ];
-
-    const FALLBACK_DASHBOARD_DATA = {
-        metrics: {
-            revenue_month: 284500000,
-            orders: 142,
-            pending_orders: 8,
-            average_order: 2003521,
-            orders_today: 12,
-            users: 384,
-            active_users: 350,
-            products: 56,
-            low_stock: 4,
-            active_products: 52,
-            pending_deposits: 2,
-            pending_support: 3,
-            database_bytes: 4823449,
-            pending_stringing: 5,
-            active_vouchers: 6,
-            wishlist_items: 89
-        },
-        trend: [
-            { date: "2026-08-26", revenue: 14500000, orders: 8 },
-            { date: "2026-08-27", revenue: 18200000, orders: 11 },
-            { date: "2026-08-28", revenue: 12000000, orders: 6 },
-            { date: "2026-08-29", revenue: 25400000, orders: 14 },
-            { date: "2026-08-30", revenue: 31000000, orders: 18 },
-            { date: "2026-08-31", revenue: 22800000, orders: 12 },
-            { date: "2026-09-01", revenue: 29500000, orders: 16 },
-            { date: "2026-09-02", revenue: 38000000, orders: 22 },
-            { date: "2026-09-03", revenue: 24200000, orders: 13 },
-            { date: "2026-09-04", revenue: 19800000, orders: 10 },
-            { date: "2026-09-05", revenue: 33500000, orders: 19 },
-            { date: "2026-09-06", revenue: 41200000, orders: 24 },
-            { date: "2026-09-07", revenue: 36000000, orders: 20 },
-            { date: "2026-09-08", revenue: 27900000, orders: 15 }
-        ],
-        order_status: [
-            { TrangThai: "HOAN_THANH", SoLuong: 112 },
-            { TrangThai: "DANG_GIAO", SoLuong: 18 },
-            { TrangThai: "CHO_XAC_NHAN", SoLuong: 8 },
-            { TrangThai: "DA_HUY", SoLuong: 4 }
-        ],
-        category_distribution: [
-            { TenDM: "Vợt Cầu Lông", TongDoanhThu: 185000000, TongSP: 24 },
-            { TenDM: "Giày Cầu Lông", TongDoanhThu: 42000000, TongSP: 12 },
-            { TenDM: "Áo Cầu Lông", TongDoanhThu: 15000000, TongSP: 8 },
-            { TenDM: "Túi & Balo", TongDoanhThu: 21500000, TongSP: 6 },
-            { TenDM: "Váy & Quần", TongDoanhThu: 11000000, TongSP: 4 },
-            { TenDM: "Phụ Kiện", TongDoanhThu: 10000000, TongSP: 2 }
-        ],
-        top_products: [
-            { MaSP: 164, TenSP: "Vợt Cầu Lông Vicleo Aero 555", DoanhThu: 48500000, SoLuongBan: 99, TyLe: 100 },
-            { MaSP: 101, TenSP: "Vợt Yonex Astrox 88D Pro", DoanhThu: 38400000, SoLuongBan: 8, TyLe: 79 },
-            { MaSP: 102, TenSP: "Giày Lining AYAT005-6 Chính Hãng", DoanhThu: 27960000, SoLuongBan: 12, TyLe: 57 },
-            { MaSP: 103, TenSP: "Vợt Lining Axforce 10 Pro", DoanhThu: 22800000, SoLuongBan: 24, TyLe: 47 },
-            { MaSP: 104, TenSP: "Balo Cầu Lông Kawasaki 8245", DoanhThu: 18000000, SoLuongBan: 24, TyLe: 37 },
-            { MaSP: 105, TenSP: "Túi Vợt Cầu Lông Kumpoo KB463", DoanhThu: 16400000, SoLuongBan: 20, TyLe: 33 }
-        ],
-        funnel: {
-            users: 384,
-            carts: 196,
-            buyers: 142,
-            completed_30: 112
-        },
-        recent_orders: [
-            { MaDH: 1088, TenNguoiNhan: "Hoàng Minh Tuấn", TongTien: 1490000, PhuongThuc: "Chuyển khoản", TrangThai: "CHO_XAC_NHAN", NgayTao: "2026-09-08T11:30:00" },
-            { MaDH: 1087, TenNguoiNhan: "Nguyễn Hải Đăng", TongTien: 4800000, PhuongThuc: "Ví số dư", TrangThai: "DANG_GIAO", NgayTao: "2026-09-08T10:15:00" },
-            { MaDH: 1086, TenNguoiNhan: "Trần Bảo Long", TongTien: 890000, PhuongThuc: "COD", TrangThai: "HOAN_THANH", NgayTao: "2026-09-08T09:00:00" }
-        ],
-        low_stock_products: [
-            { MaSP: 164, TenSP: "Vợt Vicleo Aero 555", TonKho: 2, GiaBan: 490000 },
-            { MaSP: 102, TenSP: "Giày Lining AYAT005-6 (Size 42)", TonKho: 1, GiaBan: 2330000 }
-        ],
-        activity: [
-            { MaAudit: 1, TenDangNhap: "superadmin", HanhDong: "Cập nhật sản phẩm", DoiTuong: "SAN_PHAM", MaDoiTuong: 164, NgayTao: "2026-09-08T12:00:00", IP: "127.0.0.1" }
-        ]
-    };
-
-    const FALLBACK_ADMIN_PRODUCTS = [
-        {
-            MaSP: 164, TenSP: "Vợt Cầu Lông Vicleo Aero 555", MaDM: 1, TenDM: "Vợt Cầu Lông",
-            GiaBan: 490000, GiaGoc: 750000, TonKho: 38, ThuongHieu: "Vicleo",
-            HinhAnh: "HA/imported-products/product-164-source-1.jpg",
-            AnhChiTiet: [
-                "HA/imported-products/product-164-source-1.jpg",
-                "HA/imported-products/product-164-source-2.jpg",
-                "HA/imported-products/product-164-source-3.jpg",
-                "HA/imported-products/product-164-source-4.jpg",
-                "HA/imported-products/product-164-source-5.jpg"
-            ],
-            TrongLuongCan: "4U-G5", LoiChoi: "CAN_BANG", DiemCanBang: "CAN_BANG", DoCungDua: "TRUNG_BINH", LucCangToiDa: 30,
-            TrangThai: 1, NguonTen: "Vicleo Sunrise", NguonURL: "", MoTa: "Vợt công thủ toàn diện trợ lực tốt."
-        },
-        {
-            MaSP: 101, TenSP: "Vợt Cầu Lông Yonex Astrox 88D Pro", MaDM: 1, TenDM: "Vợt Cầu Lông",
-            GiaBan: 4800000, GiaGoc: 5200000, TonKho: 15, ThuongHieu: "Yonex",
-            HinhAnh: "HA/anh vot/Set Vợt Cầu Lông Yonex Nanoflare 1000Z Trắng 15.000.000 ₫.png",
-            AnhChiTiet: ["HA/anh vot/Set Vợt Cầu Lông Yonex Nanoflare 1000Z Trắng 15.000.000 ₫.png"],
-            TrongLuongCan: "4U-G5", LoiChoi: "TAN_CONG", DiemCanBang: "NANG_DAU", DoCungDua: "CUNG", LucCangToiDa: 31,
-            TrangThai: 1, NguonTen: "Yonex Sunrise", NguonURL: "", MoTa: "Vũ khí smash cầu cắm sân đỉnh cao."
-        },
-        {
-            MaSP: 102, TenSP: "Giày Cầu Lông Lining AYAT005-6 Chính Hãng", MaDM: 2, TenDM: "Giày Cầu Lông",
-            GiaBan: 2330000, GiaGoc: 2600000, TonKho: 22, ThuongHieu: "Lining",
-            HinhAnh: "HA/Giày/Giày cầu lông Lining AYAT005-6 chính hãng 2.330.000 ₫.png",
-            AnhChiTiet: ["HA/Giày/Giày cầu lông Lining AYAT005-6 chính hãng 2.330.000 ₫.png"],
-            TrangThai: 1, NguonTen: "Lining Official", NguonURL: "", MoTa: "Đệm Power Cushion giảm chấn tuyệt vời."
-        },
-        {
-            MaSP: 103, TenSP: "Vợt Cầu Lông Lining Axforce 10", MaDM: 1, TenDM: "Vợt Cầu Lông",
-            GiaBan: 950000, GiaGoc: 1300000, TonKho: 45, ThuongHieu: "Lining",
-            HinhAnh: "HA/anh vot/Vợt Cầu Lông Lining Axforce 10 950.000 ₫.png",
-            AnhChiTiet: ["HA/anh vot/Vợt Cầu Lông Lining Axforce 10 950.000 ₫.png"],
-            TrongLuongCan: "4U-G5", LoiChoi: "TAN_CONG", DiemCanBang: "NANG_DAU", DoCungDua: "TRUNG_BINH", LucCangToiDa: 28,
-            TrangThai: 1, NguonTen: "Lining Official", NguonURL: "", MoTa: "Vợt tấn công giá rẻ cho học sinh sinh viên."
-        },
-        {
-            MaSP: 104, TenSP: "Balo Cầu Lông Kawasaki 8245", MaDM: 7, TenDM: "Balo Cầu Lông",
-            GiaBan: 750000, GiaGoc: 900000, TonKho: 18, ThuongHieu: "Kawasaki",
-            HinhAnh: "HA/balo/Balo cầu lông Kawasaki 8245 750.000 ₫ .png",
-            AnhChiTiet: ["HA/balo/Balo cầu lông Kawasaki 8245 750.000 ₫ .png"],
-            TrangThai: 1, NguonTen: "Kawasaki VN", NguonURL: "", MoTa: "Balo có ngăn chứa vợt và giày riêng biệt."
-        },
-        {
-            MaSP: 105, TenSP: "Túi Cầu Lông Kumpoo KB463", MaDM: 6, TenDM: "Túi Vợt Cầu Lông",
-            GiaBan: 820000, GiaGoc: 1050000, TonKho: 26, ThuongHieu: "Kumpoo",
-            HinhAnh: "HA/túi/Túi cầu lông Kumpoo KB463 820.000 ₫.png",
-            AnhChiTiet: ["HA/túi/Túi cầu lông Kumpoo KB463 820.000 ₫.png"],
-            TrangThai: 1, NguonTen: "Kumpoo VN", NguonURL: "", MoTa: "Túi vợt tráng bạc cách nhiệt chống nóng."
-        }
-    ];
-
-    const FALLBACK_ADMIN_ORDERS = [
-        {
-            MaDH: 1088, TenNguoiNhan: "Hoàng Minh Tuấn", TenDangNhap: "tuanhm", HoTen: "Hoàng Minh Tuấn",
-            TongTien: 1490000, PhuongThuc: "Chuyển khoản", TrangThai: "CHO_XAC_NHAN", TrangThaiThanhToan: "CHO_THANH_TOAN",
-            NgayDat: "2026-09-08T11:30:00", NgayCapNhat: "2026-09-08T11:35:00",
-            SoDienThoai: "0912345678", Email: "tuanhm@badminton.vn", DiaChiGiao: "Số 18 Hoàng Quốc Việt, Cầu Giấy, Hà Nội",
-            GhiChu: "Giao giờ hành chính, gọi trước khi tới.",
-            SanPham: [
-                {
-                    MaSP: 164, TenSP: "Vợt Cầu Lông Vicleo Aero 555", ThuongHieu: "Vicleo", TenDM: "Vợt Cầu Lông",
-                    GiaBan: 490000, SoLuong: 1, HinhAnh: "HA/imported-products/product-164-source-1.jpg",
-                    CauHinh: { weight_grip: "4U-G5", string: "Yonex BG65", tension_lbs: 24 }
-                },
-                {
-                    MaSP: 103, TenSP: "Vợt Cầu Lông Lining Axforce 10", ThuongHieu: "Lining", TenDM: "Vợt Cầu Lông",
-                    GiaBan: 950000, SoLuong: 1, HinhAnh: "HA/anh vot/Vợt Cầu Lông Lining Axforce 10 950.000 ₫.png",
-                    CauHinh: { weight_grip: "4U-G5", string: "Lining No.1", tension_lbs: 26 }
-                },
-                {
-                    MaSP: 106, TenSP: "Dây cước căng vợt Lining L9", ThuongHieu: "Lining", TenDM: "Phụ Kiện",
-                    GiaBan: 50000, SoLuong: 1, HinhAnh: "HA/phụ kien/Dây cước căng vợt Lining L9 60.000 ₫.png"
-                }
-            ],
-            LichSuXuLy: [
-                { HanhDong: "CREATE", NgayTao: "2026-09-08T11:30:00", TenDangNhap: "tuanhm", ChiTiet: { from: null, to: "CHO_XAC_NHAN" } }
-            ]
-        },
-        {
-            MaDH: 1087, TenNguoiNhan: "Nguyễn Hải Đăng", TenDangNhap: "haidang", HoTen: "Nguyễn Hải Đăng",
-            TongTien: 4800000, PhuongThuc: "SO_DU", TrangThai: "DANG_GIAO", TrangThaiThanhToan: "DA_THANH_TOAN",
-            NgayDat: "2026-09-08T10:15:00", NgayCapNhat: "2026-09-08T10:45:00",
-            SoDienThoai: "0988776655", Email: "haidang@gmail.com", DiaChiGiao: "Tòa S2.05 Vinhomes Ocean Park, Gia Lâm, Hà Nội",
-            GhiChu: "Đã thanh toán trừ ví số dư.",
-            SanPham: [
-                {
-                    MaSP: 101, TenSP: "Vợt Cầu Lông Yonex Astrox 88D Pro", ThuongHieu: "Yonex", TenDM: "Vợt Cầu Lông",
-                    GiaBan: 4800000, SoLuong: 1, HinhAnh: "HA/anh vot/Set Vợt Cầu Lông Yonex Nanoflare 1000Z Trắng 15.000.000 ₫.png",
-                    CauHinh: { weight_grip: "4U-G5", string: "BG66 Ultimax", tension_lbs: 28 }
-                }
-            ],
-            LichSuXuLy: [
-                { HanhDong: "CREATE", NgayTao: "2026-09-08T10:15:00", TenDangNhap: "haidang", ChiTiet: { from: null, to: "CHO_XAC_NHAN" } },
-                { HanhDong: "STATUS", NgayTao: "2026-09-08T10:45:00", TenDangNhap: "superadmin", ChiTiet: { from: "CHO_XAC_NHAN", to: "DANG_GIAO" } }
-            ]
-        },
-        {
-            MaDH: 1086, TenNguoiNhan: "Trần Bảo Long", TenDangNhap: "baolong", HoTen: "Trần Bảo Long",
-            TongTien: 890000, PhuongThuc: "COD", TrangThai: "HOAN_THANH", TrangThaiThanhToan: "DA_THANH_TOAN",
-            NgayDat: "2026-09-08T09:00:00", NgayCapNhat: "2026-09-08T12:00:00",
-            SoDienThoai: "0904123987", Email: "baolong@badminton.vn", DiaChiGiao: "125 Lê Văn Sỹ, P.13, Q.3, TP.HCM",
-            GhiChu: "",
-            SanPham: [
-                {
-                    MaSP: 104, TenSP: "Balo Cầu Lông Kawasaki 8245", ThuongHieu: "Kawasaki", TenDM: "Balo Cầu Lông",
-                    GiaBan: 750000, SoLuong: 1, HinhAnh: "HA/balo/Balo cầu lông Kawasaki 8245 750.000 ₫ .png"
-                },
-                {
-                    MaSP: 106, TenSP: "Quấn cán Kamito KMCC2401", ThuongHieu: "Kamito", TenDM: "Phụ Kiện",
-                    GiaBan: 140000, SoLuong: 7, HinhAnh: "HA/phụ kien/Quấn cán Kamito KMCC2401 20.000 ₫.png"
-                }
-            ],
-            LichSuXuLy: [
-                { HanhDong: "STATUS", NgayTao: "2026-09-08T12:00:00", TenDangNhap: "superadmin", ChiTiet: { from: "DANG_GIAO", to: "HOAN_THANH" } }
-            ]
-        }
-    ];
-
-    const FALLBACK_ADMIN_USERS = [
-        {
-            MaND: 1, TenDangNhap: "superadmin", HoTen: "Super Admin Pro", Email: "superadmin@badminton.vn",
-            SoDienThoai: "0909999999", DiaChi: "Trụ sở điều hành Cyber Sport", SoDu: 100000000, VaiTro: "superadmin", TrangThai: 1,
-            Avatar: ""
-        },
-        {
-            MaND: 2, TenDangNhap: "admin_viet", HoTen: "Nguyễn Quốc Việt", Email: "vietnq@badminton.vn",
-            SoDienThoai: "0918888888", DiaChi: "Chi nhánh Hà Nội", SoDu: 25000000, VaiTro: "admin", TrangThai: 1,
-            Avatar: ""
-        },
-        {
-            MaND: 3, TenDangNhap: "tuanhm", HoTen: "Hoàng Minh Tuấn", Email: "tuanhm@badminton.vn",
-            SoDienThoai: "0912345678", DiaChi: "Cầu Giấy, Hà Nội", SoDu: 3450000, VaiTro: "user", TrangThai: 1,
-            Avatar: ""
-        },
-        {
-            MaND: 4, TenDangNhap: "haidang", HoTen: "Nguyễn Hải Đăng", Email: "haidang@gmail.com",
-            SoDienThoai: "0988776655", DiaChi: "Gia Lâm, Hà Nội", SoDu: 5200000, VaiTro: "user", TrangThai: 1,
-            Avatar: ""
-        },
-        {
-            MaND: 5, TenDangNhap: "baolong", HoTen: "Trần Bảo Long", Email: "baolong@badminton.vn",
-            SoDienThoai: "0904123987", DiaChi: "Quận 3, TP.HCM", SoDu: 1200000, VaiTro: "user", TrangThai: 1,
-            Avatar: ""
-        }
-    ];
-
-    const FALLBACK_ADMIN_CONTENT = [
-        {
-            MaBV: 1, TieuDe: "Kỹ Thuật Đập Cầu Smash Cắm Sân Như VĐV Chuyên Nghiệp",
-            TomTat: "Hướng dẫn tư thế xoay hông, khóa cổ tay và tiếp xúc mặt vợt chuẩn xác nhất.",
-            NoiDung: "Smash là một trong những cú đánh uy lực nhất trong cầu lông...",
-            Loai: "HUONG_DAN", NgayDang: "2026-09-07T08:00:00", TrangThai: 1,
-            HinhAnh: "HA/anh vot/Vợt Cầu Lông Lining Axforce 10 950.000 ₫.png"
-        },
-        {
-            MaBV: 2, TieuDe: "Bộ Sưu Tập Giày Thi Đấu Mới Nhất Mùa Thu 2026",
-            TomTat: "Công nghệ đế đệm Carbon Plate trợ lực và bảo vệ cổ chân vượt trội.",
-            NoiDung: "Các thương hiệu hàng đầu Yonex, Lining, Victor vừa trình làng các mẫu giày...",
-            Loai: "TIN_TUC", NgayDang: "2026-09-08T09:00:00", TrangThai: 1,
-            HinhAnh: "HA/Giày/Giày cầu lông Lining AYAT005-6 chính hãng 2.330.000 ₫.png"
-        }
-    ];
-
-    const FALLBACK_ADMIN_SUPPORT = [
-        {
-            MaYeuCau: 101, HoTen: "Trần Bảo Long", Email: "baolong@badminton.vn", SoDienThoai: "0904123987",
-            ChuDe: "TU_VAN_SAN_PHAM", NoiDung: "Cần tư vấn lực căng cước phù hợp cho người mới chơi 6 tháng.",
-            MaDonHang: null, KenhPhanHoi: "EMAIL", TrangThai: "MOI", NgayTao: "2026-09-08T11:00:00",
-            GhiChuAdmin: ""
-        },
-        {
-            MaYeuCau: 102, HoTen: "Hoàng Minh Tuấn", Email: "tuanhm@badminton.vn", SoDienThoai: "0912345678",
-            ChuDe: "DON_HANG", NoiDung: "Đơn hàng #1088 có thể giao trước 16h chiều nay được không?",
-            MaDonHang: 1088, KenhPhanHoi: "DIEN_THOAI", TrangThai: "DANG_XU_LY", NgayTao: "2026-09-08T11:40:00",
-            GhiChuAdmin: "Đã liên hệ kho chuẩn bị đơn hỏa tốc."
-        }
-    ];
-
-    const FALLBACK_ADMIN_VOUCHERS = [
-        { MaVoucher: "CYBER2026", LoaiGiam: "SO_TIEN", GiaTri: 100000, DonToiThieu: 1000000, DaSuDung: 42, SoLuong: 100, NgayHetHan: "2026-12-31", TrangThai: 1 },
-        { MaVoucher: "CHAOBANMOI", LoaiGiam: "PHAN_TRAM", GiaTri: 10, GiamToiDa: 150000, DonToiThieu: 500000, DaSuDung: 88, SoLuong: 200, NgayHetHan: "2026-10-30", TrangThai: 1 },
-        { MaVoucher: "FREESHIP50", LoaiGiam: "SO_TIEN", GiaTri: 50000, DonToiThieu: 800000, DaSuDung: 65, SoLuong: 150, NgayHetHan: "2026-11-15", TrangThai: 1 }
-    ];
-
-    const FALLBACK_ADMIN_DEPOSITS = [
-        {
-            MaYeuCau: 201, MaThamChieu: "NAP-20260908-01", TenDangNhap: "tuanhm", HoTen: "Hoàng Minh Tuấn",
-            SoTien: 2000000, TrangThai: "CHO_DUYET", NgayTao: "2026-09-08T11:00:00", NgayXuLy: null
-        },
-        {
-            MaYeuCau: 200, MaThamChieu: "NAP-20260908-00", TenDangNhap: "haidang", HoTen: "Nguyễn Hải Đăng",
-            SoTien: 5000000, TrangThai: "DA_DUYET", NgayTao: "2026-09-08T09:30:00", NgayXuLy: "2026-09-08T09:45:00"
-        }
-    ];
-
-    const FALLBACK_ADMIN_APPROVALS = [
-        {
-            MaThayDoi: 501, TenDangNhap: "admin_viet", HanhDong: "UPDATE", DoiTuong: "SanPham", MaDoiTuong: 164,
-            TrangThai: "CHO_XEM", CoTheHoanTac: true, NgayTao: "2026-09-08T11:20:00",
-            DuLieuTruoc: { GiaBan: 520000, TonKho: 30 },
-            DuLieuSau: { GiaBan: 490000, TonKho: 38 }
-        }
-    ];
-
-    const FALLBACK_ADMIN_AUDIT = [
-        {
-            MaAudit: 1, TenDangNhap: "superadmin", HoTenAdmin: "Super Admin Pro", AvatarAdmin: "",
-            HanhDong: "UPDATE", DoiTuong: "SanPham", MaDoiTuong: 164, NgayTao: "2026-09-08T12:00:00",
-            DiaChiIP: "127.0.0.1",
-            ChiTiet: { name: "Vợt Cầu Lông Vicleo Aero 555", price: 490000 }
-        },
-        {
-            MaAudit: 2, TenDangNhap: "admin_viet", HoTenAdmin: "Nguyễn Quốc Việt", AvatarAdmin: "",
-            HanhDong: "STATUS", DoiTuong: "DonHang", MaDoiTuong: 1087, NgayTao: "2026-09-08T10:45:00",
-            DiaChiIP: "192.168.1.105",
-            ChiTiet: { from: "CHO_XAC_NHAN", to: "DANG_GIAO" }
-        }
-    ];
 
     async function loadDashboard() {
         let data = null;
@@ -595,12 +286,15 @@
             if (!data || !data.metrics) throw new Error('API format invalid');
         } catch (error) {
             console.warn('Backend chưa sẵn sàng, kích hoạt dữ liệu bảng quản trị sống động:', error.message);
-            data = FALLBACK_DASHBOARD_DATA;
+            showToast('Không tải được tổng quan. ' + error.message, 'error');
+            $('.admin-live').textContent = 'Chưa cập nhật được dữ liệu';
+            return;
         }
         renderDashboardData(data);
     }
 
     function renderDashboardData(data) {
+        $('.admin-live').textContent = 'Dữ liệu vừa cập nhật';
         const metrics = data.metrics || {};
         cachedMetricsData = metrics;
         cachedFunnelData = data.funnel || {};
@@ -615,13 +309,13 @@
         animateMetric($('#adminLowStock'), metrics.low_stock);
         const attention = (metrics.low_stock || 0) + (metrics.pending_deposits || 0) + (metrics.pending_support || 0);
         animateMetric($('#adminAttention'), attention);
-        animateMetric($('#healthProducts'), metrics.active_products || 52);
-        animateMetric($('#healthUsers'), metrics.active_users || 350);
-        animateMetric($('#healthSupport'), metrics.pending_support || 3);
-        $('#adminDatabaseSize').textContent = formatBytes(metrics.database_bytes || 4823449);
-        animateMetric($('#adminStringingQueue'), metrics.pending_stringing || 5);
-        animateMetric($('#adminActiveVouchers'), metrics.active_vouchers || 6);
-        animateMetric($('#adminWishlistItems'), metrics.wishlist_items || 89);
+        animateMetric($('#healthProducts'), metrics.active_products ?? 0);
+        animateMetric($('#healthUsers'), metrics.active_users ?? 0);
+        animateMetric($('#healthSupport'), metrics.pending_support ?? 0);
+        $('#adminDatabaseSize').textContent = metrics.database_bytes == null ? 'Chưa có số liệu' : formatBytes(metrics.database_bytes);
+        animateMetric($('#adminStringingQueue'), metrics.pending_stringing ?? 0);
+        animateMetric($('#adminActiveVouchers'), metrics.active_vouchers ?? 0);
+        animateMetric($('#adminWishlistItems'), metrics.wishlist_items ?? 0);
         updateNavBadge($('#navPendingOrders'), metrics.pending_orders || 0);
         updateNavBadge($('#navPendingDeposits'), metrics.pending_deposits || 0);
         updateNavBadge($('#navPendingSupport'), metrics.pending_support || 0);
@@ -634,7 +328,7 @@
         renderLowStock(data.low_stock_products || []);
         renderActivity(data.activity || []);
         setupAdminChartScrollWatcher();
-        if (state.admin?.role === 'superadmin' && data !== FALLBACK_DASHBOARD_DATA) {
+        if (state.admin?.role === 'superadmin') {
             Auth.request('/api/admin/phe-duyet-thay-doi?status=CHO_XEM').then(result => updateNavBadge($('#navPendingApprovals'), (result.changes || []).length)).catch(() => {});
         }
     }
@@ -803,9 +497,9 @@
         animateMetric($('#adminLowStock'), m.low_stock);
         const attention = (m.low_stock || 0) + (m.pending_deposits || 0) + (m.pending_support || 0);
         animateMetric($('#adminAttention'), attention);
-        animateMetric($('#adminActiveVouchers'), m.active_vouchers || 6);
-        animateMetric($('#adminStringingQueue'), m.pending_stringing || 5);
-        animateMetric($('#adminWishlistItems'), m.wishlist_items || 89);
+        animateMetric($('#adminActiveVouchers'), m.active_vouchers ?? 0);
+        animateMetric($('#adminStringingQueue'), m.pending_stringing ?? 0);
+        animateMetric($('#adminWishlistItems'), m.wishlist_items ?? 0);
     }
 
     function formatShortMoney(value) {
@@ -1973,7 +1667,7 @@
             state.categories = data.categories || [];
         } catch (e) {
             console.warn('Backend chưa sẵn sàng, dùng FALLBACK_CATEGORIES:', e.message);
-            state.categories = FALLBACK_CATEGORIES;
+            state.categories = [];
         }
         const select = $('#productCategory');
         if (select) {
@@ -1997,10 +1691,9 @@
             renderProducts();
             await loadCategories();
         } catch (error) {
-            console.warn('Backend chưa sẵn sàng, nạp FALLBACK_ADMIN_PRODUCTS:', error.message);
-            state.products = FALLBACK_ADMIN_PRODUCTS;
-            state.productTotal = FALLBACK_ADMIN_PRODUCTS.length;
-            renderProducts();
+        state.products = []; state.productTotal = 0;
+        emptyRow($('#productRows'), 6, 'Không tải được dữ liệu. ' + error.message);
+        state.loaded.delete('products');
             await loadCategories();
         }
     }
@@ -2139,10 +1832,9 @@
             const data = await Auth.request(`/api/admin/orders?${params}`);
             state.orders = data.orders || []; state.orderTotal = Number(data.total) || 0; renderOrders();
         } catch (error) {
-            console.warn('Backend chưa sẵn sàng, nạp FALLBACK_ADMIN_ORDERS:', error.message);
-            state.orders = FALLBACK_ADMIN_ORDERS;
-            state.orderTotal = FALLBACK_ADMIN_ORDERS.length;
-            renderOrders();
+        state.orders = []; state.orderTotal = 0;
+        emptyRow($('#adminOrderRows'), 7, 'Không tải được dữ liệu. ' + error.message);
+        state.loaded.delete('orders');
         }
     }
 
@@ -2242,10 +1934,9 @@
         const params=new URLSearchParams({page:state.userPage,limit:20,q:$('#userQuery').value.trim(),role:$('#userRole').value});
         try{const data=await Auth.request(`/api/admin/users?${params}`);state.users=data.users||[];state.userTotal=Number(data.total)||0;renderUsers();}
         catch(error){
-            console.warn('Backend chưa sẵn sàng, nạp FALLBACK_ADMIN_USERS:', error.message);
-            state.users=FALLBACK_ADMIN_USERS;
-            state.userTotal=FALLBACK_ADMIN_USERS.length;
-            renderUsers();
+        state.users = []; state.userTotal = 0;
+        emptyRow($('#userRows'), 6, 'Không tải được dữ liệu. ' + error.message);
+        state.loaded.delete('users');
         }
     }
 
@@ -2333,9 +2024,9 @@
         const tbody=$('#depositAdminRows');emptyRow(tbody,6,'Đang tải yêu cầu nạp tiền…');
         try{const data=await Auth.request(`/api/admin/nap-tien?status=${encodeURIComponent($('#depositAdminStatus').value)}`);state.deposits=data.requests||[];renderDeposits();}
         catch(error){
-            console.warn('Backend chưa sẵn sàng, nạp FALLBACK_ADMIN_DEPOSITS:', error.message);
-            state.deposits=FALLBACK_ADMIN_DEPOSITS;
-            renderDeposits();
+        state.deposits = [];
+        emptyRow($('#depositAdminRows'), 6, 'Không tải được dữ liệu. ' + error.message);
+        state.loaded.delete('deposits');
         }
     }
 
@@ -2361,7 +2052,7 @@
         try{const data=await Auth.request('/api/admin/audit-logs');renderAudit(data.logs||[]);}
         catch(error){
             console.warn('Backend chưa sẵn sàng, nạp FALLBACK_ADMIN_AUDIT:', error.message);
-            renderAudit(FALLBACK_ADMIN_AUDIT);
+            emptyRow(tbody, 6, 'Không tải được nhật ký. ' + error.message);
         }
     }
 
@@ -2385,8 +2076,7 @@
         try{const data=await Auth.request(`/api/admin/phe-duyet-thay-doi?status=${encodeURIComponent($('#approvalStatus').value)}`);renderApprovals(data.changes||[]);if($('#approvalStatus').value==='CHO_XEM')updateNavBadge($('#navPendingApprovals'),(data.changes||[]).length);}
         catch(error){
             console.warn('Backend chưa sẵn sàng, nạp FALLBACK_ADMIN_APPROVALS:', error.message);
-            renderApprovals(FALLBACK_ADMIN_APPROVALS);
-            updateNavBadge($('#navPendingApprovals'), FALLBACK_ADMIN_APPROVALS.length);
+            emptyRow($('#approvalRows'), 6, 'Không tải được phê duyệt. ' + error.message);
         }
     }
     function changeSummary(item){const after=item.DuLieuSau||{};if(item.DoiTuong==='YeuCauNapTien')return `${item.HanhDong==='APPROVE'?'Duyệt':'Từ chối'} yêu cầu nạp ${formatMoney(after.SoTien||after.amount||0)}`;if(item.DoiTuong==='SanPham'){if(item.HanhDong==='DELETE')return 'Ngừng bán và đưa tồn kho về 0';const keys=Object.keys(after).filter(key=>!['NgayCapNhat','NgayTao'].includes(key));return `Cập nhật: ${keys.slice(0,4).join(', ')}${keys.length>4?'…':''}`;}return auditDetail(after);}
@@ -2395,10 +2085,9 @@
     async function reviewChange(id,decision){const promptText=decision==='HOAN_TAC'?'Nhập lý do hoàn tác (không bắt buộc):':'Ghi chú xác nhận (không bắt buộc):';const note=window.prompt(promptText,'');if(note===null)return;try{const data=await Auth.request(`/api/admin/phe-duyet-thay-doi/${id}`,{method:'PATCH',json:{decision,note}});showToast(data.message,'success');loadApprovals();if(decision==='HOAN_TAC'){state.loaded.delete('products');state.loaded.delete('deposits');loadDashboard();}}catch(error){showToast(error.message,'error');}}
 
     async function loadSupport(){const tbody=$('#supportRows');emptyRow(tbody,7,'Đang tải yêu cầu hỗ trợ…');const params=new URLSearchParams({page:state.supportPage,limit:20,status:$('#supportStatus').value,q:$('#supportQuery').value.trim()});try{const data=await Auth.request(`/api/admin/ho-tro?${params}`);state.support=data.requests||[];state.supportTotal=Number(data.total)||0;renderSupport();}catch(error){
-        console.warn('Backend chưa sẵn sàng, nạp FALLBACK_ADMIN_SUPPORT:', error.message);
-        state.support=FALLBACK_ADMIN_SUPPORT;
-        state.supportTotal=FALLBACK_ADMIN_SUPPORT.length;
-        renderSupport();
+        state.support = []; state.supportTotal = 0;
+        emptyRow($('#supportRows'), 7, 'Không tải được dữ liệu. ' + error.message);
+        state.loaded.delete('support');
     }}
     function supportSubject(value){return {TU_VAN_SAN_PHAM:'Tư vấn sản phẩm',DON_HANG:'Đơn hàng',THANH_TOAN:'Thanh toán',TAI_KHOAN:'Tài khoản',BAO_LOI:'Báo lỗi',KHAC:'Khác'}[value]||value||'—';}
     function renderSupport(){const tbody=$('#supportRows');tbody.innerHTML='';if(!state.support.length)emptyRow(tbody,7,'Không có yêu cầu phù hợp.');state.support.forEach(item=>{const row=element('tr');row.append(element('td','',`HT-${String(item.MaYeuCau).padStart(6,'0')}`));const sender=element('td');sender.append(element('strong','',item.HoTen),element('span','admin-detail-summary',`${item.Email}${item.SoDienThoai?` · ${item.SoDienThoai}`:''}`));row.append(sender,element('td','',supportSubject(item.ChuDe)),element('td','admin-support-preview',item.NoiDung),element('td','',formatDate(item.NgayTao)));const status=element('td');status.appendChild(badge(item.TrangThai));row.appendChild(status);const action=element('td');const button=element('button','admin-detail-button','Mở phiếu');button.type='button';button.addEventListener('click',()=>openSupport(item));action.appendChild(button);row.appendChild(action);tbody.appendChild(row);});const pages=Math.max(1,Math.ceil(state.supportTotal/20));$('#supportPageInfo').textContent=`Trang ${state.supportPage}/${pages}`;$('#supportPrev').disabled=state.supportPage<=1;$('#supportNext').disabled=state.supportPage>=pages;const pending=state.support.filter(item=>item.TrangThai==='MOI').length;updateNavBadge($('#navPendingSupport'),pending);updateSupportKpis(state.support);}
@@ -2406,9 +2095,9 @@
     async function saveSupport(event){event.preventDefault();const id=Number($('#supportId').value);const button=$('#supportSave');setBusy(button,true,'Đang lưu…');try{const data=await Auth.request(`/api/admin/ho-tro/${id}`,{method:'PATCH',json:{status:$('#supportDialogStatus').value,note:$('#supportAdminNote').value.trim()}});$('#supportDialog').close();showToast(data.message,'success');loadSupport();}catch(error){setStatus($('#supportFormStatus'),error.message);}finally{setBusy(button,false);}}
 
     async function loadContent(){const tbody=$('#contentRows');emptyRow(tbody,5,'Đang tải nội dung…');try{const data=await Auth.request(`/api/admin/noi-dung?loai=${encodeURIComponent($('#contentTypeFilter').value)}`);state.content=data.items||[];renderContent();}catch(error){
-        console.warn('Backend chưa sẵn sàng, nạp FALLBACK_ADMIN_CONTENT:', error.message);
-        state.content=FALLBACK_ADMIN_CONTENT;
-        renderContent();
+        state.content = [];
+        emptyRow($('#contentRows'), 5, 'Không tải được dữ liệu. ' + error.message);
+        state.loaded.delete('content');
     }}
     function renderContent(){const tbody=$('#contentRows');tbody.innerHTML='';if(!state.content.length)emptyRow(tbody,5,'Chưa có nội dung. Hãy tạo bài đầu tiên và chọn “Xuất bản ngay”.');state.content.forEach((item)=>{const row=element('tr');const titleCell=element('td');titleCell.append(element('strong','admin-content-title',item.TieuDe),element('span','admin-content-summary',item.TomTat||'Chưa có tóm tắt'));row.append(titleCell,element('td','',item.Loai==='TIN_TUC'?'Tin tức':'Hướng dẫn'),element('td','',formatDate(item.NgayDang)));const status=element('td');status.appendChild(element('span',`admin-badge ${item.TrangThai?'admin-badge--success':'admin-badge--info'}`,item.TrangThai?'Công khai':'Bản nháp'));row.appendChild(status);const action=element('td');const actions=element('div','admin-row-actions');if(item.TrangThai){const preview=element('a','','Xem trên web');preview.href=`baiviet.html?id=${encodeURIComponent(item.MaBV)}`;preview.target='_blank';preview.rel='noopener';actions.appendChild(preview);}const edit=element('button','','Sửa');edit.type='button';edit.addEventListener('click',()=>openContentDialog(item));const toggle=element('button',item.TrangThai?'danger':'',item.TrangThai?'Chuyển về nháp':'Xuất bản');toggle.type='button';toggle.addEventListener('click',()=>saveContentStatus(item,!Boolean(item.TrangThai)));actions.append(edit,toggle);action.appendChild(actions);row.appendChild(action);tbody.appendChild(row);});updateContentKpis(state.content);}
     function syncContentPublishHint(){const checkbox=$('#contentActive');const label=checkbox.closest('label');const textNode=[...label.childNodes].find(node=>node.nodeType===Node.TEXT_NODE&&node.textContent.trim());if(textNode)textNode.textContent=' Xuất bản ngay';let hint=$('#contentPublishHint');if(!hint){hint=element('p','admin-publish-note');hint.id='contentPublishHint';label.insertAdjacentElement('afterend',hint);}hint.textContent=checkbox.checked?'Bài sẽ xuất hiện ngay tại Tin tức/Hướng dẫn sau khi lưu.':'Bài được lưu an toàn dưới dạng bản nháp và chưa hiện với khách hàng.';}
@@ -2417,9 +2106,9 @@
     async function saveContentStatus(item,active){try{const data=await Auth.request(`/api/admin/noi-dung/${item.MaBV}`,{method:'PATCH',json:{active}});showToast(data.message,'success');loadContent();}catch(error){showToast(error.message,'error');}}
 
     async function loadVouchers(){const tbody=$('#voucherRows');emptyRow(tbody,7,'Đang tải voucher…');try{const data=await Auth.request('/api/admin/vouchers');state.vouchers=data.items||[];renderVouchers();}catch(error){
-        console.warn('Backend chưa sẵn sàng, nạp FALLBACK_ADMIN_VOUCHERS:', error.message);
-        state.vouchers=FALLBACK_ADMIN_VOUCHERS;
-        renderVouchers();
+        state.vouchers = [];
+        emptyRow($('#voucherRows'), 7, 'Không tải được dữ liệu. ' + error.message);
+        state.loaded.delete('vouchers');
     }}
     function renderVouchers(){const tbody=$('#voucherRows');tbody.innerHTML='';if(!state.vouchers.length){emptyRow(tbody,7,'Chưa có voucher.');return;}state.vouchers.forEach(v=>{const row=element('tr');let value=formatMoney(v.GiaTri);if(v.LoaiGiam==='PHAN_TRAM'){value=`${Number(v.GiaTri)}%`;if(v.GiamToiDa)value+=` · tối đa ${formatMoney(v.GiamToiDa)}`;}row.append(element('td','',v.MaVoucher),element('td','',value),element('td','',formatMoney(v.DonToiThieu)),element('td','',`${v.DaSuDung}/${v.SoLuong}`),element('td','',v.NgayHetHan?formatDate(v.NgayHetHan):'Không giới hạn'));const status=element('td');status.append(element('span',`admin-badge ${v.TrangThai?'admin-badge--success':'admin-badge--danger'}`,v.TrangThai?'Hoạt động':'Tạm tắt'));row.append(status);const action=element('td');const toggle=element('button',v.TrangThai?'danger':'',v.TrangThai?'Tắt':'Bật');toggle.type='button';toggle.addEventListener('click',async()=>{try{const data=await Auth.request(`/api/admin/vouchers/${encodeURIComponent(v.MaVoucher)}`,{method:'PATCH',json:{active:!Boolean(v.TrangThai)}});showToast(data.message,'success');loadVouchers();}catch(error){showToast(error.message,'error');}});action.append(toggle);row.append(action);tbody.append(row);});updateVoucherKpis(state.vouchers);}
     function openVoucherDialog(){const form=$('#voucherForm');form.reset();$('#voucherQuantity').value='100';$('#voucherMinimum').value='0';$('#voucherActive').checked=true;setStatus($('#voucherFormStatus'));$('#voucherDialog').showModal();}
@@ -2781,18 +2470,10 @@
         } catch(e) {
             console.warn('Backend chưa sẵn sàng:', e.message);
         }
-        if (!admin) {
-            admin = null;
-            if (!admin || !['admin', 'superadmin'].includes(admin.role)) {
-                admin = {
-                    id: 1,
-                    username: 'superadmin',
-                    fullname: 'Super Admin Pro',
-                    role: 'superadmin',
-                    balance: 100000000,
-                    avatar: ''
-                };
-            }
+        if (!admin || !['admin', 'superadmin'].includes(admin.role)) {
+            $('#adminLoading').textContent = 'Không xác thực được quyền quản trị. Vui lòng đăng nhập lại hoặc tải lại trang.';
+            $('#adminMain').setAttribute('aria-busy', 'false');
+            return;
         }
         state.admin = admin;
         $('#approvalNav').hidden = admin.role !== 'superadmin';

@@ -1,0 +1,49 @@
+/* Responsive, readable admin surfaces and accessible motion. */
+.admin-body .admin-workspace { min-width: 0; }
+.admin-body .admin-topbar, .admin-body .admin-toolbar,
+.admin-body .admin-topbar__actions { flex-wrap: wrap; }
+.admin-body .admin-search { min-width: min(260px, 100%); }
+.admin-body .admin-nav button, .admin-body .admin-row-actions button,
+.admin-body .admin-topbar__actions button { min-height: 42px; font-size: 13px; }
+.admin-body :is(.admin-table td, .admin-table th, .admin-product strong,
+.admin-user-cell strong, .admin-order-item strong, .admin-list-item strong) { font-size: 13px; line-height: 1.6; }
+.admin-body :is(.admin-product span, .admin-user-cell span, .admin-order-item span,
+.admin-order-timeline__item, .admin-list-item span, .admin-empty-cell) { font-size: 12px; line-height: 1.6; }
+.admin-body :is(.admin-order-detail-row > td, .admin-order-detail, .admin-order-items) {
+    background: var(--bs-card) !important; color: var(--bs-ink);
+}
+.admin-body :is(.admin-order-item strong, .admin-order-section-title, .admin-order-timeline > strong) { color: var(--bs-ink); }
+.admin-body dialog { max-width: calc(100vw - 24px); max-height: calc(100dvh - 32px); overflow: auto; }
+.admin-body button:focus-visible, .admin-body a:focus-visible {
+    outline: 3px solid var(--bs-orange); outline-offset: 3px;
+}
+@media (max-width: 760px) {
+    .admin-body .admin-shell { grid-template-columns: minmax(0, 1fr); }
+    .admin-body .admin-sidebar { position: static; min-height: auto; height: auto; }
+    .admin-body .admin-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .admin-body .admin-overview-grid { grid-template-columns: minmax(0, 1fr); }
+    .admin-body .admin-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .admin-body .admin-workspace { padding: 18px 12px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+    .admin-body .admin-view { animation: admin-panel-enter .4s cubic-bezier(.2,.7,.2,1); }
+    .admin-body dialog[open] { animation: admin-panel-enter .25s ease-out; }
+    .admin-body dialog::backdrop { animation: admin-backdrop-enter .2s ease-out; }
+    .admin-body :is(.admin-card, .stat-card, .admin-metrics article) {
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .admin-body .admin-table tbody tr { animation: admin-row-enter .25s ease-out; }
+    @media (hover: hover) {
+        .admin-body :is(.admin-card, .stat-card, .admin-metrics article):hover {
+            transform: translateY(-3px); border-color: var(--bs-orange);
+        }
+    }
+}
+@keyframes admin-panel-enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes admin-row-enter { from { opacity: .3; } to { opacity: 1; } }
+@keyframes admin-backdrop-enter { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+    .admin-body *, .admin-body *::before, .admin-body *::after {
+        animation: none !important; transition: none !important; scroll-behavior: auto !important;
+    }
+}

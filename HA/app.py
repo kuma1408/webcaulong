@@ -3430,13 +3430,13 @@ def admin_update_product(product_id):
         if final_original is not None and final_original <= final_price:
             conn.rollback()
             return api_error("Sản phẩm Sale Off cần có giá gốc lớn hơn giá bán.")
+        if all(previous.get(mapping[key][0]) == value for key, value in changed.items()):
+            conn.rollback()
+            return jsonify({"success": True, "unchanged": True, "message": "Sản phẩm không có thông tin nào thay đổi."})
         cursor.execute(
             f"UPDATE SanPham SET {', '.join(updates)}, NgayCapNhat = NOW() WHERE MaSP = %s",
             values + [product_id],
         )
-        if cursor.rowcount != 1:
-            conn.rollback()
-            return api_error("Không tìm thấy sản phẩm.", 404, "product_not_found")
         cursor.execute("SELECT * FROM SanPham WHERE MaSP=%s", (product_id,))
         current = cursor.fetchone()
         audit_admin(cursor, "UPDATE", "SanPham", product_id, changed, serialize_row(previous), serialize_row(current))

@@ -406,8 +406,10 @@
 
     // --- STUNNING FX INJECTION ---
     function setupPremiumAnimations() {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         // 1. Magnetic Buttons
-        const buttons = document.querySelectorAll('.button--primary, .btn-primary, .add-to-cart');
+        const buttons = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+            ? document.querySelectorAll('.button--primary, .btn-primary, .add-to-cart') : [];
         buttons.forEach(btn => {
             btn.addEventListener('mousemove', e => {
                 const rect = btn.getBoundingClientRect();
@@ -429,12 +431,12 @@
         }
 
         // 3. Staggered Fade Up
+        if (!('IntersectionObserver' in window)) return;
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('mz-visible');
-                } else {
-                    entry.target.classList.remove('mz-visible');
+                    observer.unobserve(entry.target);
                 }
             });
         }, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });

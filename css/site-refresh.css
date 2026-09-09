@@ -1,5 +1,28 @@
 @charset "utf-8";
 
+/* Motion stays decorative: no hidden content or layout-dependent positioning. */
+@media (prefers-reduced-motion: no-preference) {
+    .product-card, .news-card, .brand-item {
+        transition: box-shadow .24s ease, border-color .24s ease, transform .24s ease;
+    }
+    button, .button { transition: box-shadow .2s ease, background-color .2s ease; }
+    button:active:not(:disabled), .button:active { filter: brightness(.94); }
+    details[open] > :not(summary) { animation: store-expand .25s ease-out; }
+    dialog[open] { animation: store-expand .25s ease-out; }
+    @media (hover: hover) {
+        .product-card:hover, .news-card:hover {
+            box-shadow: 0 12px 30px rgba(100, 45, 20, .16);
+        }
+    }
+}
+@keyframes store-expand {
+    from { opacity: .3; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .mz-hidden { opacity: 1 !important; transform: none !important; }
+}
+
 /*
  * Lớp làm mới dùng chung cho các trang con legacy.
  * File này được nạp sau CSS nội tuyến để giữ nguyên nội dung,

@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import pathlib
 import unittest
+from unittest.mock import MagicMock, patch
 from decimal import Decimal
 
 from PIL import Image
@@ -15,6 +16,7 @@ from HA.app import (
     add_to_cart,
     admin_content,
     admin_products,
+    admin_update_product,
     admin_vouchers,
     app,
     checkout,
@@ -41,6 +43,17 @@ from HA.vietqr import build_payload as build_vietqr_payload, make_png as make_vi
 
 
 class ApiSmokeTest(unittest.TestCase):
+    def test_unchanged_product_update_succeeds_without_writing(self):
+        conn = MagicMock()
+        cursor = conn.cursor.return_value
+        cursor.fetchone.return_value = {"MaSP": 7, "TenSP": "Vợt cầu lông", "GiaBan": Decimal("100000"), "GiaGoc": None}
+        with app.test_request_context('/api/admin/products/7', method='PATCH', json={"name": "Vợt cầu lông"}):
+            with patch('HA.app.get_db_connection', return_value=conn):
+                response = admin_update_product.__wrapped__(7)
+        self.assertTrue(response.get_json()['unchanged'])
+        conn.commit.assert_not_called()
+        self.assertEqual(cursor.execute.call_count, 1)
+
     def setUp(self):
         app.config.update(TESTING=True)
         self.client = app.test_client()
