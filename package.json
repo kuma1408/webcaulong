@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node scripts/check-home.mjs && node scripts/check-site.mjs && node scripts/modernize-html.mjs --check && node scripts/check-product-detail.mjs && node scripts/check-admin-behavior.mjs",
+    "check": "node scripts/check-home.mjs && node scripts/check-site.mjs && node scripts/modernize-html.mjs --check && node scripts/check-product-detail.mjs && node scripts/check-admin-behavior.mjs && node scripts/check-admin-layout.mjs",
     "check:home": "node scripts/check-home.mjs",
     "check:site": "node scripts/check-site.mjs",
     "modernize:check": "node scripts/modernize-html.mjs --check",
