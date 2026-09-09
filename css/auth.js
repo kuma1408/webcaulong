@@ -682,11 +682,13 @@
             document.body.appendChild(progress);
         }
 
+        document.querySelectorAll('.sport-back-to-top, .to-top').forEach(node => node.remove());
         if (!document.getElementById('bsBackToTop')) {
             const b2t = document.createElement('button');
             b2t.id = 'bsBackToTop';
             b2t.type = 'button';
-            b2t.className = 'bs-back-to-top';
+            b2t.className = 'bs-back-to-top is-visible';
+            b2t.style.setProperty('position', 'fixed', 'important');
             b2t.setAttribute('aria-label', 'Cuộn lên đầu trang');
             b2t.setAttribute('title', 'Cuộn lên đầu trang');
             b2t.innerHTML = `
@@ -715,7 +717,7 @@
                 });
                 const b2t = document.getElementById('bsBackToTop');
                 if (b2t) {
-                    b2t.classList.toggle('is-visible', window.scrollY > 200);
+                    b2t.classList.add('is-visible');
                     const bar = b2t.querySelector('.bs-b2t-bar');
                     if (bar) {
                         const perimeter = 2 * Math.PI * 20; // ~125.66

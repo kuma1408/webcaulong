@@ -319,14 +319,24 @@
         updateNavBadge($('#navPendingOrders'), metrics.pending_orders || 0);
         updateNavBadge($('#navPendingDeposits'), metrics.pending_deposits || 0);
         updateNavBadge($('#navPendingSupport'), metrics.pending_support || 0);
-        renderTrend(data.trend || []);
-        renderOrderStatus(data.order_status || []);
-        renderCategoryDistribution(data.category_distribution || []);
-        renderTopSellingProducts(data.top_products || []);
-        renderFunnel(data.funnel || {});
-        renderRecentOrders(data.recent_orders || []);
-        renderLowStock(data.low_stock_products || []);
-        renderActivity(data.activity || []);
+        const sections = [
+            [renderTrend, data.trend || [], '#adminTrendChart'],
+            [renderOrderStatus, data.order_status || [], '#adminStatusDonut'],
+            [renderCategoryDistribution, data.category_distribution || [], '#adminCategoryDonut'],
+            [renderTopSellingProducts, data.top_products || [], '#adminTopProductsList'],
+            [renderFunnel, data.funnel || {}, '.funnel-steps-grid'],
+            [renderRecentOrders, data.recent_orders || [], '#recentOrders'],
+            [renderLowStock, data.low_stock_products || [], '#lowStockProducts'],
+            [renderActivity, data.activity || [], '#adminLiveActivity']
+        ];
+        sections.forEach(([render, payload, selector]) => {
+            try { render(payload); }
+            catch (error) {
+                console.error('Dashboard render failed:', selector, error);
+                const target = $(selector);
+                if (target) target.replaceChildren(element('p', 'admin-empty', 'Không hiển thị được khối này. Hãy thử Làm mới.'));
+            }
+        });
         setupAdminChartScrollWatcher();
         if (state.admin?.role === 'superadmin') {
             Auth.request('/api/admin/phe-duyet-thay-doi?status=CHO_XEM').then(result => updateNavBadge($('#navPendingApprovals'), (result.changes || []).length)).catch(() => {});

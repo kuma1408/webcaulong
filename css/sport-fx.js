@@ -267,6 +267,8 @@
 
     /* ---------- 5. FLOATING BACK TO TOP BUTTON ---------- */
     function setupFloatingBackToTop() {
+        // Shared auth layout owns the single scroll control.
+        return;
         let toTop = document.querySelector('.sport-back-to-top, .to-top');
         if (!toTop) {
             toTop = document.createElement('button');
