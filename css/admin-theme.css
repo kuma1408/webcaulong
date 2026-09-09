@@ -1,0 +1,1235 @@
+/* ================================================================
+   ADMIN THEME - Thiết kế hoàn toàn mới từ đầu
+   Clean, khoa học, đẹp mắt - không conflict, không lag
+   ================================================================ */
+
+/* ---- RESET CONFLICTING ANIMATIONS từ các file khác ---- */
+/* Tắt animation nặng từ mega-animations.css và universal-animations.css
+   vì chúng không được load cho admin nữa */
+.admin-body * {
+    /* Đảm bảo không có will-change rác từ các file cũ */
+}
+
+/* ================================================================
+   1. CSS CUSTOM PROPERTIES
+   ================================================================ */
+:root {
+    --adm-accent:      #ff5520;
+    --adm-accent-2:    #ff8a00;
+    --adm-accent-3:    #ffb703;
+    --adm-success:     #10b981;
+    --adm-warning:     #f59e0b;
+    --adm-danger:      #ef4444;
+    --adm-info:        #3b82f6;
+
+    --adm-sidebar-bg:  linear-gradient(170deg, #1c0806 0%, #3a1008 45%, #5c1c0b 80%, #1c0806 100%);
+    --adm-radius-sm:   10px;
+    --adm-radius-md:   16px;
+    --adm-radius-lg:   22px;
+    --adm-shadow-sm:   0 2px 8px rgba(0,0,0,0.06);
+    --adm-shadow-md:   0 8px 24px rgba(0,0,0,0.1);
+    --adm-shadow-lg:   0 20px 60px rgba(0,0,0,0.15);
+    --adm-transition:  0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    --adm-spring:      0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+:root[data-theme="dark"] {
+    --adm-shadow-sm:   0 2px 8px rgba(0,0,0,0.3);
+    --adm-shadow-md:   0 8px 24px rgba(0,0,0,0.4);
+    --adm-shadow-lg:   0 20px 60px rgba(0,0,0,0.6);
+}
+
+/* ================================================================
+   2. KEYFRAMES - Chỉ dùng transform + opacity (GPU-only, không lag)
+   ================================================================ */
+@keyframes adm-fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes adm-fade-right {
+    from { opacity: 0; transform: translateX(-24px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes adm-fade-left {
+    from { opacity: 0; transform: translateX(24px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes adm-pop {
+    0%   { opacity: 0; transform: scale(0.8); }
+    70%  { transform: scale(1.04); }
+    100% { opacity: 1; transform: scale(1); }
+}
+@keyframes adm-card-in {
+    from { opacity: 0; transform: translateY(16px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes adm-slide-in {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes adm-gradient {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+@keyframes adm-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.7; transform: scale(0.92); }
+}
+@keyframes adm-glow {
+    0%, 100% { box-shadow: 0 0 6px var(--adm-accent), 0 0 20px rgba(255,85,32,0.2); }
+    50%       { box-shadow: 0 0 12px var(--adm-accent), 0 0 40px rgba(255,85,32,0.4); }
+}
+@keyframes adm-progress {
+    from { transform: scaleX(0); transform-origin: left; }
+    to   { transform: scaleX(1); transform-origin: left; }
+}
+@keyframes adm-stripe-move {
+    from { background-position: 0 0; }
+    to   { background-position: 40px 0; }
+}
+@keyframes adm-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+@keyframes adm-float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-8px); }
+}
+@keyframes adm-ripple {
+    from { transform: scale(0); opacity: 0.6; }
+    to   { transform: scale(4); opacity: 0; }
+}
+@keyframes adm-orbit {
+    from { transform: rotate(0deg) translateX(60px) rotate(0deg); }
+    to   { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
+}
+@keyframes adm-slide-right {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(0); }
+}
+@keyframes adm-count-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes adm-shimmer {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+}
+
+/* ================================================================
+   3. BODY & APP WRAPPER
+   ================================================================ */
+.admin-body {
+    background: #f4ece8 !important;
+    min-height: 100vh;
+}
+:root[data-theme="dark"] .admin-body {
+    background: #0d0806 !important;
+}
+.admin-app {
+    padding: 16px !important;
+    background: transparent !important;
+    min-height: 100vh;
+}
+
+/* ================================================================
+   4. SHELL GRID
+   ================================================================ */
+.admin-shell {
+    display: grid !important;
+    grid-template-columns: 230px minmax(0, 1fr) !important;
+    gap: 16px !important;
+    align-items: start !important;
+    min-height: calc(100vh - 32px);
+}
+
+/* ================================================================
+   5. SIDEBAR - Redesigned Premium Dark
+   ================================================================ */
+.admin-sidebar {
+    position: sticky !important;
+    top: 16px !important;
+    height: calc(100vh - 32px) !important;
+    max-height: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    border-radius: var(--adm-radius-lg) !important;
+    background: var(--adm-sidebar-bg) !important;
+    padding: 0 !important;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+    animation: adm-fade-right 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    /* Performance: no will-change here */
+}
+
+/* Decorative orbs (CSS only, no JS needed) */
+.admin-sidebar::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(255,85,32,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: adm-float 6s ease-in-out infinite;
+}
+.admin-sidebar::after {
+    content: '';
+    position: absolute;
+    bottom: 60px; left: -30px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(255,183,3,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: adm-float 8s ease-in-out 2s reverse infinite;
+}
+
+/* Sidebar header */
+.admin-sidebar__heading {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 22px 16px 18px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    flex-shrink: 0;
+    position: relative; z-index: 1;
+    animation: adm-fade-up 0.5s 0.1s both;
+}
+.admin-emblem {
+    width: 40px !important; height: 40px !important;
+    border-radius: 13px !important;
+    background: linear-gradient(135deg, #ff2a2a 0%, #ff8a00 100%) !important;
+    box-shadow: 0 6px 20px rgba(255,85,32,0.45), inset 0 1px 0 rgba(255,255,255,0.25) !important;
+    display: grid !important; place-items: center !important;
+    font-size: 17px !important; font-weight: 900 !important;
+    flex-shrink: 0;
+    transition: transform var(--adm-spring) !important;
+}
+.admin-emblem:hover { transform: rotate(10deg) scale(1.1); }
+.admin-sidebar__heading p {
+    font-size: 9px !important; font-weight: 700 !important;
+    letter-spacing: 0.1em !important; text-transform: uppercase !important;
+    color: rgba(255,255,255,0.4) !important; margin: 0 !important;
+}
+.admin-sidebar__heading strong {
+    font-size: 13px !important; font-weight: 800 !important;
+    color: #fff !important; margin: 0 !important; display: block;
+}
+
+/* Nav */
+.admin-nav {
+    flex: 1 !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    padding: 14px 10px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(255,255,255,0.15) transparent !important;
+    position: relative; z-index: 1;
+}
+.admin-nav::-webkit-scrollbar { width: 3px; }
+.admin-nav::-webkit-scrollbar-thumb { border-radius: 10px; background: rgba(255,255,255,0.15); }
+
+.admin-nav button {
+    position: relative !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 0 12px !important;
+    border: 1px solid transparent !important;
+    border-radius: 12px !important;
+    background: transparent !important;
+    color: rgba(255,255,255,0.55) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-align: left !important;
+    cursor: pointer !important;
+    overflow: hidden !important;
+    transition: color var(--adm-transition), background var(--adm-transition), border-color var(--adm-transition), transform var(--adm-transition) !important;
+}
+/* Stagger nav items on load */
+.admin-nav button:nth-child(1)  { animation: adm-fade-right 0.4s 0.15s both; }
+.admin-nav button:nth-child(2)  { animation: adm-fade-right 0.4s 0.20s both; }
+.admin-nav button:nth-child(3)  { animation: adm-fade-right 0.4s 0.25s both; }
+.admin-nav button:nth-child(4)  { animation: adm-fade-right 0.4s 0.30s both; }
+.admin-nav button:nth-child(5)  { animation: adm-fade-right 0.4s 0.35s both; }
+.admin-nav button:nth-child(6)  { animation: adm-fade-right 0.4s 0.40s both; }
+.admin-nav button:nth-child(7)  { animation: adm-fade-right 0.4s 0.45s both; }
+.admin-nav button:nth-child(8)  { animation: adm-fade-right 0.4s 0.50s both; }
+.admin-nav button:nth-child(9)  { animation: adm-fade-right 0.4s 0.55s both; }
+.admin-nav button:nth-child(10) { animation: adm-fade-right 0.4s 0.60s both; }
+.admin-nav button:nth-child(11) { animation: adm-fade-right 0.4s 0.65s both; }
+.admin-nav button:nth-child(12) { animation: adm-fade-right 0.4s 0.70s both; }
+
+/* Nav hover & active */
+.admin-nav button::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(255,85,32,0.18), rgba(255,183,3,0.06), transparent 80%);
+    border-radius: inherit;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+.admin-nav button:hover::before,
+.admin-nav button.is-active::before { transform: translateX(0); }
+
+.admin-nav button:hover {
+    color: #fff !important;
+    transform: translateX(5px) !important;
+    border-color: rgba(255,255,255,0.06) !important;
+}
+.admin-nav button.is-active {
+    color: #fff !important;
+    background: rgba(255,255,255,0.07) !important;
+    border-color: rgba(255,85,32,0.25) !important;
+    transform: translateX(5px) !important;
+    box-shadow: 0 4px 16px rgba(255,85,32,0.15) !important;
+}
+/* Active dot */
+.admin-nav button.is-active::after {
+    content: '';
+    position: absolute;
+    right: 12px; top: 50%;
+    transform: translateY(-50%);
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--adm-accent);
+    box-shadow: 0 0 8px var(--adm-accent);
+    animation: adm-pulse 2s ease-in-out infinite;
+}
+/* Nav icon */
+.admin-nav button > span:first-child {
+    font-size: 16px !important;
+    flex-shrink: 0;
+    transition: transform var(--adm-spring) !important;
+}
+.admin-nav button:hover > span:first-child { transform: scale(1.2); }
+
+/* Nav ripple on click */
+.admin-nav button .adm-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    pointer-events: none;
+    animation: adm-ripple 0.5s ease forwards;
+}
+
+/* Sidebar account block */
+.admin-sidebar__account {
+    display: grid !important;
+    grid-template-columns: 36px 1fr !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 14px 16px !important;
+    border-top: 1px solid rgba(255,255,255,0.07) !important;
+    flex-shrink: 0;
+    position: relative; z-index: 1;
+    cursor: pointer;
+    transition: background var(--adm-transition) !important;
+}
+.admin-sidebar__account:hover {
+    background: rgba(255,255,255,0.05) !important;
+}
+.admin-mini-avatar {
+    width: 34px !important; height: 34px !important;
+    border-radius: 11px !important;
+    background: rgba(255,255,255,0.1) !important;
+    display: grid !important; place-items: center !important;
+    color: #ff9c70 !important; font-size: 13px !important; font-weight: 900 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+    transition: transform var(--adm-spring) !important;
+    flex-shrink: 0;
+}
+.admin-sidebar__account:hover .admin-mini-avatar { transform: scale(1.1) rotate(5deg); }
+.admin-sidebar__account strong {
+    display: block !important;
+    font-size: 11px !important; font-weight: 800 !important;
+    color: #fff !important;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.admin-sidebar__account span {
+    display: block !important;
+    font-size: 9px !important; color: rgba(255,255,255,0.4) !important;
+    margin-top: 1px;
+}
+.admin-store-link {
+    display: block;
+    padding: 8px 16px 14px;
+    font-size: 10px !important; font-weight: 700 !important;
+    color: rgba(255,150,80,0.7) !important;
+    text-decoration: none;
+    transition: color var(--adm-transition) !important;
+    position: relative; z-index: 1;
+}
+.admin-store-link:hover { color: #ff9c70 !important; }
+
+/* ================================================================
+   6. WORKSPACE
+   ================================================================ */
+.admin-workspace {
+    min-width: 0;
+    border-radius: var(--adm-radius-lg) !important;
+    border: 1px solid rgba(0,0,0,0.07) !important;
+    background: #ffffff !important;
+    box-shadow: var(--adm-shadow-sm) !important;
+    padding: 24px 26px 40px !important;
+    animation: adm-fade-up 0.5s 0.05s both;
+    overflow: visible !important;
+}
+:root[data-theme="dark"] .admin-workspace {
+    background: #130b08 !important;
+    border-color: rgba(255,255,255,0.06) !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4) !important;
+}
+
+/* ================================================================
+   7. TOPBAR
+   ================================================================ */
+.admin-topbar {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    min-height: 0 !important;
+    padding-bottom: 20px !important;
+    margin-bottom: 24px !important;
+    border-bottom: 1px solid rgba(0,0,0,0.07) !important;
+    animation: adm-fade-up 0.5s 0.1s both;
+}
+:root[data-theme="dark"] .admin-topbar {
+    border-color: rgba(255,255,255,0.07) !important;
+}
+.admin-topbar h1 {
+    font-size: clamp(20px, 2.5vw, 28px) !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.04em !important;
+    color: var(--bs-ink) !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+    position: relative;
+}
+/* Subtle orange underline on title */
+.admin-topbar h1::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 0;
+    width: 40px; height: 3px;
+    background: linear-gradient(90deg, var(--adm-accent), var(--adm-accent-2));
+    border-radius: 3px;
+    animation: adm-slide-right 0.6s 0.4s both;
+}
+.admin-topbar .eyebrow {
+    font-size: 10px !important; font-weight: 700 !important;
+    letter-spacing: 0.1em !important; text-transform: uppercase !important;
+    color: var(--adm-accent) !important;
+    display: block; margin-bottom: 6px;
+    animation: adm-fade-left 0.4s 0.2s both;
+}
+.admin-topbar__actions {
+    display: flex; gap: 8px; align-items: center; flex-shrink: 0;
+}
+.admin-topbar__actions button {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 9px 15px !important;
+    border-radius: var(--adm-radius-sm) !important;
+    font-size: 11px !important; font-weight: 700 !important;
+    border: 1px solid rgba(0,0,0,0.09) !important;
+    background: rgba(255,255,255,0.8) !important;
+    color: var(--bs-ink) !important;
+    cursor: pointer;
+    transition: all var(--adm-transition) !important;
+    box-shadow: var(--adm-shadow-sm) !important;
+}
+:root[data-theme="dark"] .admin-topbar__actions button {
+    background: rgba(255,255,255,0.06) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #fff !important;
+}
+.admin-topbar__actions button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: var(--adm-shadow-md) !important;
+    border-color: rgba(255,85,32,0.25) !important;
+}
+.admin-topbar__actions button:active { transform: scale(0.97) !important; }
+
+/* ================================================================
+   8. KPI METRIC CARDS
+   ================================================================ */
+.admin-metrics {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    gap: 12px !important;
+    margin-bottom: 24px !important;
+}
+.admin-metrics article {
+    position: relative !important;
+    padding: 18px !important;
+    border-radius: var(--adm-radius-md) !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    background: #fff !important;
+    box-shadow: var(--adm-shadow-sm) !important;
+    overflow: hidden !important;
+    cursor: default;
+    transition: transform var(--adm-transition), box-shadow var(--adm-transition) !important;
+}
+:root[data-theme="dark"] .admin-metrics article {
+    background: rgba(255,255,255,0.04) !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+/* Stagger KPI cards */
+.admin-metrics article:nth-child(1)  { animation: adm-card-in 0.5s 0.05s both; }
+.admin-metrics article:nth-child(2)  { animation: adm-card-in 0.5s 0.12s both; }
+.admin-metrics article:nth-child(3)  { animation: adm-card-in 0.5s 0.19s both; }
+.admin-metrics article:nth-child(4)  { animation: adm-card-in 0.5s 0.26s both; }
+.admin-metrics article:nth-child(5)  { animation: adm-card-in 0.5s 0.33s both; }
+.admin-metrics article:nth-child(6)  { animation: adm-card-in 0.5s 0.40s both; }
+.admin-metrics article:nth-child(7)  { animation: adm-card-in 0.5s 0.47s both; }
+.admin-metrics article:nth-child(8)  { animation: adm-card-in 0.5s 0.54s both; }
+.admin-metrics article:nth-child(9)  { animation: adm-card-in 0.5s 0.61s both; }
+.admin-metrics article:nth-child(10) { animation: adm-card-in 0.5s 0.68s both; }
+.admin-metrics article:nth-child(11) { animation: adm-card-in 0.5s 0.75s both; }
+.admin-metrics article:nth-child(12) { animation: adm-card-in 0.5s 0.82s both; }
+
+/* Gradient top accent */
+.admin-metrics article::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--adm-accent), var(--adm-accent-2), var(--adm-accent-3));
+    background-size: 200% 100%;
+    border-radius: var(--adm-radius-md) var(--adm-radius-md) 0 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.admin-metrics article:hover::before { opacity: 1; }
+
+/* Shimmer sweep */
+.admin-metrics article::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 40%;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.06), transparent);
+    transform: translateX(-100%);
+    pointer-events: none;
+}
+.admin-metrics article:hover::after {
+    animation: adm-shimmer 0.7s ease forwards;
+}
+.admin-metrics article:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: var(--adm-shadow-md) !important;
+}
+
+/* KPI values */
+.admin-metrics span:first-of-type,
+.admin-metrics strong {
+    display: block !important;
+    font-size: 24px !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.04em !important;
+    color: var(--bs-ink) !important;
+    line-height: 1.1 !important;
+    animation: adm-count-up 0.5s ease both;
+}
+.admin-metrics small {
+    display: block !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    color: var(--bs-muted) !important;
+    margin-top: 4px !important;
+    letter-spacing: 0.02em !important;
+}
+
+/* ================================================================
+   9. ADMIN CARDS (Analytics, Tables, etc.)
+   ================================================================ */
+.admin-card {
+    border-radius: var(--adm-radius-md) !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    background: #fff !important;
+    box-shadow: var(--adm-shadow-sm) !important;
+    overflow: hidden !important;
+    transition: transform var(--adm-transition), box-shadow var(--adm-transition) !important;
+    animation: adm-card-in 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+:root[data-theme="dark"] .admin-card {
+    background: #1a0c09 !important;
+    border-color: rgba(255,255,255,0.06) !important;
+}
+.admin-card:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: var(--adm-shadow-md) !important;
+}
+
+/* Card heading */
+.admin-card__heading {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    padding: 18px 20px 14px !important;
+    border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+}
+:root[data-theme="dark"] .admin-card__heading {
+    border-color: rgba(255,255,255,0.05) !important;
+}
+.admin-card__heading .eyebrow {
+    display: block;
+    font-size: 9px !important; font-weight: 800 !important;
+    letter-spacing: 0.1em !important; text-transform: uppercase !important;
+    color: var(--adm-accent) !important;
+    margin-bottom: 3px;
+}
+.admin-card__heading h2,
+.admin-card__heading h3 {
+    font-size: 15px !important; font-weight: 800 !important;
+    letter-spacing: -0.02em !important;
+    margin: 0 !important; line-height: 1.3 !important;
+}
+
+/* ================================================================
+   10. TABLES
+   ================================================================ */
+.admin-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.admin-table-card {
+    border-radius: var(--adm-radius-md) !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    overflow: hidden !important;
+    box-shadow: var(--adm-shadow-sm) !important;
+}
+:root[data-theme="dark"] .admin-table-card {
+    border-color: rgba(255,255,255,0.06) !important;
+}
+table { width: 100%; border-collapse: collapse; }
+
+.admin-table-card thead th {
+    padding: 12px 16px !important;
+    font-size: 10px !important; font-weight: 800 !important;
+    letter-spacing: 0.08em !important; text-transform: uppercase !important;
+    color: var(--bs-muted) !important;
+    background: rgba(0,0,0,0.025) !important;
+    border-bottom: 1px solid rgba(0,0,0,0.07) !important;
+    white-space: nowrap;
+}
+:root[data-theme="dark"] .admin-table-card thead th {
+    background: rgba(255,255,255,0.03) !important;
+    border-color: rgba(255,255,255,0.07) !important;
+    color: rgba(255,255,255,0.4) !important;
+}
+.admin-table-card tbody td {
+    padding: 13px 16px !important;
+    font-size: 12px !important;
+    border-bottom: 1px solid rgba(0,0,0,0.04) !important;
+    color: var(--bs-ink) !important;
+    vertical-align: middle;
+}
+:root[data-theme="dark"] .admin-table-card tbody td {
+    border-color: rgba(255,255,255,0.04) !important;
+}
+/* Stagger table row animations */
+.admin-table-card tbody tr {
+    transition: background 0.2s ease !important;
+    animation: adm-fade-left 0.4s cubic-bezier(0.16,1,0.3,1) both;
+}
+.admin-table-card tbody tr:nth-child(1)  { animation-delay: 0.03s; }
+.admin-table-card tbody tr:nth-child(2)  { animation-delay: 0.07s; }
+.admin-table-card tbody tr:nth-child(3)  { animation-delay: 0.11s; }
+.admin-table-card tbody tr:nth-child(4)  { animation-delay: 0.15s; }
+.admin-table-card tbody tr:nth-child(5)  { animation-delay: 0.19s; }
+.admin-table-card tbody tr:nth-child(6)  { animation-delay: 0.23s; }
+.admin-table-card tbody tr:nth-child(7)  { animation-delay: 0.27s; }
+.admin-table-card tbody tr:nth-child(8)  { animation-delay: 0.31s; }
+.admin-table-card tbody tr:hover { background: rgba(255,85,32,0.04) !important; }
+:root[data-theme="dark"] .admin-table-card tbody tr:hover {
+    background: rgba(255,85,32,0.07) !important;
+}
+
+/* ================================================================
+   11. BADGES
+   ================================================================ */
+.admin-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    padding: 3px 9px !important;
+    border-radius: 7px !important;
+    font-size: 10px !important; font-weight: 800 !important;
+    letter-spacing: 0.03em !important;
+    transition: transform 0.2s var(--adm-spring) !important;
+    animation: adm-pop 0.35s var(--adm-spring) both;
+}
+.admin-badge:hover { transform: scale(1.08) !important; }
+.admin-badge--success {
+    background: rgba(16,185,129,0.12) !important; color: #059669 !important;
+    border: 1px solid rgba(16,185,129,0.2) !important;
+}
+.admin-badge--warning {
+    background: rgba(245,158,11,0.12) !important; color: #b45309 !important;
+    border: 1px solid rgba(245,158,11,0.2) !important;
+}
+.admin-badge--danger {
+    background: rgba(239,68,68,0.12) !important; color: #dc2626 !important;
+    border: 1px solid rgba(239,68,68,0.2) !important;
+}
+.admin-badge--info {
+    background: rgba(59,130,246,0.12) !important; color: #2563eb !important;
+    border: 1px solid rgba(59,130,246,0.2) !important;
+}
+:root[data-theme="dark"] .admin-badge--success { color: #34d399 !important; }
+:root[data-theme="dark"] .admin-badge--warning { color: #fbbf24 !important; }
+:root[data-theme="dark"] .admin-badge--danger  { color: #f87171 !important; }
+:root[data-theme="dark"] .admin-badge--info    { color: #60a5fa !important; }
+
+/* ================================================================
+   12. BUTTONS (Admin primary, secondary, danger)
+   ================================================================ */
+.admin-primary {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 10px 18px !important;
+    border-radius: var(--adm-radius-sm) !important;
+    border: none !important;
+    background: linear-gradient(135deg, var(--adm-accent) 0%, var(--adm-accent-2) 100%) !important;
+    color: #fff !important;
+    font-size: 12px !important; font-weight: 800 !important;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(255,85,32,0.3) !important;
+    transition: transform var(--adm-transition), box-shadow var(--adm-transition) !important;
+    position: relative; overflow: hidden;
+}
+.admin-primary::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,0.15);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+}
+.admin-primary:hover::before { transform: scaleX(1); }
+.admin-primary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 28px rgba(255,85,32,0.45) !important;
+}
+.admin-primary:active { transform: scale(0.97) !important; }
+
+/* Secondary buttons */
+.admin-secondary,
+.admin-dialog__actions button:not(:last-child) {
+    padding: 9px 16px !important;
+    border-radius: var(--adm-radius-sm) !important;
+    border: 1px solid rgba(0,0,0,0.1) !important;
+    background: transparent !important;
+    font-size: 11px !important; font-weight: 700 !important;
+    cursor: pointer;
+    transition: all var(--adm-transition) !important;
+}
+.admin-secondary:hover {
+    background: rgba(0,0,0,0.04) !important;
+    border-color: rgba(0,0,0,0.15) !important;
+}
+
+/* Danger buttons */
+button.danger {
+    background: rgba(239,68,68,0.1) !important;
+    border: 1px solid rgba(239,68,68,0.2) !important;
+    color: #dc2626 !important;
+    transition: all var(--adm-transition) !important;
+}
+button.danger:hover {
+    background: #dc2626 !important;
+    color: #fff !important;
+    border-color: transparent !important;
+}
+
+/* ================================================================
+   13. SEARCH & TOOLBAR
+   ================================================================ */
+.admin-toolbar {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+    margin-bottom: 16px !important;
+}
+.admin-search {
+    position: relative;
+    flex: 1; min-width: 200px;
+}
+.admin-search input {
+    width: 100% !important;
+    padding: 9px 12px 9px 36px !important;
+    border-radius: var(--adm-radius-sm) !important;
+    border: 1.5px solid rgba(0,0,0,0.09) !important;
+    font-size: 12px !important;
+    background: rgba(255,255,255,0.8) !important;
+    transition: all 0.25s ease !important;
+}
+:root[data-theme="dark"] .admin-search input {
+    background: rgba(255,255,255,0.05) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #fff !important;
+}
+.admin-search input:focus {
+    outline: none !important;
+    border-color: var(--adm-accent) !important;
+    box-shadow: 0 0 0 3px rgba(255,85,32,0.12) !important;
+    background: #fff !important;
+}
+.admin-toolbar select {
+    padding: 9px 12px !important;
+    border-radius: var(--adm-radius-sm) !important;
+    border: 1.5px solid rgba(0,0,0,0.09) !important;
+    font-size: 12px !important;
+    background: rgba(255,255,255,0.8) !important;
+    cursor: pointer;
+    transition: all 0.25s ease !important;
+}
+.admin-toolbar select:focus {
+    border-color: var(--adm-accent) !important;
+    box-shadow: 0 0 0 3px rgba(255,85,32,0.12) !important;
+    outline: none !important;
+}
+
+/* ================================================================
+   14. PAGINATION
+   ================================================================ */
+.admin-pagination {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 16px 0 4px !important;
+}
+.admin-pagination button {
+    min-width: 32px !important; height: 32px !important;
+    padding: 0 8px !important;
+    border-radius: 9px !important;
+    border: 1px solid rgba(0,0,0,0.09) !important;
+    font-size: 12px !important; font-weight: 700 !important;
+    cursor: pointer;
+    transition: all var(--adm-transition) !important;
+    background: transparent !important;
+}
+.admin-pagination button:hover {
+    transform: translateY(-2px) !important;
+    border-color: var(--adm-accent) !important;
+    color: var(--adm-accent) !important;
+}
+.admin-pagination button.is-active {
+    background: linear-gradient(135deg, var(--adm-accent), var(--adm-accent-2)) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+    box-shadow: 0 4px 12px rgba(255,85,32,0.3) !important;
+    animation: adm-pop 0.3s var(--adm-spring) both;
+}
+
+/* ================================================================
+   15. FORMS & INPUTS
+   ================================================================ */
+.admin-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.admin-field label {
+    font-size: 11px !important; font-weight: 800 !important;
+    letter-spacing: 0.04em !important; text-transform: uppercase !important;
+    color: var(--bs-muted) !important;
+    transition: color 0.25s ease !important;
+}
+.admin-field:focus-within label { color: var(--adm-accent) !important; }
+.admin-field input,
+.admin-field select,
+.admin-field textarea {
+    padding: 10px 12px !important;
+    border-radius: var(--adm-radius-sm) !important;
+    border: 1.5px solid rgba(0,0,0,0.09) !important;
+    font-size: 12px !important;
+    background: #fff !important;
+    transition: all 0.25s ease !important;
+    width: 100%;
+}
+:root[data-theme="dark"] .admin-field input,
+:root[data-theme="dark"] .admin-field select,
+:root[data-theme="dark"] .admin-field textarea {
+    background: rgba(255,255,255,0.05) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #fff !important;
+}
+.admin-field input:focus,
+.admin-field select:focus,
+.admin-field textarea:focus {
+    outline: none !important;
+    border-color: var(--adm-accent) !important;
+    box-shadow: 0 0 0 3px rgba(255,85,32,0.12) !important;
+}
+
+/* ================================================================
+   16. DIALOG / MODAL
+   ================================================================ */
+.admin-dialog {
+    max-width: min(600px, 94vw) !important;
+    border-radius: var(--adm-radius-lg) !important;
+    border: 1px solid rgba(0,0,0,0.08) !important;
+    padding: 0 !important;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.2) !important;
+    animation: adm-slide-in 0.4s cubic-bezier(0.16,1,0.3,1) both !important;
+}
+:root[data-theme="dark"] .admin-dialog {
+    background: #1a0c09 !important;
+    border-color: rgba(255,255,255,0.08) !important;
+}
+.admin-dialog::backdrop {
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+}
+.admin-dialog__header {
+    padding: 20px 22px 16px !important;
+    border-bottom: 1px solid rgba(0,0,0,0.07) !important;
+}
+:root[data-theme="dark"] .admin-dialog__header {
+    border-color: rgba(255,255,255,0.07) !important;
+}
+.admin-dialog__form { padding: 20px 22px !important; }
+.admin-dialog__actions {
+    display: flex !important;
+    gap: 8px !important;
+    justify-content: flex-end !important;
+    padding: 14px 22px 20px !important;
+    border-top: 1px solid rgba(0,0,0,0.05) !important;
+}
+
+/* ================================================================
+   17. FUNNEL BARS
+   ================================================================ */
+.funnel-bar {
+    height: 10px !important;
+    border-radius: 8px !important;
+    background: rgba(0,0,0,0.06) !important;
+    overflow: hidden;
+}
+:root[data-theme="dark"] .funnel-bar {
+    background: rgba(255,255,255,0.07) !important;
+}
+.funnel-bar-fill {
+    height: 100% !important;
+    border-radius: 8px !important;
+    position: relative;
+    overflow: hidden;
+    /* GPU-only animation */
+    animation: adm-progress 1.2s cubic-bezier(0.16,1,0.3,1) 0.5s both !important;
+}
+/* Moving stripe - GPU only via background-position */
+.funnel-bar-fill::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+        -45deg,
+        rgba(255,255,255,0.15) 0, rgba(255,255,255,0.15) 8px,
+        transparent 8px, transparent 16px
+    );
+    animation: adm-stripe-move 1.5s linear infinite !important;
+}
+
+/* ================================================================
+   18. DONUT CHARTS
+   ================================================================ */
+.admin-donut-container {
+    animation: adm-pop 0.8s cubic-bezier(0.34,1.56,0.64,1) 0.3s both !important;
+}
+.admin-donut-seg {
+    transition: stroke-width 0.35s cubic-bezier(0.34,1.56,0.64,1),
+                filter 0.3s ease !important;
+    cursor: pointer;
+}
+.admin-donut-seg:hover {
+    stroke-width: 20 !important;
+    filter: drop-shadow(0 0 10px currentColor) !important;
+}
+.admin-donut-center span {
+    font-size: 22px !important; font-weight: 900 !important;
+    color: var(--bs-ink) !important;
+    animation: adm-count-up 0.6s ease both;
+}
+
+/* ================================================================
+   19. LEGEND CARDS
+   ================================================================ */
+.admin-legend-card {
+    border-radius: 12px !important;
+    padding: 10px 14px !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    background: rgba(0,0,0,0.02) !important;
+    transition: all var(--adm-transition) !important;
+    cursor: pointer;
+    animation: adm-fade-left 0.4s cubic-bezier(0.16,1,0.3,1) both;
+}
+:root[data-theme="dark"] .admin-legend-card {
+    background: rgba(255,255,255,0.03) !important;
+    border-color: rgba(255,255,255,0.06) !important;
+}
+.admin-legend-card:hover, .admin-legend-card.is-active {
+    transform: translateX(6px) !important;
+    border-color: var(--legend-color, rgba(255,85,32,0.3)) !important;
+    background: rgba(255,255,255,0.6) !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important;
+}
+:root[data-theme="dark"] .admin-legend-card:hover {
+    background: rgba(255,255,255,0.06) !important;
+}
+
+/* ================================================================
+   20. TREND CHART BARS
+   ================================================================ */
+.admin-trend-bar {
+    transition: transform 0.25s var(--adm-spring) !important;
+    cursor: pointer;
+    position: relative;
+}
+.admin-trend-bar:hover { transform: scaleY(1.08) !important; }
+.admin-trend-bar > div,
+.admin-trend-bar > span:last-child {
+    border-radius: 4px 4px 0 0 !important;
+    animation: adm-progress 0.8s cubic-bezier(0.16,1,0.3,1) both !important;
+    /* Stagger via nth-child */
+}
+
+/* ================================================================
+   21. SYSTEM HEALTH BAR
+   ================================================================ */
+.system-health-bar {
+    display: flex !important;
+    gap: 16px !important;
+    align-items: center !important;
+    padding: 14px 18px !important;
+    border-radius: var(--adm-radius-md) !important;
+    border: 1px solid rgba(255,85,32,0.12) !important;
+    background: linear-gradient(90deg, rgba(255,85,32,0.04), rgba(255,183,3,0.03)) !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none !important;
+    animation: adm-fade-up 0.5s 0.15s both;
+}
+.system-health-bar::-webkit-scrollbar { display: none; }
+.system-health-bar > * { flex-shrink: 0; }
+
+/* Health pulse dot */
+.admin-health__pulse,
+.live-indicator,
+.status-dot {
+    display: inline-block !important;
+    width: 8px !important; height: 8px !important;
+    border-radius: 50% !important;
+    background: var(--adm-success) !important;
+    position: relative;
+    animation: adm-pulse 1.5s ease-in-out infinite !important;
+}
+.admin-health__pulse::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: inherit;
+    animation: adm-ripple 1.5s ease-out infinite;
+}
+
+/* ================================================================
+   22. TABS
+   ================================================================ */
+.admin-tabs {
+    display: flex !important;
+    gap: 4px !important;
+    border-bottom: 2px solid rgba(0,0,0,0.06) !important;
+    margin-bottom: 20px !important;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.admin-tabs::-webkit-scrollbar { display: none; }
+:root[data-theme="dark"] .admin-tabs {
+    border-color: rgba(255,255,255,0.07) !important;
+}
+.admin-tabs .tab-btn {
+    padding: 10px 16px !important;
+    border: none !important;
+    border-radius: var(--adm-radius-sm) var(--adm-radius-sm) 0 0 !important;
+    background: transparent !important;
+    font-size: 12px !important; font-weight: 700 !important;
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+    transition: color var(--adm-transition), background var(--adm-transition) !important;
+}
+.admin-tabs .tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--adm-accent), var(--adm-accent-2));
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s ease;
+    border-radius: 2px;
+}
+.admin-tabs .tab-btn:hover::after,
+.admin-tabs .tab-btn.active::after {
+    transform: scaleX(1); transform-origin: left;
+}
+.admin-tabs .tab-btn.active { color: var(--adm-accent) !important; }
+
+/* ================================================================
+   23. AN-PILL TOGGLE BUTTONS
+   ================================================================ */
+.an-toggle-pills { display: flex; gap: 4px; flex-shrink: 0; }
+.an-pill-btn {
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+    font-size: 11px !important; font-weight: 700 !important;
+    border: 1px solid rgba(0,0,0,0.09) !important;
+    background: transparent !important;
+    cursor: pointer;
+    transition: all var(--adm-transition) !important;
+}
+.an-pill-btn:hover {
+    border-color: var(--adm-accent) !important;
+    color: var(--adm-accent) !important;
+}
+.an-pill-btn.active {
+    background: linear-gradient(135deg, var(--adm-accent), var(--adm-accent-2)) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+    box-shadow: 0 3px 10px rgba(255,85,32,0.3) !important;
+}
+
+/* ================================================================
+   24. TOAST NOTIFICATIONS
+   ================================================================ */
+.admin-toast, .admin-toasts {
+    position: fixed !important;
+    bottom: 24px !important; right: 24px !important;
+    z-index: 10000 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+}
+.admin-toast > div,
+.admin-toast-item {
+    padding: 12px 18px !important;
+    border-radius: var(--adm-radius-md) !important;
+    background: #1a1a1a !important;
+    color: #fff !important;
+    font-size: 12px !important; font-weight: 700 !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
+    animation: adm-slide-in 0.4s cubic-bezier(0.16,1,0.3,1) both !important;
+    max-width: 320px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.admin-toast-item.success { border-left: 4px solid var(--adm-success); }
+.admin-toast-item.error   { border-left: 4px solid var(--adm-danger); }
+.admin-toast-item.warning { border-left: 4px solid var(--adm-warning); }
+
+/* ================================================================
+   25. SCROLLBAR
+   ================================================================ */
+.admin-body ::-webkit-scrollbar { width: 5px; height: 5px; }
+.admin-body ::-webkit-scrollbar-track { background: transparent; }
+.admin-body ::-webkit-scrollbar-thumb {
+    background: rgba(255,85,32,0.3);
+    border-radius: 10px;
+}
+.admin-body ::-webkit-scrollbar-thumb:hover { background: var(--adm-accent); }
+
+/* ================================================================
+   26. LOADING STATE
+   ================================================================ */
+.admin-loading {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 400px !important;
+    gap: 12px;
+}
+.admin-loading::before {
+    content: '';
+    width: 32px; height: 32px;
+    border: 3px solid rgba(255,85,32,0.2);
+    border-top-color: var(--adm-accent);
+    border-radius: 50%;
+    animation: adm-spin 0.8s linear infinite;
+}
+
+/* ================================================================
+   27. ANALYTICS GRID
+   ================================================================ */
+.admin-analytics-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 16px !important;
+    margin-bottom: 16px !important;
+}
+.admin-analytics-grid--secondary {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 16px !important;
+    margin-bottom: 16px !important;
+}
+.admin-analytics-grid > .admin-card:nth-child(1) { animation-delay: 0.1s; }
+.admin-analytics-grid > .admin-card:nth-child(2) { animation-delay: 0.2s; }
+.admin-analytics-grid--secondary > .admin-card:nth-child(1) { animation-delay: 0.15s; }
+.admin-analytics-grid--secondary > .admin-card:nth-child(2) { animation-delay: 0.25s; }
+
+/* ================================================================
+   28. RESPONSIVE
+   ================================================================ */
+@media (max-width: 900px) {
+    .admin-shell {
+        grid-template-columns: 1fr !important;
+    }
+    .admin-sidebar {
+        position: static !important;
+        height: auto !important;
+        border-radius: var(--adm-radius-md) !important;
+    }
+    .admin-nav {
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        padding: 10px !important;
+    }
+    .admin-nav button { flex-shrink: 0 !important; width: auto !important; }
+    .admin-analytics-grid,
+    .admin-analytics-grid--secondary { grid-template-columns: 1fr !important; }
+    .admin-metrics { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 600px) {
+    .admin-metrics { grid-template-columns: 1fr 1fr !important; }
+    .admin-topbar { flex-wrap: wrap !important; }
+    .admin-workspace { padding: 16px 14px 30px !important; }
+}
+
+/* ================================================================
+   29. PREFER-REDUCED-MOTION SAFETY
+   ================================================================ */
+@media (prefers-reduced-motion: reduce) {
+    .admin-body *,
+    .admin-body *::before,
+    .admin-body *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

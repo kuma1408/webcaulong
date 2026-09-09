@@ -857,3 +857,4 @@
 .admin-body .admin-sidebar { animation: fadeRight 0.5s cubic-bezier(0.16,1,0.3,1) both !important; }
 .admin-body .admin-topbar { animation: fadeDown 0.4s cubic-bezier(0.16,1,0.3,1) 0.1s both !important; }
 .admin-body .admin-metrics article { animation: adminCardEnter 0.5s cubic-bezier(0.16,1,0.3,1) both !important; }
+
