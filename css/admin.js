@@ -1538,17 +1538,17 @@
         legend.innerHTML = '';
 
         const categoryPalette = {
-            'Vợt Cầu Lông': '#e9381b',
-            'Giày Cầu Lông': '#ff7a1a',
-            'Áo Cầu Lông': '#3b82f6',
-            'Túi & Balo': '#8b5cf6',
-            'Balo Cầu Lông': '#8b5cf6',
-            'Túi Vợt Cầu Lông': '#a855f7',
-            'Váy & Quần': '#10b981',
-            'Phụ Kiện': '#f59e0b'
+            'Vợt Cầu Lông': '#ff2a2a',
+            'Giày Cầu Lông': '#ff8a00',
+            'Áo Cầu Lông': '#00d2ff',
+            'Túi & Balo': '#b100ff',
+            'Balo Cầu Lông': '#b100ff',
+            'Túi Vợt Cầu Lông': '#ff00d4',
+            'Váy & Quần': '#00ff88',
+            'Phụ Kiện': '#ffea00'
         };
 
-        const totalItems = catList.reduce((sum, item) => sum + (Number(item.TongSP) || 0), 0);
+        const totalItems = totalRevenue; // User wants Sales
         const totalRevenue = catList.reduce((sum, item) => sum + (Number(item.TongDoanhThu) || 0), 0);
 
         // 1. Donut View
@@ -1592,7 +1592,7 @@
 
         const centerKpi = document.createElement('div');
         centerKpi.className = 'admin-donut-center';
-        centerKpi.innerHTML = `<span id="adminCategoryTotal">${totalItems}</span><small id="adminCategoryLabel">Tổng mẫu SP</small>`;
+        centerKpi.innerHTML = `<span id="adminCategoryTotal">${formatMoney(totalRevenue)}</span><small id="adminCategoryLabel">Tổng Doanh Số</small>`;
 
         const donutContainer = document.createElement('div');
         donutContainer.className = 'admin-donut-container';

@@ -3173,3 +3173,11 @@ footer {
 :root[data-theme="dark"] .product-card::before {
     background: linear-gradient(to right, transparent, rgba(255,255,255,0.05), transparent);
 }
+
+:root[data-theme="dark"] .detail-img-thumbnails .swiper-slide img {
+    background: #ffffff !important;
+    padding: 0 !important;
+}
+.detail-img-thumbnails .swiper-slide {
+    background: transparent !important;
+}
