@@ -1,0 +1,986 @@
+/* ================================================================
+   ADMIN POLISH CSS - Nhắm vào đúng từng phần tử JS render
+   Sửa: top-product-card, legend-card, donut, và toàn bộ layout
+   ================================================================ */
+
+/* ================================================================
+   0. ACTUAL WRAPPER CLASSES from admin.html
+   ================================================================ */
+.admin-status-visual,
+.admin-category-visual {
+    display: flex !important;
+    gap: 12px !important;
+    padding: 4px 16px 20px !important;
+    align-items: flex-start !important;
+}
+.admin-donut-wrap {
+    flex-shrink: 0 !important;
+    width: 160px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+.admin-donut,
+#adminCategoryDonut,
+#adminStatusDonut {
+    position: relative !important;
+    width: 160px !important;
+    height: 160px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+.admin-status-legend,
+#adminCategoryLegend {
+    flex: 1 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 5px !important;
+    overflow-y: auto !important;
+    max-height: 260px !important;
+    scrollbar-width: thin !important;
+}
+.admin-top-products-list,
+#adminTopProductsList {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    max-height: 440px !important;
+    overflow-y: auto !important;
+    scrollbar-width: thin !important;
+}
+
+/* Health bar */
+.health-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex-shrink: 0 !important;
+}
+.health-label {
+    font-size: 9px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.07em !important;
+    color: var(--bs-muted) !important;
+}
+.health-val {
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    color: var(--bs-ink) !important;
+    margin-top: 1px;
+}
+.health-divider {
+    width: 1px !important;
+    height: 32px !important;
+    background: rgba(0,0,0,0.08) !important;
+    flex-shrink: 0 !important;
+}
+:root[data-theme="dark"] .health-divider {
+    background: rgba(255,255,255,0.08) !important;
+}
+.live-status-dot {
+    width: 9px !important; height: 9px !important;
+    border-radius: 50% !important;
+    background: #10b981 !important;
+    box-shadow: 0 0 10px #10b981 !important;
+    display: inline-block !important;
+    flex-shrink: 0 !important;
+    animation: adm-pulse 1.5s ease-in-out infinite !important;
+    position: relative;
+}
+.live-status-dot::before {
+    content: '';
+    position: absolute; inset: -4px;
+    border-radius: 50%;
+    background: #10b981;
+    opacity: 0.3;
+    animation: adm-ripple 1.5s ease-out infinite;
+}
+.health-icon { font-size: 20px !important; flex-shrink: 0 !important; }
+
+/* KPI stat-card */
+.stat-card {
+    border-radius: 16px !important;
+    padding: 16px !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    background: #fff !important;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s ease !important;
+    animation: adm-card-in 0.5s cubic-bezier(0.16,1,0.3,1) both !important;
+}
+:root[data-theme="dark"] .stat-card {
+    background: rgba(255,255,255,0.04) !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+.stat-card:hover { transform: translateY(-4px) !important; box-shadow: 0 12px 32px rgba(0,0,0,0.1) !important; }
+.stat-card[data-tone="red"]::after    { content:''; position:absolute; top:0;left:0;right:0;height:3px; background:linear-gradient(90deg,#ff2a2a,#ff6b6b); border-radius:16px 16px 0 0; }
+.stat-card[data-tone="orange"]::after { content:''; position:absolute; top:0;left:0;right:0;height:3px; background:linear-gradient(90deg,#ff8a00,#ffb703); border-radius:16px 16px 0 0; }
+.stat-card[data-tone="blue"]::after   { content:''; position:absolute; top:0;left:0;right:0;height:3px; background:linear-gradient(90deg,#3b82f6,#06b6d4); border-radius:16px 16px 0 0; }
+.stat-card[data-tone="purple"]::after { content:''; position:absolute; top:0;left:0;right:0;height:3px; background:linear-gradient(90deg,#8b5cf6,#ec4899); border-radius:16px 16px 0 0; }
+.stat-card[data-tone="green"]::after  { content:''; position:absolute; top:0;left:0;right:0;height:3px; background:linear-gradient(90deg,#10b981,#34d399); border-radius:16px 16px 0 0; }
+.stat-card[data-tone="yellow"]::after { content:''; position:absolute; top:0;left:0;right:0;height:3px; background:linear-gradient(90deg,#f59e0b,#fbbf24); border-radius:16px 16px 0 0; }
+.stat-card-head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 10px !important;
+}
+.stat-icon {
+    width: 36px !important; height: 36px !important;
+    border-radius: 11px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    flex-shrink: 0 !important;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.stat-card:hover .stat-icon { transform: scale(1.12) rotate(6deg) !important; }
+.stat-icon.red    { background: rgba(255,42,42,0.12); color:#ff2a2a; }
+.stat-icon.orange { background: rgba(255,138,0,0.12); color:#ff8a00; }
+.stat-icon.blue   { background: rgba(59,130,246,0.12); color:#3b82f6; }
+.stat-icon.purple { background: rgba(139,92,246,0.12); color:#8b5cf6; }
+.stat-icon.green  { background: rgba(16,185,129,0.12); color:#10b981; }
+.stat-icon.yellow { background: rgba(245,158,11,0.12); color:#f59e0b; }
+.stat-sparkline { flex-shrink: 0; }
+.stat-card[data-tone="red"]    .stat-sparkline { color: #ff2a2a !important; }
+.stat-card[data-tone="orange"] .stat-sparkline { color: #ff8a00 !important; }
+.stat-card[data-tone="blue"]   .stat-sparkline { color: #3b82f6 !important; }
+.stat-card[data-tone="purple"] .stat-sparkline { color: #8b5cf6 !important; }
+.stat-card[data-tone="green"]  .stat-sparkline { color: #10b981 !important; }
+.stat-card[data-tone="yellow"] .stat-sparkline { color: #f59e0b !important; }
+.stat-card-body .label { font-size: 10px !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 0.07em !important; color: var(--bs-muted) !important; margin-bottom: 4px; }
+.stat-card-body .value { font-size: 22px !important; font-weight: 900 !important; letter-spacing: -0.04em !important; color: var(--bs-ink) !important; line-height: 1.1 !important; margin-bottom: 4px; }
+.stat-card-body .hint  { font-size: 10px !important; color: var(--bs-muted) !important; font-weight: 600; line-height: 1.4; }
+.stat-card-body .hint b { font-weight: 800 !important; color: var(--bs-ink) !important; }
+
+/* ================================================================
+   A. ANALYTICS GRID - Bố cục 2 cột
+   ================================================================ */
+.admin-analytics-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 16px !important;
+    margin-bottom: 16px !important;
+}
+.admin-analytics-grid--secondary {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 16px !important;
+    margin-bottom: 16px !important;
+}
+@media (max-width: 900px) {
+    .admin-analytics-grid,
+    .admin-analytics-grid--secondary {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ================================================================
+   B. CATEGORY CARD - Donut + Legend layout
+   ================================================================ */
+.admin-category-card {
+    border-radius: 18px !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    background: #fff !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+:root[data-theme="dark"] .admin-category-card {
+    background: #1a0c09 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+
+/* Donut container - centered, properly sized */
+#adminCategoryDonut {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 20px 20px 8px !important;
+    flex-shrink: 0;
+}
+.admin-donut-container {
+    position: relative !important;
+    width: 180px !important;
+    height: 180px !important;
+    flex-shrink: 0;
+    animation: adm-pop 0.7s cubic-bezier(0.34,1.56,0.64,1) both !important;
+}
+.admin-donut-svg {
+    width: 100% !important;
+    height: 100% !important;
+    transform: rotate(-90deg);
+    filter: drop-shadow(0 0 12px rgba(0,0,0,0.08));
+}
+.admin-donut-bg {
+    fill: none !important;
+    stroke: rgba(0,0,0,0.06) !important;
+    stroke-width: 18 !important;
+}
+:root[data-theme="dark"] .admin-donut-bg {
+    stroke: rgba(255,255,255,0.05) !important;
+}
+.admin-donut-cyber-ring {
+    fill: none !important;
+    stroke: rgba(255,85,32,0.06) !important;
+    stroke-width: 2 !important;
+    stroke-dasharray: 4 8 !important;
+}
+.admin-donut-seg {
+    fill: none !important;
+    stroke-width: 18 !important;
+    stroke-linecap: round !important;
+    transition: stroke-width 0.3s cubic-bezier(0.34,1.56,0.64,1),
+                filter 0.3s ease,
+                opacity 0.3s ease !important;
+    cursor: pointer !important;
+}
+.admin-donut-seg:hover {
+    stroke-width: 22 !important;
+    filter: drop-shadow(0 0 8px var(--seg-color, #ff5520)) !important;
+}
+.admin-donut-seg.is-dimmed { opacity: 0.25 !important; }
+.admin-donut-seg.is-focus  { stroke-width: 22 !important; filter: drop-shadow(0 0 10px var(--seg-color, #ff5520)) !important; }
+
+/* Center KPI inside donut */
+.admin-donut-center {
+    position: absolute !important;
+    top: 50% !important; left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    text-align: center !important;
+    pointer-events: none;
+    padding: 0 10px;
+}
+.admin-donut-center span, #adminCategoryTotal {
+    display: block !important;
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.04em !important;
+    color: var(--bs-ink) !important;
+    line-height: 1.1 !important;
+    transition: color 0.3s ease !important;
+    white-space: nowrap;
+}
+.admin-donut-center small, #adminCategoryLabel {
+    display: block !important;
+    font-size: 9px !important;
+    font-weight: 700 !important;
+    color: var(--bs-muted) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    margin-top: 2px;
+    white-space: nowrap;
+}
+
+/* Legend list */
+#adminCategoryLegend {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    padding: 4px 16px 20px !important;
+    overflow-y: auto !important;
+    max-height: 300px !important;
+    scrollbar-width: thin !important;
+}
+
+/* Legend cards - redesigned */
+.admin-legend-card {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    padding: 10px 14px !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(0,0,0,0.05) !important;
+    background: rgba(0,0,0,0.02) !important;
+    cursor: pointer !important;
+    transition: transform 0.25s cubic-bezier(0.16,1,0.3,1),
+                background 0.25s ease,
+                border-color 0.25s ease,
+                box-shadow 0.25s ease !important;
+    animation: adm-fade-left 0.4s cubic-bezier(0.16,1,0.3,1) both !important;
+    position: relative;
+    overflow: hidden;
+}
+.admin-legend-card:nth-child(1) { animation-delay: 0.05s !important; }
+.admin-legend-card:nth-child(2) { animation-delay: 0.10s !important; }
+.admin-legend-card:nth-child(3) { animation-delay: 0.15s !important; }
+.admin-legend-card:nth-child(4) { animation-delay: 0.20s !important; }
+.admin-legend-card:nth-child(5) { animation-delay: 0.25s !important; }
+.admin-legend-card:nth-child(6) { animation-delay: 0.30s !important; }
+:root[data-theme="dark"] .admin-legend-card {
+    background: rgba(255,255,255,0.03) !important;
+    border-color: rgba(255,255,255,0.06) !important;
+}
+.admin-legend-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--legend-color, #ff5520);
+    border-radius: 3px 0 0 3px;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+.admin-legend-card:hover, .admin-legend-card.is-active {
+    transform: translateX(6px) !important;
+    background: rgba(255,255,255,0.7) !important;
+    border-color: rgba(var(--legend-color-rgb, 255,85,32), 0.25) !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08) !important;
+}
+.admin-legend-card:hover::before,
+.admin-legend-card.is-active::before { opacity: 1; }
+:root[data-theme="dark"] .admin-legend-card:hover {
+    background: rgba(255,255,255,0.07) !important;
+}
+
+.legend-card-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+}
+.legend-title-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+    flex: 1;
+}
+.legend-indicator {
+    width: 10px !important; height: 10px !important;
+    border-radius: 50% !important;
+    flex-shrink: 0 !important;
+    box-shadow: 0 0 6px currentColor !important;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.admin-legend-card:hover .legend-indicator { transform: scale(1.4) !important; }
+.legend-title {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: var(--bs-ink) !important;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.legend-stat {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+}
+.legend-count {
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    color: var(--bs-ink) !important;
+    white-space: nowrap;
+}
+.legend-pct {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    padding: 1px 7px !important;
+    border-radius: 6px !important;
+    background: rgba(0,0,0,0.06) !important;
+    color: var(--bs-muted) !important;
+    white-space: nowrap;
+}
+
+/* Progress track */
+.legend-track {
+    height: 6px !important;
+    border-radius: 6px !important;
+    background: rgba(0,0,0,0.06) !important;
+    overflow: hidden !important;
+}
+:root[data-theme="dark"] .legend-track {
+    background: rgba(255,255,255,0.07) !important;
+}
+.legend-fill {
+    height: 100% !important;
+    border-radius: 6px !important;
+    transition: width 0.9s cubic-bezier(0.16,1,0.3,1) !important;
+    position: relative;
+    overflow: hidden;
+}
+.legend-fill::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+        -45deg,
+        rgba(255,255,255,0.2) 0, rgba(255,255,255,0.2) 4px,
+        transparent 4px, transparent 8px
+    );
+    animation: adm-stripe-move 1.5s linear infinite !important;
+}
+.legend-meta { font-size: 10px !important; }
+
+/* ================================================================
+   C. TOP PRODUCTS CARD
+   ================================================================ */
+.admin-top-products-card {
+    border-radius: 18px !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    background: #fff !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+:root[data-theme="dark"] .admin-top-products-card {
+    background: #1a0c09 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+
+#adminTopProductsList {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    padding: 8px 0 !important;
+    overflow-y: auto !important;
+    max-height: 420px !important;
+    scrollbar-width: thin !important;
+}
+
+/* Each product card row */
+.top-product-card {
+    display: grid !important;
+    grid-template-columns: 36px 56px 1fr !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid rgba(0,0,0,0.04) !important;
+    transition: background 0.2s ease, transform 0.25s cubic-bezier(0.16,1,0.3,1) !important;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+:root[data-theme="dark"] .top-product-card {
+    border-color: rgba(255,255,255,0.04) !important;
+}
+.top-product-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(255,85,32,0.04), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+.top-product-card:hover::before { transform: translateX(0); }
+.top-product-card:last-child { border-bottom: none !important; }
+.top-product-card:hover {
+    background: rgba(255,85,32,0.04) !important;
+    transform: translateX(4px) !important;
+}
+:root[data-theme="dark"] .top-product-card:hover {
+    background: rgba(255,85,32,0.07) !important;
+}
+
+/* Rank badge */
+.top-product-rank {
+    width: 32px !important; height: 32px !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 14px !important;
+    font-weight: 900 !important;
+    flex-shrink: 0;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.top-product-card:hover .top-product-rank { transform: scale(1.15) rotate(5deg); }
+.top-product-rank--1 {
+    background: linear-gradient(135deg, #ffd700, #ff8a00) !important;
+    box-shadow: 0 4px 12px rgba(255,183,3,0.4) !important;
+    font-size: 18px !important;
+}
+.top-product-rank--2 {
+    background: linear-gradient(135deg, #c0c0c0, #9ca3af) !important;
+    box-shadow: 0 4px 12px rgba(156,163,175,0.4) !important;
+    font-size: 18px !important;
+}
+.top-product-rank--3 {
+    background: linear-gradient(135deg, #cd7f32, #92400e) !important;
+    box-shadow: 0 4px 12px rgba(205,127,50,0.4) !important;
+    font-size: 18px !important;
+}
+.top-product-rank--other {
+    background: rgba(0,0,0,0.06) !important;
+    font-size: 11px !important;
+    color: var(--bs-muted) !important;
+}
+:root[data-theme="dark"] .top-product-rank--other {
+    background: rgba(255,255,255,0.08) !important;
+    color: rgba(255,255,255,0.5) !important;
+}
+
+/* Product thumbnail - FIXED SIZE, no overflow */
+.top-product-thumb {
+    width: 52px !important;
+    height: 52px !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    flex-shrink: 0 !important;
+    background: #f5f5f5 !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    transition: transform 0.3s ease !important;
+}
+:root[data-theme="dark"] .top-product-thumb {
+    background: rgba(255,255,255,0.05) !important;
+    border-color: rgba(255,255,255,0.08) !important;
+}
+.top-product-card:hover .top-product-thumb { transform: scale(1.06); }
+.top-product-thumb img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    display: block !important;
+}
+
+/* Product info */
+.top-product-info {
+    min-width: 0 !important;
+    flex: 1;
+}
+.top-product-title {
+    display: block !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: var(--bs-ink) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    margin-bottom: 4px !important;
+    line-height: 1.3 !important;
+    transition: color 0.25s ease !important;
+}
+.top-product-card:hover .top-product-title { color: #ff5520 !important; }
+.top-product-metrics {
+    display: flex !important;
+    gap: 12px !important;
+    margin-bottom: 6px !important;
+    flex-wrap: wrap;
+}
+.top-product-sold, .top-product-rev {
+    font-size: 10px !important;
+    color: var(--bs-muted) !important;
+    white-space: nowrap;
+}
+.top-product-sold b, .top-product-rev b {
+    font-weight: 800 !important;
+    color: var(--bs-ink) !important;
+}
+.top-product-progress {
+    height: 4px !important;
+    border-radius: 4px !important;
+    background: rgba(0,0,0,0.06) !important;
+    overflow: hidden !important;
+}
+:root[data-theme="dark"] .top-product-progress {
+    background: rgba(255,255,255,0.07) !important;
+}
+.top-product-progress-fill {
+    height: 100% !important;
+    border-radius: 4px !important;
+    background: linear-gradient(90deg, #ff5520, #ff8a00) !important;
+    transition: width 0.9s cubic-bezier(0.16,1,0.3,1) !important;
+    position: relative; overflow: hidden;
+}
+.top-product-progress-fill::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: adm-shimmer 2s ease-in-out infinite !important;
+}
+
+/* ================================================================
+   D. STATUS CARD (Order status donut)
+   ================================================================ */
+.admin-status-card {
+    border-radius: 18px !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    background: #fff !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
+    overflow: hidden !important;
+}
+:root[data-theme="dark"] .admin-status-card {
+    background: #1a0c09 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+#adminStatusDonut {
+    display: flex !important;
+    justify-content: center !important;
+    padding: 20px 20px 8px !important;
+}
+
+/* ================================================================
+   E. CONVERSION FUNNEL
+   ================================================================ */
+.conversion-funnel-card {
+    border-radius: 18px !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    background: #fff !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
+    overflow: hidden !important;
+}
+:root[data-theme="dark"] .conversion-funnel-card {
+    background: #1a0c09 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+.funnel-step {
+    transition: transform 0.25s ease, background 0.25s ease !important;
+    border-radius: 8px !important;
+    padding: 10px 14px !important;
+    margin: 0 14px 6px !important;
+    cursor: default;
+}
+.funnel-step:hover {
+    transform: translateX(4px) !important;
+    background: rgba(255,85,32,0.04) !important;
+}
+.funnel-bar {
+    height: 8px !important;
+    border-radius: 6px !important;
+    background: rgba(0,0,0,0.06) !important;
+    overflow: hidden;
+    margin-top: 6px;
+}
+:root[data-theme="dark"] .funnel-bar {
+    background: rgba(255,255,255,0.07) !important;
+}
+.funnel-bar-fill {
+    height: 100% !important;
+    border-radius: 6px !important;
+    animation: adm-progress 1.2s cubic-bezier(0.16,1,0.3,1) 0.5s both !important;
+    position: relative; overflow: hidden;
+}
+.funnel-bar-fill::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+        -45deg,
+        rgba(255,255,255,0.2) 0, rgba(255,255,255,0.2) 6px,
+        transparent 6px, transparent 12px
+    );
+    animation: adm-stripe-move 1.5s linear infinite !important;
+}
+
+/* ================================================================
+   F. TREND CARD (Doanh thu 7 ngày)
+   ================================================================ */
+.admin-trend-card {
+    border-radius: 18px !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    background: #fff !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
+    overflow: hidden !important;
+}
+:root[data-theme="dark"] .admin-trend-card {
+    background: #1a0c09 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+.admin-trend-chart {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 6px !important;
+    align-items: end !important;
+    padding: 16px 16px 8px !important;
+    min-height: 100px !important;
+}
+.admin-trend-bar {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 6px !important;
+    cursor: pointer;
+}
+.admin-trend-bar > span:first-child {
+    /* The bar itself */
+    display: block !important;
+    width: 100% !important;
+    min-height: 4px !important;
+    border-radius: 6px 6px 0 0 !important;
+    animation: adm-progress 0.8s cubic-bezier(0.16,1,0.3,1) both !important;
+    transform-origin: bottom !important;
+    transition: filter 0.25s ease, transform 0.25s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.admin-trend-bar:hover > span:first-child {
+    filter: brightness(1.15) !important;
+    transform: scaleY(1.05) !important;
+}
+.admin-trend-bar > span:last-child {
+    font-size: 9px !important;
+    color: var(--bs-muted) !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+}
+
+/* ================================================================
+   G. STAT GRID (System Health, etc.)
+   ================================================================ */
+.stat-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+    gap: 10px !important;
+}
+.stat-grid .stat-card {
+    border-radius: 14px !important;
+    padding: 14px !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    background: rgba(255,255,255,0.7) !important;
+    transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s ease !important;
+    animation: adm-card-in 0.5s cubic-bezier(0.16,1,0.3,1) both !important;
+}
+:root[data-theme="dark"] .stat-grid .stat-card {
+    background: rgba(255,255,255,0.04) !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+.stat-grid .stat-card:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1) !important;
+}
+
+/* ================================================================
+   H. AUDIT LOG - Improved
+   ================================================================ */
+.admin-audit-log tbody tr {
+    animation: adm-fade-left 0.35s cubic-bezier(0.16,1,0.3,1) both !important;
+}
+.admin-audit-log tbody tr:nth-child(1)  { animation-delay: 0.03s !important; }
+.admin-audit-log tbody tr:nth-child(2)  { animation-delay: 0.07s !important; }
+.admin-audit-log tbody tr:nth-child(3)  { animation-delay: 0.11s !important; }
+.admin-audit-log tbody tr:nth-child(4)  { animation-delay: 0.15s !important; }
+.admin-audit-log tbody tr:nth-child(5)  { animation-delay: 0.19s !important; }
+
+/* Detail button */
+.admin-detail-button {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    padding: 4px 10px !important;
+    border-radius: 7px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    border: 1px solid rgba(0,0,0,0.09) !important;
+    background: transparent !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+.admin-detail-button:hover {
+    background: rgba(255,85,32,0.08) !important;
+    border-color: rgba(255,85,32,0.25) !important;
+    color: #ff5520 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* ================================================================
+   I. METRICS SECTION HEADING (h2 before a card group)
+   ================================================================ */
+.admin-section-title {
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.03em !important;
+    margin: 0 0 12px !important;
+    animation: adm-fade-up 0.5s both !important;
+}
+
+/* ================================================================
+   J. USER CARD in tables
+   ================================================================ */
+.admin-user-cell {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+.admin-user-cell .admin-avatar,
+.admin-user-cell img {
+    width: 34px !important; height: 34px !important;
+    border-radius: 10px !important;
+    object-fit: cover !important;
+    flex-shrink: 0;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.admin-table-card tbody tr:hover .admin-user-cell img {
+    transform: scale(1.1) rotate(3deg) !important;
+}
+
+/* ================================================================
+   K. APPROVAL / CHANGE DETAIL PANEL
+   ================================================================ */
+.admin-change-detail {
+    border-radius: 14px !important;
+    border: 1px solid rgba(0,0,0,0.07) !important;
+    overflow: hidden !important;
+    animation: adm-card-in 0.5s both !important;
+}
+.admin-detail-summary {
+    font-size: 11px !important;
+    color: var(--bs-muted) !important;
+    display: block;
+    max-width: 240px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ================================================================
+   L. ADMIN CARD HEADING CONTROLS
+   ================================================================ */
+.admin-card__heading button {
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    border: 1px solid rgba(0,0,0,0.09) !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    background: transparent !important;
+}
+.admin-card__heading button:hover {
+    border-color: rgba(255,85,32,0.3) !important;
+    color: #ff5520 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* ================================================================
+   M. ADMIN METRICS - Better icon display
+   ================================================================ */
+.admin-metrics article .admin-metric-icon,
+.admin-metrics article > span:first-child:not([class]) {
+    font-size: 26px !important;
+    display: block !important;
+    margin-bottom: 8px !important;
+    line-height: 1;
+}
+/* Sparkline in KPI cards */
+.admin-metrics article svg {
+    width: 100% !important;
+    height: 40px !important;
+    overflow: visible;
+}
+
+/* ================================================================
+   N. PLACEHOLDER IMAGES for empty product thumbs
+   ================================================================ */
+.top-product-thumb img[src=""],
+.top-product-thumb img:not([src]),
+.top-product-thumb img[src="null"],
+.top-product-thumb img[src="undefined"] {
+    /* SVG placeholder via background */
+    background: linear-gradient(135deg, rgba(255,85,32,0.1), rgba(255,183,3,0.1)) !important;
+    position: relative;
+}
+.top-product-thumb img[src=""]::before,
+.top-product-thumb img:not([src])::before {
+    content: '🏸';
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+}
+
+/* ================================================================
+   O. ADMIN CHART CARD (Heading cho donut/top products)
+   ================================================================ */
+.admin-chart-card {
+    border-radius: 18px !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    background: #fff !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
+    overflow: hidden !important;
+    animation: adm-card-in 0.6s cubic-bezier(0.16,1,0.3,1) both !important;
+}
+:root[data-theme="dark"] .admin-chart-card {
+    background: #1a0c09 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+
+/* The card heading shared across all cards */
+.admin-card__heading,
+.admin-chart-card > div:first-child,
+.admin-category-card > div:first-child,
+.admin-top-products-card > div:first-child,
+.admin-status-card > div:first-child {
+    padding: 16px 18px 12px !important;
+    border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+}
+:root[data-theme="dark"] .admin-card__heading {
+    border-color: rgba(255,255,255,0.05) !important;
+}
+
+/* ================================================================
+   P. SCROLLBAR FOR ALL ADMIN INNER CONTAINERS
+   ================================================================ */
+#adminCategoryLegend::-webkit-scrollbar,
+#adminTopProductsList::-webkit-scrollbar {
+    width: 4px;
+}
+#adminCategoryLegend::-webkit-scrollbar-thumb,
+#adminTopProductsList::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: rgba(255,85,32,0.25);
+}
+
+/* ================================================================
+   Q. ADMIN ROW IN KEYFRAME (used by admin.js directly)
+   ================================================================ */
+@keyframes adminRowIn {
+    from { opacity: 0; transform: translateX(16px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ================================================================
+   R. EMPTY STATE in admin lists
+   ================================================================ */
+.admin-empty {
+    text-align: center !important;
+    padding: 40px 20px !important;
+    color: var(--bs-muted) !important;
+    font-size: 13px !important;
+    animation: adm-fade-up 0.5s both !important;
+}
+
+/* ================================================================
+   S. SYSTEM HEALTH DETAILS
+   ================================================================ */
+.system-health-bar strong {
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.5);
+    transition: all 0.25s ease;
+}
+:root[data-theme="dark"] .system-health-bar strong {
+    background: rgba(255,255,255,0.07);
+}
+.system-health-bar strong:hover {
+    background: rgba(255,85,32,0.1);
+    transform: scale(1.04);
+}
+
+/* ================================================================
+   T. LIVE INDICATOR dot
+   ================================================================ */
+.admin-live {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--bs-muted);
+}
+.admin-live::before {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: adm-pulse 1.5s ease-in-out infinite;
+}
