@@ -219,7 +219,7 @@
         setProfileAvatar(user.avatar, name);
         $('#profileName').textContent = name;
         $('#profileHandle').textContent = `@${user.username}`;
-        $('#welcomeName').textContent = name.split(/\s+/).pop();
+        $('#welcomeName').textContent = user.fullname || user.username || 'Bạn';
         animateMetric($('#metricBalance'), user.balance, formatMoney);
         animateMetric($('#metricOrders'), user.stats?.orders);
         animateMetric($('#metricProcessing'), user.stats?.processing);

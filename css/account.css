@@ -456,6 +456,10 @@ tr:hover td { background: rgba(255, 122, 26, 0.04); }
     .activity-list--transactions { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 960px) {
+    .overview-grid { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 820px) {
     .auth-stage { min-height: 0; padding: 35px 16px 56px; background: radial-gradient(circle at 10% 0, rgba(255,122,26,.18), transparent 24rem), var(--bs-bg); }
     .auth-layout, .auth-layout--register { display: block; }
@@ -469,10 +473,10 @@ tr:hover td { background: rgba(255, 122, 26, 0.04); }
     .account-shell { display: block; }
     .account-sidebar { position: static; margin-bottom: 22px; padding: 14px; }
     .profile-identity { padding-bottom: 13px; }
-    .account-tabs { display: flex; padding: 13px 0 3px; overflow-x: auto; scrollbar-width: none; }
+    .account-tabs { display: flex; padding: 13px 0 3px; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; gap: 6px; }
     .account-tabs::-webkit-scrollbar { display: none; }
-    .account-tabs button { flex: 0 0 auto; width: auto; min-height: 38px; padding: 0 11px; }
-    .account-tabs button span { width: auto; }
+    .account-tabs button { flex: 0 0 auto; width: auto; min-height: 38px; padding: 0 14px; scroll-snap-align: start; white-space: nowrap; }
+    .account-tabs button span { width: auto; display: inline !important; }
     .sidebar-logout { position: absolute; right: 30px; top: 22px; width: auto; min-height: 35px; padding: 0 10px; }
     .account-sidebar { position: relative; }
     .admin-entry { margin-top: 9px; }
@@ -508,7 +512,6 @@ tr:hover td { background: rgba(255, 122, 26, 0.04); }
 
 @media (max-width: 390px) {
     .account-metrics { grid-template-columns: 1fr; }
-    .account-tabs button span { display: none; }
     .auth-story h1 { font-size: 34px; }
 }
 

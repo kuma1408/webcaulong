@@ -1004,6 +1004,22 @@ a { transition: color 0.25s ease !important; }
 .hero-float-badge--1 { animation: floatBadge1 4s ease-in-out infinite; }
 .hero-float-badge--2 { animation: floatBadge2 5s ease-in-out infinite 0.5s; }
 
+@media (max-width: 600px) {
+    .hero-float-badge {
+        font-size: 10.5px !important;
+        padding: 4px 9px !important;
+        gap: 4px !important;
+    }
+    .hero-float-badge--1 {
+        top: 10px !important;
+        left: 10px !important;
+    }
+    .hero-float-badge--2 {
+        top: 10px !important;
+        right: 10px !important;
+    }
+}
+
 /* ---- 55. SERVICE STRIP HOVER POP ---- */
 .service-strip article {
     transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
