@@ -4,14 +4,34 @@
 @media (prefers-reduced-motion: no-preference) {
     .product-card, .news-card, .brand-item {
         transition: box-shadow .24s ease, border-color .24s ease, transform .24s ease;
+    .product-card, .news-card, .brand-item, .category-card {
+        transition: box-shadow .38s cubic-bezier(0.16, 1, 0.3, 1),
+                    border-color .3s ease,
+                    transform .38s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
     button, .button { transition: box-shadow .2s ease, background-color .2s ease; }
     button:active:not(:disabled), .button:active { filter: brightness(.94); }
     details[open] > :not(summary) { animation: store-expand .25s ease-out; }
     dialog[open] { animation: store-expand .25s ease-out; }
+    button, .button, .btn, .add-to-cart, .btn-primary {
+        transition: box-shadow .25s ease, background-color .25s ease, transform .22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+    button:hover:not(:disabled), .button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(216, 58, 28, 0.28);
+    }
+    button:active:not(:disabled), .button:active {
+        transform: scale(0.97);
+        filter: brightness(.94);
+    }
+    details[open] > :not(summary) { animation: store-expand .3s cubic-bezier(0.16, 1, 0.3, 1); }
+    dialog[open] { animation: store-expand .3s cubic-bezier(0.16, 1, 0.3, 1); }
     @media (hover: hover) {
         .product-card:hover, .news-card:hover {
             box-shadow: 0 12px 30px rgba(100, 45, 20, .16);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 24px 50px rgba(100, 35, 15, .22), 0 0 20px rgba(255, 85, 32, .12) !important;
+            border-color: rgba(255, 106, 61, 0.5) !important;
         }
     }
 }

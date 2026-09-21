@@ -170,12 +170,16 @@
 
 /* ---- 4. PRODUCT CARDS ---- */
 .product-card {
+.product-card,
+.product-card-upgraded {
     transition: transform 0.45s cubic-bezier(0.16,1,0.3,1),
                 box-shadow 0.45s ease !important;
     position: relative;
     overflow: hidden;
 }
 .product-card::after {
+.product-card::after,
+.product-card-upgraded::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -186,9 +190,15 @@
     border-radius: inherit;
 }
 .product-card:hover::after { opacity: 1; }
+.product-card:hover::after,
+.product-card-upgraded:hover::after { opacity: 1; }
 /* Sweep shimmer */
 .product-card .product-card__media { position: relative; overflow: hidden; }
 .product-card .product-card__media::after {
+.product-card .product-card__media,
+.product-card-upgraded .img-container { position: relative; overflow: hidden; }
+.product-card .product-card__media::after,
+.product-card-upgraded .img-container::after {
     content: '';
     position: absolute;
     top: 0; left: -100%;
@@ -198,14 +208,22 @@
     pointer-events: none;
 }
 .product-card:hover .product-card__media::after {
+.product-card:hover .product-card__media::after,
+.product-card-upgraded:hover .img-container::after {
     animation: sweepLight 0.7s ease forwards;
 }
 .product-card:hover {
+.product-card:hover,
+.product-card-upgraded:hover {
     transform: translateY(-8px) scale(1.02) !important;
     box-shadow: 0 28px 60px rgba(0,0,0,0.15), 0 10px 24px rgba(255,85,32,0.1) !important;
+    box-shadow: 0 28px 60px rgba(0,0,0,0.15), 0 10px 24px rgba(255,85,32,0.15) !important;
 }
 :root[data-theme="dark"] .product-card:hover {
     box-shadow: 0 28px 60px rgba(0,0,0,0.5), 0 10px 24px rgba(255,85,32,0.25) !important;
+:root[data-theme="dark"] .product-card:hover,
+:root[data-theme="dark"] .product-card-upgraded:hover {
+    box-shadow: 0 28px 60px rgba(0,0,0,0.5), 0 10px 24px rgba(255,85,32,0.3) !important;
 }
 
 /* ---- 5. HERO BANNER ---- */
@@ -634,6 +652,380 @@ a { transition: color 0.25s ease !important; }
 /* ---- 46. BACK-TO-TOP VISIBLE ---- */
 .sport-back-to-top.visible, .to-top.visible {
     animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+/* ---- 47. FLY TO CART ANIMATION ---- */
+.fly-to-cart-shuttlecock {
+    position: fixed;
+    z-index: 999999;
+    pointer-events: none;
+    font-size: 26px;
+    line-height: 1;
+    filter: drop-shadow(0 8px 16px rgba(255, 85, 32, 0.6));
+    transition: transform 0.85s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.85s ease;
+    transform-origin: center center;
+}
+
+@keyframes cartBadgeBounce {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(1.6) rotate(-12deg); }
+    50%  { transform: scale(0.9) rotate(8deg); }
+    70%  { transform: scale(1.25) rotate(-4deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
+.cart-badge-bounce,
+.bs-cart-count.is-bouncing,
+#giohang-count.is-bouncing {
+    animation: cartBadgeBounce 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+/* ---- 48. FIRE GLOW & HOT DEAL BADGES ---- */
+@keyframes fireGlow {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(255, 60, 0, 0.6), 0 0 20px rgba(255, 120, 0, 0.4);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 18px rgba(255, 60, 0, 0.9), 0 0 35px rgba(255, 150, 0, 0.7);
+        transform: scale(1.04);
+    }
+}
+
+@keyframes badgeWiggle {
+    0%, 100% { transform: rotate(0deg); }
+    20%      { transform: rotate(-5deg); }
+    40%      { transform: rotate(5deg); }
+    60%      { transform: rotate(-3deg); }
+    80%      { transform: rotate(3deg); }
+}
+
+.badge-fire,
+.hot-deal-tag,
+.badge-sale-fire,
+.sp-badge--sale,
+.product-card__badge {
+    animation: fireGlow 2.2s infinite ease-in-out;
+}
+
+.badge-fire:hover,
+.product-card__badge:hover {
+    animation: badgeWiggle 0.5s ease;
+}
+
+/* ---- 49. TEXT GRADIENT SHIMMER FLOW ---- */
+@keyframes textGradientFlow {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.gradient-text-animated,
+.brand strong,
+.home-hero h1 strong,
+.section-title strong {
+    background: linear-gradient(135deg, #ff5520, #ff8a45, #ffd166, #ff5520);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textGradientFlow 6s ease infinite;
+}
+
+/* ---- 50. LIVE SOCIAL PROOF TICKER ---- */
+.bs-live-ticker {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    z-index: 9990;
+    max-width: 360px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    background: rgba(28, 22, 19, 0.92);
+    border: 1px solid rgba(255, 120, 50, 0.28);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 20px rgba(255, 85, 32, 0.15);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    color: #fff;
+    font-family: inherit;
+    opacity: 0;
+    transform: translateY(30px) scale(0.92);
+    pointer-events: none;
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-theme="light"] .bs-live-ticker {
+    background: rgba(255, 255, 255, 0.94);
+    border-color: rgba(255, 85, 32, 0.25);
+    color: #1a120e;
+    box-shadow: 0 14px 36px rgba(100, 30, 10, 0.15);
+}
+
+.bs-live-ticker.is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+.bs-live-ticker.is-hiding {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    pointer-events: none;
+}
+
+.bs-live-ticker__avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ff5520, #ffb703);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(255, 85, 32, 0.4);
+    animation: float 3s ease-in-out infinite;
+}
+
+.bs-live-ticker__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.bs-live-ticker__title {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #ff8a45;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.bs-live-ticker__title::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #00f5a0;
+    box-shadow: 0 0 8px #00f5a0;
+    animation: heartBeat 1.5s infinite;
+}
+
+.bs-live-ticker__message {
+    font-size: 12.5px;
+    line-height: 1.35;
+    font-weight: 600;
+    color: inherit;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.bs-live-ticker__time {
+    font-size: 10.5px;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 3px;
+    display: block;
+}
+:root[data-theme="light"] .bs-live-ticker__time {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.bs-live-ticker__close {
+    background: none;
+    border: none;
+    color: inherit;
+    opacity: 0.5;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    line-height: 1;
+    border-radius: 50%;
+    transition: opacity 0.2s, transform 0.2s;
+    align-self: flex-start;
+    margin: -4px -4px 0 0;
+}
+.bs-live-ticker__close:hover {
+    opacity: 1;
+    transform: scale(1.15);
+}
+
+@media (max-width: 540px) {
+    .bs-live-ticker {
+        bottom: 16px;
+        left: 12px;
+        right: 12px;
+        max-width: none;
+    }
+}
+
+/* ---- 51. CONFETTI CELEBRATION PARTICLES ---- */
+.confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999999;
+    overflow: hidden;
+}
+
+.confetti-piece {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    opacity: 0;
+    border-radius: 2px;
+}
+
+@keyframes confettiBlast {
+    0% {
+        opacity: 1;
+        transform: translate(0, 0) rotate(0deg) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(var(--tx, 0px), var(--ty, 500px)) rotate(var(--rot, 720deg)) scale(0.6);
+    }
+}
+
+/* ---- 52. DYNAMIC AURA GLOW BEHIND HERO & CARDS ---- */
+@keyframes pulseAura {
+    0%, 100% {
+        opacity: 0.4;
+        transform: scale(1) translate3d(0,0,0);
+    }
+    50% {
+        opacity: 0.75;
+        transform: scale(1.08) translate3d(0,-8px,0);
+    }
+}
+
+.ambient-aura {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+    z-index: 0;
+    animation: pulseAura 6s ease-in-out infinite;
+}
+
+.ambient-aura--orange {
+    background: radial-gradient(circle, rgba(255, 85, 32, 0.45) 0%, transparent 70%);
+}
+
+.ambient-aura--cyan {
+    background: radial-gradient(circle, rgba(0, 242, 254, 0.35) 0%, transparent 70%);
+}
+
+.ambient-aura--gold {
+    background: radial-gradient(circle, rgba(255, 183, 3, 0.4) 0%, transparent 70%);
+}
+
+/* ---- 53. GLASSMORPHIC SPORT CARDS ---- */
+.glass-sport-card,
+.playstyle-card,
+.product-card,
+.catalog-header,
+.filter-sidebar,
+.cart-table-container,
+.checkout-box {
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.4s ease,
+                border-color 0.3s ease !important;
+}
+
+.playstyle-card:hover {
+    transform: translateY(-8px) scale(1.02) !important;
+    border-color: rgba(255, 85, 32, 0.6) !important;
+    box-shadow: 0 20px 45px rgba(255, 85, 32, 0.22), 0 0 25px rgba(255, 85, 32, 0.12) !important;
+}
+
+/* Playstyle 1: Tấn công uy lực (Đỏ) */
+.playstyle-card:nth-child(1):hover {
+    border-color: #ff3b30 !important;
+    box-shadow: 0 20px 45px rgba(255, 59, 48, 0.25), 0 0 25px rgba(255, 59, 48, 0.15) !important;
+}
+/* Playstyle 2: Công thủ toàn diện (Xanh dương) */
+.playstyle-card:nth-child(2):hover {
+    border-color: #007aff !important;
+    box-shadow: 0 20px 45px rgba(0, 122, 255, 0.25), 0 0 25px rgba(0, 122, 255, 0.15) !important;
+}
+/* Playstyle 3: Tốc độ phản tạt (Xanh neon) */
+.playstyle-card:nth-child(3):hover {
+    border-color: #00f5a0 !important;
+    box-shadow: 0 20px 45px rgba(0, 245, 160, 0.25), 0 0 25px rgba(0, 245, 160, 0.15) !important;
+}
+
+/* ---- 54. FLOATING HERO EQUIPMENT BADGES ---- */
+@keyframes floatBadge1 {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-10px) rotate(2deg); }
+}
+@keyframes floatBadge2 {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-14px) rotate(-3deg); }
+}
+
+.hero-float-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    pointer-events: auto;
+    cursor: default;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+
+.hero-float-badge:hover {
+    transform: scale(1.1) !important;
+    box-shadow: 0 14px 32px rgba(255, 85, 32, 0.4);
+    border-color: #ff5520;
+}
+
+.hero-float-badge--1 { animation: floatBadge1 4s ease-in-out infinite; }
+.hero-float-badge--2 { animation: floatBadge2 5s ease-in-out infinite 0.5s; }
+
+/* ---- 55. SERVICE STRIP HOVER POP ---- */
+.service-strip article {
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                border-color 0.3s ease,
+                box-shadow 0.3s ease !important;
+    border-radius: 16px;
+}
+
+.service-strip article:hover {
+    transform: translateY(-6px) scale(1.02);
+    border-color: var(--bs-red, #ff5520) !important;
+    box-shadow: 0 14px 30px rgba(255, 85, 32, 0.15) !important;
+}
+
+.service-strip article:hover span {
+    transform: scale(1.2) rotate(6deg);
+    color: #ff5520 !important;
+}
+
+.service-strip article span {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s ease;
+    display: inline-block;
 }
 
 /* ---- SAFE: prefers-reduced-motion ---- */
@@ -644,4 +1036,5 @@ a { transition: color 0.25s ease !important; }
         transition-duration: 0.01ms !important;
     }
 }
+
 

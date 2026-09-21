@@ -499,3 +499,78 @@ mark, .highlight, [class*="search-highlight"] {
     transition: background 0.3s ease;
 }
 
+/* ---- SEARCH BAR GLOW & EXPANSION ---- */
+.bs-search, .search-bar, .search-box {
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.bs-search:focus-within, .search-bar:focus-within, .search-box:focus-within {
+    transform: scale(1.02);
+    border-color: #ff5520 !important;
+    box-shadow: 0 0 0 4px rgba(255, 85, 32, 0.22), 0 10px 24px rgba(255, 85, 32, 0.12) !important;
+}
+
+/* ---- QUANTITY STEPPER BOUNCE ---- */
+.quantity-control button, .bs-qty-btn {
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease !important;
+}
+.quantity-control button:active, .bs-qty-btn:active {
+    transform: scale(0.85);
+}
+.quantity-control input, .bs-qty-input {
+    transition: transform 0.2s ease;
+}
+.quantity-control input:focus, .bs-qty-input:focus {
+    transform: scale(1.05);
+}
+
+/* ---- INTERACTIVE RATING STARS ---- */
+.rating-stars span, .bs-stars span, .stars-container span {
+    display: inline-block;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
+    cursor: pointer;
+}
+.rating-stars span:hover, .bs-stars span:hover {
+    transform: scale(1.35) rotate(12deg);
+    color: #ffd166 !important;
+    text-shadow: 0 0 10px rgba(255, 209, 102, 0.7);
+}
+
+/* ---- MODAL & DIALOG POP-IN ---- */
+dialog, .modal, .account-dialog {
+    animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+dialog::backdrop, .modal-backdrop {
+    background: rgba(10, 8, 7, 0.65) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    animation: fadeIn 0.3s ease both;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ---- CART ITEM ROW ENTRANCE & REMOVAL ---- */
+.cart-item-row {
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cart-item-row.is-removing {
+    opacity: 0;
+    transform: translateX(-50px) scale(0.95);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin: 0;
+    border: none;
+    overflow: hidden;
+}
+
+/* ---- DYNAMIC BADGE PULSE ON CARDS ---- */
+.bs-cat-badge, .badge-count, .bs-save-badge {
+    animation: heartBeat 2.4s ease-in-out infinite;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+

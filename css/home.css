@@ -290,16 +290,29 @@ html[data-theme="dark"] .product-card__media img { mix-blend-mode: normal !impor
 
 .playstyle-grid { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 .playstyle-card { min-height: 350px; display: flex; flex-direction: column; padding: 30px; border-right: 1px solid var(--line); background: var(--surface); }
+.playstyle-grid { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
+.playstyle-card { position: relative; min-height: 350px; display: flex; flex-direction: column; padding: 30px; border-right: 1px solid var(--line); background: var(--surface); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); isolation: isolate; }
 .playstyle-card:last-child { border-right: 0; }
+.playstyle-card:hover { transform: translateY(-6px); z-index: 2; box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12); }
 .playstyle-card--accent { background: linear-gradient(145deg, #ff814d, var(--accent)); color: var(--on-accent); }
 .playstyle-card__number { font: 800 12px/1 var(--font-display); letter-spacing: .1em; }
+.playstyle-card__number { font: 800 12px/1 var(--font-display); letter-spacing: .1em; transition: transform 0.3s ease; }
+.playstyle-card:hover .playstyle-card__number { transform: scale(1.2); color: var(--accent-deep); }
 .playstyle-card__line { position: relative; height: 110px; margin-block: 18px 26px; overflow: hidden; }
 .playstyle-card__line::before { content: ""; position: absolute; left: 5%; top: 65%; width: 90%; height: 1px; background: currentColor; transform: rotate(-13deg); transform-origin: left; }
 .playstyle-card__line::after { content: ""; position: absolute; right: 7%; top: 24%; width: 12px; height: 12px; border: 2px solid currentColor; border-radius: 50%; }
 .playstyle-card h3 { margin: 0; font: 820 30px/1.08 var(--font-display); }
+.playstyle-card__line::before { content: ""; position: absolute; left: 5%; top: 65%; width: 90%; height: 2px; background: currentColor; transform: rotate(-13deg); transform-origin: left; opacity: 0.75; transition: transform 0.4s ease; }
+.playstyle-card:hover .playstyle-card__line::before { transform: rotate(-13deg) scaleX(1.08); opacity: 1; }
+.playstyle-card__line::after { content: ""; position: absolute; right: 7%; top: 24%; width: 14px; height: 14px; border: 2.5px solid currentColor; border-radius: 50%; background: var(--surface); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.playstyle-card:hover .playstyle-card__line::after { transform: scale(1.4); background: var(--accent); border-color: #fff; box-shadow: 0 0 12px var(--accent); }
+.playstyle-card h3 { margin: 0; font: 820 30px/1.08 var(--font-display); transition: color 0.3s ease; }
+.playstyle-card:hover h3 { color: var(--accent-deep); }
 .playstyle-card p { margin: 14px 0 24px; color: var(--muted); font-size: 13px; }
 .playstyle-card--accent p { color: #5f2a1f; }
 .playstyle-card a { width: max-content; margin-top: auto; font-size: 11px; font-weight: 850; text-decoration: none; }
+.playstyle-card a { width: max-content; margin-top: auto; font-size: 11px; font-weight: 850; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: transform 0.25s ease, color 0.25s ease; }
+.playstyle-card:hover a { transform: translateX(6px); color: var(--accent-deep); }
 
 .guide { min-height: 540px; display: grid; grid-template-columns: 1.1fr .9fr; margin-bottom: clamp(74px, 8vw, 116px); overflow: hidden; border-radius: 30px; background: var(--hero); color: #fff; }
 .guide__visual { min-height: 450px; overflow: hidden; }

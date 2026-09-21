@@ -30,6 +30,41 @@ button:disabled { cursor: not-allowed; opacity: .6; }
 .admin-body .admin-chart-card h2 { color: var(--bs-ink) !important; }
 .admin-body .admin-chart-pill { color: var(--bs-ink) !important; background: var(--bs-card) !important; }
 .admin-body .admin-chart-pill.is-active { color: var(--bs-orange) !important; border-color: var(--bs-orange); }
+/* Keep dashboard analytics rows in normal flow. Older dashboard-fx rules
+   used flex sizing here, which compressed legend cards into one another. */
+.admin-body .admin-category-card,
+.admin-body .admin-top-products-card { min-height: 0; overflow: hidden; }
+.admin-body .admin-category-visual,
+.admin-body .admin-status-visual {
+    display: grid !important;
+    grid-template-columns: minmax(150px, 180px) minmax(0, 1fr) !important;
+    align-items: start !important;
+    min-height: 250px;
+    gap: 18px !important;
+}
+.admin-body .admin-category-visual .admin-status-legend,
+.admin-body .admin-status-visual .admin-status-legend {
+    display: grid !important;
+    align-content: start !important;
+    gap: 8px !important;
+    max-height: 320px !important;
+    overflow-y: auto !important;
+    min-height: 0 !important;
+}
+.admin-body .admin-legend-card {
+    position: relative !important;
+    display: flex !important;
+    min-height: 52px !important;
+    height: auto !important;
+    margin: 0 !important;
+    transform: none;
+}
+@media (max-width: 820px) {
+    .admin-body .admin-category-visual,
+    .admin-body .admin-status-visual { grid-template-columns: 1fr !important; }
+    .admin-body .admin-category-visual .admin-status-legend,
+    .admin-body .admin-status-visual .admin-status-legend { max-height: 360px !important; }
+}
 .catalog-container, .detail-container, .contact-container { min-width: 0; }
 .danh-sach-san-pham-grid > *, .product-card, .news-card, .wish-card { min-width: 0; }
 .product-card img, .wish-card img { max-width: 100%; }

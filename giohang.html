@@ -539,6 +539,10 @@
             remove.setAttribute('aria-label', `Xóa ${name.textContent} khỏi giỏ hàng`);
             remove.textContent = '×';
             remove.addEventListener('click', () => updateItemQuantity(productId, 0));
+            remove.addEventListener('click', () => {
+                row.classList.add('is-removing');
+                setTimeout(() => updateItemQuantity(productId, 0), 280);
+            });
             row.append(image, details, quantityControl, total, remove);
             return row;
         }
@@ -621,6 +625,7 @@
                 appliedDiscount = Number(data.discount || 0);
                 message.style.color = '#168052';
                 message.textContent = data.message;
+                if (window.triggerConfetti) window.triggerConfetti();
             } catch (error) {
                 appliedCouponCode = '';
                 appliedDiscount = 0;

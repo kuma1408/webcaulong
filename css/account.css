@@ -261,27 +261,32 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
     border: 1px solid var(--bs-line);
     border-radius: 18px;
     background: var(--bs-card);
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s, border-color 0.25s;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, border-color 0.3s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 .account-metrics article:hover {
-    transform: translateY(-4px);
-    border-color: rgba(255, 122, 26, 0.4);
-    box-shadow: 0 16px 36px rgba(233, 56, 27, 0.1);
+    transform: translateY(-6px) scale(1.02);
+    border-color: rgba(255, 122, 26, 0.6);
+    box-shadow: 0 20px 45px rgba(233, 56, 27, 0.16), 0 0 20px rgba(255, 122, 26, 0.12);
 }
 :root[data-theme="dark"] .account-metrics article {
     background: linear-gradient(145deg, #131b2e, #0e1627);
     border-color: rgba(255, 255, 255, 0.08);
 }
 :root[data-theme="dark"] .account-metrics article:hover {
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 122, 26, 0.15);
+    box-shadow: 0 22px 50px rgba(0, 0, 0, 0.6), 0 0 25px rgba(255, 122, 26, 0.25);
+    border-color: rgba(255, 122, 26, 0.5);
 }
-.account-metrics article::after { content: ""; position: absolute; right: -28px; bottom: -38px; width: 100px; height: 100px; border-radius: 50%; background: var(--bs-orange-soft); }
-.metric-icon { width: 38px; height: 38px; display: grid; place-items: center; margin-bottom: 16px; border-radius: 12px; background: var(--bs-orange-soft); color: var(--bs-red); font-weight: 900; font-size: 16px; }
+.account-metrics article::after { content: ""; position: absolute; right: -28px; bottom: -38px; width: 100px; height: 100px; border-radius: 50%; background: var(--bs-orange-soft); transition: transform 0.4s ease; }
+.account-metrics article:hover::after { transform: scale(1.3); }
+.metric-icon { width: 38px; height: 38px; display: grid; place-items: center; margin-bottom: 16px; border-radius: 12px; background: var(--bs-orange-soft); color: var(--bs-red); font-weight: 900; font-size: 16px; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.account-metrics article:hover .metric-icon { transform: scale(1.18) rotate(8deg); }
 .account-metrics p { margin: 0 0 7px; color: var(--bs-muted); font-size: 11px; font-weight: 700; }
 .account-metrics strong { position: relative; z-index: 1; display: block; color: var(--bs-ink); font-size: clamp(20px, 2.2vw, 26px); letter-spacing: -.035em; font-weight: 850; }
 .account-metrics article > span:last-child, .account-metrics button { position: relative; z-index: 1; display: block; margin-top: 9px; border: 0; background: none; color: var(--bs-muted); font-size: 11px; }
-.account-metrics button { padding: 0; color: var(--bs-red); font-weight: 800; cursor: pointer; transition: transform 0.15s; }
-.account-metrics button:hover { transform: translateX(3px); }
+.account-metrics button { padding: 0; color: var(--bs-red); font-weight: 800; cursor: pointer; transition: transform 0.2s ease, color 0.2s ease; }
+.account-metrics button:hover { transform: translateX(5px); color: var(--bs-orange); }
 .overview-grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 18px; margin-top: 18px; }
 .account-card {
     padding: 24px;
