@@ -8,18 +8,24 @@
 
     const TOKEN_KEY = 'badminton_access_token';
     const THEME_KEY = 'badminton_theme';
-    const SPORT_ASSET_VERSION = '20260908-1';
+    const SPORT_ASSET_VERSION = '20260921-1';
 
     function ensureSportDesignAssets() {
-        if (!document.querySelector('link[href*="css/sport-system.css"]')) {
+        const adminPage = /(?:^|\/)admin\.html$/.test(location.pathname);
+        if (!adminPage && !document.querySelector('link[href*="css/sport-system.css"]')) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
             link.href = `css/sport-system.css?v=${SPORT_ASSET_VERSION}`;
             document.head.appendChild(link);
         }
-        if (!document.querySelector('script[src*="css/sport-fx.js"]')) {
+        if (!document.querySelector('link[href*="css/ui-polish.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet'; link.href = `css/ui-polish.css?v=${SPORT_ASSET_VERSION}`;
+            document.head.appendChild(link);
+        }
+        if (!document.querySelector('script[src*="css/ui-motion.js"]')) {
             const script = document.createElement('script');
-            script.src = `css/sport-fx.js?v=${SPORT_ASSET_VERSION}`;
+            script.src = `css/ui-motion.js?v=${SPORT_ASSET_VERSION}`;
             script.defer = true;
             document.head.appendChild(script);
         }
@@ -665,7 +671,7 @@
             document.body?.classList.toggle('dark-theme', dark);
         };
         syncLegacyThemeClass();
-        setupAmbientEffect();
+        if (!document.body.classList.contains('admin-body')) setupAmbientEffect();
         if (!root.dataset.bsThemeObserverReady) {
             root.dataset.bsThemeObserverReady = 'true';
             new MutationObserver(syncLegacyThemeClass).observe(root, {
@@ -736,82 +742,7 @@
             requestUpdate();
         }
 
-        const revealSelector = [
-            '.catalog-container > *', '.danh-sach-san-pham-grid > *',
-            '.san-pham-goi-y-item', '.wish-card', '.contact-card',
-            '.cart-item', '.card-container > *', '.news-card', '.guide-card',
-            '.bs-detail-tabs-section', '.footer-container > *',
-            '.admin-card', '.account-card', '.account-stat', '.profile-card',
-            '.tech-card', '.review-card', '.detail-price-card', '.specs-matrix > *',
-            '.racket-configurator', '.admin-health', '.admin-operations'
-        ].join(',');
-        const depthSelector = [
-            '.danh-sach-san-pham-grid > *', '.san-pham-goi-y-item', '.wish-card',
-            '.news-card', '.guide-card', '.product-card', '.category-card'
-        ].join(',');
-        const revealObserver = !reduceMotion && 'IntersectionObserver' in window
-            ? new IntersectionObserver((entries, observer) => {
-                entries.forEach((entry) => {
-                    if (!entry.isIntersecting) return;
-                    entry.target.classList.add('is-revealed');
-                    observer.unobserve(entry.target);
-                });
-            }, { threshold: 0.05, rootMargin: '0px 0px 80px' })
-            : null;
-
-        const prepareEffects = (scope = document) => {
-            const revealNodes = [];
-            if (scope instanceof Element && scope.matches(revealSelector)) revealNodes.push(scope);
-            scope.querySelectorAll?.(revealSelector).forEach((node) => revealNodes.push(node));
-            revealNodes.forEach((node, index) => {
-                if (node.dataset.bsRevealReady || node.closest('[hidden], dialog:not([open]), .admin-dialog:not(.is-open)')) return;
-                node.dataset.bsRevealReady = 'true';
-                node.classList.add('bs-reveal');
-                node.style.setProperty('--bs-reveal-delay', `${Math.min(index % 4, 3) * 55}ms`);
-                if (revealObserver) revealObserver.observe(node);
-                else node.classList.add('is-revealed');
-            });
-            const depthNodes = [];
-            if (scope instanceof Element && scope.matches(depthSelector)) depthNodes.push(scope);
-            scope.querySelectorAll?.(depthSelector).forEach((node) => depthNodes.push(node));
-            depthNodes.forEach((node) => node.classList.add('bs-depth-card'));
-        };
-        prepareEffects();
-
-        if (!root.dataset.bsMutationReady) {
-            root.dataset.bsMutationReady = 'true';
-            new MutationObserver((records) => {
-                records.forEach((record) => record.addedNodes.forEach((node) => {
-                    if (node instanceof Element) prepareEffects(node);
-                }));
-            }).observe(document.body, { childList: true, subtree: true });
-        }
-
-        if (!root.dataset.bsRippleReady) {
-            root.dataset.bsRippleReady = 'true';
-            document.addEventListener('click', (event) => {
-                const target = event.target.closest('button, .button, .btn, [role="button"], .bs-nav__links > li > a');
-                if (!target || target.disabled || target.getAttribute('aria-disabled') === 'true') return;
-                target.classList.add('bs-ripple-host');
-                if (!target.matches('.button, [class*="primary"], [class*="submit"], .bs-nav__links > li > a')) {
-                    target.classList.add('bs-ripple-host--soft');
-                }
-                const rect = target.getBoundingClientRect();
-                const ink = document.createElement('span');
-                ink.className = 'bs-ripple-ink';
-                ink.style.left = `${event.clientX ? event.clientX - rect.left : rect.width / 2}px`;
-                ink.style.top = `${event.clientY ? event.clientY - rect.top : rect.height / 2}px`;
-                target.appendChild(ink);
-                window.setTimeout(() => ink.remove(), 680);
-            });
-        }
-
-        window.setTimeout(() => {
-            document.querySelectorAll('.bs-reveal:not(.is-revealed)').forEach((node) => {
-                const rect = node.getBoundingClientRect();
-                if (rect.top < window.innerHeight && rect.bottom > 0) node.classList.add('is-revealed');
-            });
-        }, 900);
+        // Shared card and button motion is managed by ui-motion.js.
     }
 
     function enhanceDetailPage() {

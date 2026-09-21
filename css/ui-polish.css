@@ -1,0 +1,66 @@
+/* Shared interaction polish. Components keep their existing layout contracts. */
+:root { --ui-radius: 16px; --ui-ease: cubic-bezier(.2,.7,.2,1); }
+button, input, select, textarea { font: inherit; }
+button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid #f97316; outline-offset: 3px;
+}
+button:disabled { cursor: not-allowed; opacity: .6; }
+.admin-body .admin-nav { align-content: start; }
+.admin-body .admin-nav button { min-height: 44px; padding-block: 10px; }
+.admin-body .admin-workspace { background: var(--bs-bg); }
+.admin-body .admin-card__heading h2 { font-size: 16px; line-height: 1.45; }
+.admin-body .admin-card__heading .eyebrow { font-size: 10px; letter-spacing: .1em; }
+.admin-body .admin-empty { font-size: 13px; line-height: 1.6; padding: 24px; margin: 20px 0; }
+.admin-body :is(.admin-table-wrap,.admin-search,.admin-toolbar,.admin-chart-actions) { min-width: 0; }
+.admin-body .admin-search input { width: 100%; min-width: 0; }
+.admin-body .admin-toolbar > select { max-width: 100%; }
+.admin-body :is(.admin-card,.stat-card,.admin-kpi-card) { box-shadow: 0 2px 8px rgb(0 0 0 / .04); }
+.admin-body .admin-card:hover { transform: none; }
+.admin-body .bs-ambient-layer { display: none !important; }
+.admin-body .admin-donut-center span { font-variant-numeric: tabular-nums; }
+.admin-body .admin-donut-center small { font-size: 10px; }
+.admin-body .top-product-title { font-weight: 650; }
+.admin-body .top-product-progress { height: 6px; }
+.admin-body .admin-table td { padding-block: 14px; }
+.admin-body .admin-table tbody tr:hover { background: color-mix(in srgb,var(--bs-orange) 5%,var(--bs-card)); }
+.admin-body .admin-nav button.is-active { box-shadow: inset 3px 0 0 var(--bs-orange); }
+.admin-body .admin-nav button.is-active::before { display: none; }
+.admin-body .admin-chart-card { background: var(--bs-card) !important; color: var(--bs-ink); }
+.admin-body .admin-chart-card h2 { color: var(--bs-ink) !important; }
+.admin-body .admin-chart-pill { color: var(--bs-ink) !important; background: var(--bs-card) !important; }
+.admin-body .admin-chart-pill.is-active { color: var(--bs-orange) !important; border-color: var(--bs-orange); }
+.catalog-container, .detail-container, .contact-container { min-width: 0; }
+.danh-sach-san-pham-grid > *, .product-card, .news-card, .wish-card { min-width: 0; }
+.product-card img, .wish-card img { max-width: 100%; }
+#bsBackToTop { translate: none !important; rotate: none !important; }
+#bsBackToTop .bs-b2t-icon { transform: none !important; rotate: none !important; }
+@media (prefers-reduced-motion: no-preference) {
+    :is(.product-card,.news-card,.wish-card,.top-product-card,.category-card) {
+        transition: translate .25s var(--ui-ease), box-shadow .25s, border-color .25s;
+    }
+    :is(input,textarea,select) { transition: border-color .2s, box-shadow .2s; }
+    :is(input,textarea,select):focus { box-shadow: 0 0 0 3px rgb(249 115 22 / .12); }
+    dialog[open] { animation: ui-dialog-in .25s var(--ui-ease); }
+    dialog::backdrop { backdrop-filter: blur(4px); }
+    @media (hover:hover) {
+        :is(.product-card,.news-card,.wish-card,.category-card):hover { translate: 0 -3px; box-shadow: 0 10px 24px rgb(0 0 0 / .1); }
+    }
+}
+@keyframes ui-dialog-in { from { opacity: .3; translate: 0 12px; } to { opacity: 1; translate: 0 0; } }
+@media (max-width:600px) {
+    .site-header .header__inner { gap: 8px; }
+    .site-header .header__actions { gap: 6px; }
+    .site-header .brand__text strong { font-size: 13px; }
+    .site-header .brand__text small { font-size: 8px; }
+    .site-header .icon-button { width: 34px; height: 34px; min-width: 34px; }
+    .site-header .cart-link { padding-inline: 8px; }
+    .admin-body .admin-topbar__actions { gap: 8px; }
+    .admin-body .admin-card__heading { padding: 14px; }
+    .admin-body .admin-table { min-width: 640px; }
+    .admin-body .admin-table-wrap { border-radius: 12px; }
+}
+@media (prefers-reduced-motion:reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+    .bs-reveal,.mz-hidden,.sport-reveal { opacity: 1 !important; transform: none !important; filter: none !important; }
+}
