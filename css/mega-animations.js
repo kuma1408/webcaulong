@@ -1,7 +1,4 @@
 /* ============================================================
-   MEGA ANIMATIONS JS ENGINE - webcaulong
-   Kích hoạt toàn bộ scroll-reveal, AOS, 3D tilt, counters,
-   ripple clicks, parallax, magnetic buttons, và nhiều hơn nữa
    MEGA ANIMATIONS JS ENGINE - Badminton Store
    Kích hoạt toàn bộ:
    1. Fly-to-Cart Shuttlecock Arc Animation
@@ -19,16 +16,12 @@
     'use strict';
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // On admin page: disable heavy 3D tilt, parallax, page transitions to prevent lag
+    // Trên trang admin: tắt các hiệu ứng nặng (3D tilt, parallax) để tối ưu hiệu suất
     const isAdmin = document.body.classList.contains('admin-body') || document.querySelector('.admin-shell') !== null;
 
-    /* ---- 1. AOS - Scroll Reveal Engine ---- */
     /* ---- 1. AOS - SCROLL REVEAL ENGINE ---- */
     function initAOS() {
         if (reduced) {
-            document.querySelectorAll('[data-aos]').forEach(el => {
-                el.classList.add('aos-animate');
-            });
             document.querySelectorAll('[data-aos]').forEach(el => el.classList.add('aos-animate'));
             return;
         }
@@ -38,7 +31,6 @@
                 if (entry.isIntersecting) {
                     entry.target.classList.add('aos-animate');
                 } else {
-                    // re-play on scroll back up
                     if (entry.target.dataset.aosOnce !== 'true') {
                         entry.target.classList.remove('aos-animate');
                     }
@@ -48,7 +40,6 @@
 
         document.querySelectorAll('[data-aos]').forEach((el, i) => {
             if (!el.style.transitionDelay) {
-                const delay = el.dataset.aosDelay || (i % 6) * 80;
                 const delay = el.dataset.aosDelay || (i % 6) * 75;
                 el.style.transitionDelay = delay + 'ms';
             }
@@ -56,73 +47,50 @@
         });
     }
 
-    /* ---- 2. Auto-tag elements with data-aos ---- */
     /* ---- 2. AUTO-TAG ELEMENTS WITH DATA-AOS ---- */
     function tagForAOS() {
         const map = {
-            '.product-card'         : 'fade-up',
-            '.category-card'        : 'fade-up',
-            '.playstyle-card'       : 'zoom-in',
-            '.brand-chip'           : 'pop-in',
-            '.brand-item'           : 'pop-in',
-            '.review-item'          : 'fade-up',
-            '.news-card'            : 'fade-up',
-            '.blog-card'            : 'fade-up',
-            '.feature-item'         : 'flip-up',
-            '.admin-card'           : 'fade-up',
-            '.stat-card'            : 'fade-up',
-            '.admin-kpi-card'       : 'fade-up',
-            '.product-card, .product-card-upgraded' : 'fade-up',
-            '.category-card'         : 'fade-up',
-            '.playstyle-card'        : 'zoom-in',
-            '.brand-chip'            : 'pop-in',
-            '.brand-item'            : 'pop-in',
-            '.review-item'           : 'fade-up',
-            '.news-card'             : 'fade-up',
-            '.blog-card'             : 'fade-up',
-            '.feature-item'          : 'flip-up',
-            '.admin-card'            : 'fade-up',
-            '.stat-card'             : 'fade-up',
-            '.admin-kpi-card'        : 'fade-up',
+            '.product-card, .product-card-upgraded': 'fade-up',
+            '.category-card': 'fade-up',
+            '.playstyle-card': 'zoom-in',
+            '.brand-chip': 'pop-in',
+            '.brand-item': 'pop-in',
+            '.review-item': 'fade-up',
+            '.news-card': 'fade-up',
+            '.blog-card': 'fade-up',
+            '.feature-item': 'flip-up',
+            '.admin-card': 'fade-up',
+            '.stat-card': 'fade-up',
+            '.admin-kpi-card': 'fade-up',
             '.conversion-funnel-card': 'zoom-in',
-            '.funnel-step'          : 'fade-left',
-            '.section-title'        : 'fade-up',
-            '.section-head'         : 'fade-up',
+            '.funnel-step': 'fade-left',
+            '.section-title': 'fade-up',
+            '.section-head': 'fade-up',
             '.trust-guarantee-strip': 'fade-up',
-            '.cart-item'            : 'fade-left',
-            '.wishlist-item'        : 'fade-left',
-            '.admin-trend-card'     : 'fade-up',
-            '.funnel-step'           : 'fade-left',
-            '.section-title'         : 'fade-up',
-            '.section-head'          : 'fade-up',
-            '.service-strip article' : 'pop-in',
-            '.cart-item-row'         : 'fade-left',
-            '.wishlist-item'         : 'fade-left',
-            '.admin-trend-card'      : 'fade-up',
-            '.hero-float-badge'      : 'pop-in',
-            '.guide'                 : 'fade-up',
+            '.service-strip article': 'pop-in',
+            '.cart-item, .cart-item-row': 'fade-left',
+            '.wishlist-item': 'fade-left',
+            '.admin-trend-card': 'fade-up',
+            '.hero-float-badge': 'pop-in',
+            '.guide': 'fade-up',
         };
 
         Object.entries(map).forEach(([selector, animation]) => {
             document.querySelectorAll(selector).forEach((el, i) => {
                 if (!el.dataset.aos) {
                     el.dataset.aos = animation;
-                    el.dataset.aosDelay = (i % 5) * 80;
                     el.dataset.aosDelay = (i % 6) * 75;
                 }
             });
         });
     }
 
-    /* ---- 3. 3D Tilt Effect ---- */
     /* ---- 3. 3D HOLOGRAPHIC TILT & SPECULAR SHEEN ---- */
     function init3DTilt() {
         if (reduced) return;
-        const canHover = window.matchMedia('(hover: hover)').matches;
         const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
         if (!canHover) return;
 
-        const tiltTargets = '.product-card, .admin-card, .stat-card, .admin-kpi-card, .category-card, .review-item, .news-card, .brand-chip';
         const tiltTargets = '.product-card, .product-card-upgraded, .playstyle-card, .category-card, .service-strip article, .review-item, .brand-chip, .hero-float-badge';
 
         function attachTilt(el) {
@@ -147,24 +115,12 @@
                 const rect = el.getBoundingClientRect();
                 const x = (e.clientX - rect.left) / rect.width - 0.5;
                 const y = (e.clientY - rect.top) / rect.height - 0.5;
-                const rx = y * -14;
-                const ry = x * 14;
-                el.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.02,1.02,1.02)`;
-                el.style.transition = 'transform 0.1s linear';
-                el.style.zIndex = '5';
                 const rx = y * -16;
                 const ry = x * 16;
                 el.style.transform = `perspective(900px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) translate3d(0,-6px,0) scale3d(1.025,1.025,1.025)`;
                 el.style.transition = 'transform 0.08s linear';
                 el.style.zIndex = '6';
 
-                // Dynamic highlight
-                const pct = (x + 0.5) * 100;
-                el.style.backgroundImage = el.style.backgroundImage || '';
-                const shine = el.querySelector('.__tilt-shine');
-                if (shine) {
-                    shine.style.background = `radial-gradient(circle at ${pct}% ${(y+0.5)*100}%, rgba(255,255,255,0.12) 0%, transparent 70%)`;
-                }
                 // Di chuyển điểm sáng phản chiếu theo chuột
                 const pctX = ((x + 0.5) * 100).toFixed(1);
                 const pctY = ((y + 0.5) * 100).toFixed(1);
@@ -172,33 +128,20 @@
             });
 
             el.addEventListener('mouseleave', () => {
-                el.style.transform = 'perspective(800px) rotateX(0) rotateY(0) scale3d(1,1,1)';
-                el.style.transition = 'transform 0.5s cubic-bezier(0.16,1,0.3,1)';
                 el.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translate3d(0,0,0) scale3d(1,1,1)';
                 el.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)';
                 el.style.zIndex = '';
                 shine.style.opacity = '0';
             });
-
-            // Add shine layer
-            if (!el.querySelector('.__tilt-shine')) {
-                const shine = document.createElement('div');
-                shine.className = '__tilt-shine';
-                shine.style.cssText = 'position:absolute;inset:0;pointer-events:none;border-radius:inherit;transition:background 0.15s ease;';
-                el.style.position = el.style.position || 'relative';
-                el.appendChild(shine);
-            }
         }
 
         document.querySelectorAll(tiltTargets).forEach(attachTilt);
 
-        // Also watch for dynamically added cards
         if (typeof MutationObserver !== 'undefined') {
             new MutationObserver(records => {
                 records.forEach(r => r.addedNodes.forEach(node => {
                     if (node.nodeType === 1) {
                         if (node.matches && node.matches(tiltTargets)) attachTilt(node);
-                        node.querySelectorAll && node.querySelectorAll(tiltTargets).forEach(attachTilt);
                         if (node.querySelectorAll) node.querySelectorAll(tiltTargets).forEach(attachTilt);
                     }
                 }));
@@ -206,8 +149,6 @@
         }
     }
 
-    /* ---- 4. Ripple Click Effect ---- */
-    function initRipple() {
     /* ---- 4. FLY-TO-CART SHUTTLECOCK ANIMATION ---- */
     function initFlyToCart() {
         if (reduced) return;
@@ -233,9 +174,9 @@
             shuttle.style.top = startY + 'px';
             document.body.appendChild(shuttle);
 
-            // Tính điểm uốn cong parabol (Control Point) lên cao hơn
+            // Điểm uốn cong parabol (Control Point)
             const midX = (startX + endX) / 2 + (Math.random() * 60 - 30);
-            const midY = Math.min(startX, endY) - 120;
+            const midY = Math.min(startY, endY) - 120;
 
             const duration = 850;
             const start = performance.now();
@@ -243,7 +184,6 @@
             function frame(now) {
                 const elapsed = now - start;
                 const p = Math.min(elapsed / duration, 1);
-                // Quadratic bezier: B(t) = (1-t)^2*P0 + 2(1-t)t*P1 + t^2*P2
                 const t = p;
                 const inv = 1 - t;
                 const curX = inv * inv * startX + 2 * inv * t * midX + t * t * endX;
@@ -258,7 +198,6 @@
                     requestAnimationFrame(frame);
                 } else {
                     shuttle.remove();
-                    // Kích hoạt nảy số lượng giỏ hàng
                     triggerCartBounce();
                 }
             }
@@ -269,39 +208,25 @@
             const badge = document.querySelector('.bs-cart-count') || document.querySelector('#giohang-count');
             if (badge) {
                 badge.classList.remove('cart-badge-bounce', 'is-bouncing');
-                void badge.offsetWidth; // trigger reflow
+                void badge.offsetWidth; // force reflow
                 badge.classList.add('cart-badge-bounce', 'is-bouncing');
                 setTimeout(() => {
                     badge.classList.remove('cart-badge-bounce', 'is-bouncing');
                 }, 700);
             }
         }
+
         window.triggerFlyToCart = triggerFly;
         window.triggerCartBounce = triggerCartBounce;
 
         document.addEventListener('click', (e) => {
-            const el = e.target.closest('button, .btn, .button, .add-to-cart, .admin-nav button, .tab-btn, .an-pill-btn');
-            if (!el) return;
-            const btn = e.target.closest('.add-to-cart, .btn-add-cart, [data-add-cart], .button--accent:has(span), .btn-them-gio, [onclick*="themVaoGio"]');
+            const btn = e.target.closest('.add-to-cart, .btn-add-cart, [data-add-cart], .btn-them-gio, [onclick*="themVaoGio"]');
             if (!btn) return;
             const rect = btn.getBoundingClientRect();
             triggerFly(rect.left + rect.width / 2, rect.top + rect.height / 2);
         });
     }
 
-            const ripple = document.createElement('span');
-            const rect = el.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            ripple.style.cssText = `
-                position: absolute;
-                width: ${size}px; height: ${size}px;
-                left: ${e.clientX - rect.left - size/2}px;
-                top: ${e.clientY - rect.top - size/2}px;
-                background: rgba(255,255,255,0.35);
-                border-radius: 50%;
-                pointer-events: none;
-                transform: scale(0);
-                animation: rippleExpand 0.6s ease forwards;
     /* ---- 5. CONFETTI CELEBRATION ENGINE ---- */
     function triggerConfetti(originX, originY) {
         if (reduced) return;
@@ -322,7 +247,7 @@
             const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.4 - 0.2);
             const velocity = 180 + Math.random() * 320;
             const tx = Math.cos(angle) * velocity;
-            const ty = Math.sin(angle) * velocity + 280; // Trọng lực kéo rơi xuống
+            const ty = Math.sin(angle) * velocity + 280;
             const rot = (Math.random() * 1080 - 540) + 'deg';
             const w = 7 + Math.random() * 8;
             const h = 5 + Math.random() * 10;
@@ -338,10 +263,6 @@
                 --rot: ${rot};
                 animation: confettiBlast ${1.4 + Math.random() * 0.8}s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
             `;
-            el.style.position = el.style.position || 'relative';
-            el.style.overflow = 'hidden';
-            el.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 700);
             container.appendChild(piece);
         }
 
@@ -349,7 +270,6 @@
     }
     window.triggerConfetti = triggerConfetti;
 
-    // Tự động kích hoạt Confetti khi có panel đặt hàng thành công
     function checkOrderSuccessPanel() {
         const panel = document.getElementById('successPanel');
         if (panel) {
@@ -390,7 +310,7 @@
                     <p class="bs-live-ticker__message" id="bsTickerMsg">Đang tải thông tin...</p>
                     <span class="bs-live-ticker__time" id="bsTickerTime">Vừa xong</span>
                 </div>
-                <button class="bs-live-ticker__close" id="bsTickerClose" title="Đóng thông báo" aria-label="Đóng">✕</button>
+                <button class="bs-live-ticker__close" id="bsTickerClose" type="button" title="Đóng thông báo" aria-label="Đóng">✕</button>
             `;
             document.body.appendChild(tickerEl);
 
@@ -409,25 +329,29 @@
             const ev = events[index % events.length];
             index++;
 
-            document.getElementById('bsTickerIcon').textContent = ev.icon;
-            document.getElementById('bsTickerTitle').textContent = `${ev.name} (${ev.loc})`;
-            document.getElementById('bsTickerMsg').textContent = ev.text;
-            document.getElementById('bsTickerTime').textContent = ev.time;
+            const iconEl = document.getElementById('bsTickerIcon');
+            const titleEl = document.getElementById('bsTickerTitle');
+            const msgEl = document.getElementById('bsTickerMsg');
+            const timeEl = document.getElementById('bsTickerTime');
+
+            if (iconEl) iconEl.textContent = ev.icon;
+            if (titleEl) titleEl.textContent = `${ev.name} (${ev.loc})`;
+            if (msgEl) msgEl.textContent = ev.text;
+            if (timeEl) timeEl.textContent = ev.time;
 
             tickerEl.classList.remove('is-hiding');
             tickerEl.classList.add('is-visible');
 
-            // Ẩn sau 5.2 giây
             hideTimer = setTimeout(() => {
-                tickerEl.classList.remove('is-visible');
-                tickerEl.classList.add('is-hiding');
+                if (tickerEl) {
+                    tickerEl.classList.remove('is-visible');
+                    tickerEl.classList.add('is-hiding');
+                }
             }, 5200);
         }
 
-        // Bắt đầu lần đầu sau 4 giây khi vào trang
         setTimeout(() => {
             showNextEvent();
-            // Lặp lại mỗi 15 giây
             setInterval(showNextEvent, 15000);
         }, 4000);
     }
@@ -438,7 +362,6 @@
             const btn = e.target.closest('.wishlist-btn, .heart-btn, [class*="wish"] button, .yeuthich-btn');
             if (!btn) return;
 
-            // Bắn chùm tim và ánh sao
             const emojis = ['❤️', '💖', '✨', '✦', '⭐'];
             for (let i = 0; i < 9; i++) {
                 const s = document.createElement('div');
@@ -472,15 +395,12 @@
         });
     }
 
-    /* ---- 5. Magnetic Buttons ---- */
     /* ---- 8. MAGNETIC BUTTONS ---- */
     function initMagnetic() {
         if (reduced) return;
-        const canHover = window.matchMedia('(hover: hover)').matches;
         const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
         if (!canHover) return;
 
-        document.querySelectorAll('.add-to-cart, .btn-primary, .button--primary, .cta-button').forEach(btn => {
         const targets = '.add-to-cart, .btn-primary, .button--primary, .button--accent, .primary-button, .cta-button, .soft-button';
 
         function attachMagnetic(btn) {
@@ -489,45 +409,34 @@
 
             btn.addEventListener('mousemove', (e) => {
                 const rect = btn.getBoundingClientRect();
-                const x = (e.clientX - rect.left - rect.width / 2) * 0.25;
-                const y = (e.clientY - rect.top - rect.height / 2) * 0.25;
-                btn.style.transform = `translate(${x}px, ${y}px) scale(1.05)`;
                 const x = (e.clientX - rect.left - rect.width / 2) * 0.28;
                 const y = (e.clientY - rect.top - rect.height / 2) * 0.28;
                 btn.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) scale(1.04)`;
                 btn.style.transition = 'transform 0.08s linear';
             });
             btn.addEventListener('mouseleave', () => {
-                btn.style.transform = '';
-                btn.style.transition = 'transform 0.4s cubic-bezier(0.16,1,0.3,1)';
                 btn.style.transform = 'translate3d(0,0,0) scale(1)';
                 btn.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
             });
-        });
         }
 
         document.querySelectorAll(targets).forEach(attachMagnetic);
     }
 
-    /* ---- 6. Parallax Banner ---- */
     /* ---- 9. PARALLAX BANNER ---- */
     function initParallax() {
         if (reduced) return;
-        const banner = document.querySelector('.home-banner, .hero-banner, .hero-section');
         const banner = document.querySelector('.home-banner, .hero-banner, .category-banner');
         if (!banner) return;
 
         window.addEventListener('scroll', () => {
-            const y = window.scrollY * 0.4;
             const y = window.scrollY * 0.3;
             banner.style.backgroundPositionY = y + 'px';
         }, { passive: true });
     }
 
-    /* ---- 7. Staggered Number Counters ---- */
     /* ---- 10. STAGGERED NUMBER COUNTERS ---- */
     function initCounters() {
-        const counters = document.querySelectorAll('[data-count], .admin-kpi-value, .stat-value');
         const counters = document.querySelectorAll('[data-count], .admin-kpi-value, .stat-value, #metricSpent, #walletBalance');
         if (!counters.length) return;
 
@@ -535,16 +444,13 @@
             entries.forEach(entry => {
                 if (!entry.isIntersecting) return;
                 const el = entry.target;
-                const target = parseFloat(el.dataset.count || el.textContent.replace(/[^\d.]/g, '')) || 0;
                 const raw = el.dataset.count || el.textContent.replace(/[^\d.]/g, '');
                 const target = parseFloat(raw) || 0;
                 if (!target || el._counted) return;
                 el._counted = true;
 
-                const duration = 1400;
                 const duration = 1300;
                 const start = performance.now();
-                const isMoney = el.dataset.count?.includes('.') || el.textContent.includes('đ');
                 const isMoney = el.textContent.includes('₫') || el.textContent.includes('đ') || el.dataset.countIsMoney === 'true';
 
                 function step(now) {
@@ -552,7 +458,6 @@
                     const eased = 1 - Math.pow(1 - p, 3);
                     const val = target * eased;
                     el.textContent = isMoney
-                        ? val.toLocaleString('vi-VN') + ' đ'
                         ? Math.round(val).toLocaleString('vi-VN') + ' ₫'
                         : Math.round(val).toLocaleString('vi-VN');
                     if (p < 1) requestAnimationFrame(step);
@@ -560,13 +465,11 @@
                 requestAnimationFrame(step);
                 obs.unobserve(el);
             });
-        }, { threshold: 0.3 });
         }, { threshold: 0.25 });
 
         counters.forEach(el => obs.observe(el));
     }
 
-    /* ---- 8. Lazy Image Fade-In ---- */
     /* ---- 11. LAZY IMAGE FADE-IN ---- */
     function initLazyImages() {
         document.querySelectorAll('img[loading="lazy"]').forEach(img => {
@@ -579,14 +482,12 @@
         });
     }
 
-    /* ---- 9. Scroll Progress Bar ---- */
     /* ---- 12. SCROLL PROGRESS BAR ---- */
     function initScrollProgress() {
         let bar = document.querySelector('.scroll-progress');
         if (!bar) {
             bar = document.createElement('div');
             bar.className = 'scroll-progress';
-            bar.style.cssText = 'position:fixed;top:0;left:0;height:3px;width:0%;z-index:99999;pointer-events:none;border-radius:0 2px 2px 0;';
             bar.style.cssText = `
                 position: fixed;
                 top: 0; left: 0;
@@ -607,7 +508,7 @@
         }, { passive: true });
     }
 
-    /* ---- 10. Wave Title Effect ---- */
+    /* ---- 13. WAVE TITLE EFFECT ---- */
     function initWaveTitles() {
         document.querySelectorAll('.section-title, h2.section-heading').forEach(el => {
             const text = el.textContent;
@@ -620,43 +521,14 @@
             ).join('');
         });
     }
-    /* ---- 13. RIPPLE CLICK EFFECT ---- */
+
+    /* ---- 14. RIPPLE CLICK EFFECT ---- */
     function initRipple() {
         if (reduced) return;
         document.addEventListener('click', (e) => {
             const el = e.target.closest('button, .btn, .button, .add-to-cart, .admin-nav button, .tab-btn, .page-btn, .bs-chip');
             if (!el) return;
 
-    /* ---- 11. Sparkle on Wishlist Add ---- */
-    function initSparkles() {
-        document.addEventListener('click', (e) => {
-            const btn = e.target.closest('.wishlist-btn, .heart-btn, [class*="wish"] button');
-            if (!btn) return;
-            for (let i = 0; i < 8; i++) {
-                const s = document.createElement('div');
-                const angle = (i / 8) * 360;
-                const dist = 30 + Math.random() * 30;
-                s.style.cssText = `
-                    position:fixed;
-                    left:${e.clientX}px; top:${e.clientY}px;
-                    width:6px; height:6px;
-                    border-radius:50%;
-                    background:hsl(${Math.random()*60+330},100%,60%);
-                    pointer-events:none;
-                    z-index:99999;
-                    transform:translate(-50%,-50%);
-                    animation:sparkle 0.6s ease forwards;
-                    --tx:${Math.cos(angle*Math.PI/180)*dist}px;
-                    --ty:${Math.sin(angle*Math.PI/180)*dist}px;
-                `;
-                // Custom keyframe via style element not feasible, use translate
-                s.animate([
-                    { transform: 'translate(-50%,-50%) scale(1)', opacity: 1 },
-                    { transform: `translate(calc(-50% + ${Math.cos(angle*Math.PI/180)*dist}px), calc(-50% + ${Math.sin(angle*Math.PI/180)*dist}px)) scale(0)`, opacity: 0 }
-                ], { duration: 600, easing: 'ease-out', fill: 'forwards' });
-                document.body.appendChild(s);
-                setTimeout(() => s.remove(), 700);
-            }
             const ripple = document.createElement('span');
             const rect = el.getBoundingClientRect();
             const size = Math.max(rect.width, rect.height);
@@ -678,18 +550,11 @@
         });
     }
 
-    /* ---- 12. Smooth Page Transitions ---- */
-    /* ---- 14. SAFE SMOOTH PAGE TRANSITIONS ---- */
+    /* ---- 15. SAFE SMOOTH PAGE TRANSITIONS ---- */
     function initPageTransitions() {
         if (reduced) return;
         const overlay = document.createElement('div');
         overlay.style.cssText = `
-            position:fixed;inset:0;
-            background:linear-gradient(135deg,#ff5520,#ffb703);
-            z-index:999999;
-            opacity:0;
-            pointer-events:none;
-            transition:opacity 0.3s ease;
             position: fixed; inset: 0;
             background: linear-gradient(135deg, rgba(233,71,35,0.12), rgba(255,107,53,0.08));
             backdrop-filter: blur(2px);
@@ -702,31 +567,24 @@
 
         document.querySelectorAll('a[href]').forEach(link => {
             const href = link.getAttribute('href');
-            if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || href.includes('://')) return;
             if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) return;
             if (link.getAttribute('target') === '_blank') return;
             if (href.includes('://') && !href.startsWith(window.location.origin)) return;
 
             link.addEventListener('click', (e) => {
-                e.preventDefault();
-                overlay.style.opacity = '0.15';
-                setTimeout(() => { window.location.href = href; }, 250);
                 if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.shiftKey) return;
                 overlay.style.opacity = '1';
                 setTimeout(() => { window.location.href = href; }, 180);
             });
         });
 
-        // Fade out on load
         window.addEventListener('pageshow', () => {
             overlay.style.opacity = '0';
         });
     }
 
-    /* ---- BOOT ---- */
     /* ---- BOOT ENGINE ---- */
     function boot() {
-        // On admin: skip tagForAOS (CSS handles it), skip heavy features
         if (!isAdmin) {
             tagForAOS();
             initAOS();
@@ -742,7 +600,6 @@
             initPageTransitions();
         }
         if (!reduced) {
-            initRipple(); // Ripple is OK everywhere (lightweight)
             initRipple();
         }
         initCounters();
@@ -750,15 +607,12 @@
         initScrollProgress();
         checkOrderSuccessPanel();
 
-        // Cleanup will-change after animations complete (prevents VRAM waste)
         setTimeout(() => {
             document.querySelectorAll('.admin-card, .admin-metrics article, .stat-card').forEach(el => {
                 el.classList.add('animation-done');
             });
         }, 2000);
 
-        // Re-tag dynamically added elements (only on non-admin)
-        // Re-tag dynamically added products via MutationObserver
         if (!isAdmin && typeof MutationObserver !== 'undefined') {
             new MutationObserver(() => {
                 tagForAOS();
@@ -775,4 +629,3 @@
         boot();
     }
 })();
-
