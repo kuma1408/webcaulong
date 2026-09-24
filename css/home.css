@@ -236,6 +236,22 @@ html[data-theme="dark"] .theme-toggle__moon { display: inline; }
 .category-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
 .category-card:hover img { transform: translateY(-7px) rotate(2deg) scale(1.06); }
 .category-card::after { content: ""; position: absolute; z-index: 2; inset: 42% 0 0; background: linear-gradient(transparent, rgba(255,255,255,.82)); }
+/* A bright media surface keeps dark rackets visible; the caption has its
+   own dark backdrop instead of the light-theme white gradient. */
+html[data-theme="dark"] .category-grid .category-card {
+    background: #eee7df !important;
+    color: #fff6f0 !important;
+}
+html[data-theme="dark"] .category-card img { mix-blend-mode: normal; }
+html[data-theme="dark"] .category-card::after {
+    background: linear-gradient(transparent 0%, rgba(26,17,13,.92) 48%, #1a110d 100%);
+}
+html[data-theme="dark"] .category-card__copy { color: #fff6f0; }
+html[data-theme="dark"] .category-card__index {
+    background: #1a110d;
+    color: #fff6f0;
+    border-color: rgba(255,255,255,.2);
+}
 
 .section--products { background: var(--surface); border-block: 1px solid var(--line); overflow: visible; }
 .slider-actions { display: flex; gap: 8px; }

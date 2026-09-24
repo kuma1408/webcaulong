@@ -36,6 +36,14 @@ for (const width of [1440, 1024, 390]) {
         errors.length = 0;
         await page.goto('http://preview.test/' + path);
         await page.waitForTimeout(1800);
+        if (path === 'trangchu.html') {
+            await page.locator('.category-grid').scrollIntoViewIfNeeded();
+            await page.waitForTimeout(700);
+            await page.locator('.category-grid').screenshot({ path: resolve(root, `scratch/ui-audit/${theme}-${width}-categories.png`) });
+            const blend = await page.locator('.category-card img').first().evaluate(node => getComputedStyle(node).mixBlendMode);
+            if (theme === 'dark' && blend !== 'normal') errors.push('Category images use a darkening blend');
+            await page.evaluate(() => scrollTo(0, 0));
+        }
         if (path.startsWith('chitiet') && width > 992) {
             const gallery = page.locator('.detail-img-box');
             await page.evaluate(() => scrollTo(0, 450));
