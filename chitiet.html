@@ -8,10 +8,41 @@
     <!-- CSS -->
     <link href="css/tutaoo.css?v=20260808-8" rel="stylesheet" style="text/css" />
     <style>
+        html, body, .baotrang, .detail-container {
+            overflow-x: clip !important;
+            overflow-y: visible !important;
+        }
         .detail-container {
             max-width: 1200px;
             margin: 30px auto;
             padding: 0 20px;
+        }
+        .product-detail-layout {
+            display: grid !important;
+            grid-template-columns: minmax(320px, 0.94fr) minmax(0, 1.06fr) !important;
+            align-items: start !important;
+            gap: clamp(24px, 3.8vw, 44px) !important;
+            overflow: visible !important;
+        }
+        .detail-img-box {
+            position: -webkit-sticky !important;
+            position: sticky !important;
+            top: 94px !important;
+            align-self: start !important;
+            height: fit-content !important;
+            z-index: 20 !important;
+        }
+        .detail-img-main {
+            max-height: 380px !important;
+            aspect-ratio: 1 / 0.92 !important;
+        }
+        @media (max-width: 992px) {
+            .product-detail-layout {
+                grid-template-columns: 1fr !important;
+            }
+            .detail-img-box {
+                position: static !important;
+            }
         }
         .payment-safety-note {
             margin: 0;
@@ -29,10 +60,10 @@
             color: #ffd7c5;
         }
     </style>
-    <link rel="stylesheet" href="css/site-refresh.css?v=20260908-1">
-    <link rel="stylesheet" href="css/sport-system.css?v=20260908-1">
-    <link rel="stylesheet" href="css/mega-animations.css?v=20260909-1">
-    <link rel="stylesheet" href="css/universal-animations.css?v=20260909-1">
+    <link rel="stylesheet" href="css/site-refresh.css?v=20260924-1">
+    <link rel="stylesheet" href="css/sport-system.css?v=20260924-1">
+    <link rel="stylesheet" href="css/mega-animations.css?v=20260924-1">
+    <link rel="stylesheet" href="css/universal-animations.css?v=20260924-1">
 </head>
 <body>
     <div class="baotrang">
@@ -136,20 +167,20 @@
                             <span class="price-perk-chip" id="productRewardsChip">🪙 Tích lũy điểm Hub</span>
                             <span class="price-perk-chip price-perk-chip--voucher" id="productVoucherChip">🎟️ Voucher giảm 50K</span>
                         </div>
-                        <div class="price-incentive-line">
+                        <div class="price-incentive-line" id="productIncentiveBox">
                             <span class="incentive-icon">🎁</span>
-                            <span>Tặng 02 quấn cán + Miễn phí công đan cước máy điện tử cho mọi dòng vợt</span>
-                            <div class="incentive-item">
+                            <span id="incentiveMainHeadline">Ưu đãi đặc quyền khi đặt hàng trực tuyến tại Badminton Store</span>
+                            <div class="incentive-item" id="incentiveItem1">
                                 <span class="incentive-icon">🎁</span>
-                                <span>Tặng <strong>02 quấn cán Yonex cao cấp</strong></span>
+                                <span>Tặng <strong>Voucher giảm 50.000 ₫</strong> cho đơn hàng tiếp theo</span>
                             </div>
-                            <div class="incentive-item">
-                                <span class="incentive-icon">⚡</span>
-                                <span>Miễn phí <strong>công căng cước máy điện tử</strong> 4 nút chuẩn BWF</span>
+                            <div class="incentive-item" id="incentiveItem2">
+                                <span class="incentive-icon">🚚</span>
+                                <span>Hỗ trợ <strong>Giao hỏa tốc 2H</strong> &amp; Kiểm tra hàng trước khi thanh toán</span>
                             </div>
-                            <div class="incentive-item">
+                            <div class="incentive-item" id="incentiveItem3">
                                 <span class="incentive-icon">🛡️</span>
-                                <span>Bảo hành lưới đan <strong>72 giờ đầu tiên</strong></span>
+                                <span>Cam kết <strong>Chính hãng 100%</strong> — Đổi mới trong <strong>7 ngày</strong> nếu lỗi NSX</span>
                             </div>
                         </div>
                     </div>
@@ -159,16 +190,37 @@
                         <!-- Được render động bởi JS -->
                     </div>
 
-                    <div class="detail-wallet-card">
-                        <div>
-                            <span>Số dư ví của bạn</span>
-                            <strong id="detailWalletBalance">Đăng nhập để kiểm tra</strong>
+                    <!-- Tùy chọn cho sản phẩm KHÔNG phải vợt (Giày, Áo, Quần, Váy, Túi, Balo, Phụ kiện) -->
+                    <section class="racket-configurator" id="generalProductOptions" aria-label="Tùy chọn đặt hàng" hidden>
+                        <div class="racket-configurator__heading">
+                            <div>
+                                <h3 id="generalConfigTitle">Tùy chọn mua hàng</h3>
+                                <span id="generalConfigSub">Chọn phân loại và số lượng phù hợp trước khi thêm vào giỏ hàng.</span>
+                            </div>
+                            <span class="racket-lab-badge" id="generalCategoryBadge">CHÍNH HÃNG</span>
                         </div>
-                        <a href="canhan.html#wallet" id="detailDepositLink">Nạp tiền vào tài khoản →</a>
-                    </div>
+                        <div class="racket-configurator__grid" id="generalOptionsGrid">
+                            <label class="racket-option" id="generalVariantWrap" hidden>
+                                <span id="generalVariantLabel">Kích cỡ (Size)</span>
+                                <select id="generalVariantSelect">
+                                    <option value="">Tiêu chuẩn chính hãng</option>
+                                </select>
+                            </label>
+                            <label class="racket-option" id="generalQuantityWrap">
+                                <span>Số lượng đặt mua</span>
+                                <select id="generalQuantitySelect">
+                                    <option value="1" selected>1 sản phẩm</option>
+                                    <option value="2">2 sản phẩm</option>
+                                    <option value="3">3 sản phẩm</option>
+                                    <option value="4">4 sản phẩm</option>
+                                    <option value="5">5 sản phẩm</option>
+                                </select>
+                            </label>
+                        </div>
+                    </section>
 
-                    <!-- Cấu hình cây vợt chuyên nghiệp -->
-                    <section class="racket-configurator" id="racketConfigurator" aria-labelledby="racketConfigTitle" hidden>
+                    <!-- Cấu hình cây vợt chuyên nghiệp (CHỈ hiển thị cho Vợt Cầu Lông) -->
+                    <section class="racket-configurator" id="racketConfigurator" aria-labelledby="racketConfigTitle" hidden style="display:none;">
                         <div class="racket-configurator__heading">
                             <div>
                                 <h3 id="racketConfigTitle">Cấu hình cây vợt của bạn</h3>
@@ -488,6 +540,20 @@
             };
         }
 
+        function isStrictlyRacket(p) {
+            if (!p) return false;
+            const catId = Number(p.MaDM || 0);
+            const catSlug = String(p.TenDM || '')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase().trim();
+            const nameSlug = String(p.TenSP || '')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase().trim();
+            // Nếu thuộc danh mục Giày (2), Áo (3), Váy (4), Quần (5), Túi (6), Balo (7), Phụ kiện (8) -> Chắc chắn KHÔNG phải vợt
+            if ([2, 3, 4, 5, 6, 7, 8].includes(catId)) return false;
+            if (/^(day cuoc|cuoc |quan can|tui |balo|giay |ao |quan |vay |tat |vo |binh nuoc|bang |moc khoa|ong cau|qua cau)/.test(nameSlug)) return false;
+            if (catSlug.includes('phu kien') || catSlug.includes('tui') || catSlug.includes('balo') || catSlug.includes('giay') || catSlug.includes('ao') || catSlug.includes('quan') || catSlug.includes('vay')) return false;
+            return catId === 1 || catSlug === 'vot cau long' || nameSlug.startsWith('vot cau long') || nameSlug.startsWith('set vot');
+        }
+
         // Hàm suy luận và hoàn thiện thông số kỹ thuật chuẩn cầu lông
         function inferProductSpecs(p) {
             const name = String(p.TenSP || '').toLowerCase();
@@ -495,7 +561,7 @@
             const categoryId = Number(p.MaDM || 1);
             const categoryName = String(p.TenDM || 'Vợt Cầu Lông');
             const categorySlug = categoryName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase();
-            const isRacket = categoryId === 1 || categorySlug.includes('vot');
+            const isRacket = isStrictlyRacket(p);
 
             if (isRacket) {
                 let weight = p.TrongLuongCan;
@@ -735,13 +801,29 @@
             const fullDesc = document.getElementById('productFullDescription');
             if (fullDesc) fullDesc.innerHTML = p.MoTa || '<p>Thông tin sản phẩm đang được cập nhật chi tiết.</p>';
 
-            const categoryText = `${p.TenDM || ''} ${p.TenSP || ''}`
-                .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase();
-            const isRacket = Number(p.MaDM) === 1 || categoryText.includes('vot');
+            const isRacket = isStrictlyRacket(p);
             const racketConfig = document.getElementById('racketConfigurator');
-            if (racketConfig) racketConfig.hidden = !isRacket;
+            const generalOptions = document.getElementById('generalProductOptions');
+            const incentiveHeadline = document.getElementById('incentiveMainHeadline');
+            const incentive1 = document.getElementById('incentiveItem1');
+            const incentive2 = document.getElementById('incentiveItem2');
+            const incentive3 = document.getElementById('incentiveItem3');
+
+            if (racketConfig) {
+                racketConfig.hidden = !isRacket;
+                racketConfig.style.display = isRacket ? 'grid' : 'none';
+            }
+            if (generalOptions) {
+                generalOptions.hidden = isRacket;
+                generalOptions.style.display = isRacket ? 'none' : 'grid';
+            }
 
             if (isRacket) {
+                if (incentiveHeadline) incentiveHeadline.textContent = 'Tặng 02 quấn cán + Miễn phí công đan cước máy điện tử cho mọi dòng vợt';
+                if (incentive1) incentive1.innerHTML = '<span class="incentive-icon">🎁</span><span>Tặng <strong>02 quấn cán Yonex cao cấp</strong></span>';
+                if (incentive2) incentive2.innerHTML = '<span class="incentive-icon">⚡</span><span>Miễn phí <strong>công căng cước máy điện tử</strong> 4 nút chuẩn BWF</span>';
+                if (incentive3) incentive3.innerHTML = '<span class="incentive-icon">🛡️</span><span>Bảo hành lưới đan <strong>72 giờ đầu tiên</strong></span>';
+
                 const weightSel = document.getElementById('racketWeight');
                 if (weightSel && specs.weight && [...weightSel.options].some(opt => opt.value === specs.weight)) {
                     weightSel.value = specs.weight;
@@ -759,6 +841,50 @@
                     const el = document.getElementById(id);
                     if (el) el.addEventListener('change', updateRacketConfigSummary);
                 });
+            } else {
+                if (incentiveHeadline) incentiveHeadline.textContent = `Ưu đãi chính hãng dành riêng cho ${p.TenDM || 'sản phẩm thể thao'}`;
+                if (incentive1) incentive1.innerHTML = '<span class="incentive-icon">🎁</span><span>Tặng <strong>Voucher giảm 50.000 ₫</strong> cho đơn hàng tiếp theo</span>';
+                if (incentive2) incentive2.innerHTML = '<span class="incentive-icon">🚚</span><span>Hỗ trợ <strong>Giao hỏa tốc 2H</strong> &amp; Kiểm tra hàng trước khi thanh toán</span>';
+                if (incentive3) incentive3.innerHTML = '<span class="incentive-icon">🛡️</span><span>Cam kết <strong>Chính hãng 100%</strong> — Đổi mới <strong>7 ngày</strong> nếu lỗi NSX</span>';
+
+                // Cấu hình tùy chọn Size cho Giày / Quần Áo hoặc chỉ Số lượng cho Phụ kiện / Túi / Balo
+                const catId = Number(p.MaDM || 0);
+                const catSlug = String(p.TenDM || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase();
+                const variantWrap = document.getElementById('generalVariantWrap');
+                const variantLabel = document.getElementById('generalVariantLabel');
+                const variantSelect = document.getElementById('generalVariantSelect');
+                const badge = document.getElementById('generalCategoryBadge');
+                const grid = document.getElementById('generalOptionsGrid');
+
+                if (badge) badge.textContent = (p.TenDM || 'CHÍNH HÃNG').toUpperCase();
+
+                if (catId === 2 || catSlug.includes('giay')) {
+                    if (variantWrap) { variantWrap.hidden = false; variantWrap.style.display = 'grid'; }
+                    if (variantLabel) variantLabel.textContent = 'Kích cỡ giày (Size EU)';
+                    if (variantSelect) {
+                        variantSelect.innerHTML = ['38', '39', '40', '41', '42', '43', '44'].map((s, i) =>
+                            `<option value="Size ${s}" ${i === 3 ? 'selected' : ''}>Size ${s} EU · Chuẩn form</option>`
+                        ).join('');
+                    }
+                    if (grid) grid.style.gridTemplateColumns = '1fr 1fr';
+                } else if ([3, 4, 5].includes(catId) || /ao|vay|quan/.test(catSlug)) {
+                    if (variantWrap) { variantWrap.hidden = false; variantWrap.style.display = 'grid'; }
+                    if (variantLabel) variantLabel.textContent = 'Kích cỡ trang phục (Size)';
+                    if (variantSelect) {
+                        variantSelect.innerHTML = [
+                            ['Size S', 'Size S (45 - 55 kg)'],
+                            ['Size M', 'Size M (55 - 65 kg)'],
+                            ['Size L', 'Size L (65 - 73 kg)'],
+                            ['Size XL', 'Size XL (73 - 82 kg)'],
+                            ['Size XXL', 'Size XXL (Trên 82 kg)']
+                        ].map(([val, text], i) => `<option value="${val}" ${i === 2 ? 'selected' : ''}>${text}</option>`).join('');
+                    }
+                    if (grid) grid.style.gridTemplateColumns = '1fr 1fr';
+                } else {
+                    if (variantWrap) { variantWrap.hidden = true; variantWrap.style.display = 'none'; }
+                    if (variantSelect) variantSelect.innerHTML = '<option value="">Tiêu chuẩn chính hãng</option>';
+                    if (grid) grid.style.gridTemplateColumns = '1fr';
+                }
             }
 
             // Load Hình ảnh
@@ -1064,8 +1190,9 @@
                 const score = Number(r.Diem || 5);
                 const starsText = `${'★'.repeat(score)}${'☆'.repeat(5 - score)}`;
 
-                // Giả lập phân loại mua phù hợp với sản phẩm cầu lông
-                const variantTag = r.VariantInfo || 'Phân loại: 4U-G5 · Yonex BG65 (10.5 kg)';
+                // Phân loại mua phù hợp với đúng danh mục sản phẩm
+                const isRacketItem = isStrictlyRacket(productDetails);
+                const variantTag = r.VariantInfo || (isRacketItem ? 'Phân loại: 4U-G5 · Yonex BG65 (10.5 kg)' : `Phân loại: ${productDetails?.TenDM || 'Chính hãng tiêu chuẩn'}`);
 
                 card.innerHTML = `
                     <div class="review-header">
@@ -1085,7 +1212,7 @@
                         <span class="review-rating-stars">${starsText}</span>
                         <span class="review-variant-pill">🏸 ${variantTag}</span>
                     </div>
-                    <p class="review-body-text">${r.NoiDung || 'Sản phẩm cầm rất đầm tay, nảy cầu và trợ lực tốt, dịch vụ căng cước máy điện tử chuẩn xác. Rất đáng tiền!'}</p>
+                    <p class="review-body-text">${r.NoiDung || (isRacketItem ? 'Sản phẩm cầm rất đầm tay, nảy cầu và trợ lực tốt, dịch vụ căng cước máy điện tử chuẩn xác. Rất đáng tiền!' : 'Sản phẩm chính hãng chất lượng hoàn thiện rất tốt, đóng gói cẩn thận, giao hàng nhanh chóng!')}</p>
                     <div class="review-card-footer">
                         <button type="button" class="btn-helpful-reaction" onclick="toggleHelpful(this)">
                             <span class="helpful-icon">👍</span> Hữu ích (<span class="helpful-count">${Math.floor(Math.random() * 8) + 3}</span>)
@@ -1168,8 +1295,13 @@
         };
 
         function readRacketConfiguration() {
+            if (!isStrictlyRacket(productDetails)) {
+                const variantWrap = document.getElementById('generalVariantWrap');
+                const variantVal = (!variantWrap || variantWrap.hidden) ? '' : (document.getElementById('generalVariantSelect')?.value || '');
+                return variantVal ? { weight_grip: variantVal, string: '', tension_lbs: null, addons: [] } : null;
+            }
             const configurator = document.getElementById('racketConfigurator');
-            if (configurator.hidden) return null;
+            if (!configurator || configurator.hidden) return null;
             const stringCode = document.getElementById('racketString').value;
             const tension = stringCode === 'KHONG_CANG' ? null : Number(document.getElementById('racketTension').value || 0);
             const addons = [...configurator.querySelectorAll('.racket-addon input:checked')].map(input => input.value);
@@ -1182,6 +1314,7 @@
         }
 
         function updateRacketConfigSummary() {
+            if (!isStrictlyRacket(productDetails)) return;
             const config = readRacketConfiguration();
             if (!config) return;
             const parts = [config.weight_grip, racketStringLabels[config.string] || config.string];
@@ -1201,8 +1334,11 @@
                 setTimeout(() => location.assign(`dangnhap.html?next=${next}`), 700);
                 return;
             }
+            const isRacket = isStrictlyRacket(productDetails);
             const config = readRacketConfiguration();
-            const quantity = config ? Number(document.getElementById('racketQuantity').value || 1) : 1;
+            const quantity = isRacket
+                ? Number(document.getElementById('racketQuantity')?.value || 1)
+                : Number(document.getElementById('generalQuantitySelect')?.value || 1);
             try {
                 const data = await window.BadmintonAuth.request('/api/gio-hang/them', {
                     method: 'POST',

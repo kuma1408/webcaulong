@@ -1241,3 +1241,357 @@
     width: 200px !important;
     height: 200px !important;
 }
+
+/* ================================================================
+   12. LIGHT MODE & DARK MODE HARMONIZATION FOR CHART & PANELS
+   ================================================================ */
+:root:not([data-theme="dark"]) .admin-chart-card {
+    background: linear-gradient(155deg, #ffffff 0%, #fffaf7 58%, #fff3ec 100%) !important;
+    border: 1px solid rgba(244, 67, 34, 0.16) !important;
+    box-shadow: 0 16px 40px rgba(28, 16, 10, 0.07), 0 2px 8px rgba(244, 67, 34, 0.05) !important;
+}
+:root:not([data-theme="dark"]) .admin-chart-card .admin-subhead h3 {
+    color: #18110e !important;
+}
+:root:not([data-theme="dark"]) .admin-chart-card .admin-subhead p {
+    color: #6f5e56 !important;
+}
+:root:not([data-theme="dark"]) .admin-chart-frame {
+    background: linear-gradient(180deg, rgba(255, 138, 0, 0.03) 0%, rgba(255, 255, 255, 0.9) 100%) !important;
+    border-top: 1px solid rgba(24, 17, 14, 0.06) !important;
+}
+:root:not([data-theme="dark"]) .admin-chart-legend {
+    background: rgba(24, 17, 14, 0.03) !important;
+    border-color: rgba(24, 17, 14, 0.08) !important;
+    color: #2c201b !important;
+}
+:root:not([data-theme="dark"]) .admin-chart-total-stat small {
+    color: #7a6860 !important;
+}
+:root:not([data-theme="dark"]) .an-grid {
+    stroke: rgba(24, 17, 14, 0.08) !important;
+}
+:root:not([data-theme="dark"]) .an-axis {
+    fill: rgba(24, 17, 14, 0.56) !important;
+}
+:root:not([data-theme="dark"]) .an-crosshair {
+    stroke: rgba(244, 67, 34, 0.35) !important;
+}
+:root:not([data-theme="dark"]) .an-axis-pill-bg {
+    fill: #ffffff !important;
+    stroke: rgba(244, 67, 34, 0.45) !important;
+}
+:root:not([data-theme="dark"]) .an-tooltip-glass {
+    background: rgba(255, 255, 255, 0.97) !important;
+    color: #18110e !important;
+    border: 1px solid rgba(244, 67, 34, 0.25) !important;
+    box-shadow: 0 14px 34px rgba(24, 17, 14, 0.14) !important;
+}
+
+/* ================================================================
+   13. ADMIN SUB-SECTION KPI GRIDS & CARDS (ALL 9 MODULES)
+   ================================================================ */
+.admin-kpi-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+    margin: 0 0 20px 0 !important;
+}
+@media (max-width: 1100px) {
+    .admin-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+@media (max-width: 600px) {
+    .admin-kpi-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+.admin-kpi-card {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    padding: 18px 20px !important;
+    border-radius: 18px !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(24, 17, 14, 0.08) !important;
+    box-shadow: 0 8px 24px rgba(24, 17, 14, 0.04) !important;
+    overflow: hidden !important;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.28s ease !important;
+    animation: adm-card-in 0.48s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+}
+:root[data-theme="dark"] .admin-kpi-card {
+    background: linear-gradient(145deg, #1b0f0b 0%, #140b08 100%) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35) !important;
+}
+.admin-kpi-card::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px !important;
+    background: linear-gradient(90deg, #ff5520, #ff8a00) !important;
+}
+.admin-kpi-card:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 16px 34px rgba(244, 67, 34, 0.13) !important;
+    border-color: rgba(244, 67, 34, 0.28) !important;
+}
+.admin-kpi-icon {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 22px !important;
+    flex-shrink: 0 !important;
+    background: rgba(244, 67, 34, 0.1) !important;
+    border: 1px solid rgba(244, 67, 34, 0.2) !important;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+.admin-kpi-card:hover .admin-kpi-icon {
+    transform: scale(1.12) rotate(-5deg) !important;
+}
+.admin-kpi-info {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+}
+.admin-kpi-info span {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    color: #78675f !important;
+}
+:root[data-theme="dark"] .admin-kpi-info span {
+    color: rgba(255, 235, 224, 0.62) !important;
+}
+.admin-kpi-info strong {
+    font-size: 23px !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.03em !important;
+    color: #18110e !important;
+    line-height: 1.15 !important;
+}
+:root[data-theme="dark"] .admin-kpi-info strong {
+    color: #fff6f0 !important;
+}
+
+/* Tone variations for KPI cards */
+.admin-kpi-card[data-tone="warning"]::before { background: linear-gradient(90deg, #f59e0b, #fbbf24) !important; }
+.admin-kpi-card[data-tone="warning"] .admin-kpi-icon { background: rgba(245, 158, 11, 0.12) !important; border-color: rgba(245, 158, 11, 0.25) !important; }
+.admin-kpi-card[data-tone="info"]::before { background: linear-gradient(90deg, #0ea5e9, #38bdf8) !important; }
+.admin-kpi-card[data-tone="info"] .admin-kpi-icon { background: rgba(14, 165, 233, 0.12) !important; border-color: rgba(14, 165, 233, 0.25) !important; }
+.admin-kpi-card[data-tone="success"]::before { background: linear-gradient(90deg, #10b981, #34d399) !important; }
+.admin-kpi-card[data-tone="success"] .admin-kpi-icon { background: rgba(16, 185, 129, 0.12) !important; border-color: rgba(16, 185, 129, 0.25) !important; }
+.admin-kpi-card[data-tone="danger"]::before { background: linear-gradient(90deg, #ef4444, #f87171) !important; }
+.admin-kpi-card[data-tone="danger"] .admin-kpi-icon { background: rgba(239, 68, 68, 0.12) !important; border-color: rgba(239, 68, 68, 0.25) !important; }
+.admin-kpi-card[data-tone="violet"]::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa) !important; }
+.admin-kpi-card[data-tone="violet"] .admin-kpi-icon { background: rgba(139, 92, 246, 0.12) !important; border-color: rgba(139, 92, 246, 0.25) !important; }
+.admin-kpi-card[data-tone="teal"]::before { background: linear-gradient(90deg, #14b8a6, #2dd4bf) !important; }
+.admin-kpi-card[data-tone="teal"] .admin-kpi-icon { background: rgba(20, 184, 166, 0.12) !important; border-color: rgba(20, 184, 166, 0.25) !important; }
+.admin-kpi-card[data-tone="gold"]::before { background: linear-gradient(90deg, #eab308, #facc15) !important; }
+.admin-kpi-card[data-tone="gold"] .admin-kpi-icon { background: rgba(234, 179, 8, 0.12) !important; border-color: rgba(234, 179, 8, 0.25) !important; }
+
+/* ================================================================
+   14. ADMIN FILTER PILLS & TOOLBAR ENHANCEMENTS
+   ================================================================ */
+.admin-filter-pills {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    margin: 0 0 18px 0 !important;
+    padding: 8px 10px !important;
+    border-radius: 16px !important;
+    background: rgba(24, 17, 14, 0.035) !important;
+    border: 1px solid rgba(24, 17, 14, 0.06) !important;
+}
+:root[data-theme="dark"] .admin-filter-pills {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-color: rgba(255, 255, 255, 0.07) !important;
+}
+.admin-pill-btn {
+    padding: 8px 16px !important;
+    border-radius: 11px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    color: #6b5b53 !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+:root[data-theme="dark"] .admin-pill-btn {
+    color: rgba(255, 235, 224, 0.68) !important;
+}
+.admin-pill-btn:hover {
+    background: rgba(244, 67, 34, 0.08) !important;
+    color: #f44322 !important;
+    transform: translateY(-1px) !important;
+}
+.admin-pill-btn.is-active {
+    background: linear-gradient(135deg, #f44322, #ff7a00) !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 18px rgba(244, 67, 34, 0.28) !important;
+}
+
+/* ================================================================
+   15. OVERVIEW BOTTOM 3-COLUMN BENTO GRID (RECENT ORDERS, STOCK, LIVE FEED)
+   ================================================================ */
+.admin-overview-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 18px !important;
+    margin-top: 20px !important;
+}
+@media (max-width: 1180px) {
+    .admin-overview-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+.admin-overview-grid > section {
+    border-radius: 20px !important;
+    padding: 20px !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(24, 17, 14, 0.08) !important;
+    box-shadow: 0 10px 28px rgba(24, 17, 14, 0.05) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+}
+:root[data-theme="dark"] .admin-overview-grid > section {
+    background: #180d09 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+.admin-overview-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    max-height: 360px !important;
+    overflow-y: auto !important;
+    padding-right: 4px !important;
+}
+.overview-item,
+.live-feed-item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    padding: 12px 14px !important;
+    border-radius: 14px !important;
+    background: rgba(24, 17, 14, 0.025) !important;
+    border: 1px solid rgba(24, 17, 14, 0.06) !important;
+    transition: transform 0.22s ease, background 0.22s ease, border-color 0.22s ease !important;
+}
+:root[data-theme="dark"] .overview-item,
+:root[data-theme="dark"] .live-feed-item {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+.overview-item:hover,
+.live-feed-item:hover {
+    transform: translateX(4px) !important;
+    border-color: rgba(244, 67, 34, 0.28) !important;
+    background: rgba(244, 67, 34, 0.05) !important;
+}
+.overview-item strong {
+    display: block !important;
+    font-size: 13.5px !important;
+    font-weight: 800 !important;
+    color: #18110e !important;
+}
+:root[data-theme="dark"] .overview-item strong {
+    color: #fff5ef !important;
+}
+.overview-item span {
+    display: block !important;
+    font-size: 11.5px !important;
+    color: #7c6b63 !important;
+    margin-top: 2px !important;
+}
+:root[data-theme="dark"] .overview-item span {
+    color: rgba(255, 235, 224, 0.58) !important;
+}
+
+/* ================================================================
+   16. EXPANDABLE ORDER & PRODUCT DETAIL DRAWERS IN TABLES
+   ================================================================ */
+.admin-order-detail,
+.admin-product-detail {
+    padding: 20px 22px !important;
+    border-radius: 18px !important;
+    background: linear-gradient(145deg, #fffaf7 0%, #fff3ec 100%) !important;
+    border: 1px solid rgba(244, 67, 34, 0.2) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 10px 24px rgba(24, 17, 14, 0.06) !important;
+    margin: 6px 0 !important;
+    animation: adm-card-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+}
+:root[data-theme="dark"] .admin-order-detail,
+:root[data-theme="dark"] .admin-product-detail {
+    background: linear-gradient(145deg, #21120d 0%, #160c08 100%) !important;
+    border-color: rgba(255, 138, 0, 0.22) !important;
+}
+.admin-order-detail__head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 14px !important;
+    padding-bottom: 14px !important;
+    margin-bottom: 14px !important;
+    border-bottom: 1px dashed rgba(244, 67, 34, 0.22) !important;
+}
+.admin-order-detail__summary {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+}
+.admin-order-detail__summary > div {
+    padding: 12px 14px !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+    border: 1px solid rgba(24, 17, 14, 0.07) !important;
+}
+:root[data-theme="dark"] .admin-order-detail__summary > div {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+.admin-order-detail__summary span {
+    display: block !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    color: #7c6b63 !important;
+    margin-bottom: 4px !important;
+}
+.admin-order-detail__summary strong {
+    display: block !important;
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    color: #18110e !important;
+}
+:root[data-theme="dark"] .admin-order-detail__summary strong {
+    color: #fff6f0 !important;
+}
+.admin-row-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+}
+.admin-row-actions button,
+.admin-row-actions select {
+    border-radius: 9px !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    padding: 6px 11px !important;
+    transition: all 0.2s ease !important;
+}
+
