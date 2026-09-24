@@ -153,15 +153,6 @@
         selectors.primaryNav?.querySelectorAll('a').forEach(function (link) {
             link.addEventListener('click', closeNav);
         });
-        document.addEventListener('click', function (event) {
-            const openDetails = selectors.primaryNav?.querySelectorAll('details[open]');
-            if (!openDetails?.length) return;
-            openDetails.forEach(function (details) {
-                if (!details.contains(event.target)) {
-                    details.removeAttribute('open');
-                }
-            });
-        });
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') closeNav();
         });
@@ -651,29 +642,12 @@
         return link;
     }
 
-    let allSuggestedProducts = [];
-    let currentProductPage = 0;
-    const SUGGEST_PAGE_SIZE = 4;
-
-    function renderCurrentProductPage() {
+    function renderProducts(products) {
         if (!selectors.productTrack) return;
-        const start = currentProductPage * SUGGEST_PAGE_SIZE;
-        const pageItems = allSuggestedProducts.slice(start, start + SUGGEST_PAGE_SIZE);
-        const cards = pageItems.map(function (item, idx) {
-            const card = productCard(item);
-            card.style.animation = `adm-card-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 0.06}s both`;
-            return card;
-        });
         selectors.productTrack.classList.remove('is-error');
-        selectors.productTrack.replaceChildren(...cards);
+        selectors.productTrack.replaceChildren(...products.map(productCard));
         selectors.productTrack.setAttribute('aria-busy', 'false');
         updateSliderState();
-    }
-
-    function renderProducts(products) {
-        allSuggestedProducts = Array.isArray(products) ? products : [];
-        currentProductPage = 0;
-        renderCurrentProductPage();
     }
 
     function renderProductError() {
@@ -757,24 +731,35 @@
     }
 
     function updateSliderState() {
-        const totalPages = Math.max(1, Math.ceil(allSuggestedProducts.length / SUGGEST_PAGE_SIZE));
-        if (selectors.productPrev) selectors.productPrev.disabled = currentProductPage <= 0;
-        if (selectors.productNext) selectors.productNext.disabled = currentProductPage >= totalPages - 1;
+        const track = selectors.productTrack;
+        if (!track) return;
+        const maxScroll = track.scrollWidth - track.clientWidth;
+        const scrolled = track.scrollLeft;
+        const canScroll = maxScroll > 4;
+
+        if (selectors.productPrev) selectors.productPrev.disabled = !canScroll || scrolled <= 4;
+        if (selectors.productNext) selectors.productNext.disabled = !canScroll || scrolled >= maxScroll - 4;
         if (selectors.productProgress) {
-            selectors.productProgress.hidden = true;
+            const ratio = canScroll ? Math.min(1, Math.max(0, scrolled / maxScroll)) : 0;
+            selectors.productProgress.style.setProperty('--progress', String(ratio));
+            selectors.productProgress.hidden = !canScroll;
+            selectors.productProgress.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
         }
     }
 
     function setupProductControls() {
-        function switchPage(direction) {
-            const totalPages = Math.max(1, Math.ceil(allSuggestedProducts.length / SUGGEST_PAGE_SIZE));
-            const nextPage = Math.min(totalPages - 1, Math.max(0, currentProductPage + direction));
-            if (nextPage === currentProductPage) return;
-            currentProductPage = nextPage;
-            renderCurrentProductPage();
+        const track = selectors.productTrack;
+        function scrollProducts(direction) {
+            const distance = Math.min((track?.clientWidth || 300) * 0.86, 900);
+            track?.scrollBy({
+                left: direction * distance,
+                behavior: prefersReducedMotion() ? 'auto' : 'smooth'
+            });
         }
-        selectors.productPrev?.addEventListener('click', function () { switchPage(-1); });
-        selectors.productNext?.addEventListener('click', function () { switchPage(1); });
+        selectors.productPrev?.addEventListener('click', function () { scrollProducts(-1); });
+        selectors.productNext?.addEventListener('click', function () { scrollProducts(1); });
+        track?.addEventListener('scroll', updateSliderState, { passive: true });
+        window.addEventListener('resize', updateSliderState);
         updateSliderState();
     }
 
