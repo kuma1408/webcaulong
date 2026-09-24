@@ -1,5 +1,49 @@
 @charset "utf-8";
 
+/* Storefront colour treatments. Motion and geometry remain unchanged. */
+html .hero {
+    background: radial-gradient(ellipse at 0% 0%, #8e393b 0%, transparent 65%),
+        linear-gradient(125deg, #402438 0%, #252537 58%, #14232d 100%) !important;
+    border-color: #d989664d;
+}
+html .hero h1 em {
+    background: linear-gradient(100deg, #ffb396, #ffc878 70%, #ffe2ab) !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    color: transparent !important;
+}
+html .hero__lead, html .hero__facts dd { color: #e3d4d6; }
+html .guide {
+    background: radial-gradient(ellipse at 100% 0%, #a75346 0%, transparent 65%),
+        linear-gradient(125deg, #222d38, #493143 65%, #653a3c);
+}
+html .category-grid .category-card { --category-tint: #ffd7c0; --category-dark: #442b36; }
+html .category-grid .category-card--green { --category-tint: #c8e5df; --category-dark: #203c3c; }
+html .category-grid .category-card--lilac { --category-tint: #dcd3ee; --category-dark: #352e49; }
+html .category-grid .category-card--cream { --category-tint: #ffe2b7; --category-dark: #43352a; }
+html .category-grid .category-card--sand { --category-tint: #f4cebd; --category-dark: #493037; }
+html .category-grid .category-card--blue { --category-tint: #cbdfee; --category-dark: #243749; }
+html .category-grid .category-card--coral { --category-tint: #ffc7bc; --category-dark: #4a2c38; }
+html .category-grid .category-card,
+html[data-theme="dark"] .category-grid a.category-card {
+    background: radial-gradient(ellipse at 80% 10%, #fff 0%, transparent 72%),
+        linear-gradient(140deg, #fff8f0, var(--category-tint)) !important;
+}
+html .category-grid .category-card::after {
+    background: linear-gradient(180deg, transparent, var(--category-tint) 85%);
+}
+html[data-theme="dark"] .category-grid .category-card::after {
+    background: linear-gradient(180deg, transparent 0%, var(--category-dark) 66%, #181e28 100%);
+}
+html .playstyle-card--accent {
+    background: linear-gradient(125deg, #ffbc94, #ff957a 50%, #ed797e);
+    color: #392126;
+}
+html .button--accent, html .site-search button {
+    background: linear-gradient(115deg, #c53f47, #c44728 65%, #ac4d19);
+    color: #fff;
+}
+
 :root {
     color-scheme: light;
     --ink: #2b120c;
