@@ -20,7 +20,7 @@
         }
         if (!document.querySelector('link[href*="css/ui-polish.css"]')) {
             const link = document.createElement('link');
-            link.rel = 'stylesheet'; link.href = `css/ui-polish.css?v=${SPORT_ASSET_VERSION}`;
+            link.rel = 'stylesheet'; link.href = 'css/ui-polish.css?v=20260924-layout-1';
             document.head.appendChild(link);
         }
         if (!document.querySelector('script[src*="css/ui-motion.js"]')) {

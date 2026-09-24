@@ -27,13 +27,13 @@
         .detail-img-box {
             position: -webkit-sticky !important;
             position: sticky !important;
-            top: 94px !important;
+            top: calc(var(--bs-header-height, 72px) + 70px) !important;
             align-self: start !important;
             height: fit-content !important;
             z-index: 20 !important;
         }
         .detail-img-main {
-            max-height: 380px !important;
+            max-height: min(380px, calc(100dvh - var(--bs-header-height, 72px) - 250px)) !important;
             aspect-ratio: 1 / 0.92 !important;
         }
         @media (max-width: 992px) {
@@ -60,7 +60,7 @@
             color: #ffd7c5;
         }
     </style>
-    <link rel="stylesheet" href="css/site-refresh.css?v=20260908-1">
+    <link rel="stylesheet" href="css/site-refresh.css?v=20260924-1">
     <link rel="stylesheet" href="css/sport-system.css?v=20260924-1">
     <link rel="stylesheet" href="css/mega-animations.css?v=20260924-1">
     <link rel="stylesheet" href="css/universal-animations.css?v=20260924-1">
@@ -507,7 +507,7 @@
 
         <!-- Footer chèn tự động -->
     <!-- Scripts -->
-    <script src="css/auth.js?v=20260921-1"></script>
+    <script src="css/auth.js?v=20260924-layout-1"></script>
     <script>
         // API_BASE is provided by auth.js; do not redeclare its global lexical binding.
         let currentProductId = null;

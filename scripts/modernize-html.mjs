@@ -23,7 +23,7 @@ const EXCLUDED_FILES = new Set([
 
 const VIEWPORT_TAG = '<meta name="viewport" content="width=device-width, initial-scale=1">';
 const ASSET_VERSION = "20260908-1";
-const AUTH_VERSION = "20260921-1";
+const AUTH_VERSION = "20260924-layout-1";
 const REFRESH_LINK = `<link rel="stylesheet" href="css/site-refresh.css?v=${ASSET_VERSION}">`;
 const AUTH_SCRIPT = `<script src="css/auth.js?v=${AUTH_VERSION}"></script>`;
 
@@ -103,7 +103,11 @@ function modernizeHtml(rawSource, fileName) {
   }
   const normalizedStylesheet = source.replace(
     /css\/site-refresh\.css(?:[?#][^"']*)?/gi,
-    `css/site-refresh.css?v=${ASSET_VERSION}`,
+    (current) => {
+      const version = current.match(/[?&]v=(\d{8})/);
+      return version && version[1] >= ASSET_VERSION.slice(0, 8)
+        ? current : `css/site-refresh.css?v=${ASSET_VERSION}`;
+    },
   );
   if (normalizedStylesheet !== source) {
     source = normalizedStylesheet;
