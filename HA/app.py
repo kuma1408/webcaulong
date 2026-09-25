@@ -4471,7 +4471,20 @@ def admin_audit_logs():
                    target_product.GiaBan AS DoiTuongGiaBan,
                    target_product.GiaGoc AS DoiTuongGiaGoc,
                    target_product.TonKho AS DoiTuongTonKho,
-                   target_product.TrangThai AS DoiTuongTrangThai
+                   target_product.TrangThai AS DoiTuongTrangThai,
+                   target_order.TongTien AS DonHangTongTien,
+                   target_order.PhuongThuc AS DonHangPhuongThuc,
+                   target_order.TrangThai AS DonHangTrangThai,
+                   target_order.TrangThaiThanhToan AS DonHangTrangThaiThanhToan,
+                   target_order.NgayDat AS DonHangNgayDat,
+                   order_customer.TenDangNhap AS DonKhachTenDangNhap,
+                   order_customer.HoTen AS DonKhachHoTen,
+                   order_customer.Email AS DonKhachEmail,
+                   order_customer.SoDienThoai AS DonKhachSoDienThoai,
+                   (SELECT GROUP_CONCAT(CONCAT(COALESCE(sp.TenSP, CONCAT('Sản phẩm #', ct.MaSP)), ' ×', ct.SoLuong) ORDER BY ct.MaSP SEPARATOR ' · ')
+                      FROM ChiTietDonHang ct LEFT JOIN SanPham sp ON sp.MaSP=ct.MaSP
+                     WHERE ct.MaDH=target_order.MaDH) AS DonHangSanPham,
+                   EXISTS(SELECT 1 FROM TepXacMinh tx WHERE tx.Loai='THANH_TOAN' AND tx.MaDoiTuong=target_order.MaDH) AS DonHangCoAnhChuyenKhoan
             FROM NhatKyQuanTri nk JOIN NguoiDung nd ON nd.MaND = nk.MaND
             LEFT JOIN PheDuyetThayDoi p ON p.MaNhatKy = nk.MaNhatKy
             LEFT JOIN NguoiDung target_user
@@ -4480,6 +4493,10 @@ def admin_audit_logs():
             LEFT JOIN SanPham target_product
                    ON nk.DoiTuong = 'SanPham'
                   AND target_product.MaSP = CAST(nk.MaDoiTuong AS UNSIGNED)
+            LEFT JOIN DonHang target_order
+                   ON nk.DoiTuong = 'DonHang'
+                  AND target_order.MaDH = CAST(nk.MaDoiTuong AS UNSIGNED)
+            LEFT JOIN NguoiDung order_customer ON order_customer.MaND=target_order.MaND
             ORDER BY nk.NgayTao DESC LIMIT 200
             """
         )
@@ -4512,6 +4529,22 @@ def admin_audit_logs():
                     "TrangThai": row.get("DoiTuongTrangThai"),
                     **detail,
                 }
+            elif row.get("DoiTuong") == "DonHang":
+                detail = {
+                    "MaDH": row.get("MaDoiTuong"),
+                    "TenKhachHang": row.get("DonKhachHoTen") or row.get("DonKhachTenDangNhap"),
+                    "TaiKhoanKhachHang": row.get("DonKhachTenDangNhap"),
+                    "EmailKhachHang": row.get("DonKhachEmail"),
+                    "SoDienThoaiKhachHang": row.get("DonKhachSoDienThoai"),
+                    "SanPhamTrongDon": row.get("DonHangSanPham") or "Không có dòng sản phẩm",
+                    "TongTienDonHang": row.get("DonHangTongTien"),
+                    "PhuongThucThanhToan": row.get("DonHangPhuongThuc"),
+                    "TrangThaiDonHang": row.get("DonHangTrangThai"),
+                    "TrangThaiThanhToan": row.get("DonHangTrangThaiThanhToan"),
+                    "ThoiDiemDatHang": row.get("DonHangNgayDat"),
+                    **detail,
+                }
+                item["CoAnhChuyenKhoan"] = bool(row.get("DonHangCoAnhChuyenKhoan"))
             item["ChiTiet"] = detail
             logs.append(item)
         return jsonify({"success": True, "logs": logs})
@@ -4555,10 +4588,27 @@ def superadmin_changes():
             SELECT p.*,
                    (SELECT COUNT(*) FROM TepXacMinh tx WHERE tx.Loai='PHE_DUYET' AND tx.MaDoiTuong=p.MaThayDoi) AS SoTepBangChung,
                    a.TenDangNhap, a.HoTen,
-                   s.TenDangNhap AS SuperAdminXuLy
+                   s.TenDangNhap AS SuperAdminXuLy,
+                   approval_order.TongTien AS OrderTongTien,
+                   approval_order.PhuongThuc AS OrderPhuongThuc,
+                   approval_order.TrangThai AS OrderTrangThai,
+                   approval_order.TrangThaiThanhToan AS OrderTrangThaiThanhToan,
+                   approval_order.NgayDat AS OrderNgayDat,
+                   approval_customer.TenDangNhap AS OrderKhachTenDangNhap,
+                   approval_customer.HoTen AS OrderKhachHoTen,
+                   approval_customer.Email AS OrderKhachEmail,
+                   approval_customer.SoDienThoai AS OrderKhachSoDienThoai,
+                   (SELECT GROUP_CONCAT(CONCAT(COALESCE(sp.TenSP, CONCAT('Sản phẩm #', ct.MaSP)), ' ×', ct.SoLuong) ORDER BY ct.MaSP SEPARATOR ' · ')
+                      FROM ChiTietDonHang ct LEFT JOIN SanPham sp ON sp.MaSP=ct.MaSP
+                     WHERE ct.MaDH=approval_order.MaDH) AS OrderSanPham,
+                   EXISTS(SELECT 1 FROM TepXacMinh tx WHERE tx.Loai='THANH_TOAN' AND tx.MaDoiTuong=approval_order.MaDH) AS OrderCoAnhChuyenKhoan
             FROM PheDuyetThayDoi p
             JOIN NguoiDung a ON a.MaND=p.MaAdmin
             LEFT JOIN NguoiDung s ON s.MaND=p.MaSuperAdmin
+            LEFT JOIN DonHang approval_order
+                   ON p.DoiTuong='DonHang'
+                  AND approval_order.MaDH=CAST(p.MaDoiTuong AS UNSIGNED)
+            LEFT JOIN NguoiDung approval_customer ON approval_customer.MaND=approval_order.MaND
             {where}
             ORDER BY (p.TrangThai='CHO_XEM') DESC, p.NgayTao DESC
             LIMIT 300
@@ -4570,6 +4620,21 @@ def superadmin_changes():
             item = serialize_row(row)
             item["DuLieuTruoc"] = json.loads(row["DuLieuTruoc"]) if isinstance(row.get("DuLieuTruoc"), str) else row.get("DuLieuTruoc")
             item["DuLieuSau"] = json.loads(row["DuLieuSau"]) if isinstance(row.get("DuLieuSau"), str) else row.get("DuLieuSau")
+            if row.get("OrderTongTien") is not None:
+                item["ThongTinDonHang"] = {
+                    "MaDH": row.get("MaDoiTuong"),
+                    "TenKhachHang": row.get("OrderKhachHoTen") or row.get("OrderKhachTenDangNhap"),
+                    "TaiKhoanKhachHang": row.get("OrderKhachTenDangNhap"),
+                    "EmailKhachHang": row.get("OrderKhachEmail"),
+                    "SoDienThoaiKhachHang": row.get("OrderKhachSoDienThoai"),
+                    "SanPhamTrongDon": row.get("OrderSanPham") or "Không có dòng sản phẩm",
+                    "TongTienDonHang": row.get("OrderTongTien"),
+                    "PhuongThucThanhToan": row.get("OrderPhuongThuc"),
+                    "TrangThaiDonHang": row.get("OrderTrangThai"),
+                    "TrangThaiThanhToan": row.get("OrderTrangThaiThanhToan"),
+                    "ThoiDiemDatHang": row.get("OrderNgayDat"),
+                }
+                item["CoAnhChuyenKhoan"] = bool(row.get("OrderCoAnhChuyenKhoan"))
             items.append(item)
         return jsonify({"success": True, "changes": items, "summary": summary})
     finally:
