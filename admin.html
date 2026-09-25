@@ -990,11 +990,17 @@
             <p id="approvalReviewDescription">Đính kèm bằng chứng và giải thích quyết định.</p>
             <div class="field"><label for="approvalReviewNote" id="approvalReviewNoteLabel">Lời giải thích (không bắt buộc khi phê duyệt)</label><textarea id="approvalReviewNote" rows="3" maxlength="500" placeholder="Nêu lý do từ chối hoặc yêu cầu minh chứng…"></textarea></div>
             <div class="field" id="approvalRequestEvidenceField" hidden><label><input id="approvalRequestEvidence" type="checkbox"> Từ chối lần này và yêu cầu Admin bổ sung minh chứng</label><small>Nếu bật, yêu cầu sẽ chuyển vào mục “Bổ sung minh chứng” của Admin thay vì kết thúc hồ sơ.</small></div>
-            <div class="field" id="approvalPenaltyCaseField"><label><input id="approvalPenaltyCase" type="checkbox"> Đây là biên bản phạt Admin (bắt buộc đính kèm bằng chứng)</label><small>Chỉ bật mục này khi từ chối và lập biên bản phạt Admin.</small></div>
-            <div class="field"><label for="approvalReviewFiles">Tệp/hình ảnh bằng chứng (tùy chọn; 1–5 tệp nếu là biên bản phạt)</label><input id="approvalReviewFiles" type="file" multiple accept="image/jpeg,image/png,image/webp,application/pdf,text/plain,text/csv,application/json,.csv,.json"><small>Ảnh, PDF, TXT, CSV hoặc JSON; tối đa 2 MB mỗi tệp.</small></div>
+            <div class="field"><label for="approvalReviewFiles">Ảnh biên bản/tệp đính kèm (không bắt buộc)</label><input id="approvalReviewFiles" type="file" multiple accept="image/jpeg,image/png,image/webp,application/pdf,text/plain,text/csv,application/json,.csv,.json"><small>Có thể gửi 0–5 tệp; tối đa 2 MB mỗi tệp và tổng 3 MB.</small></div>
             <p class="form-status" id="approvalReviewStatus" role="alert"></p>
             <div class="admin-dialog__actions"><button type="button" data-close-dialog="approvalReviewDialog">Hủy</button><button class="admin-primary" id="approvalReviewSubmit" type="submit">Gửi quyết định</button></div>
         </form>
+    </dialog>
+    <dialog class="admin-dialog" id="approvalConfirmDialog" aria-labelledby="approvalConfirmTitle">
+        <div class="admin-dialog__form"><div class="admin-dialog__heading"><div><p class="eyebrow">XÁC NHẬN THAO TÁC</p><h2 id="approvalConfirmTitle">Phê duyệt thay đổi?</h2></div><button type="button" data-close-dialog="approvalConfirmDialog" aria-label="Đóng">×</button></div>
+            <p id="approvalConfirmDescription">Bạn có chắc chắn muốn phê duyệt thay đổi này?</p>
+            <p class="form-status" id="approvalConfirmStatus" role="alert"></p>
+            <div class="admin-dialog__actions"><button type="button" data-close-dialog="approvalConfirmDialog">Không</button><button type="button" class="admin-primary" id="approvalConfirmSubmit">Có, phê duyệt</button></div>
+        </div>
     </dialog>
     <dialog class="admin-dialog" id="supplementEvidenceDialog" aria-labelledby="supplementEvidenceTitle">
         <form class="admin-dialog__form" id="supplementEvidenceForm">

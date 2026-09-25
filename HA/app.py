@@ -4900,21 +4900,14 @@ def superadmin_review_change(change_id):
         return api_error("Quyết định không hợp lệ.")
     if decision == "TU_CHOI" and len(note) < 10:
         return api_error("Khi từ chối, lời giải thích phải có ít nhất 10 ký tự.")
-    penalty_case = str(request.form.get("penalty_case", "")).lower() in {"1", "true", "yes"}
     request_evidence = str(request.form.get("request_evidence", "")).lower() in {"1", "true", "yes"}
     if request_evidence and decision != "TU_CHOI":
         return api_error("Chỉ có thể yêu cầu Admin bổ sung minh chứng khi từ chối quyết định hiện tại.")
     if request_evidence and len(note) < 15:
         return api_error("Hãy mô tả rõ minh chứng cần Admin bổ sung (ít nhất 15 ký tự).")
-    if penalty_case and decision != "TU_CHOI":
-        return api_error("Biên bản phạt Admin chỉ có thể lập cùng quyết định từ chối.")
-    if request_evidence and penalty_case:
-        return api_error("Hãy yêu cầu Admin bổ sung biên bản trước; không thể đồng thời ghi nhận biên bản phạt.")
     uploads = [file for file in request.files.getlist("files") if file and file.filename]
     if len(uploads) > 5:
         return api_error("Có thể đính kèm tối đa 5 tệp bằng chứng.")
-    if penalty_case and not 1 <= len(uploads) <= 5:
-        return api_error("Biên bản phạt Admin cần từ 1 đến 5 tệp bằng chứng.")
     evidence = []
     try:
         for upload in uploads:
@@ -4935,14 +4928,6 @@ def superadmin_review_change(change_id):
             return api_error("Thay đổi này đã được Super Admin xử lý.", 409, "change_already_reviewed")
         before = json.loads(change["DuLieuTruoc"]) if isinstance(change.get("DuLieuTruoc"), str) else change.get("DuLieuTruoc")
         after = json.loads(change["DuLieuSau"]) if isinstance(change.get("DuLieuSau"), str) else change.get("DuLieuSau")
-        if penalty_case:
-            target_is_admin = change.get("DoiTuong") == "NguoiDung" and (
-                (after or {}).get("VaiTro") in {"admin", "superadmin"}
-                or (before or {}).get("VaiTro") in {"admin", "superadmin"}
-            )
-            if not target_is_admin:
-                conn.rollback()
-                return api_error("Chỉ chọn biên bản phạt cho yêu cầu liên quan tài khoản Admin.")
         if decision == "HOAN_TAC":
             conn.rollback()
             return api_error("Hoàn tác đã bị tắt. Hãy chọn phê duyệt hoặc từ chối.", 400, "rollback_disabled")
@@ -5054,7 +5039,7 @@ def superadmin_review_change(change_id):
             )
         cursor.execute(
             "UPDATE PheDuyetThayDoi SET TrangThai=%s,MaSuperAdmin=%s,GhiChu=%s,BienBanPhatAdmin=%s,NgayXuLy=NOW() WHERE MaThayDoi=%s",
-            (final_status, g.current_user["MaND"], note or None, 1 if penalty_case else 0, change_id),
+            (final_status, g.current_user["MaND"], note or None, 0, change_id),
         )
         if request_evidence:
             cursor.execute(
@@ -5076,7 +5061,7 @@ def superadmin_review_change(change_id):
             "TrangThaiPheDuyet": final_status,
             "SuperAdminXuLy": g.current_user.get("TenDangNhap"),
             "GhiChuSuperAdmin": note or None,
-            "BienBanPhatAdmin": penalty_case,
+            "BienBanPhatAdmin": False,
             "YeuCauMinhChung": request_evidence,
         })
         audit_admin(
