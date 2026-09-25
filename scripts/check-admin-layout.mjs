@@ -30,5 +30,6 @@ for (const match of html.matchAll(/<\/?([a-z][a-z0-9-]*)\b[^>]*>/gi)) {
     if (!voids.has(tag) && !token.endsWith('/>')) stack.push({ tag, token });
 }
 assert.equal(stack.length, 0, 'Unclosed HTML elements');
-assert.equal(panels.length, 10, 'All 10 admin panels must remain in workspace');
-console.log('Admin layout: balanced HTML, unique IDs, 10 panels and overview charts correctly nested.');
+assert.equal(panels.length, 11, 'All 11 admin panels must remain in workspace');
+assert.ok(panels.includes('notifications'), 'Customer notification panel must remain in workspace');
+console.log('Admin layout: balanced HTML, unique IDs, 11 panels and overview charts correctly nested.');

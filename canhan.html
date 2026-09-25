@@ -7,10 +7,10 @@
     <meta name="theme-color" content="#e9381b">
     <title>Không gian cá nhân | Badminton Store</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="css/account.css?v=20260925-proof-3">
+    <link rel="stylesheet" href="css/account.css?v=20260925-notifications-1">
     <link rel="stylesheet" href="css/account-fx.css?v=20260906-2">
     <script src="css/auth.js?v=20260924-layout-1" defer></script>
-    <script src="css/account.js?v=20260925-proof-2" defer></script>
+    <script src="css/account.js?v=20260925-notifications-1" defer></script>
     <link rel="stylesheet" href="css/mega-animations.css?v=20260925-ticker-2">
     <link rel="stylesheet" href="css/universal-animations.css?v=20260909-1">
 </head>
@@ -32,6 +32,7 @@
                 </div>
                 <nav class="account-tabs" aria-label="Quản lý tài khoản" role="tablist" aria-orientation="vertical">
                     <button type="button" role="tab" aria-selected="true" aria-controls="panel-overview" id="tab-overview" data-account-tab="overview"><span aria-hidden="true">⌂</span>Tổng quan</button>
+                    <button type="button" role="tab" aria-selected="false" aria-controls="panel-notifications" id="tab-notifications" data-account-tab="notifications"><span aria-hidden="true">◉</span>Thông báo <em id="notificationUnread" hidden>0</em></button>
                     <button type="button" role="tab" aria-selected="false" aria-controls="panel-profile" id="tab-profile" data-account-tab="profile"><span aria-hidden="true">◎</span>Hồ sơ</button>
                     <button type="button" role="tab" aria-selected="false" aria-controls="panel-orders" id="tab-orders" data-account-tab="orders"><span aria-hidden="true">□</span>Đơn hàng</button>
                     <button type="button" role="tab" aria-selected="false" aria-controls="panel-wallet" id="tab-wallet" data-account-tab="wallet"><span aria-hidden="true">₫</span>Ví & giao dịch</button>
@@ -59,6 +60,11 @@
                         <article class="account-card"><div class="card-heading"><div><p class="eyebrow">Hồ sơ giao hàng</p><h3>Thông tin liên hệ</h3></div><button type="button" data-open-tab="profile">Chỉnh sửa</button></div><dl class="contact-summary"><div><dt>Email</dt><dd id="summaryEmail">—</dd></div><div><dt>Điện thoại</dt><dd id="summaryPhone">Chưa cập nhật</dd></div><div><dt>Địa chỉ</dt><dd id="summaryAddress">Chưa cập nhật</dd></div></dl></article>
                         <article class="account-card account-card--accent"><p class="eyebrow">Mẹo chọn gear</p><h3>Hãy bắt đầu từ lối chơi.</h3><p>Ưu tiên khả năng kiểm soát nếu bạn mới chơi; chọn thân vợt cứng hơn khi lực cổ tay đã ổn định.</p><a href="hướng dẫn.html">Xem hướng dẫn chọn vợt →</a></article>
                     </div>
+                </section>
+
+                <section class="account-panel" id="panel-notifications" role="tabpanel" aria-labelledby="tab-notifications" data-account-panel="notifications" hidden>
+                    <div class="panel-heading"><div><p class="eyebrow">CẬP NHẬT TÀI KHOẢN</p><h2>Thông báo của bạn</h2><p>Trạng thái thanh toán và tiến trình đơn hàng sẽ được cập nhật tại đây.</p></div><button type="button" class="soft-button" id="refreshNotifications">Làm mới</button></div>
+                    <div class="notification-list" id="customerNotifications"><p class="empty-state">Đang tải thông báo…</p></div>
                 </section>
 
                 <section class="account-panel" id="panel-profile" role="tabpanel" aria-labelledby="tab-profile" data-account-panel="profile" hidden>

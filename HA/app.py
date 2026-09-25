@@ -351,6 +351,7 @@ DATABASE_TABLE_NAMES = {
     "lichsugiaodich", "nhatkyquantri", "nguoidung", "pheduyetthaydoi",
     "phiendangnhap", "sanpham", "schemamigration", "voucher", "yeucaunaptien",
     "datlaimatkhau", "sudungvoucher", "yeuthich", "yeucauhotro", "tepxacminh",
+    "thongbaokhachhang", "thongbaodadoc",
 }
 _TABLE_REFERENCE_RE = re.compile(
     r"\b(FROM|JOIN|UPDATE|INTO|TABLE|REFERENCES)\s+`?("
@@ -1579,6 +1580,18 @@ def logout_all():
     finally:
         cursor.close()
         conn.close()
+
+
+def create_customer_notification(cursor, user_id, title, message, *, kind="HE_THONG", object_id=None, image=None, creator=None):
+    """Ghi thông báo theo người nhận; user_id=None nghĩa là gửi toàn bộ khách."""
+    cursor.execute(
+        """INSERT INTO ThongBaoKhachHang
+           (MaND,TieuDe,NoiDung,HinhAnh,Loai,MaDoiTuong,NguoiTao)
+           VALUES (%s,%s,%s,%s,%s,%s,%s)""",
+        (user_id, str(title)[:180], str(message)[:4000], image, kind[:32],
+         str(object_id)[:64] if object_id is not None else None, creator),
+    )
+    return cursor.lastrowid
 
 
 @app.route("/api/me", methods=["GET", "POST"])
@@ -3719,12 +3732,150 @@ def admin_update_order(order_id):
                     "UPDATE DonHang SET TrangThaiThanhToan='DA_THANH_TOAN' WHERE MaDH=%s",
                     (order_id,),
                 )
+        if new_status == "DANG_GIAO":
+            create_customer_notification(
+                cursor, order["MaND"], f"Đơn hàng #{order_id} đang được vận chuyển",
+                "Đơn hàng của bạn đã được bàn giao cho đơn vị vận chuyển. Bạn có thể theo dõi trạng thái trong mục Đơn hàng.",
+                kind="DON_HANG_DANG_GIAO", object_id=order_id,
+            )
+        elif new_status == "HOAN_THANH":
+            create_customer_notification(
+                cursor, order["MaND"], f"Đơn hàng #{order_id} đã hoàn thành",
+                "Đơn hàng của bạn đã được hoàn tất. Cảm ơn bạn đã mua sắm tại Badminton Store!",
+                kind="DON_HANG_HOAN_THANH", object_id=order_id,
+            )
         audit_admin(cursor, "STATUS", "DonHang", order_id, {"from": order["TrangThai"], "to": new_status})
         conn.commit()
         return jsonify({"success": True, "message": "Đã cập nhật trạng thái đơn hàng."})
     except mysql.connector.Error:
         conn.rollback()
         return api_error("Không thể cập nhật đơn hàng.", 409, "order_update_failed")
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.get("/api/thong-bao")
+@auth_required
+def customer_notifications():
+    user_id = g.current_user["MaND"]
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            """SELECT n.MaThongBao,n.TieuDe,n.NoiDung,n.HinhAnh,n.Loai,n.MaDoiTuong,n.NgayTao,
+                      (d.MaThongBao IS NOT NULL) AS DaDoc
+                 FROM ThongBaoKhachHang n
+                 LEFT JOIN ThongBaoDaDoc d ON d.MaThongBao=n.MaThongBao AND d.MaND=%s
+                WHERE n.DaThuHoi=0 AND (
+                    n.MaND=%s OR
+                    (n.MaND IS NULL AND %s='user' AND n.NgayTao >= (
+                        SELECT COALESCE(NgayTaoTaiKhoan,'1000-01-01') FROM NguoiDung WHERE MaND=%s
+                    ))
+                )
+                ORDER BY n.NgayTao DESC,n.MaThongBao DESC LIMIT 100""",
+            (user_id, user_id, g.current_user.get("VaiTro") or "user", user_id),
+        )
+        items = [serialize_row(row) for row in cursor.fetchall()]
+        unread = sum(not bool(item.get("DaDoc")) for item in items)
+        return jsonify({"success": True, "notifications": items, "unread": unread})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.patch("/api/thong-bao/<int:notification_id>/da-doc")
+@auth_required
+def mark_customer_notification_read(notification_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            "SELECT MaThongBao FROM ThongBaoKhachHang WHERE MaThongBao=%s AND DaThuHoi=0 AND (MaND=%s OR MaND IS NULL)",
+            (notification_id, g.current_user["MaND"]),
+        )
+        if not cursor.fetchone():
+            return api_error("Không tìm thấy thông báo.", 404, "notification_not_found")
+        cursor.execute(
+            "INSERT IGNORE INTO ThongBaoDaDoc (MaThongBao,MaND) VALUES (%s,%s)",
+            (notification_id, g.current_user["MaND"]),
+        )
+        conn.commit()
+        return jsonify({"success": True})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/api/admin/thong-bao", methods=["GET", "POST"])
+@admin_required
+def admin_customer_notifications():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        if request.method == "GET":
+            cursor.execute(
+                """SELECT n.*,u.TenDangNhap AS TenNguoiNhan,
+                          c.TenDangNhap AS TenNguoiTao,
+                          (SELECT COUNT(*) FROM ThongBaoDaDoc d WHERE d.MaThongBao=n.MaThongBao) AS SoDaDoc
+                     FROM ThongBaoKhachHang n LEFT JOIN NguoiDung u ON u.MaND=n.MaND
+                     LEFT JOIN NguoiDung c ON c.MaND=n.NguoiTao
+                    WHERE n.Loai IN ('ADMIN_BROADCAST','ADMIN_DIRECT')
+                    ORDER BY n.NgayTao DESC LIMIT 200"""
+            )
+            return jsonify({"success": True, "notifications": [serialize_row(row) for row in cursor.fetchall()]})
+        data = body_json()
+        title = str(data.get("title", "")).strip()
+        message = str(data.get("message", "")).strip()
+        recipient = data.get("recipient", "all")
+        image = str(data.get("image", "")).strip() or None
+        if not 3 <= len(title) <= 180 or not 3 <= len(message) <= 4000:
+            return api_error("Tiêu đề cần 3–180 ký tự và nội dung 3–4.000 ký tự.")
+        if recipient != "all":
+            try:
+                recipient_id = int(recipient)
+            except (TypeError, ValueError):
+                return api_error("Chọn khách hàng nhận thông báo.")
+            cursor.execute("SELECT MaND FROM NguoiDung WHERE MaND=%s AND VaiTro='user' AND TrangThai=1", (recipient_id,))
+            if not cursor.fetchone():
+                return api_error("Chỉ có thể gửi thông báo đến tài khoản khách hàng đang hoạt động.")
+        else:
+            recipient_id = None
+        if image and not re.fullmatch(r"HA/uploads/content/[A-Za-z0-9_-]+\.webp", image):
+            return api_error("Ảnh thông báo cần được tải lên từ kho ảnh nội dung.")
+        notification_id = create_customer_notification(
+            cursor, recipient_id, title, message, kind="ADMIN_BROADCAST" if recipient_id is None else "ADMIN_DIRECT",
+            image=image, creator=g.current_user["MaND"],
+        )
+        audit_admin(cursor, "NOTICE_SEND", "ThongBaoKhachHang", notification_id)
+        conn.commit()
+        return jsonify({"success": True, "message": "Đã gửi thông báo đến khách hàng.", "id": notification_id}), 201
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.patch("/api/admin/thong-bao/<int:notification_id>/thu-hoi")
+@admin_required
+def admin_revoke_customer_notification(notification_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            "SELECT MaThongBao,DaThuHoi,NguoiTao FROM ThongBaoKhachHang WHERE MaThongBao=%s FOR UPDATE",
+            (notification_id,),
+        )
+        notice = cursor.fetchone()
+        if not notice:
+            return api_error("Không tìm thấy thông báo của bạn.", 404, "notification_not_found")
+        if notice.get("NguoiTao") != g.current_user["MaND"] and not is_superadmin():
+            return api_error("Bạn không có quyền thu hồi thông báo này.", 403, "forbidden")
+        if notice["DaThuHoi"]:
+            return jsonify({"success": True, "message": "Thông báo đã được thu hồi trước đó."})
+        cursor.execute("UPDATE ThongBaoKhachHang SET DaThuHoi=1 WHERE MaThongBao=%s", (notification_id,))
+        audit_admin(cursor, "NOTICE_REVOKE", "ThongBaoKhachHang", notification_id)
+        conn.commit()
+        return jsonify({"success": True, "message": "Đã thu hồi thông báo; khách hàng không còn thấy nội dung này."})
     finally:
         cursor.close()
         conn.close()
@@ -4143,6 +4294,12 @@ def admin_confirm_order_payment(order_id):
             "UPDATE DonHang SET TrangThaiThanhToan=%s, NgayCapNhat=NOW() WHERE MaDH=%s",
             (next_status, order_id),
         )
+        if paid and order.get("TrangThaiThanhToan") != "DA_THANH_TOAN":
+            create_customer_notification(
+                cursor, order["MaND"], f"Đã xác nhận thanh toán đơn hàng #{order_id}",
+                f"Khoản chuyển khoản {Decimal(str(order.get('TongTien') or 0)):,.0f} ₫ cho đơn hàng #{order_id} đã được xác nhận.",
+                kind="THANH_TOAN_DA_DUYET", object_id=order_id,
+            )
         audit_admin(
             cursor,
             "PAYMENT",
@@ -4651,9 +4808,12 @@ def superadmin_review_change(change_id):
         return api_error("Quyết định không hợp lệ.")
     if len(note) < 10:
         return api_error("Lời giải thích phải có ít nhất 10 ký tự.")
+    penalty_case = str(request.form.get("penalty_case", "")).lower() in {"1", "true", "yes"}
     uploads = [file for file in request.files.getlist("files") if file and file.filename]
-    if not 1 <= len(uploads) <= 5:
-        return api_error("Đính kèm từ 1 đến 5 tệp bằng chứng.")
+    if len(uploads) > 5:
+        return api_error("Có thể đính kèm tối đa 5 tệp bằng chứng.")
+    if penalty_case and not 1 <= len(uploads) <= 5:
+        return api_error("Biên bản phạt Admin cần từ 1 đến 5 tệp bằng chứng.")
     evidence = []
     try:
         for upload in uploads:
@@ -4674,6 +4834,14 @@ def superadmin_review_change(change_id):
             return api_error("Thay đổi này đã được Super Admin xử lý.", 409, "change_already_reviewed")
         before = json.loads(change["DuLieuTruoc"]) if isinstance(change.get("DuLieuTruoc"), str) else change.get("DuLieuTruoc")
         after = json.loads(change["DuLieuSau"]) if isinstance(change.get("DuLieuSau"), str) else change.get("DuLieuSau")
+        if penalty_case:
+            target_is_admin = change.get("DoiTuong") == "NguoiDung" and (
+                (after or {}).get("VaiTro") in {"admin", "superadmin"}
+                or (before or {}).get("VaiTro") in {"admin", "superadmin"}
+            )
+            if not target_is_admin:
+                conn.rollback()
+                return api_error("Chỉ chọn biên bản phạt cho yêu cầu liên quan tài khoản Admin.")
         if decision == "HOAN_TAC":
             conn.rollback()
             return api_error("Hoàn tác đã bị tắt. Hãy chọn phê duyệt hoặc từ chối.", 400, "rollback_disabled")
@@ -4784,8 +4952,8 @@ def superadmin_review_change(change_id):
                 (change_id, filename, mime_type, content),
             )
         cursor.execute(
-            "UPDATE PheDuyetThayDoi SET TrangThai=%s,MaSuperAdmin=%s,GhiChu=%s,NgayXuLy=NOW() WHERE MaThayDoi=%s",
-            (final_status, g.current_user["MaND"], note or None, change_id),
+            "UPDATE PheDuyetThayDoi SET TrangThai=%s,MaSuperAdmin=%s,GhiChu=%s,BienBanPhatAdmin=%s,NgayXuLy=NOW() WHERE MaThayDoi=%s",
+            (final_status, g.current_user["MaND"], note or None, 1 if penalty_case else 0, change_id),
         )
         original_before = json.loads(change["DuLieuTruoc"]) if isinstance(change.get("DuLieuTruoc"), str) else change.get("DuLieuTruoc")
         original_after = json.loads(change["DuLieuSau"]) if isinstance(change.get("DuLieuSau"), str) else change.get("DuLieuSau")
@@ -4800,6 +4968,7 @@ def superadmin_review_change(change_id):
             "TrangThaiPheDuyet": final_status,
             "SuperAdminXuLy": g.current_user.get("TenDangNhap"),
             "GhiChuSuperAdmin": note or None,
+            "BienBanPhatAdmin": penalty_case,
         })
         audit_admin(
             cursor, decision, "PheDuyetThayDoi", change_id,

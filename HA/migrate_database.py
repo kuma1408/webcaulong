@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-MIGRATION_VERSION = "2026-09-25-payment-proof-approval-v9"
+MIGRATION_VERSION = "2026-09-25-customer-notifications-approval-evidence-v10"
 LOCK_NAME = "shop_caulong_schema_migration"
 BASE_TABLES = {
     "nguoidung": {
@@ -86,6 +86,11 @@ OPTIONAL_MANAGED_TABLES = {
         "ghichuadmin", "maadminxuly", "diachiip", "useragent",
         "ngaytao", "ngaycapnhat",
     },
+    "thongbaokhachhang": {
+        "mathongbao", "mand", "tieude", "noidung", "hinhanh", "loai",
+        "madoituong", "mathongbaogoc", "nguoitao", "dathuhoi", "ngaytao",
+    },
+    "thongbaodadoc": {"mathongbao", "mand", "ngaydoc"},
 }
 
 
@@ -363,6 +368,11 @@ def build_plan(cursor, database: str) -> list[Operation]:
             "Cho phép phê duyệt hoặc từ chối, giữ nguyên lịch sử phê duyệt cũ",
             f"ALTER TABLE {approval_table_sql} MODIFY COLUMN `TrangThai` VARCHAR(24) NOT NULL DEFAULT 'CHO_XEM'",
         ))
+    if "pheduyetthaydoi" in tables:
+        add_column_if_missing(
+            operations, tables, actual("PheDuyetThayDoi"), "BienBanPhatAdmin",
+            "TINYINT(1) NOT NULL DEFAULT 0",
+        )
 
     # Một số bản SQL cũ dùng ENUM chỉ gồm SO_DU/COD. Chuẩn hóa sang VARCHAR
     # để nhận BANKING; API vẫn whitelist chặt các phương thức hợp lệ.
@@ -778,6 +788,50 @@ def build_plan(cursor, database: str) -> list[Operation]:
             "idx_hotro_email_date", "`Email`, `NgayTao`",
         )
 
+    # Thông báo được lưu tập trung; Mand NULL là gửi toàn bộ khách hàng.
+    if "thongbaokhachhang" not in tables:
+        operations.append(Operation(
+            "table:thongbaokhachhang",
+            "Tạo hộp thư thông báo khách hàng và quản lý thu hồi",
+            f"""
+            CREATE TABLE `thongbaokhachhang` (
+                `MaThongBao` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `MaND` {user_id_type} NULL,
+                `TieuDe` VARCHAR(180) NOT NULL,
+                `NoiDung` TEXT NOT NULL,
+                `HinhAnh` VARCHAR(700) NULL,
+                `Loai` VARCHAR(32) NOT NULL DEFAULT 'HE_THONG',
+                `MaDoiTuong` VARCHAR(64) NULL,
+                `MaThongBaoGoc` BIGINT UNSIGNED NULL,
+                `NguoiTao` {user_id_type} NULL,
+                `DaThuHoi` TINYINT(1) NOT NULL DEFAULT 0,
+                `NgayTao` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`MaThongBao`),
+                KEY `idx_thongbao_recipient_date` (`MaND`,`DaThuHoi`,`NgayTao`),
+                KEY `idx_thongbao_broadcast_date` (`DaThuHoi`,`NgayTao`),
+                KEY `idx_thongbao_order` (`Loai`,`MaDoiTuong`),
+                CONSTRAINT `fk_thongbao_user` FOREIGN KEY (`MaND`) REFERENCES {user_table_sql} (`MaND`) ON DELETE CASCADE,
+                CONSTRAINT `fk_thongbao_creator` FOREIGN KEY (`NguoiTao`) REFERENCES {user_table_sql} (`MaND`) ON DELETE SET NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            """,
+        ))
+    if "thongbaodadoc" not in tables:
+        operations.append(Operation(
+            "table:thongbaodadoc",
+            "Tạo trạng thái đã đọc theo từng người nhận",
+            f"""
+            CREATE TABLE `thongbaodadoc` (
+                `MaThongBao` BIGINT UNSIGNED NOT NULL,
+                `MaND` {user_id_type} NOT NULL,
+                `NgayDoc` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`MaThongBao`,`MaND`),
+                KEY `idx_thongbaodoc_user_date` (`MaND`,`NgayDoc`),
+                CONSTRAINT `fk_thongbaodoc_notice` FOREIGN KEY (`MaThongBao`) REFERENCES `thongbaokhachhang` (`MaThongBao`) ON DELETE CASCADE,
+                CONSTRAINT `fk_thongbaodoc_user` FOREIGN KEY (`MaND`) REFERENCES {user_table_sql} (`MaND`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            """,
+        ))
+
     add_index_if_missing(
         operations,
         indexes,
@@ -856,7 +910,7 @@ def build_plan(cursor, database: str) -> list[Operation]:
                 f"version:{MIGRATION_VERSION}",
                 f"Ghi nhận migration {MIGRATION_VERSION}",
                 f"INSERT IGNORE INTO {migration_table_sql} (`Version`, `Description`) "
-                f"VALUES ('{MIGRATION_VERSION}', 'Racket configuration, VietQR orders and product specifications')",
+                f"VALUES ('{MIGRATION_VERSION}', 'Customer notifications and optional Super Admin penalty evidence')",
             )
         )
     return operations

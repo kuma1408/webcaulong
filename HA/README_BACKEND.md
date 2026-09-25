@@ -36,6 +36,12 @@ cho ảnh chuyển khoản/tệp bằng chứng và chuẩn hóa trạng thái x
 phê duyệt hoặc từ chối. Cần sao lưu database rồi chạy migration trên máy chủ
 trước khi dùng các chức năng này; trạng thái hoàn tác cũ chỉ còn để xem lịch sử.
 
+Migration `2026-09-25-customer-notifications-approval-evidence-v10` bổ sung
+hộp thông báo khách hàng (trạng thái đã đọc, gửi toàn bộ hoặc theo tài khoản,
+thu hồi), thông báo tự động khi xác nhận chuyển khoản/giao hàng/hoàn tất và cờ
+biên bản phạt Admin. Trong quy trình phê duyệt Super Admin, lời giải thích luôn
+bắt buộc; tệp chỉ bắt buộc khi đánh dấu biên bản phạt.
+
 ## 3. Tạo admin đầu tiên
 
 Đăng ký một tài khoản bình thường rồi cấp quyền qua CLI tại máy chủ:

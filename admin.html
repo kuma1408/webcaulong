@@ -9,10 +9,10 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
 
     <link rel="stylesheet" href="css/account.css?v=20260925-proof-3">
-    <link rel="stylesheet" href="css/admin.css?v=20260925-approval-6">
+    <link rel="stylesheet" href="css/admin.css?v=20260925-notifications-1">
     <link rel="stylesheet" href="css/dashboard-fx.css?v=20260924-1">
     <script src="css/auth.js?v=20260924-layout-1" defer></script>
-    <script src="css/admin.js?v=20260925-approval-6" defer></script>
+    <script src="css/admin.js?v=20260925-notifications-1" defer></script>
     <link rel="stylesheet" href="css/admin-theme.css?v=20260925-3">
     <link rel="stylesheet" href="css/admin-polish.css?v=20260925-3">
     <link rel="stylesheet" href="css/universal-animations.css?v=20260924-1">
@@ -33,6 +33,7 @@
                     <button type="button" data-admin-view="users"><span aria-hidden="true">◎</span>Người dùng</button>
                     <button type="button" data-admin-view="content"><span aria-hidden="true">✎</span>Nội dung</button>
                     <button type="button" data-admin-view="support"><span aria-hidden="true">✉</span>Hỗ trợ <em id="navPendingSupport" hidden>0</em></button>
+                    <button type="button" data-admin-view="notifications"><span aria-hidden="true">◉</span>Thông báo khách hàng</button>
                     <button type="button" data-admin-view="vouchers"><span aria-hidden="true">%</span>Voucher</button>
                     <button type="button" data-admin-view="deposits"><span aria-hidden="true">₫</span>Nạp tiền <em id="navPendingDeposits" hidden>0</em></button>
                     <button type="button" data-admin-view="approvals" id="approvalNav" hidden><span aria-hidden="true">✓</span>Phê duyệt <em id="navPendingApprovals" hidden>0</em></button>
@@ -348,6 +349,18 @@
                         <article class="admin-card"><div class="admin-card__heading"><div><p class="eyebrow">Tồn kho</p><h2>Sản phẩm cần chú ý</h2></div><button type="button" data-jump-view="products">Quản lý →</button></div><div class="admin-list" id="lowStockProducts"><p class="admin-empty">Đang tải dữ liệu…</p></div></article>
                     </div>
                     <article class="admin-card" style="margin-top:14px"><div class="admin-card__heading"><div><p class="eyebrow">Live activity</p><h2>Hoạt động quản trị gần nhất</h2></div><button type="button" data-jump-view="audit">Mở nhật ký →</button></div><div class="admin-list" id="adminLiveActivity"><p class="admin-empty">Đang tải hoạt động…</p></div></article>
+                </section>
+
+                <section class="admin-view" data-admin-panel="notifications" hidden>
+                    <div class="admin-approval-intro"><span>CHĂM SÓC KHÁCH HÀNG</span><h2>Thông báo khách hàng</h2><p>Soạn thông báo chữ và ảnh, gửi đến toàn bộ khách hàng hoặc một tài khoản cụ thể. Có thể thu hồi thông báo đã gửi.</p></div>
+                    <form id="customerNoticeForm" class="admin-card admin-dialog__form" style="max-width:none;margin-bottom:18px" novalidate>
+                        <div class="field"><label for="customerNoticeTitle">Tiêu đề *</label><input id="customerNoticeTitle" maxlength="180" required placeholder="Ví dụ: Ưu đãi cuối tuần"></div>
+                        <div class="field"><label for="customerNoticeBody">Nội dung *</label><textarea id="customerNoticeBody" rows="4" maxlength="4000" required placeholder="Nhập nội dung thông báo…"></textarea></div>
+                        <div class="field-grid"><div class="field"><label for="customerNoticeAudience">Người nhận</label><select id="customerNoticeAudience"><option value="all">Tất cả khách hàng</option><option value="user">Một khách hàng cụ thể</option></select></div><div class="field" id="customerNoticeUserField" hidden><label for="customerNoticeUserSearch">Tìm khách hàng</label><input id="customerNoticeUserSearch" type="search" autocomplete="off" placeholder="Tên, email hoặc mã tài khoản"><input id="customerNoticeUserId" type="hidden"><div id="customerNoticeUserResults" class="notice-user-results" hidden></div><small id="customerNoticeSelectedUser">Chưa chọn khách hàng.</small></div></div>
+                        <div class="field"><label for="customerNoticeImageFile">Ảnh minh họa (không bắt buộc)</label><div class="admin-row-actions"><input id="customerNoticeImageFile" type="file" accept="image/jpeg,image/png,image/webp"><button type="button" id="customerNoticeUploadImage">Tải ảnh lên</button><button type="button" id="customerNoticeRemoveImage" hidden>Gỡ ảnh</button></div><input id="customerNoticeImage" type="hidden"><small id="customerNoticeImageStatus">JPG, PNG hoặc WebP, tối đa 3 MB.</small></div>
+                        <p id="customerNoticeStatus" class="form-status" role="alert" aria-live="polite"></p><button class="admin-primary" id="customerNoticeSubmit" type="submit">Gửi thông báo</button>
+                    </form>
+                    <div class="admin-card admin-table-card"><div class="admin-card__heading"><div><p class="eyebrow">LỊCH SỬ GỬI</p><h2>Thông báo đã soạn</h2></div><button type="button" id="customerNoticeRefresh">Làm mới</button></div><div class="admin-table-wrap"><table><thead><tr><th>Ngày gửi</th><th>Tiêu đề</th><th>Người nhận</th><th>Đã đọc</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="customerNoticeRows"><tr><td colspan="6" class="admin-empty-cell">Chọn mục để tải thông báo.</td></tr></tbody></table></div></div>
                 </section>
 
                 <section class="admin-view" data-admin-panel="products" hidden>
@@ -715,7 +728,7 @@
                     <div class="admin-approval-intro">
                         <span>KIỂM SOÁT THAY ĐỔI</span>
                         <h2>Phê duyệt của Super Admin</h2>
-                        <p>Đối chiếu thay đổi, xem bằng chứng đính kèm và phê duyệt hoặc từ chối. Dữ liệu gốc không bị khôi phục tự động.</p>
+                        <p>Đối chiếu thay đổi, xem tệp nếu có rồi phê duyệt hoặc từ chối. Lời giải thích luôn cần; bằng chứng chỉ bắt buộc cho biên bản phạt Admin. Dữ liệu gốc không bị khôi phục tự động.</p>
                     </div>
                     <div class="admin-kpi-grid">
                         <article class="admin-kpi-card" data-tone="orange">
@@ -968,7 +981,8 @@
             <div class="admin-dialog__heading"><div><p class="eyebrow">Bằng chứng & quyết định</p><h2 id="approvalReviewTitle">Phê duyệt thay đổi</h2></div><button type="button" data-close-dialog="approvalReviewDialog" aria-label="Đóng">×</button></div>
             <p id="approvalReviewDescription">Đính kèm bằng chứng và giải thích quyết định.</p>
             <div class="field"><label for="approvalReviewNote">Lời giải thích *</label><textarea id="approvalReviewNote" rows="3" maxlength="500" required placeholder="Nêu lý do phê duyệt hoặc từ chối…"></textarea></div>
-            <div class="field"><label for="approvalReviewFiles">Tệp/hình ảnh bằng chứng * (1–5 tệp)</label><input id="approvalReviewFiles" type="file" required multiple accept="image/jpeg,image/png,image/webp,application/pdf,text/plain,text/csv,application/json,.csv,.json"><small>Ảnh, PDF, TXT, CSV hoặc JSON; tối đa 2 MB mỗi tệp.</small></div>
+            <div class="field"><label><input id="approvalPenaltyCase" type="checkbox"> Đây là biên bản phạt Admin (bắt buộc đính kèm bằng chứng)</label><small>Quyết định thông thường chỉ cần lời giải thích. Chỉ bật mục này khi lập biên bản phạt Admin.</small></div>
+            <div class="field"><label for="approvalReviewFiles">Tệp/hình ảnh bằng chứng (tùy chọn; 1–5 tệp nếu là biên bản phạt)</label><input id="approvalReviewFiles" type="file" multiple accept="image/jpeg,image/png,image/webp,application/pdf,text/plain,text/csv,application/json,.csv,.json"><small>Ảnh, PDF, TXT, CSV hoặc JSON; tối đa 2 MB mỗi tệp.</small></div>
             <p class="form-status" id="approvalReviewStatus" role="alert"></p>
             <div class="admin-dialog__actions"><button type="button" data-close-dialog="approvalReviewDialog">Hủy</button><button class="admin-primary" id="approvalReviewSubmit" type="submit">Gửi quyết định</button></div>
         </form>

@@ -287,8 +287,44 @@
         if (!loadedPanels.has(name)) {
             loadedPanels.add(name);
             if (name === 'orders') loadOrders();
+            if (name === 'notifications') loadNotifications();
             if (name === 'wallet') loadWallet();
             if (name === 'security') loadSessions();
+        }
+    }
+
+    async function loadNotifications() {
+        const list = $('#customerNotifications');
+        if (!list) return;
+        list.replaceChildren(element('p', 'empty-state', 'Đang tải thông báo…'));
+        try {
+            const data = await Auth.request('/api/thong-bao');
+            const unread = Number(data.unread) || 0;
+            const badge = $('#notificationUnread');
+            badge.textContent = String(unread);
+            badge.hidden = unread < 1;
+            const items = data.notifications || [];
+            list.replaceChildren();
+            if (!items.length) { list.appendChild(element('p', 'empty-state', 'Bạn chưa có thông báo mới.')); return; }
+            items.forEach((notice) => {
+                const card = element('article', `account-card customer-notice${notice.DaDoc ? '' : ' is-unread'}`);
+                const heading = element('div', 'card-heading');
+                heading.append(element('strong', '', notice.TieuDe), element('time', '', formatDate(notice.NgayTao)));
+                card.appendChild(heading);
+                if (notice.HinhAnh) { const image = element('img', 'customer-notice__image'); image.src = notice.HinhAnh; image.alt = ''; image.loading = 'lazy'; card.appendChild(image); }
+                card.appendChild(element('p', 'customer-notice__body', notice.NoiDung));
+                if (notice.MaDoiTuong && String(notice.Loai || '').startsWith('DON_HANG')) {
+                    const order = element('a', 'customer-notice__order', `Xem đơn hàng #${notice.MaDoiTuong} →`); order.href = `canhan.html?order=${encodeURIComponent(notice.MaDoiTuong)}#orders`; card.appendChild(order);
+                }
+                if (!notice.DaDoc) {
+                    const read = element('button', 'soft-button', 'Đánh dấu đã đọc'); read.type = 'button';
+                    read.addEventListener('click', async () => { read.disabled = true; try { await Auth.request(`/api/thong-bao/${notice.MaThongBao}/da-doc`, { method: 'PATCH' }); await loadNotifications(); } catch (error) { read.disabled = false; showToast(error.message, 'error'); } });
+                    card.appendChild(read);
+                }
+                list.appendChild(card);
+            });
+        } catch (error) {
+            list.replaceChildren(element('p', 'empty-state', `Không tải được thông báo. ${error.message}`));
         }
     }
 
@@ -717,6 +753,7 @@
         $$('[data-account-tab]').forEach((button) => button.addEventListener('click', () => activateTab(button.dataset.accountTab)));
         $$('[data-open-tab]').forEach((button) => button.addEventListener('click', () => activateTab(button.dataset.openTab, true)));
         $('#accountLogout').addEventListener('click', () => Auth.logout());
+        $('#refreshNotifications').addEventListener('click', loadNotifications);
         $('#orderFilter').addEventListener('change', renderOrders);
         $('#orderPrev').addEventListener('click', () => { if (orderPage > 1) { orderPage -= 1; loadOrders(); } });
         $('#orderNext').addEventListener('click', () => { if (orderPage * 10 < orderTotal) { orderPage += 1; loadOrders(); } });
@@ -724,7 +761,8 @@
 
         requestedOrderId = Number(new URLSearchParams(window.location.search).get('order')) || 0;
         const requestedTab = requestedOrderId ? 'orders' : window.location.hash.slice(1);
-        activateTab(['overview', 'profile', 'orders', 'wallet', 'security'].includes(requestedTab) ? requestedTab : 'overview');
+        activateTab(['overview', 'notifications', 'profile', 'orders', 'wallet', 'security'].includes(requestedTab) ? requestedTab : 'overview');
+        if (requestedTab !== 'notifications') { loadedPanels.add('notifications'); loadNotifications(); }
         if (new URLSearchParams(window.location.search).get('notice') === 'admin-only') showToast('Tài khoản của bạn không có quyền quản trị.', 'warning');
     }
 
