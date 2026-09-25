@@ -597,7 +597,7 @@
 .admin-view[data-admin-panel="approvals"] .admin-table-card th:nth-child(6) { width: 14%; }
 .admin-view[data-admin-panel="approvals"] .admin-detail-summary { max-width: none; white-space: normal; line-height: 1.55; }
 .admin-view[data-admin-panel="approvals"] .admin-detail-button { text-align: left; line-height: 1.4; }
-.admin-view[data-admin-panel="approvals"] .admin-row-actions { justify-content: flex-start; flex-wrap: wrap; gap: 7px; }
+.admin-view[data-admin-panel="approvals"] .admin-row-actions { position: relative; z-index: 2; justify-content: flex-start; flex-wrap: wrap; gap: 7px; pointer-events: auto; }
 .admin-view[data-admin-panel="approvals"] .admin-row-actions button { min-height: 34px; padding-inline: 11px; font-size: 11px; }
 :root[data-theme="dark"] .admin-approval-intro { border-color: #603020; background: linear-gradient(112deg, #24100b, #35180f); }
 :root[data-theme="dark"] .admin-approval-intro h2 { color: #fff4ef; }
