@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-MIGRATION_VERSION = "2026-09-25-approval-supplement-evidence-v11"
+MIGRATION_VERSION = "2026-09-26-customer-messenger-v12"
 LOCK_NAME = "shop_caulong_schema_migration"
 BASE_TABLES = {
     "nguoidung": {
@@ -94,6 +94,11 @@ OPTIONAL_MANAGED_TABLES = {
     "pheduyetbosung": {
         "mabosung", "mathaydoi", "maadmin", "masuperadmin", "yeucau",
         "traloi", "trangthai", "ngaytao", "ngaygui",
+    },
+    "chathoithoai": {"mahoithoai", "mand", "trangthai", "ngaytao", "ngaycapnhat"},
+    "chattinnhan": {
+        "matinnhan", "mahoithoai", "mandgui", "vaitrogui", "noidung",
+        "admindadoc", "khachdadoc", "ngaytao",
     },
 }
 
@@ -861,6 +866,48 @@ def build_plan(cursor, database: str) -> list[Operation]:
             """,
         ))
 
+    if "chathoithoai" not in tables:
+        operations.append(Operation(
+            "table:chathoithoai",
+            "Tạo hội thoại nhắn tin trực tiếp của khách hàng với cửa hàng",
+            f"""
+            CREATE TABLE `chathoithoai` (
+                `MaHoiThoai` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `MaND` {user_id_type} NOT NULL,
+                `TrangThai` VARCHAR(20) NOT NULL DEFAULT 'MOI',
+                `NgayTao` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `NgayCapNhat` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`MaHoiThoai`),
+                UNIQUE KEY `uq_chat_user` (`MaND`),
+                KEY `idx_chat_updated` (`NgayCapNhat`),
+                CONSTRAINT `fk_chat_user` FOREIGN KEY (`MaND`) REFERENCES {user_table_sql} (`MaND`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            """,
+        ))
+
+    if "chattinnhan" not in tables:
+        operations.append(Operation(
+            "table:chattinnhan",
+            "Tạo tin nhắn có trạng thái đã đọc cho hai phía",
+            f"""
+            CREATE TABLE `chattinnhan` (
+                `MaTinNhan` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `MaHoiThoai` BIGINT UNSIGNED NOT NULL,
+                `MaNDGui` {user_id_type} NOT NULL,
+                `VaiTroGui` VARCHAR(16) NOT NULL,
+                `NoiDung` VARCHAR(2000) NOT NULL,
+                `AdminDaDoc` TINYINT(1) NOT NULL DEFAULT 0,
+                `KhachDaDoc` TINYINT(1) NOT NULL DEFAULT 0,
+                `NgayTao` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`MaTinNhan`),
+                KEY `idx_chat_message_thread` (`MaHoiThoai`,`MaTinNhan`),
+                KEY `idx_chat_message_unread` (`MaHoiThoai`,`VaiTroGui`,`AdminDaDoc`,`KhachDaDoc`),
+                CONSTRAINT `fk_chat_message_thread` FOREIGN KEY (`MaHoiThoai`) REFERENCES `chathoithoai` (`MaHoiThoai`) ON DELETE CASCADE,
+                CONSTRAINT `fk_chat_message_user` FOREIGN KEY (`MaNDGui`) REFERENCES {user_table_sql} (`MaND`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            """,
+        ))
+
     add_index_if_missing(
         operations,
         indexes,
@@ -939,7 +986,7 @@ def build_plan(cursor, database: str) -> list[Operation]:
                 f"version:{MIGRATION_VERSION}",
                 f"Ghi nhận migration {MIGRATION_VERSION}",
                 f"INSERT IGNORE INTO {migration_table_sql} (`Version`, `Description`) "
-                f"VALUES ('{MIGRATION_VERSION}', 'Admin supplemental evidence requests and Super Admin approval workflow')",
+                f"VALUES ('{MIGRATION_VERSION}', 'Customer messenger and admin inbox')",
             )
         )
     return operations

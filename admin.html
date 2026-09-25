@@ -9,10 +9,10 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
 
     <link rel="stylesheet" href="css/account.css?v=20260925-proof-3">
-    <link rel="stylesheet" href="css/admin.css?v=20260925-approval-actions-2">
+    <link rel="stylesheet" href="css/admin.css?v=20260926-chat-1">
     <link rel="stylesheet" href="css/dashboard-fx.css?v=20260924-1">
-    <script src="css/auth.js?v=20260924-layout-1" defer></script>
-    <script src="css/admin.js?v=20260925-approval-actions-2" defer></script>
+    <script src="css/auth.js?v=20260926-chat-1" defer></script>
+    <script src="css/admin.js?v=20260926-chat-1" defer></script>
     <link rel="stylesheet" href="css/admin-theme.css?v=20260925-3">
     <link rel="stylesheet" href="css/admin-polish.css?v=20260925-kpi-readability-1">
     <link rel="stylesheet" href="css/universal-animations.css?v=20260924-1">
@@ -33,6 +33,7 @@
                     <button type="button" data-admin-view="users"><span aria-hidden="true">◎</span>Người dùng</button>
                     <button type="button" data-admin-view="content"><span aria-hidden="true">✎</span>Nội dung</button>
                     <button type="button" data-admin-view="support"><span aria-hidden="true">✉</span>Hỗ trợ <em id="navPendingSupport" hidden>0</em></button>
+                    <button type="button" data-admin-view="chat"><span aria-hidden="true">💬</span>Tin nhắn trực tiếp <em id="navUnreadChat" hidden>0</em></button>
                     <button type="button" data-admin-view="notifications"><span aria-hidden="true">◉</span>Thông báo khách hàng</button>
                     <button type="button" data-admin-view="vouchers"><span aria-hidden="true">%</span>Voucher</button>
                     <button type="button" data-admin-view="deposits"><span aria-hidden="true">₫</span>Nạp tiền <em id="navPendingDeposits" hidden>0</em></button>
@@ -775,6 +776,26 @@
                         <button type="button" class="admin-pill-btn" data-filter="all">Tất cả</button>
                     </div>
                     <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Thời gian</th><th>Admin</th><th>Thay đổi</th><th>Đối tượng</th><th>Nội dung</th><th>Quyết định</th></tr></thead><tbody id="approvalRows"><tr><td colspan="6" class="admin-empty-cell">Chỉ Super Admin được xem mục này.</td></tr></tbody></table></div></div>
+                </section>
+
+                <section class="admin-view" data-admin-panel="chat" hidden>
+                    <div class="admin-approval-intro"><div><p class="eyebrow">HỖ TRỢ TRỰC TIẾP</p><h2>Hộp thư khách hàng</h2><p>Tin nhắn riêng giữa khách hàng và cửa hàng. Danh sách tự cập nhật định kỳ.</p></div><button type="button" class="admin-detail-button" id="chatRefresh">Làm mới</button></div>
+                    <div class="store-admin-chat">
+                        <aside class="store-admin-chat__list" aria-label="Danh sách hội thoại">
+                            <form id="adminChatSearch" class="admin-search"><label class="bs-visually-hidden" for="adminChatQuery">Tìm khách hàng</label><input id="adminChatQuery" type="search" placeholder="Tìm tên, email hoặc tài khoản"><button type="submit">Tìm</button></form>
+                            <div id="adminChatThreads" class="store-admin-chat__threads"><p class="admin-empty-cell">Đang tải hội thoại…</p></div>
+                        </aside>
+                        <section class="store-admin-chat__conversation" aria-label="Nội dung hội thoại">
+                            <header id="adminChatContact" class="store-admin-chat__contact"><strong>Chọn một hội thoại</strong><span>Các tin nhắn mới sẽ xuất hiện tại đây.</span></header>
+                            <div id="adminChatMessages" class="store-admin-chat__messages" aria-live="polite"><p class="admin-empty-cell">Chưa chọn khách hàng.</p></div>
+                            <form id="adminChatReply" class="store-admin-chat__reply">
+                                <label class="bs-visually-hidden" for="adminChatMessage">Phản hồi khách hàng</label>
+                                <textarea id="adminChatMessage" maxlength="2000" rows="2" placeholder="Viết phản hồi cho khách hàng…" disabled required></textarea>
+                                <button class="admin-primary" id="adminChatSend" type="submit" disabled>Gửi trả lời</button>
+                                <p id="adminChatStatus" class="form-status" role="status"></p>
+                            </form>
+                        </section>
+                    </div>
                 </section>
 
                 <section class="admin-view" data-admin-panel="supplemental-evidence" hidden>

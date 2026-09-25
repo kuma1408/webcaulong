@@ -7,7 +7,7 @@
     const money = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 });
     const dateTime = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
     const dateTimeFull = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const pageTitles = { overview: 'Tổng quan', products: 'Sản phẩm', orders: 'Đơn hàng', users: 'Người dùng', content: 'Tin tức & Hướng dẫn', support: 'Hỗ trợ khách hàng', notifications: 'Thông báo khách hàng', 'supplemental-evidence': 'Bổ sung minh chứng', vouchers: 'Voucher', deposits: 'Yêu cầu nạp tiền', approvals: 'Phê duyệt thay đổi', audit: 'Nhật ký quản trị' };
+    const pageTitles = { overview: 'Tổng quan', products: 'Sản phẩm', orders: 'Đơn hàng', users: 'Người dùng', content: 'Tin tức & Hướng dẫn', support: 'Hỗ trợ khách hàng', chat: 'Tin nhắn trực tiếp', notifications: 'Thông báo khách hàng', 'supplemental-evidence': 'Bổ sung minh chứng', vouchers: 'Voucher', deposits: 'Yêu cầu nạp tiền', approvals: 'Phê duyệt thay đổi', audit: 'Nhật ký quản trị' };
     const statusMeta = {
         CHO_XAC_NHAN: ['Chờ xác nhận', ''], DANG_GIAO: ['Đang giao', 'admin-badge--info'],
         HOAN_THANH: ['Hoàn thành', 'admin-badge--success'], DA_HUY: ['Đã hủy', 'admin-badge--danger'],
@@ -32,7 +32,8 @@
         products: [], productPage: 1, productTotal: 0,
         orders: [], orderPage: 1, orderTotal: 0,
         users: [], userPage: 1, userTotal: 0,
-        deposits: [], content: [], vouchers: [], support: [], supportPage: 1, supportTotal: 0
+        deposits: [], content: [], vouchers: [], support: [], supportPage: 1, supportTotal: 0,
+        chatThreads: [], chatThreadId: null, chatMessages: [], chatLastId: 0
     };
     let pendingUserAvatar = null;
     let approvalReviewId = null;
@@ -293,6 +294,7 @@
         if (view === 'users') return loadUsers();
         if (view === 'content') return loadContent();
         if (view === 'support') return loadSupport();
+        if (view === 'chat') return loadAdminChatThreads();
         if (view === 'notifications') return loadCustomerNotices();
         if (view === 'vouchers') return loadVouchers();
         if (view === 'deposits') return loadDeposits();
@@ -2185,6 +2187,115 @@
     async function openApprovalEvidence(changeId){try{const data=await Auth.request(`/api/admin/phe-duyet-thay-doi/${changeId}/tep-minh-chung`);for(const file of data.files||[]){const response=await fetch(`${window.API_BASE}/api/admin/tep-xac-minh/${file.MaChungTu}`,{headers:{Authorization:`Bearer ${Auth.getToken()}`}});if(!response.ok)throw new Error('Không tải được tệp bằng chứng.');const url=URL.createObjectURL(await response.blob());const opened=window.open(url,'_blank','noopener');if(!opened){const link=document.createElement('a');link.href=url;link.download=file.TenTepTin;link.click();}window.setTimeout(()=>URL.revokeObjectURL(url),60000);}}catch(error){showToast(error.message,'error');}}
     async function openPaymentProof(orderId){const dialog=$('#paymentProofDialog');const image=$('#paymentProofPreview');const status=$('#paymentProofDialogStatus');if(paymentProofObjectUrl)URL.revokeObjectURL(paymentProofObjectUrl);image.removeAttribute('src');status.textContent='Đang tải ảnh…';dialog.showModal();try{const response=await fetch(`${window.API_BASE}/api/admin/don-hang/${orderId}/chung-tu-thanh-toan`,{headers:{Authorization:`Bearer ${Auth.getToken()}`}});if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.message||'Không tải được ảnh.');}paymentProofObjectUrl=URL.createObjectURL(await response.blob());image.src=paymentProofObjectUrl;status.textContent=`Ảnh thanh toán đơn #${orderId}`;}catch(error){status.textContent=error.message;}}
 
+    async function loadAdminChatThreads() {
+        const list = $('#adminChatThreads');
+        if (!state.chatThreads.length) list.innerHTML = '<p class="admin-empty-cell">Đang tải hội thoại…</p>';
+        try {
+            const query = $('#adminChatQuery').value.trim();
+            const data = await Auth.request(`/api/admin/chat?limit=80&q=${encodeURIComponent(query)}`);
+            state.chatThreads = data.threads || [];
+            renderAdminChatThreads();
+            updateNavBadge($('#navUnreadChat'), data.unread_total ?? state.chatThreads.reduce((sum, thread) => sum + Number(thread.ChuaDoc || 0), 0));
+            if (state.chatThreadId && !state.chatThreads.some(thread => Number(thread.MaHoiThoai) === Number(state.chatThreadId))) {
+                state.chatThreadId = null;
+                state.chatMessages = [];
+                renderAdminChatMessages();
+            }
+        } catch (error) {
+            list.innerHTML = '';
+            list.append(element('p', 'admin-empty-cell', 'Không tải được hộp thư: ' + error.message));
+        }
+    }
+    function renderAdminChatThreads() {
+        const list = $('#adminChatThreads');
+        list.innerHTML = '';
+        if (!state.chatThreads.length) {
+            list.append(element('p', 'admin-empty-cell', 'Chưa có hội thoại nào.'));
+            return;
+        }
+        state.chatThreads.forEach(thread => {
+            const button = element('button', 'store-admin-chat__thread' + (Number(thread.MaHoiThoai) === Number(state.chatThreadId) ? ' is-active' : ''));
+            button.type = 'button';
+            const heading = element('span', 'store-admin-chat__thread-head');
+            heading.append(element('strong', '', thread.HoTen || thread.TenDangNhap || 'Khách hàng'));
+            if (Number(thread.ChuaDoc)) heading.append(element('em', '', String(thread.ChuaDoc)));
+            const preview = element('span', 'store-admin-chat__thread-preview', thread.TinCuoi || 'Bắt đầu cuộc trò chuyện');
+            const meta = element('span', 'store-admin-chat__thread-meta', `@${thread.TenDangNhap || 'khach'} · ${formatDate(thread.NgayCapNhat)}`);
+            button.append(heading, preview, meta);
+            button.addEventListener('click', () => openAdminChatThread(thread));
+            list.appendChild(button);
+        });
+    }
+    async function openAdminChatThread(thread) {
+        state.chatThreadId = Number(thread.MaHoiThoai);
+        state.chatMessages = [];
+        state.chatLastId = 0;
+        renderAdminChatThreads();
+        $('#adminChatMessage').disabled = false;
+        $('#adminChatSend').disabled = false;
+        $('#adminChatContact').innerHTML = '';
+        $('#adminChatContact').append(element('strong', '', thread.HoTen || thread.TenDangNhap || 'Khách hàng'));
+        $('#adminChatContact').append(element('span', '', `${thread.Email || ''}${thread.SoDienThoai ? ' · ' + thread.SoDienThoai : ''}`));
+        await loadAdminChatMessages(true);
+        loadAdminChatThreads();
+    }
+    async function loadAdminChatMessages(initial = false) {
+        const id = state.chatThreadId;
+        if (!id) return;
+        const pane = $('#adminChatMessages');
+        const wasAtBottom = pane.scrollHeight - pane.scrollTop - pane.clientHeight < 60;
+        try {
+            const after = initial ? 0 : state.chatLastId;
+            const data = await Auth.request(`/api/admin/chat/${id}?after=${after}`);
+            if (id !== state.chatThreadId) return;
+            if (initial) state.chatMessages = data.messages || [];
+            else state.chatMessages.push(...(data.messages || []));
+            if (state.chatMessages.length) state.chatLastId = Number(state.chatMessages[state.chatMessages.length - 1].MaTinNhan) || state.chatLastId;
+            renderAdminChatMessages();
+            if (wasAtBottom || initial) pane.scrollTop = pane.scrollHeight;
+        } catch (error) {
+            if (initial) pane.replaceChildren(element('p', 'admin-empty-cell', error.message));
+        }
+    }
+    function renderAdminChatMessages() {
+        const pane = $('#adminChatMessages');
+        pane.innerHTML = '';
+        if (!state.chatThreadId) {
+            pane.append(element('p', 'admin-empty-cell', 'Chọn một khách hàng để xem nội dung.'));
+            return;
+        }
+        if (!state.chatMessages.length) {
+            pane.append(element('p', 'admin-empty-cell', 'Chưa có tin nhắn. Bạn có thể gửi lời chào trước.'));
+            return;
+        }
+        state.chatMessages.forEach(message => {
+            const item = element('article', 'store-chat-message ' + (message.VaiTroGui === 'ADMIN' ? 'is-agent' : 'is-customer'));
+            item.append(element('p', '', message.NoiDung));
+            item.append(element('time', '', `${message.VaiTroGui === 'ADMIN' ? 'Cửa hàng' : 'Khách hàng'} · ${formatDate(message.NgayTao)}`));
+            pane.appendChild(item);
+        });
+    }
+    async function sendAdminChatMessage(event) {
+        event.preventDefault();
+        const id = state.chatThreadId;
+        const input = $('#adminChatMessage');
+        const message = input.value.trim();
+        if (!id || !message) return;
+        const button = $('#adminChatSend');
+        setBusy(button, true, 'Đang gửi…');
+        try {
+            await Auth.request(`/api/admin/chat/${id}/messages`, { method: 'POST', json: { message } });
+            input.value = '';
+            await loadAdminChatMessages(false);
+            await loadAdminChatThreads();
+            input.focus();
+        } catch (error) {
+            setStatus($('#adminChatStatus'), error.message);
+        } finally {
+            setBusy(button, false);
+        }
+    }
+
     async function loadSupport(){const tbody=$('#supportRows');emptyRow(tbody,7,'Đang tải yêu cầu hỗ trợ…');const params=new URLSearchParams({page:state.supportPage,limit:20,status:$('#supportStatus').value,q:$('#supportQuery').value.trim()});try{const data=await Auth.request(`/api/admin/ho-tro?${params}`);state.support=data.requests||[];state.supportTotal=Number(data.total)||0;renderSupport();}catch(error){
         state.support = []; state.supportTotal = 0;
         emptyRow($('#supportRows'), 7, 'Không tải được dữ liệu. ' + error.message);
@@ -2556,6 +2667,11 @@
         $('#userPrev').addEventListener('click',()=>{if(state.userPage>1){state.userPage-=1;loadUsers();}});$('#userNext').addEventListener('click',()=>{if(state.userPage*20<state.userTotal){state.userPage+=1;loadUsers();}});
         $('#contentTypeFilter').addEventListener('change',loadContent);$('#addContent').addEventListener('click',()=>openContentDialog());$('#contentForm').addEventListener('submit',saveContent);$('#contentActive').addEventListener('change',syncContentPublishHint);
         $('#supportSearch').addEventListener('submit',(event)=>{event.preventDefault();state.supportPage=1;loadSupport();});$('#supportStatus').addEventListener('change',()=>{state.supportPage=1;loadSupport();});$('#supportPrev').addEventListener('click',()=>{if(state.supportPage>1){state.supportPage-=1;loadSupport();}});$('#supportNext').addEventListener('click',()=>{if(state.supportPage*20<state.supportTotal){state.supportPage+=1;loadSupport();}});$('#supportForm').addEventListener('submit',saveSupport);
+        $('#adminChatSearch').addEventListener('submit',(event)=>{event.preventDefault();loadAdminChatThreads();});
+        $('#chatRefresh').addEventListener('click',()=>{loadAdminChatThreads();loadAdminChatMessages(false);});
+        $('#adminChatReply').addEventListener('submit',sendAdminChatMessage);
+        loadAdminChatThreads();
+        window.setInterval(()=>{loadAdminChatThreads();if(state.currentView==='chat')loadAdminChatMessages(false);},10000);
         $('#contentImage').addEventListener('input',renderContentImagePreview);$('#uploadContentImage').addEventListener('click',()=>$('#contentImageFile').click());$('#contentImageFile').addEventListener('change',async(event)=>{const file=event.target.files?.[0];if(!file)return;try{$('#contentImage').value=await uploadAdminImage(file,'content',$('#uploadContentImage'));renderContentImagePreview();showToast('Đã tải ảnh bài viết.','success');}catch(error){setStatus($('#contentFormStatus'),error.message);}finally{event.target.value='';}});
         $('#addVoucher').addEventListener('click',openVoucherDialog);$('#voucherForm').addEventListener('submit',saveVoucher);
         $('#depositAdminStatus').addEventListener('change',loadDeposits);$('#depositDecisionForm').addEventListener('submit',saveDepositDecision);

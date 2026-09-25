@@ -352,6 +352,7 @@ DATABASE_TABLE_NAMES = {
     "phiendangnhap", "sanpham", "schemamigration", "voucher", "yeucaunaptien",
     "datlaimatkhau", "sudungvoucher", "yeuthich", "yeucauhotro", "tepxacminh",
     "thongbaokhachhang", "thongbaodadoc", "pheduyetbosung",
+    "chathoithoai", "chattinnhan",
 }
 _TABLE_REFERENCE_RE = re.compile(
     r"\b(FROM|JOIN|UPDATE|INTO|TABLE|REFERENCES)\s+`?("
@@ -2723,6 +2724,101 @@ def create_support_request():
         conn.close()
 
 
+@app.get("/api/chat")
+@auth_required
+def get_customer_chat():
+    """Tạo/lấy hội thoại riêng của khách và trả các tin sau cursor."""
+    user_id = g.current_user["MaND"]
+    after_id = clamp_int(request.args.get("after"), 0, 0, 2_147_483_647)
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            """INSERT INTO ChatHoiThoai (MaND) VALUES (%s)
+               ON DUPLICATE KEY UPDATE MaHoiThoai=LAST_INSERT_ID(MaHoiThoai)""",
+            (user_id,),
+        )
+        thread_id = cursor.lastrowid
+        if not thread_id:
+            cursor.execute("SELECT MaHoiThoai FROM ChatHoiThoai WHERE MaND=%s", (user_id,))
+            row = cursor.fetchone()
+            if not row:
+                conn.rollback()
+                return api_error("Không tạo được hội thoại.", 503, "chat_unavailable")
+            thread_id = row["MaHoiThoai"]
+        cursor.execute(
+            """SELECT MaTinNhan,MaNDGui,VaiTroGui,NoiDung,NgayTao
+               FROM ChatTinNhan WHERE MaHoiThoai=%s AND MaTinNhan>%s
+               ORDER BY MaTinNhan ASC LIMIT 100""",
+            (thread_id, after_id),
+        )
+        messages = [serialize_row(row) for row in cursor.fetchall()]
+        cursor.execute(
+            """UPDATE ChatTinNhan SET KhachDaDoc=1
+               WHERE MaHoiThoai=%s AND VaiTroGui='ADMIN' AND KhachDaDoc=0""",
+            (thread_id,),
+        )
+        cursor.execute(
+            "SELECT MaHoiThoai,TrangThai,NgayTao,NgayCapNhat FROM ChatHoiThoai WHERE MaHoiThoai=%s",
+            (thread_id,),
+        )
+        thread = serialize_row(cursor.fetchone())
+        conn.commit()
+        return jsonify({"success": True, "thread": thread, "messages": messages})
+    except mysql.connector.Error:
+        conn.rollback()
+        app.logger.exception("Không thể tải hội thoại khách hàng")
+        return api_error("Hộp thư chưa sẵn sàng. Hãy áp dụng migration mới.", 503, "chat_schema_unavailable")
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.post("/api/chat/messages")
+@auth_required
+def send_customer_chat_message():
+    user_id = g.current_user["MaND"]
+    allowed, retry_after = RATE_LIMITER.check("chat-user", str(user_id), 12, 60, consume=False)
+    if not allowed:
+        response = jsonify({"success": False, "message": "Bạn gửi tin hơi nhanh. Hãy đợi một chút rồi thử lại.", "code": "rate_limited", "retry_after": retry_after})
+        response.status_code = 429
+        response.headers["Retry-After"] = str(retry_after)
+        return response
+    message = str(body_json().get("message", "")).strip()
+    if not message or len(message) > 2000:
+        return api_error("Tin nhắn cần có từ 1 đến 2.000 ký tự.", 400, "invalid_chat_message")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """INSERT INTO ChatHoiThoai (MaND) VALUES (%s)
+               ON DUPLICATE KEY UPDATE MaHoiThoai=LAST_INSERT_ID(MaHoiThoai)""",
+            (user_id,),
+        )
+        thread_id = cursor.lastrowid
+        if not thread_id:
+            cursor.execute("SELECT MaHoiThoai FROM ChatHoiThoai WHERE MaND=%s", (user_id,))
+            thread_id = cursor.fetchone()[0]
+        cursor.execute(
+            """INSERT INTO ChatTinNhan
+               (MaHoiThoai,MaNDGui,VaiTroGui,NoiDung,AdminDaDoc,KhachDaDoc)
+               VALUES (%s,%s,'CUSTOMER',%s,0,1)""",
+            (thread_id, user_id, message),
+        )
+        message_id = cursor.lastrowid
+        cursor.execute("UPDATE ChatHoiThoai SET TrangThai='MOI',NgayCapNhat=NOW() WHERE MaHoiThoai=%s", (thread_id,))
+        conn.commit()
+        RATE_LIMITER.check("chat-user", str(user_id), 12, 60)
+        return jsonify({"success": True, "message_id": message_id}), 201
+    except mysql.connector.Error:
+        conn.rollback()
+        app.logger.exception("Không thể gửi tin nhắn khách hàng")
+        return api_error("Chưa gửi được tin nhắn. Vui lòng thử lại sau.", 503, "chat_send_failed")
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.get("/api/tim-kiem")
 def search_products():
     keyword = request.args.get("q", "").strip()[:120]
@@ -4191,6 +4287,142 @@ def admin_support_requests():
             503,
             "support_schema_unavailable",
         )
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.get("/api/admin/chat")
+@admin_required
+def admin_chat_threads():
+    query = str(request.args.get("q", "")).strip()[:100]
+    limit = clamp_int(request.args.get("limit"), 80, 1, 100)
+    where = ""
+    params = []
+    if query:
+        pattern = "%" + query + "%"
+        where = "WHERE nd.HoTen LIKE %s OR nd.TenDangNhap LIKE %s OR nd.Email LIKE %s"
+        params.extend([pattern, pattern, pattern])
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            """SELECT COUNT(*) AS total FROM ChatTinNhan
+               WHERE VaiTroGui='CUSTOMER' AND AdminDaDoc=0"""
+        )
+        unread_total = int(cursor.fetchone()["total"])
+        cursor.execute(
+            """SELECT c.MaHoiThoai,c.MaND,c.TrangThai,c.NgayTao,c.NgayCapNhat,
+                      nd.HoTen,nd.TenDangNhap,nd.Email,nd.Avatar,
+                      last.NoiDung AS TinCuoi,last.VaiTroGui AS VaiTroTinCuoi,
+                      (SELECT COUNT(*) FROM ChatTinNhan unread
+                       WHERE unread.MaHoiThoai=c.MaHoiThoai
+                         AND unread.VaiTroGui='CUSTOMER' AND unread.AdminDaDoc=0) AS ChuaDoc
+               FROM ChatHoiThoai c
+               JOIN NguoiDung nd ON nd.MaND=c.MaND
+               LEFT JOIN ChatTinNhan last ON last.MaTinNhan=(
+                    SELECT MAX(last_id.MaTinNhan) FROM ChatTinNhan last_id
+                    WHERE last_id.MaHoiThoai=c.MaHoiThoai)
+               """ + where + """
+               ORDER BY c.NgayCapNhat DESC,c.MaHoiThoai DESC LIMIT %s""",
+            params + [limit],
+        )
+        return jsonify({"success": True, "threads": [serialize_row(row) for row in cursor.fetchall()], "unread_total": unread_total})
+    except mysql.connector.Error:
+        app.logger.exception("Không thể tải hộp thư chat quản trị")
+        return api_error("Hộp thư chat chưa sẵn sàng. Hãy áp dụng migration mới.", 503, "chat_schema_unavailable")
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.get("/api/admin/chat/<int:thread_id>")
+@admin_required
+def admin_get_chat_thread(thread_id):
+    after_id = clamp_int(request.args.get("after"), 0, 0, 2_147_483_647)
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            """SELECT c.MaHoiThoai,c.MaND,c.TrangThai,c.NgayTao,c.NgayCapNhat,
+                      nd.HoTen,nd.TenDangNhap,nd.Email,nd.SoDienThoai,nd.Avatar
+               FROM ChatHoiThoai c JOIN NguoiDung nd ON nd.MaND=c.MaND
+               WHERE c.MaHoiThoai=%s LIMIT 1""",
+            (thread_id,),
+        )
+        thread = cursor.fetchone()
+        if not thread:
+            return api_error("Không tìm thấy hội thoại.", 404, "chat_not_found")
+        if after_id:
+            cursor.execute(
+                """SELECT MaTinNhan,MaNDGui,VaiTroGui,NoiDung,NgayTao
+                   FROM ChatTinNhan WHERE MaHoiThoai=%s AND MaTinNhan>%s
+                   ORDER BY MaTinNhan ASC LIMIT 100""",
+                (thread_id, after_id),
+            )
+        else:
+            cursor.execute(
+                """SELECT MaTinNhan,MaNDGui,VaiTroGui,NoiDung,NgayTao
+                   FROM (SELECT MaTinNhan,MaNDGui,VaiTroGui,NoiDung,NgayTao
+                         FROM ChatTinNhan WHERE MaHoiThoai=%s
+                         ORDER BY MaTinNhan DESC LIMIT 100) recent
+                   ORDER BY MaTinNhan ASC""",
+                (thread_id,),
+            )
+        messages = [serialize_row(row) for row in cursor.fetchall()]
+        cursor.execute(
+            """UPDATE ChatTinNhan SET AdminDaDoc=1
+               WHERE MaHoiThoai=%s AND VaiTroGui='CUSTOMER' AND AdminDaDoc=0""",
+            (thread_id,),
+        )
+        cursor.execute("UPDATE ChatHoiThoai SET TrangThai='DANG_XU_LY' WHERE MaHoiThoai=%s AND TrangThai='MOI'", (thread_id,))
+        conn.commit()
+        return jsonify({"success": True, "thread": serialize_row(thread), "messages": messages})
+    except mysql.connector.Error:
+        conn.rollback()
+        app.logger.exception("Không thể đọc hội thoại quản trị")
+        return api_error("Không thể đọc hội thoại lúc này.", 503, "chat_read_failed")
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.post("/api/admin/chat/<int:thread_id>/messages")
+@admin_required
+def admin_send_chat_message(thread_id):
+    admin_id = g.current_user["MaND"]
+    allowed, retry_after = RATE_LIMITER.check("chat-admin", str(admin_id), 40, 60, consume=False)
+    if not allowed:
+        response = jsonify({"success": False, "message": "Bạn gửi tin hơi nhanh. Hãy đợi một chút rồi thử lại.", "code": "rate_limited", "retry_after": retry_after})
+        response.status_code = 429
+        response.headers["Retry-After"] = str(retry_after)
+        return response
+    message = str(body_json().get("message", "")).strip()
+    if not message or len(message) > 2000:
+        return api_error("Tin nhắn cần có từ 1 đến 2.000 ký tự.", 400, "invalid_chat_message")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT MaND FROM ChatHoiThoai WHERE MaHoiThoai=%s FOR UPDATE", (thread_id,))
+        thread = cursor.fetchone()
+        if not thread:
+            conn.rollback()
+            return api_error("Không tìm thấy hội thoại.", 404, "chat_not_found")
+        cursor.execute(
+            """INSERT INTO ChatTinNhan
+               (MaHoiThoai,MaNDGui,VaiTroGui,NoiDung,AdminDaDoc,KhachDaDoc)
+               VALUES (%s,%s,'ADMIN',%s,1,0)""",
+            (thread_id, admin_id, message),
+        )
+        message_id = cursor.lastrowid
+        cursor.execute("UPDATE ChatHoiThoai SET TrangThai='DA_PHAN_HOI',NgayCapNhat=NOW() WHERE MaHoiThoai=%s", (thread_id,))
+        conn.commit()
+        RATE_LIMITER.check("chat-admin", str(admin_id), 40, 60)
+        return jsonify({"success": True, "message_id": message_id}), 201
+    except mysql.connector.Error:
+        conn.rollback()
+        app.logger.exception("Không thể gửi phản hồi chat quản trị")
+        return api_error("Chưa gửi được phản hồi. Vui lòng thử lại.", 503, "chat_send_failed")
     finally:
         cursor.close()
         conn.close()

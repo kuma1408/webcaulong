@@ -1142,3 +1142,25 @@
 // Aliases lexical cho mã inline cũ. Giá trị danh tính không bao giờ lấy từ username localStorage.
 const API_BASE = window.API_BASE;
 const API_HEADERS = window.API_HEADERS;
+
+// Widget hội thoại dùng chung trên các trang cửa hàng; không chèn vào Admin.
+(function loadStoreChatWidgets() {
+    function install() {
+        if (!document.body || document.body.classList.contains('admin-body')) return;
+        if (!document.querySelector('link[data-store-chat-styles]')) {
+            const styles = document.createElement('link');
+            styles.rel = 'stylesheet';
+            styles.href = new URL('css/store-chat.css?v=20260926-1', document.baseURI).href;
+            styles.dataset.storeChatStyles = 'true';
+            document.head.appendChild(styles);
+        }
+        if (document.querySelector('script[data-store-chat-widget]')) return;
+        const script = document.createElement('script');
+        script.src = new URL('css/store-chat.js?v=20260926-1', document.baseURI).href;
+        script.dataset.storeChatWidget = 'true';
+        script.defer = true;
+        document.body.appendChild(script);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true });
+    else install();
+})();
