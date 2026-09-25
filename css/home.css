@@ -6,6 +6,28 @@ html .hero {
         linear-gradient(125deg, #402438 0%, #252537 58%, #14232d 100%) !important;
     border-color: #d989664d;
 }
+
+/* Let the colour field flow into the campaign artwork instead of ending at a hard seam. */
+@media (min-width: 901px) {
+    html .hero__visual {
+        background: transparent !important;
+    }
+
+    html .hero__visual img {
+        -webkit-mask-image: linear-gradient(90deg,
+                transparent 0%,
+                rgba(0, 0, 0, .22) 5%,
+                rgba(0, 0, 0, .68) 13%,
+                #000 24%,
+                #000 100%);
+        mask-image: linear-gradient(90deg,
+                transparent 0%,
+                rgba(0, 0, 0, .22) 5%,
+                rgba(0, 0, 0, .68) 13%,
+                #000 24%,
+                #000 100%);
+    }
+}
 html .hero h1 em {
     background: linear-gradient(100deg, #ffb396, #ffc878 70%, #ffe2ab) !important;
     background-clip: text !important;
