@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-MIGRATION_VERSION = "2026-09-25-customer-notifications-approval-evidence-v10"
+MIGRATION_VERSION = "2026-09-25-approval-supplement-evidence-v11"
 LOCK_NAME = "shop_caulong_schema_migration"
 BASE_TABLES = {
     "nguoidung": {
@@ -91,6 +91,10 @@ OPTIONAL_MANAGED_TABLES = {
         "madoituong", "mathongbaogoc", "nguoitao", "dathuhoi", "ngaytao",
     },
     "thongbaodadoc": {"mathongbao", "mand", "ngaydoc"},
+    "pheduyetbosung": {
+        "mabosung", "mathaydoi", "maadmin", "masuperadmin", "yeucau",
+        "traloi", "trangthai", "ngaytao", "ngaygui",
+    },
 }
 
 
@@ -832,6 +836,31 @@ def build_plan(cursor, database: str) -> list[Operation]:
             """,
         ))
 
+    if "pheduyetbosung" not in tables:
+        operations.append(Operation(
+            "table:pheduyetbosung",
+            "Tạo luồng yêu cầu Admin bổ sung bằng chứng phê duyệt có lưu lịch sử",
+            f"""
+            CREATE TABLE `pheduyetbosung` (
+                `MaBoSung` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `MaThayDoi` BIGINT UNSIGNED NOT NULL,
+                `MaAdmin` {user_id_type} NOT NULL,
+                `MaSuperAdmin` {user_id_type} NOT NULL,
+                `YeuCau` TEXT NOT NULL,
+                `TraLoi` TEXT NULL,
+                `TrangThai` VARCHAR(24) NOT NULL DEFAULT 'CHO_ADMIN',
+                `NgayTao` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `NgayGui` DATETIME NULL,
+                PRIMARY KEY (`MaBoSung`),
+                KEY `idx_pheduyetbosung_admin_status` (`MaAdmin`,`TrangThai`,`NgayTao`),
+                KEY `idx_pheduyetbosung_change_date` (`MaThayDoi`,`NgayTao`),
+                CONSTRAINT `fk_pheduyetbosung_change` FOREIGN KEY (`MaThayDoi`) REFERENCES {identifier(actual("PheDuyetThayDoi"))} (`MaThayDoi`) ON DELETE CASCADE,
+                CONSTRAINT `fk_pheduyetbosung_admin` FOREIGN KEY (`MaAdmin`) REFERENCES {user_table_sql} (`MaND`) ON DELETE CASCADE,
+                CONSTRAINT `fk_pheduyetbosung_superadmin` FOREIGN KEY (`MaSuperAdmin`) REFERENCES {user_table_sql} (`MaND`) ON DELETE RESTRICT
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            """,
+        ))
+
     add_index_if_missing(
         operations,
         indexes,
@@ -910,7 +939,7 @@ def build_plan(cursor, database: str) -> list[Operation]:
                 f"version:{MIGRATION_VERSION}",
                 f"Ghi nhận migration {MIGRATION_VERSION}",
                 f"INSERT IGNORE INTO {migration_table_sql} (`Version`, `Description`) "
-                f"VALUES ('{MIGRATION_VERSION}', 'Customer notifications and optional Super Admin penalty evidence')",
+                f"VALUES ('{MIGRATION_VERSION}', 'Admin supplemental evidence requests and Super Admin approval workflow')",
             )
         )
     return operations

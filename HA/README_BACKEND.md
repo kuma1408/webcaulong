@@ -39,8 +39,11 @@ trước khi dùng các chức năng này; trạng thái hoàn tác cũ chỉ c�
 Migration `2026-09-25-customer-notifications-approval-evidence-v10` bổ sung
 hộp thông báo khách hàng (trạng thái đã đọc, gửi toàn bộ hoặc theo tài khoản,
 thu hồi), thông báo tự động khi xác nhận chuyển khoản/giao hàng/hoàn tất và cờ
-biên bản phạt Admin. Trong quy trình phê duyệt Super Admin, lời giải thích luôn
-bắt buộc; tệp chỉ bắt buộc khi đánh dấu biên bản phạt.
+biên bản phạt Admin. Migration `2026-09-25-approval-supplement-evidence-v11`
+tạo lịch sử yêu cầu bổ sung minh chứng: Super Admin có thể yêu cầu Admin gửi
+thêm tệp và lời giải thích; sau khi gửi, thay đổi quay lại hàng chờ phê duyệt.
+Lịch sử từ chối/yêu cầu trước đó được giữ nguyên. Tệp chỉ bắt buộc khi lập
+biên bản phạt hoặc khi Admin trả lời yêu cầu bổ sung.
 
 ## 3. Tạo admin đầu tiên
 

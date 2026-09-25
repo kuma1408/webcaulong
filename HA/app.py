@@ -351,7 +351,7 @@ DATABASE_TABLE_NAMES = {
     "lichsugiaodich", "nhatkyquantri", "nguoidung", "pheduyetthaydoi",
     "phiendangnhap", "sanpham", "schemamigration", "voucher", "yeucaunaptien",
     "datlaimatkhau", "sudungvoucher", "yeuthich", "yeucauhotro", "tepxacminh",
-    "thongbaokhachhang", "thongbaodadoc",
+    "thongbaokhachhang", "thongbaodadoc", "pheduyetbosung",
 }
 _TABLE_REFERENCE_RE = re.compile(
     r"\b(FROM|JOIN|UPDATE|INTO|TABLE|REFERENCES)\s+`?("
@@ -4726,6 +4726,7 @@ def superadmin_changes():
         )
         summary = {
             "CHO_XEM": 0,
+            "CHO_BO_SUNG": 0,
             "DA_XAC_NHAN": 0,
             "DA_TU_CHOI": 0,
             "DA_HOAN_TAC": 0,  # Giữ số liệu lịch sử, không còn thao tác hoàn tác.
@@ -4737,13 +4738,16 @@ def superadmin_changes():
 
         params = []
         where = ""
-        if status in {"CHO_XEM", "DA_XAC_NHAN", "DA_TU_CHOI", "DA_HOAN_TAC"}:
+        if status in {"CHO_XEM", "CHO_BO_SUNG", "DA_XAC_NHAN", "DA_TU_CHOI", "DA_HOAN_TAC"}:
             where = "WHERE p.TrangThai=%s"
             params.append(status)
         cursor.execute(
             f"""
             SELECT p.*,
                    (SELECT COUNT(*) FROM TepXacMinh tx WHERE tx.Loai='PHE_DUYET' AND tx.MaDoiTuong=p.MaThayDoi) AS SoTepBangChung,
+                   (SELECT COUNT(*) FROM PheDuyetBoSung bs WHERE bs.MaThayDoi=p.MaThayDoi AND bs.TrangThai='DA_GUI') AS SoLanBoSung,
+                   (SELECT bs.TraLoi FROM PheDuyetBoSung bs WHERE bs.MaThayDoi=p.MaThayDoi AND bs.TrangThai='DA_GUI' ORDER BY bs.NgayGui DESC LIMIT 1) AS GhiChuBoSung,
+                   (SELECT bs.NgayGui FROM PheDuyetBoSung bs WHERE bs.MaThayDoi=p.MaThayDoi AND bs.TrangThai='DA_GUI' ORDER BY bs.NgayGui DESC LIMIT 1) AS NgayBoSung,
                    a.TenDangNhap, a.HoTen,
                    s.TenDangNhap AS SuperAdminXuLy,
                    approval_order.TongTien AS OrderTongTien,
@@ -4799,6 +4803,94 @@ def superadmin_changes():
         conn.close()
 
 
+@app.get("/api/admin/phe-duyet-bo-sung")
+@admin_required
+def admin_supplemental_evidence_requests():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            """SELECT bs.MaBoSung,bs.MaThayDoi,bs.YeuCau,bs.TraLoi,bs.TrangThai,
+                      bs.NgayTao,bs.NgayGui,p.HanhDong,p.DoiTuong,p.MaDoiTuong,
+                      p.DuLieuTruoc,p.DuLieuSau,p.GhiChu AS GhiChuPheDuyet,
+                      (SELECT COUNT(*) FROM TepXacMinh tx WHERE tx.Loai='PHE_DUYET' AND tx.MaDoiTuong=p.MaThayDoi) AS SoTepDaGui
+                 FROM PheDuyetBoSung bs
+                 JOIN PheDuyetThayDoi p ON p.MaThayDoi=bs.MaThayDoi
+                WHERE bs.MaAdmin=%s ORDER BY bs.NgayTao DESC LIMIT 100""",
+            (g.current_user["MaND"],),
+        )
+        rows = [serialize_row(row) for row in cursor.fetchall()]
+        for row in rows:
+            for key in ("DuLieuTruoc", "DuLieuSau"):
+                if isinstance(row.get(key), str):
+                    try:
+                        row[key] = json.loads(row[key])
+                    except (TypeError, ValueError, json.JSONDecodeError):
+                        row[key] = {}
+        return jsonify({"success": True, "requests": rows})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.post("/api/admin/phe-duyet-bo-sung/<int:supplement_id>")
+@admin_required
+def admin_submit_supplemental_evidence(supplement_id):
+    note = str(request.form.get("note", "")).strip()[:1000]
+    uploads = [file for file in request.files.getlist("files") if file and file.filename]
+    if len(note) < 10:
+        return api_error("Lời nhắn cần ít nhất 10 ký tự để giải thích phần bổ sung.")
+    if not 1 <= len(uploads) <= 5:
+        return api_error("Chọn từ 1 đến 5 tệp minh chứng bổ sung.")
+    evidence = []
+    try:
+        for upload in uploads:
+            evidence.append(normalized_private_evidence(upload))
+    except ValueError as error:
+        return evidence_error(error)
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        conn.start_transaction()
+        cursor.execute(
+            """SELECT bs.MaBoSung,bs.MaThayDoi,bs.MaAdmin,bs.TrangThai,
+                      p.TrangThai AS TrangThaiPheDuyet
+                 FROM PheDuyetBoSung bs JOIN PheDuyetThayDoi p ON p.MaThayDoi=bs.MaThayDoi
+                WHERE bs.MaBoSung=%s FOR UPDATE""",
+            (supplement_id,),
+        )
+        item = cursor.fetchone()
+        if not item or item["MaAdmin"] != g.current_user["MaND"]:
+            conn.rollback()
+            return api_error("Không tìm thấy yêu cầu bổ sung dành cho tài khoản này.", 404, "supplement_not_found")
+        if item["TrangThai"] != "CHO_ADMIN" or item["TrangThaiPheDuyet"] != "CHO_BO_SUNG":
+            conn.rollback()
+            return api_error("Yêu cầu này đã được gửi hoặc không còn chờ bổ sung.", 409, "supplement_already_submitted")
+        for filename, mime_type, content in evidence:
+            cursor.execute(
+                "INSERT INTO TepXacMinh (Loai,MaDoiTuong,TenTepTin,MimeType,DuLieu) VALUES ('PHE_DUYET',%s,%s,%s,%s)",
+                (item["MaThayDoi"], filename, mime_type, content),
+            )
+        cursor.execute(
+            "UPDATE PheDuyetBoSung SET TraLoi=%s,TrangThai='DA_GUI',NgayGui=NOW() WHERE MaBoSung=%s",
+            (note, supplement_id),
+        )
+        cursor.execute(
+            "UPDATE PheDuyetThayDoi SET TrangThai='CHO_XEM' WHERE MaThayDoi=%s AND TrangThai='CHO_BO_SUNG'",
+            (item["MaThayDoi"],),
+        )
+        audit_admin(cursor, "SUPPLEMENT_EVIDENCE", "PheDuyetThayDoi", item["MaThayDoi"])
+        conn.commit()
+        return jsonify({"success": True, "message": "Đã gửi minh chứng bổ sung. Yêu cầu đã chuyển lại cho Super Admin xét duyệt."})
+    except mysql.connector.Error:
+        conn.rollback()
+        app.logger.exception("Không thể lưu minh chứng bổ sung")
+        return api_error("Không thể lưu minh chứng bổ sung lúc này.", 409, "supplement_save_failed")
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.patch("/api/admin/phe-duyet-thay-doi/<int:change_id>")
 @superadmin_required
 def superadmin_review_change(change_id):
@@ -4809,6 +4901,11 @@ def superadmin_review_change(change_id):
     if len(note) < 10:
         return api_error("Lời giải thích phải có ít nhất 10 ký tự.")
     penalty_case = str(request.form.get("penalty_case", "")).lower() in {"1", "true", "yes"}
+    request_evidence = str(request.form.get("request_evidence", "")).lower() in {"1", "true", "yes"}
+    if request_evidence and decision != "TU_CHOI":
+        return api_error("Chỉ có thể yêu cầu Admin bổ sung minh chứng khi từ chối quyết định hiện tại.")
+    if request_evidence and penalty_case:
+        return api_error("Hãy yêu cầu Admin bổ sung biên bản trước; không thể đồng thời ghi nhận biên bản phạt.")
     uploads = [file for file in request.files.getlist("files") if file and file.filename]
     if len(uploads) > 5:
         return api_error("Có thể đính kèm tối đa 5 tệp bằng chứng.")
@@ -4945,7 +5042,7 @@ def superadmin_review_change(change_id):
                     "UPDATE YeuCauNapTien SET TrangThai=%s,MaAdminXuLy=%s,NgayXuLy=%s,GhiChuAdmin=%s WHERE MaYeuCau=%s",
                     (before.get("TrangThai"), before.get("MaAdminXuLy"), before.get("NgayXuLy"), before.get("GhiChuAdmin"), entity_id),
                 )
-        final_status = "DA_XAC_NHAN" if decision == "XAC_NHAN" else "DA_TU_CHOI"
+        final_status = "DA_XAC_NHAN" if decision == "XAC_NHAN" else ("CHO_BO_SUNG" if request_evidence else "DA_TU_CHOI")
         for filename, mime_type, content in evidence:
             cursor.execute(
                 "INSERT INTO TepXacMinh (Loai,MaDoiTuong,TenTepTin,MimeType,DuLieu) VALUES ('PHE_DUYET',%s,%s,%s,%s)",
@@ -4955,6 +5052,13 @@ def superadmin_review_change(change_id):
             "UPDATE PheDuyetThayDoi SET TrangThai=%s,MaSuperAdmin=%s,GhiChu=%s,BienBanPhatAdmin=%s,NgayXuLy=NOW() WHERE MaThayDoi=%s",
             (final_status, g.current_user["MaND"], note or None, 1 if penalty_case else 0, change_id),
         )
+        if request_evidence:
+            cursor.execute(
+                """INSERT INTO PheDuyetBoSung
+                   (MaThayDoi,MaAdmin,MaSuperAdmin,YeuCau,TrangThai)
+                   VALUES (%s,%s,%s,%s,'CHO_ADMIN')""",
+                (change_id, change["MaAdmin"], g.current_user["MaND"], note),
+            )
         original_before = json.loads(change["DuLieuTruoc"]) if isinstance(change.get("DuLieuTruoc"), str) else change.get("DuLieuTruoc")
         original_after = json.loads(change["DuLieuSau"]) if isinstance(change.get("DuLieuSau"), str) else change.get("DuLieuSau")
         review_before = {
@@ -4969,6 +5073,7 @@ def superadmin_review_change(change_id):
             "SuperAdminXuLy": g.current_user.get("TenDangNhap"),
             "GhiChuSuperAdmin": note or None,
             "BienBanPhatAdmin": penalty_case,
+            "YeuCauMinhChung": request_evidence,
         })
         audit_admin(
             cursor, decision, "PheDuyetThayDoi", change_id,
@@ -4977,7 +5082,7 @@ def superadmin_review_change(change_id):
             review_before, review_after,
         )
         conn.commit()
-        message = "Đã phê duyệt thay đổi." if decision == "XAC_NHAN" else "Đã từ chối thay đổi; dữ liệu lịch sử được giữ nguyên."
+        message = "Đã phê duyệt thay đổi." if decision == "XAC_NHAN" else ("Đã từ chối và gửi yêu cầu bổ sung minh chứng cho Admin." if request_evidence else "Đã từ chối thay đổi; dữ liệu lịch sử được giữ nguyên.")
         return jsonify({"success": True, "message": message})
     except ValueError:
         conn.rollback()

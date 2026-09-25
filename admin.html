@@ -37,6 +37,7 @@
                     <button type="button" data-admin-view="vouchers"><span aria-hidden="true">%</span>Voucher</button>
                     <button type="button" data-admin-view="deposits"><span aria-hidden="true">₫</span>Nạp tiền <em id="navPendingDeposits" hidden>0</em></button>
                     <button type="button" data-admin-view="approvals" id="approvalNav" hidden><span aria-hidden="true">✓</span>Phê duyệt <em id="navPendingApprovals" hidden>0</em></button>
+                    <button type="button" data-admin-view="supplemental-evidence"><span aria-hidden="true">📎</span>Bổ sung minh chứng <em id="navPendingEvidence" hidden>0</em></button>
                     <button type="button" data-admin-view="audit"><span aria-hidden="true">≡</span>Nhật ký</button>
                 </nav>
                 <div class="admin-sidebar__account"><div class="admin-mini-avatar" id="adminAvatar">A</div><div><strong id="adminName">Quản trị viên</strong><span id="adminUsername">@admin</span></div></div>
@@ -757,9 +758,10 @@
                         </article>
                     </div>
                     <div class="admin-toolbar">
-                        <div class="admin-toolbar__copy"><p>Mỗi quyết định cần lời giải thích và ít nhất một tệp bằng chứng. Từ chối không khôi phục hay xóa dữ liệu lịch sử.</p></div>
+                        <div class="admin-toolbar__copy"><p>Mỗi quyết định cần lời giải thích. Có thể yêu cầu Admin gửi minh chứng bổ sung khi từ chối; tệp chỉ bắt buộc khi lập biên bản phạt. Không khôi phục hay xóa dữ liệu lịch sử.</p></div>
                         <select id="approvalStatus" aria-label="Lọc phê duyệt">
                             <option value="CHO_XEM">Chờ xem</option>
+                            <option value="CHO_BO_SUNG">Chờ Admin bổ sung</option>
                             <option value="DA_XAC_NHAN">Đã xác nhận</option>
                             <option value="DA_TU_CHOI">Đã từ chối</option>
                             <option value="all">Tất cả</option>
@@ -767,11 +769,17 @@
                     </div>
                     <div class="admin-filter-pills" id="approvalFilterPills" role="tablist" aria-label="Lọc nhanh phê duyệt">
                         <button type="button" class="admin-pill-btn is-active" data-filter="CHO_XEM">Chờ xem</button>
+                        <button type="button" class="admin-pill-btn" data-filter="CHO_BO_SUNG">Chờ Admin bổ sung</button>
                         <button type="button" class="admin-pill-btn" data-filter="DA_XAC_NHAN">Đã xác nhận</button>
                         <button type="button" class="admin-pill-btn" data-filter="DA_TU_CHOI">Đã từ chối</button>
                         <button type="button" class="admin-pill-btn" data-filter="all">Tất cả</button>
                     </div>
                     <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Thời gian</th><th>Admin</th><th>Thay đổi</th><th>Đối tượng</th><th>Nội dung</th><th>Quyết định</th></tr></thead><tbody id="approvalRows"><tr><td colspan="6" class="admin-empty-cell">Chỉ Super Admin được xem mục này.</td></tr></tbody></table></div></div>
+                </section>
+
+                <section class="admin-view" data-admin-panel="supplemental-evidence" hidden>
+                    <div class="admin-approval-intro"><span>HỒ SƠ CẦN BỔ SUNG</span><h2>Bổ sung minh chứng</h2><p>Khi Super Admin yêu cầu bổ sung, hãy đính kèm tài liệu/ảnh và giải thích. Sau khi gửi, yêu cầu sẽ quay lại hàng chờ Super Admin; lịch sử từ chối trước đó vẫn được lưu.</p></div>
+                    <div class="admin-card admin-table-card"><div class="admin-card__heading"><div><p class="eyebrow">YÊU CẦU CỦA SUPER ADMIN</p><h2>Hồ sơ của bạn</h2></div><button type="button" id="supplementEvidenceRefresh">Làm mới</button></div><div class="admin-table-wrap"><table><thead><tr><th>Ngày yêu cầu</th><th>Mã thay đổi</th><th>Đối tượng</th><th>Lý do/yêu cầu</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="supplementEvidenceRows"><tr><td colspan="6" class="admin-empty-cell">Chọn mục để tải yêu cầu bổ sung.</td></tr></tbody></table></div></div>
                 </section>
             </div>
         </div>
@@ -981,10 +989,21 @@
             <div class="admin-dialog__heading"><div><p class="eyebrow">Bằng chứng & quyết định</p><h2 id="approvalReviewTitle">Phê duyệt thay đổi</h2></div><button type="button" data-close-dialog="approvalReviewDialog" aria-label="Đóng">×</button></div>
             <p id="approvalReviewDescription">Đính kèm bằng chứng và giải thích quyết định.</p>
             <div class="field"><label for="approvalReviewNote">Lời giải thích *</label><textarea id="approvalReviewNote" rows="3" maxlength="500" required placeholder="Nêu lý do phê duyệt hoặc từ chối…"></textarea></div>
+            <div class="field" id="approvalRequestEvidenceField" hidden><label><input id="approvalRequestEvidence" type="checkbox"> Từ chối lần này và yêu cầu Admin bổ sung minh chứng</label><small>Nếu bật, yêu cầu sẽ chuyển vào mục “Bổ sung minh chứng” của Admin thay vì kết thúc hồ sơ.</small></div>
             <div class="field"><label><input id="approvalPenaltyCase" type="checkbox"> Đây là biên bản phạt Admin (bắt buộc đính kèm bằng chứng)</label><small>Quyết định thông thường chỉ cần lời giải thích. Chỉ bật mục này khi lập biên bản phạt Admin.</small></div>
             <div class="field"><label for="approvalReviewFiles">Tệp/hình ảnh bằng chứng (tùy chọn; 1–5 tệp nếu là biên bản phạt)</label><input id="approvalReviewFiles" type="file" multiple accept="image/jpeg,image/png,image/webp,application/pdf,text/plain,text/csv,application/json,.csv,.json"><small>Ảnh, PDF, TXT, CSV hoặc JSON; tối đa 2 MB mỗi tệp.</small></div>
             <p class="form-status" id="approvalReviewStatus" role="alert"></p>
             <div class="admin-dialog__actions"><button type="button" data-close-dialog="approvalReviewDialog">Hủy</button><button class="admin-primary" id="approvalReviewSubmit" type="submit">Gửi quyết định</button></div>
+        </form>
+    </dialog>
+    <dialog class="admin-dialog" id="supplementEvidenceDialog" aria-labelledby="supplementEvidenceTitle">
+        <form class="admin-dialog__form" id="supplementEvidenceForm">
+            <div class="admin-dialog__heading"><div><p class="eyebrow">PHẢN HỒI YÊU CẦU</p><h2 id="supplementEvidenceTitle">Gửi minh chứng bổ sung</h2></div><button type="button" data-close-dialog="supplementEvidenceDialog" aria-label="Đóng">×</button></div>
+            <p id="supplementEvidenceRequestText"></p>
+            <div class="field"><label for="supplementEvidenceNote">Lời nhắn giải thích *</label><textarea id="supplementEvidenceNote" rows="4" maxlength="1000" required placeholder="Mô tả các tệp đính kèm và phần đã bổ sung…"></textarea></div>
+            <div class="field"><label for="supplementEvidenceFiles">Ảnh/tệp minh chứng * (1–5 tệp)</label><input id="supplementEvidenceFiles" type="file" required multiple accept="image/jpeg,image/png,image/webp,application/pdf,text/plain,text/csv,application/json,.csv,.json"><small>Ảnh, PDF, TXT, CSV hoặc JSON; tối đa 2 MB mỗi tệp, tổng 3 MB.</small></div>
+            <p class="form-status" id="supplementEvidenceStatus" role="alert"></p>
+            <div class="admin-dialog__actions"><button type="button" data-close-dialog="supplementEvidenceDialog">Hủy</button><button class="admin-primary" id="supplementEvidenceSubmit" type="submit">Gửi Super Admin</button></div>
         </form>
     </dialog>
     <dialog class="admin-dialog" id="paymentProofDialog" aria-labelledby="paymentProofTitle"><div class="admin-dialog__form"><div class="admin-dialog__heading"><div><p class="eyebrow">Chứng từ thanh toán</p><h2 id="paymentProofTitle">Ảnh chuyển khoản</h2></div><button type="button" data-close-dialog="paymentProofDialog" aria-label="Đóng">×</button></div><img id="paymentProofPreview" alt="Ảnh chuyển khoản khách hàng" style="display:block;max-width:100%;max-height:70vh;margin:auto;border-radius:12px;object-fit:contain"><p id="paymentProofDialogStatus" class="form-status" role="status"></p></div></dialog>
