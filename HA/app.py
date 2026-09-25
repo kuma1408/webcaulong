@@ -4898,12 +4898,16 @@ def superadmin_review_change(change_id):
     note = str(request.form.get("note", "")).strip()[:500]
     if decision not in {"XAC_NHAN", "TU_CHOI"}:
         return api_error("Quyết định không hợp lệ.")
-    if len(note) < 10:
-        return api_error("Lời giải thích phải có ít nhất 10 ký tự.")
+    if decision == "TU_CHOI" and len(note) < 10:
+        return api_error("Khi từ chối, lời giải thích phải có ít nhất 10 ký tự.")
     penalty_case = str(request.form.get("penalty_case", "")).lower() in {"1", "true", "yes"}
     request_evidence = str(request.form.get("request_evidence", "")).lower() in {"1", "true", "yes"}
     if request_evidence and decision != "TU_CHOI":
         return api_error("Chỉ có thể yêu cầu Admin bổ sung minh chứng khi từ chối quyết định hiện tại.")
+    if request_evidence and len(note) < 15:
+        return api_error("Hãy mô tả rõ minh chứng cần Admin bổ sung (ít nhất 15 ký tự).")
+    if penalty_case and decision != "TU_CHOI":
+        return api_error("Biên bản phạt Admin chỉ có thể lập cùng quyết định từ chối.")
     if request_evidence and penalty_case:
         return api_error("Hãy yêu cầu Admin bổ sung biên bản trước; không thể đồng thời ghi nhận biên bản phạt.")
     uploads = [file for file in request.files.getlist("files") if file and file.filename]
