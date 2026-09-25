@@ -10,19 +10,19 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <!-- CSS -->
     <link href="css/tutaoo.css" rel="stylesheet" style="text/css" />
-    <link href="css/site-refresh.css?v=20260925-checkout-1" rel="stylesheet" />
+    <link href="css/site-refresh.css?v=20260925-checkout-2" rel="stylesheet" />
     <style>
-        .cart-layout {
+        .cart-layout#cartLayout {
             display: grid;
-            grid-template-columns: minmax(0, 1.08fr) minmax(390px, .92fr);
+            grid-template-columns: minmax(0, 1.04fr) minmax(450px, .96fr);
             align-items: start;
-            gap: 24px;
-            max-width: 1240px;
-            margin: 30px auto;
-            padding: 0 20px;
+            gap: 20px;
+            max-width: 1180px;
+            margin: 20px auto 38px;
+            padding: 0 18px;
         }
         @media (max-width: 992px) {
-            .cart-layout {
+            .cart-layout#cartLayout {
                 grid-template-columns: 1fr;
             }
         }
@@ -30,22 +30,22 @@
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 16px;
-            padding: 20px;
+            padding: 18px;
             box-shadow: var(--shadow-sm);
         }
         .cart-item-row {
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 16px 0;
+            gap: 12px;
+            padding: 11px 0;
             border-bottom: 1px solid var(--border-color);
         }
         .cart-item-row:last-child {
             border-bottom: none;
         }
         .cart-item-img {
-            width: 70px;
-            height: 70px;
+            width: 58px;
+            height: 58px;
             object-fit: contain;
             border-radius: 8px;
             background-color: #f8f8fa;
@@ -56,6 +56,7 @@
         }
         .cart-item-details {
             flex-grow: 1;
+            min-width: 0;
         }
         .cart-item-name {
             font-weight: 600;
@@ -76,7 +77,7 @@
             border-radius: 12px;
             overflow: hidden;
             width: auto;
-            min-width: 142px;
+            min-width: 124px;
             background: var(--card-bg);
         }
         .quantity-btn {
@@ -130,7 +131,7 @@
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 16px;
-            padding: 24px;
+            padding: 20px;
             box-shadow: var(--shadow-sm);
             height: fit-content;
             min-width: 0;
@@ -138,8 +139,8 @@
         .summary-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 14px;
+            margin-bottom: 8px;
+            font-size: 12px;
         }
         .checkout-form label {
             display: block;
@@ -159,10 +160,10 @@
         }
         .checkout-form input {
             height: 44px;
-            margin-bottom: 14px;
+            margin-bottom: 0;
         }
         .checkout-form textarea {
-            margin-bottom: 14px;
+            margin-bottom: 0;
         }
         .checkout-form input:focus, .checkout-form textarea:focus, #couponInput:focus {
             border-color: var(--primary-color);
@@ -199,31 +200,86 @@
         }
         .cart-table-container > h2,
         .checkout-box > h2 {
-            padding-bottom: 12px !important;
+            margin: 0 0 14px !important;
+            padding-bottom: 10px !important;
             border-bottom-color: var(--border-color) !important;
             font-size: clamp(21px, 2.2vw, 27px) !important;
             letter-spacing: -.035em;
         }
-        .checkout-box > div[style*="background:var(--bg-color)"] {
-            padding: 18px !important;
-            border-radius: 14px !important;
+        .checkout-compact-head {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(170px, .9fr);
+            align-items: stretch;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .checkout-summary,
+        .checkout-coupon {
+            min-width: 0;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 13px;
+            background: var(--bg-color);
+        }
+        .checkout-summary .summary-row:last-child { margin: 0; }
+        .checkout-summary hr { margin: 7px 0 !important; }
+        .checkout-summary .summary-row:last-child { font-size: 14px !important; }
+        .checkout-summary #totalVal { font-size: 16px !important; }
+        .checkout-coupon { display: flex; flex-direction: column; justify-content: center; gap: 7px; }
+        .checkout-coupon label { margin: 0; font-size: 11px; font-weight: 800; }
+        .checkout-coupon .coupon-box { display: flex; gap: 6px !important; margin: 0 !important; flex-wrap: nowrap !important; }
+        .checkout-coupon #couponInput { height: 40px !important; padding: 8px 10px; font-size: 12px; }
+        .checkout-coupon .btn-filter-apply { min-width: 72px !important; padding: 0 10px !important; font-size: 11px; }
+        .checkout-coupon #couponMsg { margin: 0 !important; }
+        .checkout-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0 12px;
         }
         .checkout-form h3 {
-            margin: 22px 0 14px !important;
-            padding-top: 16px;
+            grid-column: 1 / -1;
+            margin: 13px 0 10px !important;
+            padding-top: 12px;
             border-top: 1px solid var(--border-color);
-            font-size: 15px !important;
+            font-size: 14px !important;
         }
-        .checkout-form label { margin-top: 2px; color: var(--text-color); }
+        .checkout-form label { margin: 0; color: var(--text-color); }
+        .checkout-field { display: grid; align-content: start; gap: 5px; min-width: 0; margin-bottom: 9px; }
+        .checkout-field--wide { grid-column: 1 / -1; }
         .checkout-form input,
         .checkout-form textarea,
         #couponInput { min-width: 0; }
-        .pay-method-card { align-items: flex-start; padding: 15px 16px; }
+        .checkout-form .checkout-field textarea { min-height: 58px; max-height: 76px; resize: vertical; padding: 8px 11px !important; font-size: 12px; }
+        .checkout-form #shippingNote { min-height: 42px; max-height: 58px; }
+        .pay-methods { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .pay-method-card { align-items: flex-start; min-width: 0; min-height: 58px; margin: 0; padding: 10px 11px; }
         .pay-method-card input { margin-top: 3px; flex: 0 0 auto; }
         .pay-method-card > div { min-width: 0; }
         .pay-method-card:hover { transform: translateY(-1px); }
         .pay-method-card.active-method { box-shadow: 0 0 0 1px var(--primary-color), 0 8px 22px rgba(178, 36, 16, .08); }
-        #btnPlaceOrder { min-height: 52px; border-radius: 13px; }
+        .pay-method-card#bankingMethodCard { grid-column: 1 / -1; }
+        .pay-method-card > div > div:first-child { font-size: 12px !important; }
+        .pay-method-card > div > div:nth-child(2) { font-size: 10px !important; line-height: 1.45; }
+        .checkout-privacy { grid-column: 1 / -1; margin: 8px 0 0 !important; font-size: 10px !important; line-height: 1.5; }
+        #btnPlaceOrder { grid-column: 1 / -1; min-height: 46px; margin-top: 11px !important; padding: 10px !important; border-radius: 12px; }
+        @media (min-width: 993px) {
+            .cart-table-container #cartItemsList { max-height: min(62vh, 620px); overflow-y: auto; overscroll-behavior: contain; padding-right: 5px; scrollbar-gutter: stable; }
+            .cart-table-container #cartItemsList::-webkit-scrollbar { width: 7px; }
+            .cart-table-container #cartItemsList::-webkit-scrollbar-thumb { border-radius: 99px; background: color-mix(in srgb, var(--border-color) 75%, transparent); }
+        }
+        @media (max-width: 1150px) and (min-width: 993px) {
+            .cart-layout#cartLayout { grid-template-columns: minmax(0, .92fr) minmax(430px, 1.08fr); gap: 14px; padding-inline: 12px; }
+            .checkout-box { padding: 16px; }
+            .checkout-compact-head { grid-template-columns: minmax(0, 1fr); }
+        }
+        @media (max-width: 640px) {
+            .checkout-compact-head { grid-template-columns: minmax(0, 1fr); }
+        }
+        @media (max-width: 380px) {
+            .checkout-form, .pay-methods { grid-template-columns: minmax(0, 1fr); }
+            .checkout-field--wide, .pay-methods, .checkout-privacy, #btnPlaceOrder,
+            .pay-method-card#bankingMethodCard { grid-column: 1; }
+        }
         /* VietQR Order Payment Box */
         .order-bank-payment {
             display: grid;
@@ -293,7 +349,7 @@
             100% { transform: none; }
         }
         @media (max-width: 640px) {
-            .cart-layout { gap: 20px; padding-inline: 12px; }
+            .cart-layout#cartLayout { gap: 14px; padding-inline: 12px; margin-top: 14px; }
             .cart-table-container, .checkout-box { padding: 16px; border-radius: 14px; }
             .cart-item-row { align-items: flex-start; flex-wrap: wrap; }
             .cart-item-details { min-width: calc(100% - 90px); }
@@ -330,7 +386,8 @@
                 <h2 style="margin-top:0; border-bottom:1px solid var(--border-color); padding-bottom:10px;">Thông tin đơn hàng</h2>
                 
                 <!-- Hóa đơn tính toán -->
-                <div style="background:var(--bg-color); border-radius:10px; padding:15px; margin-bottom:20px; border:1px solid var(--border-color);">
+                <div class="checkout-compact-head">
+                  <div class="checkout-summary">
                     <div class="summary-row">
                         <span>Tạm tính:</span>
                         <span id="subtotalVal" style="font-weight:600;">0 ₫</span>
@@ -348,32 +405,41 @@
                         <span>TỔNG CỘNG:</span>
                         <span id="totalVal" style="color:#e53935; font-size:18px;">0 ₫</span>
                     </div>
-                </div>
+                  </div>
 
-                <!-- Nhập mã giảm giá -->
-                <div class="coupon-box" style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
-                    <input type="text" id="couponInput" placeholder="Mã giảm giá (GIAM20, FREESHIP)" style="flex:1 1 180px; min-width:0; height:42px; border-radius:10px; outline:none; text-transform:uppercase;">
-                    <button class="btn-filter-apply" style="width:auto; min-width:96px; margin:0; padding:0 20px; height:42px; border-radius:10px;" onclick="applyCoupon()">Áp dụng</button>
+                  <div class="checkout-coupon">
+                    <label for="couponInput">Mã giảm giá</label>
+                    <div class="coupon-box" style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
+                        <input type="text" id="couponInput" placeholder="GIAM20, FREESHIP" style="flex:1 1 180px; min-width:0; height:42px; border-radius:10px; outline:none; text-transform:uppercase;">
+                        <button class="btn-filter-apply" style="width:auto; min-width:96px; margin:0; padding:0 20px; height:42px; border-radius:10px;" onclick="applyCoupon()">Áp dụng</button>
+                    </div>
+                    <p id="couponMsg" style="font-size:12px; margin-top:-15px; margin-bottom:15px; font-weight:600; display:none;"></p>
+                  </div>
                 </div>
-                <p id="couponMsg" style="font-size:12px; margin-top:-15px; margin-bottom:15px; font-weight:600; display:none;"></p>
 
                 <!-- Form thông tin giao hàng -->
                 <form class="checkout-form" id="checkoutForm" onsubmit="processCheckout(event)">
                     <h3 style="margin-top:0; font-size:16px;">1. Địa chỉ giao hàng</h3>
-                    <label>Họ và tên người nhận</label>
-                    <input type="text" id="shippingName" placeholder="Nguyễn Văn A" required>
-                    
-                    <label>Số điện thoại</label>
-                    <input type="tel" id="shippingPhone" placeholder="0987654321" required>
-                    
-                    <label>Địa chỉ nhận hàng</label>
-                    <textarea id="shippingAddress" rows="3" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..." required style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-color); outline:none; font-family:inherit;"></textarea>
-
-                    <label>Ghi chú đơn hàng (Không bắt buộc)</label>
-                    <textarea id="shippingNote" rows="2" placeholder="Ghi chú về thời gian nhận hàng hoặc hướng dẫn khác..." style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-color); outline:none; font-family:inherit;"></textarea>
+                    <div class="checkout-field">
+                        <label for="shippingName">Họ và tên người nhận</label>
+                        <input type="text" id="shippingName" placeholder="Nguyễn Văn A" required>
+                    </div>
+                    <div class="checkout-field">
+                        <label for="shippingPhone">Số điện thoại</label>
+                        <input type="tel" id="shippingPhone" placeholder="0987654321" required>
+                    </div>
+                    <div class="checkout-field checkout-field--wide">
+                        <label for="shippingAddress">Địa chỉ nhận hàng</label>
+                        <textarea id="shippingAddress" rows="2" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..." required style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-color); outline:none; font-family:inherit;"></textarea>
+                    </div>
+                    <div class="checkout-field checkout-field--wide">
+                        <label for="shippingNote">Ghi chú đơn hàng <span>(không bắt buộc)</span></label>
+                        <textarea id="shippingNote" rows="1" placeholder="Thời gian nhận hàng hoặc hướng dẫn thêm..." style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-color); outline:none; font-family:inherit;"></textarea>
+                    </div>
 
                     <h3 style="margin-top:20px; font-size:16px;">2. Phương thức thanh toán</h3>
                     <!-- Các tùy chọn thanh toán -->
+                    <div class="pay-methods">
                     <div class="pay-method-card active-method" onclick="selectPayMethod('balance')">
                         <input type="radio" name="payment_method" id="payBalance" value="SO_DU" checked>
                         <div>
@@ -400,8 +466,9 @@
                             <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">Mã QR và thông tin chuyển khoản sẽ hiện sau khi bạn nhấn “Đặt hàng ngay”.</div>
                         </div>
                     </div>
+                    </div>
 
-                    <p style="margin:10px 0 0; font-size:12px; color:var(--text-muted);">
+                    <p class="checkout-privacy" style="color:var(--text-muted);">
                         Website không yêu cầu số thẻ, mật khẩu ngân hàng hay OTP. Đơn hàng chỉ được tạo khi bạn nhấn “Đặt hàng ngay”.
                     </p>
 
