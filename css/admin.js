@@ -2084,14 +2084,14 @@
 
     async function loadApprovals(){
         const tbody=$('#approvalRows');emptyRow(tbody,6,'Đang tải thay đổi…');
-        try{const data=await Auth.request(`/api/admin/phe-duyet-thay-doi?status=${encodeURIComponent($('#approvalStatus').value)}`);renderApprovals(data.changes||[]);if($('#approvalStatus').value==='CHO_XEM')updateNavBadge($('#navPendingApprovals'),(data.changes||[]).length);}
+        try{const selected=$('#approvalStatus').value;const data=await Auth.request(`/api/admin/phe-duyet-thay-doi?status=${encodeURIComponent(selected)}`);const changes=Array.isArray(data.changes)?data.changes:[];updateApprovalKpis(changes,data.summary);updateNavBadge($('#navPendingApprovals'),Number(data.summary?.CHO_XEM??changes.filter(item=>item.TrangThai==='CHO_XEM').length));renderApprovals(changes);}
         catch(error){
             console.warn('Backend chưa sẵn sàng, nạp FALLBACK_ADMIN_APPROVALS:', error.message);
             emptyRow($('#approvalRows'), 6, 'Không tải được phê duyệt. ' + error.message);
         }
     }
     function changeSummary(item){const after=item.DuLieuSau||{};if(item.DoiTuong==='YeuCauNapTien')return `${item.HanhDong==='APPROVE'?'Duyệt':'Từ chối'} yêu cầu nạp ${formatMoney(after.SoTien||after.amount||0)}`;if(item.DoiTuong==='SanPham'){if(item.HanhDong==='DELETE')return 'Ngừng bán và đưa tồn kho về 0';const keys=Object.keys(after).filter(key=>!['NgayCapNhat','NgayTao'].includes(key));return `Cập nhật: ${keys.slice(0,4).join(', ')}${keys.length>4?'…':''}`;}return auditDetail(after);}
-    function renderApprovals(items){const tbody=$('#approvalRows');tbody.innerHTML='';if(!items.length){emptyRow(tbody,6,'Không có thay đổi phù hợp.');return;}items.forEach(item=>{const row=element('tr');row.append(element('td','',formatDate(item.NgayTao)),element('td','',`@${item.TenDangNhap}`),element('td','',actionLabels[item.HanhDong]||item.HanhDong),element('td','',`${entityLabels[item.DoiTuong]||item.DoiTuong}${item.MaDoiTuong?` #${item.MaDoiTuong}`:''}`));const detail=element('td');detail.appendChild(element('span','admin-detail-summary',changeSummary(item)));const view=element('button','admin-detail-button','Xem thay đổi trước và sau');view.type='button';view.addEventListener('click',()=>openChangeDetail({title:`${actionLabels[item.HanhDong]||item.HanhDong} ${entityLabels[item.DoiTuong]||item.DoiTuong}`,eyebrow:'Đối chiếu thay đổi của Admin',meta:[`@${item.TenDangNhap}`,formatDate(item.NgayTao),`Mã thay đổi #${item.MaThayDoi}`,badgeText(item.TrangThai)],before:item.DuLieuTruoc,after:item.DuLieuSau,compare:Boolean(item.DuLieuTruoc),entity:item.DoiTuong,entityId:item.MaDoiTuong}));detail.appendChild(view);row.appendChild(detail);const action=element('td');const actions=element('div','admin-row-actions');if(item.TrangThai==='CHO_XEM'){const accept=element('button','','Xác nhận');accept.type='button';accept.addEventListener('click',()=>reviewChange(item.MaThayDoi,'XAC_NHAN'));actions.appendChild(accept);if(item.CoTheHoanTac){const undo=element('button','danger','Hoàn tác');undo.type='button';undo.addEventListener('click',()=>reviewChange(item.MaThayDoi,'HOAN_TAC'));actions.appendChild(undo);}}else actions.appendChild(badge(item.TrangThai));action.appendChild(actions);row.appendChild(action);tbody.appendChild(row);});updateApprovalKpis(items);}
+    function renderApprovals(items){const tbody=$('#approvalRows');tbody.innerHTML='';if(!items.length){emptyRow(tbody,6,'Không có thay đổi phù hợp.');return;}items.forEach(item=>{const row=element('tr');row.append(element('td','',formatDate(item.NgayTao)),element('td','',`@${item.TenDangNhap}`),element('td','',actionLabels[item.HanhDong]||item.HanhDong),element('td','',`${entityLabels[item.DoiTuong]||item.DoiTuong}${item.MaDoiTuong?` #${item.MaDoiTuong}`:''}`));const detail=element('td');detail.appendChild(element('span','admin-detail-summary',changeSummary(item)));const view=element('button','admin-detail-button','Xem thay đổi trước và sau');view.type='button';view.addEventListener('click',()=>openChangeDetail({title:`${actionLabels[item.HanhDong]||item.HanhDong} ${entityLabels[item.DoiTuong]||item.DoiTuong}`,eyebrow:'Đối chiếu thay đổi của Admin',meta:[`@${item.TenDangNhap}`,formatDate(item.NgayTao),`Mã thay đổi #${item.MaThayDoi}`,badgeText(item.TrangThai)],before:item.DuLieuTruoc,after:item.DuLieuSau,compare:Boolean(item.DuLieuTruoc),entity:item.DoiTuong,entityId:item.MaDoiTuong}));detail.appendChild(view);row.appendChild(detail);const action=element('td');const actions=element('div','admin-row-actions');if(item.TrangThai==='CHO_XEM'){const accept=element('button','','Xác nhận');accept.type='button';accept.addEventListener('click',()=>reviewChange(item.MaThayDoi,'XAC_NHAN'));actions.appendChild(accept);if(item.CoTheHoanTac){const undo=element('button','danger','Hoàn tác');undo.type='button';undo.addEventListener('click',()=>reviewChange(item.MaThayDoi,'HOAN_TAC'));actions.appendChild(undo);}}else actions.appendChild(badge(item.TrangThai));action.appendChild(actions);row.appendChild(action);tbody.appendChild(row);});}
     function badgeText(status){return statusMeta[status]?.[0]||status||'Không rõ';}
     async function reviewChange(id,decision){const promptText=decision==='HOAN_TAC'?'Nhập lý do hoàn tác (không bắt buộc):':'Ghi chú xác nhận (không bắt buộc):';const note=window.prompt(promptText,'');if(note===null)return;try{const data=await Auth.request(`/api/admin/phe-duyet-thay-doi/${id}`,{method:'PATCH',json:{decision,note}});showToast(data.message,'success');loadApprovals();if(decision==='HOAN_TAC'){state.loaded.delete('products');state.loaded.delete('deposits');loadDashboard();}}catch(error){showToast(error.message,'error');}}
 
@@ -2228,15 +2228,15 @@
         }
     }
 
-    function updateApprovalKpis(changes) {
+    function updateApprovalKpis(changes, summary = null) {
         if (!Array.isArray(changes)) return;
-        const pending = changes.filter(c => c.TrangThai === 'CHO_XEM').length;
+        const pending = Number(summary?.CHO_XEM ?? changes.filter(c => c.TrangThai === 'CHO_XEM').length) || 0;
         animateMetric($('#kpiApprovalPending'), pending);
-        const confirmed = changes.filter(c => c.TrangThai === 'DA_XAC_NHAN').length;
+        const confirmed = Number(summary?.DA_XAC_NHAN ?? changes.filter(c => c.TrangThai === 'DA_XAC_NHAN').length) || 0;
         animateMetric($('#kpiApprovalConfirmed'), confirmed);
-        const reverted = changes.filter(c => c.TrangThai === 'DA_HOAN_TAC').length;
+        const reverted = Number(summary?.DA_HOAN_TAC ?? changes.filter(c => c.TrangThai === 'DA_HOAN_TAC').length) || 0;
         animateMetric($('#kpiApprovalReverted'), reverted);
-        const rollbackable = changes.filter(c => c.CoTheHoanTac).length;
+        const rollbackable = Number(summary?.CoTheHoanTac ?? changes.filter(c => c.CoTheHoanTac).length) || 0;
         animateMetric($('#kpiApprovalRollbackable'), rollbackable);
     }
 
@@ -2471,6 +2471,7 @@
         $('#addVoucher').addEventListener('click',openVoucherDialog);$('#voucherForm').addEventListener('submit',saveVoucher);
         $('#depositAdminStatus').addEventListener('change',loadDeposits);$('#depositDecisionForm').addEventListener('submit',saveDepositDecision);
         $('#approvalStatus').addEventListener('change',loadApprovals);
+        $('#adminLogout').addEventListener('click', async (event)=>{const button=event.currentTarget;button.disabled=true;button.textContent='Đang đăng xuất…';await Auth.logout();});
         $$('[data-close-dialog]').forEach((button)=>button.addEventListener('click',()=>document.getElementById(button.dataset.closeDialog).close()));
     }
 

@@ -97,11 +97,17 @@
         const remember = $('#loginRemember');
         const status = $('#loginStatus');
         const submit = $('#loginSubmit');
+        const isAdmin = (user) => ['admin', 'superadmin'].includes(user?.role);
+        const loginDestination = (user, fallback) => {
+            const destination = Auth.safeNext(fallback);
+            return /^admin\.html(?:[?#]|$)/i.test(destination) && !isAdmin(user) ? fallback : destination;
+        };
 
         if (Auth.getToken()) {
             const user = await Auth.me();
             if (user) {
-                window.location.replace(Auth.safeNext(['admin', 'superadmin'].includes(user.role) ? 'admin.html' : 'canhan.html'));
+                const fallback = isAdmin(user) ? 'admin.html' : 'canhan.html';
+                window.location.replace(loginDestination(user, fallback));
                 return;
             }
         }
@@ -120,8 +126,8 @@
             try {
                 const result = await Auth.login(loginName, password.value, remember.checked);
                 showStatus(status, 'Đăng nhập thành công. Đang mở không gian của bạn…', true);
-                const fallback = ['admin', 'superadmin'].includes(result.user?.role) ? 'admin.html' : 'canhan.html';
-                window.setTimeout(() => window.location.replace(Auth.safeNext(fallback)), 450);
+                const fallback = isAdmin(result.user) ? 'admin.html' : 'canhan.html';
+                window.setTimeout(() => window.location.replace(loginDestination(result.user, fallback)), 450);
             } catch (error) {
                 let message = error.message;
                 if (error.code === 'too_many_attempts' && error.payload.retry_after) {

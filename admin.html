@@ -9,12 +9,12 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
 
     <link rel="stylesheet" href="css/account.css?v=20260924-1">
-    <link rel="stylesheet" href="css/admin.css?v=20260924-1">
+    <link rel="stylesheet" href="css/admin.css?v=20260925-3">
     <link rel="stylesheet" href="css/dashboard-fx.css?v=20260924-1">
     <script src="css/auth.js?v=20260924-layout-1" defer></script>
-    <script src="css/admin.js?v=20260924-1" defer></script>
-    <link rel="stylesheet" href="css/admin-theme.css?v=20260924-1">
-    <link rel="stylesheet" href="css/admin-polish.css?v=20260924-1">
+    <script src="css/admin.js?v=20260925-2" defer></script>
+    <link rel="stylesheet" href="css/admin-theme.css?v=20260925-3">
+    <link rel="stylesheet" href="css/admin-polish.css?v=20260925-3">
     <link rel="stylesheet" href="css/universal-animations.css?v=20260924-1">
 </head>
 <body class="account-body admin-body">
@@ -40,6 +40,7 @@
                 </nav>
                 <div class="admin-sidebar__account"><div class="admin-mini-avatar" id="adminAvatar">A</div><div><strong id="adminName">Quản trị viên</strong><span id="adminUsername">@admin</span></div></div>
                 <a class="admin-store-link" href="trangchu.html">← Xem cửa hàng</a>
+                <button type="button" class="admin-logout" id="adminLogout">Đăng xuất</button>
             </aside>
 
             <div class="admin-workspace">
@@ -711,6 +712,11 @@
                 </section>
 
                 <section class="admin-view" data-admin-panel="approvals" hidden>
+                    <div class="admin-approval-intro">
+                        <span>KIỂM SOÁT THAY ĐỔI</span>
+                        <h2>Phê duyệt của Super Admin</h2>
+                        <p>Đối chiếu nội dung trước và sau, rồi xác nhận thay đổi hoặc khôi phục dữ liệu khi cần.</p>
+                    </div>
                     <div class="admin-kpi-grid">
                         <article class="admin-kpi-card" data-tone="orange">
                             <div class="admin-kpi-card__head"><span>Chờ Super Admin</span><span class="admin-kpi-icon">👀</span></div>

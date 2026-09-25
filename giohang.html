@@ -10,13 +10,14 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <!-- CSS -->
     <link href="css/tutaoo.css" rel="stylesheet" style="text/css" />
-    <link href="css/site-refresh.css?v=20260906-2" rel="stylesheet" />
+    <link href="css/site-refresh.css?v=20260925-checkout-1" rel="stylesheet" />
     <style>
         .cart-layout {
             display: grid;
-            grid-template-columns: 1.6fr 1.4fr;
-            gap: 40px;
-            max-width: 1200px;
+            grid-template-columns: minmax(0, 1.08fr) minmax(390px, .92fr);
+            align-items: start;
+            gap: 24px;
+            max-width: 1240px;
             margin: 30px auto;
             padding: 0 20px;
         }
@@ -132,6 +133,7 @@
             padding: 24px;
             box-shadow: var(--shadow-sm);
             height: fit-content;
+            min-width: 0;
         }
         .summary-row {
             display: flex;
@@ -195,6 +197,33 @@
             background-color: color-mix(in srgb, var(--primary-color) 8%, var(--card-bg));
             box-shadow: 0 0 0 1px var(--primary-color);
         }
+        .cart-table-container > h2,
+        .checkout-box > h2 {
+            padding-bottom: 12px !important;
+            border-bottom-color: var(--border-color) !important;
+            font-size: clamp(21px, 2.2vw, 27px) !important;
+            letter-spacing: -.035em;
+        }
+        .checkout-box > div[style*="background:var(--bg-color)"] {
+            padding: 18px !important;
+            border-radius: 14px !important;
+        }
+        .checkout-form h3 {
+            margin: 22px 0 14px !important;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            font-size: 15px !important;
+        }
+        .checkout-form label { margin-top: 2px; color: var(--text-color); }
+        .checkout-form input,
+        .checkout-form textarea,
+        #couponInput { min-width: 0; }
+        .pay-method-card { align-items: flex-start; padding: 15px 16px; }
+        .pay-method-card input { margin-top: 3px; flex: 0 0 auto; }
+        .pay-method-card > div { min-width: 0; }
+        .pay-method-card:hover { transform: translateY(-1px); }
+        .pay-method-card.active-method { box-shadow: 0 0 0 1px var(--primary-color), 0 8px 22px rgba(178, 36, 16, .08); }
+        #btnPlaceOrder { min-height: 52px; border-radius: 13px; }
         /* VietQR Order Payment Box */
         .order-bank-payment {
             display: grid;
@@ -368,15 +397,12 @@
                                 <span style="font-weight:bold; font-size:14px;">Chuyển khoản QR (VietQR 24/7)</span>
                                 <span style="font-size:10px; font-weight:800; padding:2px 8px; border-radius:99px; background:rgba(244,67,34,0.12); color:#f44322;">TỰ ĐỘNG</span>
                             </div>
-                            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Hiện Popup mã QR kèm đúng số tiền & nội dung chuyển khoản ngay lập tức.</div>
-                            <button type="button" onclick="event.stopPropagation(); selectPayMethod('banking', true);" style="margin-top:6px; padding:5px 12px; font-size:11px; font-weight:700; border-radius:8px; border:1px solid rgba(244,67,34,0.35); background:rgba(244,67,34,0.08); color:#f44322; cursor:pointer;">
-                                📱 Mở Popup mã QR & Thông tin CK
-                            </button>
+                            <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">Mã QR và thông tin chuyển khoản sẽ hiện sau khi bạn nhấn “Đặt hàng ngay”.</div>
                         </div>
                     </div>
 
                     <p style="margin:10px 0 0; font-size:12px; color:var(--text-muted);">
-                        Website không yêu cầu số thẻ, mật khẩu ngân hàng hay OTP. Khi chọn Chuyển khoản QR, hệ thống sẽ hiển thị Popup VietQR với đầy đủ thông tin đối soát.
+                        Website không yêu cầu số thẻ, mật khẩu ngân hàng hay OTP. Đơn hàng chỉ được tạo khi bạn nhấn “Đặt hàng ngay”.
                     </p>
 
                     <button type="submit" class="btn-filter-apply" id="btnPlaceOrder" style="width:100%; margin-top:24px; padding:14px; font-size:16px;">ĐẶT HÀNG NGAY</button>
@@ -1030,8 +1056,8 @@
             const confirmBtn = document.getElementById('qrPopupConfirmBtn');
             if (confirmBtn) {
                 confirmBtn.textContent = info.orderPlaced
-                    ? '✅ Tôi đã hoàn tất chuyển khoản'
-                    : '✅ Tôi đã chuyển khoản — Hoàn tất đặt hàng';
+                    ? 'Đã hiểu, đóng cửa sổ'
+                    : 'Tiếp tục đặt hàng';
             }
             modal.hidden = false;
             document.body.style.overflow = 'hidden';
@@ -1047,7 +1073,7 @@
             const info = window.__lastQrPaymentData;
             if (info?.orderPlaced) {
                 closeQrPaymentModal();
-                showToast('Đã ghi nhận thông tin chuyển khoản. Đơn hàng của bạn sẽ được ưu tiên duyệt ngay!', 'success');
+                showToast('Đơn hàng đã được tạo. Cửa hàng sẽ xác nhận giao dịch sau khi nhận được tiền.', 'success');
                 return;
             }
             const name = document.getElementById('shippingName')?.value.trim();
@@ -1069,7 +1095,7 @@
         });
         document.getElementById('qrPaymentPopupModal')?.addEventListener('click', closeQrPaymentModal);
 
-        function selectPayMethod(method, forceOpenModal = false) {
+        function selectPayMethod(method) {
             document.querySelectorAll('.pay-method-card').forEach(card => card.classList.remove('active-method'));
             const input = document.getElementById(
                 method === 'cod' ? 'payCod' : method === 'banking' ? 'payBanking' : 'payBalance'
@@ -1077,9 +1103,6 @@
             if (!input || input.closest('.pay-method-card')?.hidden) return;
             input.checked = true;
             input.closest('.pay-method-card').classList.add('active-method');
-            if (method === 'banking') {
-                openQrPaymentModal();
-            }
         }
 
         async function copyPaymentValue(elementId, label) {

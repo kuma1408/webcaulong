@@ -4380,6 +4380,32 @@ def superadmin_changes():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
+        cursor.execute(
+            """
+            SELECT TrangThai, COUNT(*) AS Tong,
+                   SUM(CASE
+                       WHEN DoiTuong IN ('SanPham','YeuCauNapTien','NguoiDung')
+                        AND DuLieuTruoc IS NOT NULL
+                        AND JSON_LENGTH(DuLieuTruoc) > 0
+                        AND NOT (DuLieuTruoc <=> DuLieuSau)
+                       THEN 1 ELSE 0
+                   END) AS CoTheHoanTac
+            FROM PheDuyetThayDoi
+            GROUP BY TrangThai
+            """
+        )
+        summary = {
+            "CHO_XEM": 0,
+            "DA_XAC_NHAN": 0,
+            "DA_HOAN_TAC": 0,
+            "CoTheHoanTac": 0,
+        }
+        for count_row in cursor.fetchall():
+            count_status = count_row.get("TrangThai")
+            if count_status in summary:
+                summary[count_status] = int(count_row.get("Tong") or 0)
+            summary["CoTheHoanTac"] += int(count_row.get("CoTheHoanTac") or 0)
+
         params = []
         where = ""
         if status in {"CHO_XEM", "DA_XAC_NHAN", "DA_HOAN_TAC"}:
@@ -4409,7 +4435,7 @@ def superadmin_changes():
                 and item.get("DuLieuTruoc") != item.get("DuLieuSau")
             )
             items.append(item)
-        return jsonify({"success": True, "changes": items})
+        return jsonify({"success": True, "changes": items, "summary": summary})
     finally:
         cursor.close()
         conn.close()
