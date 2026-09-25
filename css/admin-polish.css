@@ -1595,3 +1595,53 @@
     transition: all 0.2s ease !important;
 }
 
+/* KPI cards: reserve readable space and keep decorative shapes behind content. */
+.stat-grid.admin-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    align-items: stretch !important;
+}
+.stat-grid.admin-metrics .stat-card {
+    min-width: 0 !important;
+    min-height: 156px !important;
+    padding: 18px 20px !important;
+}
+.stat-grid.admin-metrics .stat-card-body,
+.stat-grid.admin-metrics .stat-card .label,
+.stat-grid.admin-metrics .stat-card .value,
+.stat-grid.admin-metrics .stat-card .hint {
+    position: relative !important;
+    z-index: 2 !important;
+    min-width: 0 !important;
+}
+.stat-grid.admin-metrics .stat-card .value {
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+    line-height: 1.25 !important;
+}
+.admin-kpi-card__head,
+.admin-kpi-card > strong,
+.admin-kpi-card > small {
+    position: relative !important;
+    z-index: 2 !important;
+    min-width: 0 !important;
+}
+.admin-kpi-card .metric-spark {
+    z-index: 0 !important;
+    pointer-events: none !important;
+}
+.admin-kpi-card__head span:first-child {
+    max-width: calc(100% - 42px) !important;
+    line-height: 1.4 !important;
+    overflow-wrap: anywhere !important;
+}
+.admin-kpi-card > strong {
+    overflow-wrap: anywhere !important;
+    line-height: 1.25 !important;
+}
+@media (max-width: 900px) {
+    .stat-grid.admin-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 560px) {
+    .stat-grid.admin-metrics { grid-template-columns: 1fr !important; }
+}
+
