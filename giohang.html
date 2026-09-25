@@ -326,6 +326,12 @@
             .order-bank-payment { grid-template-columns: 1fr; text-align: center; }
             .order-bank-payment img { margin-inline: auto; }
         }
+        .payment-proof-form { max-width: 520px; margin: 18px auto 0; padding: 14px; text-align: left; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-color); }
+        .payment-proof-form label { display: block; margin-bottom: 8px; font-weight: 800; }
+        .payment-proof-form > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+        .payment-proof-form input { flex: 1 1 220px; min-width: 0; }
+        .payment-proof-form small { display: block; margin-top: 7px; color: var(--text-muted); }
+        .payment-proof-form button { width: auto; margin: 0; padding: 9px 14px; }
         .qr-code-panel {
             background: white;
             border: 1px solid #ddd;
@@ -484,6 +490,12 @@
             <p style="font-size:15px; line-height:1.6; color:var(--text-color);" id="successMessage">
                 Cảm ơn bạn đã mua sắm tại Shop Cầu Lông Premium. Đơn hàng của bạn đã được tiếp nhận thành công và đang được chờ duyệt.
             </p>
+            <form id="paymentProofForm" class="payment-proof-form" hidden>
+                <label for="paymentProofImage">Ảnh xác nhận chuyển khoản</label>
+                <div><input id="paymentProofImage" type="file" accept="image/jpeg,image/png,image/webp" required>
+                    <button class="btn-filter-apply" type="submit">Gửi ảnh cho cửa hàng</button></div>
+                <small id="paymentProofStatus">JPG, PNG hoặc WebP · tối đa 3 MB. Admin sẽ dùng ảnh để đối soát đơn.</small>
+            </form>
             <div id="successQrReopenWrap" style="display:none; margin-top:16px;">
                 <button type="button" onclick="openQrPaymentModal(window.__lastQrPaymentData)" class="btn-filter-apply" style="width:auto; padding:10px 22px; font-size:14px; background:linear-gradient(135deg,#ff5e3a,#e11d48);">
                     📱 Xem lại Popup Mã QR Thanh Toán
@@ -833,6 +845,7 @@
     <script>
         let cartItems = [];
         let cartTotal = 0;
+        let currentPaymentProofOrderId = null;
         let userBalanceVal = 0;
         let appliedCouponCode = '';
         let appliedDiscount = 0;
@@ -1226,6 +1239,10 @@
                 });
                 const data = await readJson(response);
                 const paidTotal = Number(data.tong_tien || 0);
+                currentPaymentProofOrderId = Number(data.ma_don_hang);
+                const proofForm = document.getElementById('paymentProofForm');
+                proofForm.hidden = paymentMethod !== 'BANKING';
+                document.getElementById('paymentProofStatus').textContent = 'JPG, PNG hoặc WebP · tối đa 3 MB. Admin sẽ dùng ảnh để đối soát đơn.';
                 const methodLabel = paymentMethod === 'SO_DU'
                     ? 'Số dư tài khoản'
                     : paymentMethod === 'BANKING' ? 'chuyển khoản VietQR' : 'Thanh toán khi nhận hàng (COD)';
@@ -1249,6 +1266,38 @@
                 button.textContent = 'ĐẶT HÀNG NGAY';
             }
         }
+
+        document.getElementById('paymentProofForm')?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const file = document.getElementById('paymentProofImage').files?.[0];
+            if (!currentPaymentProofOrderId || !file) return;
+            if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 3 * 1024 * 1024) {
+                showToast('Chọn ảnh JPG, PNG hoặc WebP có dung lượng không quá 3 MB.', 'warning');
+                return;
+            }
+            const button = event.currentTarget.querySelector('button[type="submit"]');
+            const status = document.getElementById('paymentProofStatus');
+            button.disabled = true;
+            button.textContent = 'Đang gửi…';
+            const formData = new FormData();
+            formData.append('image', file);
+            try {
+                const token = window.BadmintonAuth?.getToken?.() || window.getAuthToken?.() || '';
+                const response = await fetch(`${API_BASE}/api/don-hang/${currentPaymentProofOrderId}/chung-tu-thanh-toan`, {
+                    method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData
+                });
+                const result = await readJson(response);
+                status.textContent = result.message;
+                document.getElementById('paymentProofImage').value = '';
+                showToast(result.message, 'success');
+            } catch (error) {
+                status.textContent = error.message || 'Không gửi được ảnh.';
+                showToast(status.textContent, 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Gửi ảnh cho cửa hàng';
+            }
+        });
 
         // Khởi động
         document.addEventListener('DOMContentLoaded', initCartPage);

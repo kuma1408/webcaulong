@@ -8,11 +8,11 @@
     <title>Quản trị website | Badminton Store</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
 
-    <link rel="stylesheet" href="css/account.css?v=20260924-1">
-    <link rel="stylesheet" href="css/admin.css?v=20260925-3">
+    <link rel="stylesheet" href="css/account.css?v=20260925-proof-3">
+    <link rel="stylesheet" href="css/admin.css?v=20260925-approval-5">
     <link rel="stylesheet" href="css/dashboard-fx.css?v=20260924-1">
     <script src="css/auth.js?v=20260924-layout-1" defer></script>
-    <script src="css/admin.js?v=20260925-2" defer></script>
+    <script src="css/admin.js?v=20260925-approval-5" defer></script>
     <link rel="stylesheet" href="css/admin-theme.css?v=20260925-3">
     <link rel="stylesheet" href="css/admin-polish.css?v=20260925-3">
     <link rel="stylesheet" href="css/universal-animations.css?v=20260924-1">
@@ -715,7 +715,7 @@
                     <div class="admin-approval-intro">
                         <span>KIỂM SOÁT THAY ĐỔI</span>
                         <h2>Phê duyệt của Super Admin</h2>
-                        <p>Đối chiếu nội dung trước và sau, rồi xác nhận thay đổi hoặc khôi phục dữ liệu khi cần.</p>
+                        <p>Đối chiếu thay đổi, xem bằng chứng đính kèm và phê duyệt hoặc từ chối. Dữ liệu gốc không bị khôi phục tự động.</p>
                     </div>
                     <div class="admin-kpi-grid">
                         <article class="admin-kpi-card" data-tone="orange">
@@ -731,31 +731,31 @@
                             <i class="metric-spark metric-spark--green"></i>
                         </article>
                         <article class="admin-kpi-card" data-tone="red">
-                            <div class="admin-kpi-card__head"><span>Đã hoàn tác</span><span class="admin-kpi-icon">↩</span></div>
+                            <div class="admin-kpi-card__head"><span>Đã từ chối</span><span class="admin-kpi-icon">×</span></div>
                             <strong id="kpiApprovalReverted">0</strong>
-                            <small>Khôi phục dữ liệu gốc</small>
+                            <small>Không áp dụng thay đổi</small>
                             <i class="metric-spark metric-spark--red"></i>
                         </article>
                         <article class="admin-kpi-card" data-tone="violet">
-                            <div class="admin-kpi-card__head"><span>Có thể khôi phục</span><span class="admin-kpi-icon">🛡️</span></div>
+                            <div class="admin-kpi-card__head"><span>Đã xử lý</span><span class="admin-kpi-icon">📎</span></div>
                             <strong id="kpiApprovalRollbackable">0</strong>
-                            <small>Hỗ trợ rollback tức thì</small>
+                            <small>Phê duyệt hoặc từ chối</small>
                             <i class="metric-spark metric-spark--deep"></i>
                         </article>
                     </div>
                     <div class="admin-toolbar">
-                        <div class="admin-toolbar__copy"><p>Thông báo thao tác của admin thường. Super Admin có thể xác nhận hoặc hoàn tác các thay đổi hỗ trợ khôi phục.</p></div>
+                        <div class="admin-toolbar__copy"><p>Mỗi quyết định cần lời giải thích và ít nhất một tệp bằng chứng. Từ chối không khôi phục hay xóa dữ liệu lịch sử.</p></div>
                         <select id="approvalStatus" aria-label="Lọc phê duyệt">
                             <option value="CHO_XEM">Chờ xem</option>
                             <option value="DA_XAC_NHAN">Đã xác nhận</option>
-                            <option value="DA_HOAN_TAC">Đã hoàn tác</option>
+                            <option value="DA_TU_CHOI">Đã từ chối</option>
                             <option value="all">Tất cả</option>
                         </select>
                     </div>
                     <div class="admin-filter-pills" id="approvalFilterPills" role="tablist" aria-label="Lọc nhanh phê duyệt">
                         <button type="button" class="admin-pill-btn is-active" data-filter="CHO_XEM">Chờ xem</button>
                         <button type="button" class="admin-pill-btn" data-filter="DA_XAC_NHAN">Đã xác nhận</button>
-                        <button type="button" class="admin-pill-btn" data-filter="DA_HOAN_TAC">Đã hoàn tác</button>
+                        <button type="button" class="admin-pill-btn" data-filter="DA_TU_CHOI">Đã từ chối</button>
                         <button type="button" class="admin-pill-btn" data-filter="all">Tất cả</button>
                     </div>
                     <div class="admin-card admin-table-card"><div class="admin-table-wrap"><table><thead><tr><th>Thời gian</th><th>Admin</th><th>Thay đổi</th><th>Đối tượng</th><th>Nội dung</th><th>Quyết định</th></tr></thead><tbody id="approvalRows"><tr><td colspan="6" class="admin-empty-cell">Chỉ Super Admin được xem mục này.</td></tr></tbody></table></div></div>
@@ -963,6 +963,17 @@
             </div>
         </form>
     </dialog>
+    <dialog class="admin-dialog" id="approvalReviewDialog" aria-labelledby="approvalReviewTitle">
+        <form class="admin-dialog__form" id="approvalReviewForm">
+            <div class="admin-dialog__heading"><div><p class="eyebrow">Bằng chứng & quyết định</p><h2 id="approvalReviewTitle">Phê duyệt thay đổi</h2></div><button type="button" data-close-dialog="approvalReviewDialog" aria-label="Đóng">×</button></div>
+            <p id="approvalReviewDescription">Đính kèm bằng chứng và giải thích quyết định.</p>
+            <div class="field"><label for="approvalReviewNote">Lời giải thích *</label><textarea id="approvalReviewNote" rows="3" maxlength="500" required placeholder="Nêu lý do phê duyệt hoặc từ chối…"></textarea></div>
+            <div class="field"><label for="approvalReviewFiles">Tệp/hình ảnh bằng chứng * (1–5 tệp)</label><input id="approvalReviewFiles" type="file" required multiple accept="image/jpeg,image/png,image/webp,application/pdf,text/plain,text/csv,application/json,.csv,.json"><small>Ảnh, PDF, TXT, CSV hoặc JSON; tối đa 2 MB mỗi tệp.</small></div>
+            <p class="form-status" id="approvalReviewStatus" role="alert"></p>
+            <div class="admin-dialog__actions"><button type="button" data-close-dialog="approvalReviewDialog">Hủy</button><button class="admin-primary" id="approvalReviewSubmit" type="submit">Gửi quyết định</button></div>
+        </form>
+    </dialog>
+    <dialog class="admin-dialog" id="paymentProofDialog" aria-labelledby="paymentProofTitle"><div class="admin-dialog__form"><div class="admin-dialog__heading"><div><p class="eyebrow">Chứng từ thanh toán</p><h2 id="paymentProofTitle">Ảnh chuyển khoản</h2></div><button type="button" data-close-dialog="paymentProofDialog" aria-label="Đóng">×</button></div><img id="paymentProofPreview" alt="Ảnh chuyển khoản khách hàng" style="display:block;max-width:100%;max-height:70vh;margin:auto;border-radius:12px;object-fit:contain"><p id="paymentProofDialogStatus" class="form-status" role="status"></p></div></dialog>
 
     <dialog class="admin-dialog" id="userDialog" aria-labelledby="userDialogTitle">
         <form class="admin-dialog__form" id="userForm" method="dialog">

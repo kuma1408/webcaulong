@@ -2599,11 +2599,16 @@ footer {
 
 /* Main price stack */
 .price-main-wrap {
-  display: flex;
+  display: grid;
+  grid-template-columns: max-content max-content;
   align-items: baseline;
-  gap: 14px;
-  flex-wrap: wrap;
+  justify-content: start;
+  column-gap: 12px;
+  row-gap: 9px;
+  min-width: 0;
 }
+.price-main-wrap .price { grid-column: 1; grid-row: 1; }
+.price-main-wrap .price-original-del { grid-column: 2; grid-row: 1; }
 .detail-price-card .price {
   font-size: clamp(28px, 3.2vw, 38px);
   font-size: clamp(30px, 3.4vw, 42px);
@@ -2631,6 +2636,12 @@ footer {
   display: none !important;
 }
 .price-discount-tag {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  justify-self: start;
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.35;
   padding: 4px 10px;
   border-radius: 8px;
   display: inline-flex;

@@ -350,7 +350,7 @@ DATABASE_TABLE_NAMES = {
     "baiviet", "chitietdonhang", "danhgia", "danhmuc", "donhang", "giohang",
     "lichsugiaodich", "nhatkyquantri", "nguoidung", "pheduyetthaydoi",
     "phiendangnhap", "sanpham", "schemamigration", "voucher", "yeucaunaptien",
-    "datlaimatkhau", "sudungvoucher", "yeuthich", "yeucauhotro",
+    "datlaimatkhau", "sudungvoucher", "yeuthich", "yeucauhotro", "tepxacminh",
 }
 _TABLE_REFERENCE_RE = re.compile(
     r"\b(FROM|JOIN|UPDATE|INTO|TABLE|REFERENCES)\s+`?("
@@ -600,6 +600,44 @@ def normalized_public_image(uploaded) -> bytes:
         raise
     except (UnidentifiedImageError, Image.DecompressionBombError, OSError, SyntaxError) as exc:
         raise ValueError("image_invalid") from exc
+
+
+def normalized_private_evidence(uploaded, *, images_only=False):
+    """Validate private proof files before storing them in the database."""
+    if not uploaded or not getattr(uploaded, "filename", ""):
+        raise ValueError("evidence_missing")
+    filename = os.path.basename(str(uploaded.filename).replace("\\", "/"))[:180]
+    extension = os.path.splitext(filename)[1].lower()
+    if extension in {".jpg", ".jpeg", ".png", ".webp"}:
+        return f"{os.path.splitext(filename)[0]}.webp", "image/webp", normalized_public_image(uploaded)
+    if images_only:
+        raise ValueError("evidence_type")
+    raw = uploaded.read(2 * 1024 * 1024 + 1)
+    if len(raw) > 2 * 1024 * 1024:
+        raise ValueError("evidence_too_large")
+    if extension == ".pdf" and raw.startswith(b"%PDF-"):
+        return filename, "application/pdf", raw
+    if extension in {".txt", ".csv", ".json"}:
+        try:
+            text = raw.decode("utf-8-sig")
+        except UnicodeDecodeError as exc:
+            raise ValueError("evidence_type") from exc
+        if not text.strip() or any(ord(char) < 9 and char not in "\r\n\t" for char in text):
+            raise ValueError("evidence_type")
+        mime = {".txt": "text/plain", ".csv": "text/csv", ".json": "application/json"}[extension]
+        return filename, mime, raw
+    raise ValueError("evidence_type")
+
+
+def evidence_error(error):
+    code = str(error)
+    messages = {
+        "evidence_missing": ("Vui lòng đính kèm ít nhất một tệp bằng chứng.", 400),
+        "evidence_too_large": ("Mỗi tệp không được vượt quá 2 MB.", 413),
+        "evidence_type": ("Tệp không hợp lệ. Chấp nhận ảnh JPG/PNG/WebP, PDF, TXT, CSV hoặc JSON.", 415),
+    }
+    message, status = messages.get(code, ("Tệp bằng chứng không hợp lệ.", 415))
+    return api_error(message, status, code if code in messages else "invalid_evidence")
 
 
 def public_image_validation_error(error: ValueError):
@@ -2998,6 +3036,114 @@ def review_product():
         conn.close()
 
 
+@app.post("/api/don-hang/<int:order_id>/chung-tu-thanh-toan")
+@auth_required
+def upload_order_payment_proof(order_id):
+    limited = enforce_rate_limit("payment-proof", str(g.current_user["MaND"]), 8, 60 * 60)
+    if limited:
+        return limited
+    try:
+        filename, mime_type, content = normalized_private_evidence(request.files.get("image"), images_only=True)
+    except ValueError as error:
+        return evidence_error(error)
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        conn.start_transaction()
+        cursor.execute(
+            "SELECT MaDH,PhuongThuc,TrangThaiThanhToan FROM DonHang WHERE MaDH=%s AND MaND=%s FOR UPDATE",
+            (order_id, g.current_user["MaND"]),
+        )
+        order = cursor.fetchone()
+        if not order:
+            conn.rollback()
+            return api_error("Không tìm thấy đơn hàng của tài khoản này.", 404, "order_not_found")
+        if order["PhuongThuc"] != "BANKING":
+            conn.rollback()
+            return api_error("Chỉ đơn chuyển khoản mới nhận ảnh xác nhận giao dịch.", 409, "not_bank_transfer")
+        if order["TrangThaiThanhToan"] == "DA_THANH_TOAN":
+            conn.rollback()
+            return api_error("Đơn hàng đã được đối soát; không thể thay ảnh chứng từ.", 409, "payment_already_verified")
+        cursor.execute(
+            "INSERT INTO TepXacMinh (Loai,MaDoiTuong,TenTepTin,MimeType,DuLieu) VALUES ('THANH_TOAN',%s,%s,%s,%s)",
+            (order_id, filename, mime_type, content),
+        )
+        conn.commit()
+        return jsonify({"success": True, "message": "Đã gửi ảnh chuyển khoản cho cửa hàng xác minh."})
+    except mysql.connector.Error:
+        conn.rollback()
+        app.logger.exception("Không thể lưu chứng từ thanh toán đơn %s", order_id)
+        return api_error("Không thể lưu ảnh chuyển khoản lúc này.", 503, "payment_proof_unavailable")
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.get("/api/admin/don-hang/<int:order_id>/chung-tu-thanh-toan")
+@admin_required
+def get_order_payment_proof(order_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            "SELECT TenTepTin,MimeType,DuLieu FROM TepXacMinh WHERE Loai='THANH_TOAN' AND MaDoiTuong=%s ORDER BY NgayTao DESC LIMIT 1",
+            (order_id,),
+        )
+        proof = cursor.fetchone()
+        if not proof:
+            return api_error("Đơn hàng chưa có ảnh chuyển khoản.", 404, "payment_proof_not_found")
+        return Response(bytes(proof["DuLieu"]), mimetype=proof["MimeType"], headers={
+            "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff",
+            "Content-Disposition": "inline; filename=payment-proof.webp",
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.get("/api/admin/phe-duyet-thay-doi/<int:change_id>/tep-minh-chung")
+@superadmin_required
+def list_approval_evidence(change_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT MaThayDoi FROM PheDuyetThayDoi WHERE MaThayDoi=%s", (change_id,))
+        if not cursor.fetchone():
+            return api_error("Không tìm thấy yêu cầu phê duyệt.", 404, "approval_not_found")
+        cursor.execute(
+            "SELECT MaChungTu,TenTepTin,MimeType,NgayTao FROM TepXacMinh WHERE Loai='PHE_DUYET' AND MaDoiTuong=%s ORDER BY MaChungTu",
+            (change_id,),
+        )
+        return jsonify({"success": True, "files": [serialize_row(row) for row in cursor.fetchall()]})
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.get("/api/admin/tep-xac-minh/<int:evidence_id>")
+@admin_required
+def get_private_evidence(evidence_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT Loai,TenTepTin,MimeType,DuLieu FROM TepXacMinh WHERE MaChungTu=%s", (evidence_id,))
+        evidence = cursor.fetchone()
+        if not evidence:
+            return api_error("Không tìm thấy tệp bằng chứng.", 404, "evidence_not_found")
+        if evidence["Loai"] == "PHE_DUYET" and not is_superadmin():
+            return api_error("Chỉ Super Admin được xem bằng chứng phê duyệt.", 403, "superadmin_required")
+        extension = os.path.splitext(evidence["TenTepTin"])[1].lower()
+        safe_inline = evidence["MimeType"] in {"image/webp", "application/pdf"}
+        disposition = "inline" if safe_inline else "attachment"
+        return Response(bytes(evidence["DuLieu"]), mimetype=evidence["MimeType"], headers={
+            "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff",
+            "Content-Disposition": f"{disposition}; filename=evidence{extension}",
+        })
+    finally:
+        cursor.close()
+        conn.close()
+
+
 # ---------------------------------------------------------------------------
 # Quản trị
 # ---------------------------------------------------------------------------
@@ -3470,7 +3616,8 @@ def admin_orders():
     try:
         cursor.execute(
             f"""
-            SELECT dh.*, nd.TenDangNhap, nd.HoTen, nd.Email, nd.SoDienThoai, nd.Avatar
+            SELECT dh.*, nd.TenDangNhap, nd.HoTen, nd.Email, nd.SoDienThoai, nd.Avatar,
+                   EXISTS(SELECT 1 FROM TepXacMinh tx WHERE tx.Loai='THANH_TOAN' AND tx.MaDoiTuong=dh.MaDH) AS CoAnhChuyenKhoan
             FROM DonHang dh JOIN NguoiDung nd ON nd.MaND = dh.MaND
             WHERE {where_sql} ORDER BY dh.NgayDat DESC LIMIT %s OFFSET %s
             """,
@@ -4382,14 +4529,7 @@ def superadmin_changes():
     try:
         cursor.execute(
             """
-            SELECT TrangThai, COUNT(*) AS Tong,
-                   SUM(CASE
-                       WHEN DoiTuong IN ('SanPham','YeuCauNapTien','NguoiDung')
-                        AND DuLieuTruoc IS NOT NULL
-                        AND JSON_LENGTH(DuLieuTruoc) > 0
-                        AND NOT (DuLieuTruoc <=> DuLieuSau)
-                       THEN 1 ELSE 0
-                   END) AS CoTheHoanTac
+            SELECT TrangThai, COUNT(*) AS Tong
             FROM PheDuyetThayDoi
             GROUP BY TrangThai
             """
@@ -4397,23 +4537,24 @@ def superadmin_changes():
         summary = {
             "CHO_XEM": 0,
             "DA_XAC_NHAN": 0,
-            "DA_HOAN_TAC": 0,
-            "CoTheHoanTac": 0,
+            "DA_TU_CHOI": 0,
+            "DA_HOAN_TAC": 0,  # Giữ số liệu lịch sử, không còn thao tác hoàn tác.
         }
         for count_row in cursor.fetchall():
             count_status = count_row.get("TrangThai")
             if count_status in summary:
                 summary[count_status] = int(count_row.get("Tong") or 0)
-            summary["CoTheHoanTac"] += int(count_row.get("CoTheHoanTac") or 0)
 
         params = []
         where = ""
-        if status in {"CHO_XEM", "DA_XAC_NHAN", "DA_HOAN_TAC"}:
+        if status in {"CHO_XEM", "DA_XAC_NHAN", "DA_TU_CHOI", "DA_HOAN_TAC"}:
             where = "WHERE p.TrangThai=%s"
             params.append(status)
         cursor.execute(
             f"""
-            SELECT p.*, a.TenDangNhap, a.HoTen,
+            SELECT p.*,
+                   (SELECT COUNT(*) FROM TepXacMinh tx WHERE tx.Loai='PHE_DUYET' AND tx.MaDoiTuong=p.MaThayDoi) AS SoTepBangChung,
+                   a.TenDangNhap, a.HoTen,
                    s.TenDangNhap AS SuperAdminXuLy
             FROM PheDuyetThayDoi p
             JOIN NguoiDung a ON a.MaND=p.MaAdmin
@@ -4429,11 +4570,6 @@ def superadmin_changes():
             item = serialize_row(row)
             item["DuLieuTruoc"] = json.loads(row["DuLieuTruoc"]) if isinstance(row.get("DuLieuTruoc"), str) else row.get("DuLieuTruoc")
             item["DuLieuSau"] = json.loads(row["DuLieuSau"]) if isinstance(row.get("DuLieuSau"), str) else row.get("DuLieuSau")
-            item["CoTheHoanTac"] = (
-                bool(item.get("DuLieuTruoc"))
-                and item["DoiTuong"] in {"SanPham", "YeuCauNapTien", "NguoiDung"}
-                and item.get("DuLieuTruoc") != item.get("DuLieuSau")
-            )
             items.append(item)
         return jsonify({"success": True, "changes": items, "summary": summary})
     finally:
@@ -4444,11 +4580,21 @@ def superadmin_changes():
 @app.patch("/api/admin/phe-duyet-thay-doi/<int:change_id>")
 @superadmin_required
 def superadmin_review_change(change_id):
-    data = body_json()
-    decision = str(data.get("decision", "")).upper()
-    note = str(data.get("note", "")).strip()[:500]
-    if decision not in {"XAC_NHAN", "HOAN_TAC"}:
+    decision = str(request.form.get("decision", "")).upper()
+    note = str(request.form.get("note", "")).strip()[:500]
+    if decision not in {"XAC_NHAN", "TU_CHOI"}:
         return api_error("Quyết định không hợp lệ.")
+    if len(note) < 10:
+        return api_error("Lời giải thích phải có ít nhất 10 ký tự.")
+    uploads = [file for file in request.files.getlist("files") if file and file.filename]
+    if not 1 <= len(uploads) <= 5:
+        return api_error("Đính kèm từ 1 đến 5 tệp bằng chứng.")
+    evidence = []
+    try:
+        for upload in uploads:
+            evidence.append(normalized_private_evidence(upload))
+    except ValueError as error:
+        return evidence_error(error)
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
@@ -4464,6 +4610,8 @@ def superadmin_review_change(change_id):
         before = json.loads(change["DuLieuTruoc"]) if isinstance(change.get("DuLieuTruoc"), str) else change.get("DuLieuTruoc")
         after = json.loads(change["DuLieuSau"]) if isinstance(change.get("DuLieuSau"), str) else change.get("DuLieuSau")
         if decision == "HOAN_TAC":
+            conn.rollback()
+            return api_error("Hoàn tác đã bị tắt. Hãy chọn phê duyệt hoặc từ chối.", 400, "rollback_disabled")
             if not before or change["DoiTuong"] not in {"SanPham", "YeuCauNapTien", "NguoiDung"}:
                 conn.rollback()
                 return api_error("Thao tác này chỉ hỗ trợ xác nhận, không thể hoàn tác tự động.", 409, "change_not_reversible")
@@ -4564,7 +4712,12 @@ def superadmin_review_change(change_id):
                     "UPDATE YeuCauNapTien SET TrangThai=%s,MaAdminXuLy=%s,NgayXuLy=%s,GhiChuAdmin=%s WHERE MaYeuCau=%s",
                     (before.get("TrangThai"), before.get("MaAdminXuLy"), before.get("NgayXuLy"), before.get("GhiChuAdmin"), entity_id),
                 )
-        final_status = "DA_HOAN_TAC" if decision == "HOAN_TAC" else "DA_XAC_NHAN"
+        final_status = "DA_XAC_NHAN" if decision == "XAC_NHAN" else "DA_TU_CHOI"
+        for filename, mime_type, content in evidence:
+            cursor.execute(
+                "INSERT INTO TepXacMinh (Loai,MaDoiTuong,TenTepTin,MimeType,DuLieu) VALUES ('PHE_DUYET',%s,%s,%s,%s)",
+                (change_id, filename, mime_type, content),
+            )
         cursor.execute(
             "UPDATE PheDuyetThayDoi SET TrangThai=%s,MaSuperAdmin=%s,GhiChu=%s,NgayXuLy=NOW() WHERE MaThayDoi=%s",
             (final_status, g.current_user["MaND"], note or None, change_id),
@@ -4590,7 +4743,7 @@ def superadmin_review_change(change_id):
             review_before, review_after,
         )
         conn.commit()
-        message = "Đã hoàn tác quyết định của admin." if decision == "HOAN_TAC" else "Đã xác nhận quyết định của admin."
+        message = "Đã phê duyệt thay đổi." if decision == "XAC_NHAN" else "Đã từ chối thay đổi; dữ liệu lịch sử được giữ nguyên."
         return jsonify({"success": True, "message": message})
     except ValueError:
         conn.rollback()

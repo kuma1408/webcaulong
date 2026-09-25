@@ -31,6 +31,10 @@ python HA/migrate_database.py --apply
 ```
 
 Migration không có lệnh `DROP`, `DELETE` hay `TRUNCATE` và có thể chạy lại.
+Migration `2026-09-25-payment-proof-approval-v9` bổ sung kho chứng từ riêng tư
+cho ảnh chuyển khoản/tệp bằng chứng và chuẩn hóa trạng thái xét duyệt sang
+phê duyệt hoặc từ chối. Cần sao lưu database rồi chạy migration trên máy chủ
+trước khi dùng các chức năng này; trạng thái hoàn tác cũ chỉ còn để xem lịch sử.
 
 ## 3. Tạo admin đầu tiên
 

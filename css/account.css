@@ -522,3 +522,10 @@ tr:hover td { background: rgba(255, 122, 26, 0.04); }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+.order-proof-form { display: grid; gap: 10px; margin-top: 14px; padding: 14px; border: 1px solid var(--bs-line); border-radius: 14px; background: var(--bs-bg); }
+.order-proof-form > strong { color: var(--bs-ink); }
+.order-proof-form input { width: 100%; min-width: 0; color: var(--bs-ink); }
+.order-proof-form button { justify-self: start; min-height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: linear-gradient(110deg, var(--bs-red), var(--bs-orange)); color: #fff; font-weight: 800; cursor: pointer; }
+.order-proof-form button:disabled { opacity: .65; cursor: wait; }
+.order-proof-form small { color: var(--bs-muted); line-height: 1.5; }

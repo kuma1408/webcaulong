@@ -436,6 +436,31 @@
                 button.addEventListener('click', async () => { try { await navigator.clipboard.writeText(data.payment.content); showToast('Đã sao chép nội dung chuyển khoản.', 'success'); } catch (_) { showToast(`Nội dung: ${data.payment.content}`, 'warning'); } });
                 copy.appendChild(button); payment.append(qr, copy); content.appendChild(payment);
             }
+            if (data.order.PhuongThuc === 'BANKING' && data.order.TrangThaiThanhToan !== 'DA_THANH_TOAN' && data.order.TrangThaiThanhToan !== 'DA_HUY') {
+                const proof = element('form', 'order-proof-form');
+                const title = element('strong', '', 'Gửi ảnh xác nhận chuyển khoản');
+                const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/jpeg,image/png,image/webp'; input.required = true;
+                const submit = element('button', '', 'Gửi ảnh cho cửa hàng'); submit.type = 'submit';
+                const status = element('small', '', 'Chỉ nhận ảnh JPG, PNG hoặc WebP, tối đa 3 MB.');
+                proof.append(title, input, submit, status);
+                proof.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    const file = input.files?.[0];
+                    if (!file || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 3 * 1024 * 1024) {
+                        status.textContent = 'Chọn ảnh JPG, PNG hoặc WebP có dung lượng không quá 3 MB.'; return;
+                    }
+                    submit.disabled = true; submit.textContent = 'Đang gửi…';
+                    const form = new FormData(); form.append('image', file);
+                    try {
+                        const response = await fetch(`${window.API_BASE}/api/don-hang/${orderId}/chung-tu-thanh-toan`, { method: 'POST', headers: { Authorization: `Bearer ${Auth.getToken()}` }, body: form });
+                        const result = await response.json().catch(() => ({}));
+                        if (!response.ok || result.success === false) throw new Error(result.message || 'Không gửi được ảnh.');
+                        status.textContent = result.message; input.value = ''; showToast(result.message, 'success');
+                    } catch (error) { status.textContent = error.message; showToast(error.message, 'error'); }
+                    finally { submit.disabled = false; submit.textContent = 'Gửi ảnh cho cửa hàng'; }
+                });
+                content.appendChild(proof);
+            }
         } catch (error) {
             content.innerHTML = '';
             content.append(element('h2', '', `Đơn hàng #${orderId}`), element('p', 'empty-state', error.message));

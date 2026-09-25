@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-MIGRATION_VERSION = "2026-09-06-racket-commerce-v8"
+MIGRATION_VERSION = "2026-09-25-payment-proof-approval-v9"
 LOCK_NAME = "shop_caulong_schema_migration"
 BASE_TABLES = {
     "nguoidung": {
@@ -61,6 +61,7 @@ OPTIONAL_MANAGED_TABLES = {
         "mayeucau", "mand", "sotien", "mathamchieu", "trangthai", "ngaytao",
         "ngayxuly", "maadminxuly", "ghichuadmin",
     },
+    "tepxacminh": {"machungtu", "loai", "madoituong", "tenteptin", "mimetype", "dulieu", "ngaytao"},
     "nhatkyquantri": {
         "manhatky", "mand", "hanhdong", "doituong", "madoituong", "chitiet",
         "diachiip", "ngaytao",
@@ -333,6 +334,35 @@ def build_plan(cursor, database: str) -> list[Operation]:
             (MIGRATION_VERSION,),
         )
         migration_recorded = cursor.fetchone() is not None
+
+    if "tepxacminh" not in tables:
+        operations.append(Operation(
+            "table:tepxacminh",
+            "Tạo kho bằng chứng thanh toán và hồ sơ phê duyệt riêng tư",
+            f"""
+            CREATE TABLE `tepxacminh` (
+                `MaChungTu` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `Loai` VARCHAR(24) NOT NULL,
+                `MaDoiTuong` BIGINT UNSIGNED NOT NULL,
+                `TenTepTin` VARCHAR(180) NOT NULL,
+                `MimeType` VARCHAR(100) NOT NULL,
+                `DuLieu` MEDIUMBLOB NOT NULL,
+                `NgayTao` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`MaChungTu`),
+                KEY `idx_tepxacminh_target` (`Loai`,`MaDoiTuong`,`NgayTao`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            """,
+        ))
+    else:
+        add_index_if_missing(operations, indexes, actual("TepXacMinh"), "idx_tepxacminh_target", "`Loai`,`MaDoiTuong`,`NgayTao`")
+
+    if "pheduyetthaydoi" in tables and not migration_recorded:
+        approval_table_sql = identifier(actual("PheDuyetThayDoi"))
+        operations.append(Operation(
+            "approval:decision-status-v9",
+            "Cho phép phê duyệt hoặc từ chối, giữ nguyên lịch sử phê duyệt cũ",
+            f"ALTER TABLE {approval_table_sql} MODIFY COLUMN `TrangThai` VARCHAR(24) NOT NULL DEFAULT 'CHO_XEM'",
+        ))
 
     # Một số bản SQL cũ dùng ENUM chỉ gồm SO_DU/COD. Chuẩn hóa sang VARCHAR
     # để nhận BANKING; API vẫn whitelist chặt các phương thức hợp lệ.
@@ -629,7 +659,7 @@ def build_plan(cursor, database: str) -> list[Operation]:
                     `MaDoiTuong` VARCHAR(64) NULL,
                     `DuLieuTruoc` JSON NULL,
                     `DuLieuSau` JSON NULL,
-                    `TrangThai` ENUM('CHO_XEM','DA_XAC_NHAN','DA_HOAN_TAC') NOT NULL DEFAULT 'CHO_XEM',
+                    `TrangThai` VARCHAR(24) NOT NULL DEFAULT 'CHO_XEM',
                     `MaSuperAdmin` {user_id_type} NULL,
                     `GhiChu` VARCHAR(500) NULL,
                     `NgayTao` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
