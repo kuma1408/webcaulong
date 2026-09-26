@@ -2885,6 +2885,7 @@ def get_customer_chat():
     after_id = clamp_int(request.args.get("after"), 0, 0, 2_147_483_647)
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
+    stage = "thread_upsert"
     try:
         cursor.execute(
             """INSERT INTO ChatHoiThoai (MaND) VALUES (%s)
@@ -2899,18 +2900,22 @@ def get_customer_chat():
                 conn.rollback()
                 return api_error("Không tạo được hội thoại.", 503, "chat_unavailable")
             thread_id = row["MaHoiThoai"]
+        stage = "messages_select"
         cursor.execute(
             """SELECT MaTinNhan,MaNDGui,VaiTroGui,NoiDung,NgayTao
                FROM ChatTinNhan WHERE MaHoiThoai=%s AND MaTinNhan>%s
                ORDER BY MaTinNhan ASC LIMIT 100""",
             (thread_id, after_id),
         )
+        stage = "attachments_select"
         messages = serialize_chat_messages(cursor, cursor.fetchall())
+        stage = "mark_messages_read"
         cursor.execute(
             """UPDATE ChatTinNhan SET KhachDaDoc=1
                WHERE MaHoiThoai=%s AND VaiTroGui='ADMIN' AND KhachDaDoc=0""",
             (thread_id,),
         )
+        stage = "thread_select"
         cursor.execute(
             "SELECT MaHoiThoai,TrangThai,NgayTao,NgayCapNhat FROM ChatHoiThoai WHERE MaHoiThoai=%s",
             (thread_id,),
@@ -2918,10 +2923,20 @@ def get_customer_chat():
         thread = serialize_row(cursor.fetchone())
         conn.commit()
         return jsonify({"success": True, "thread": thread, "messages": messages})
-    except mysql.connector.Error:
+    except mysql.connector.Error as exc:
         conn.rollback()
         app.logger.exception("Không thể tải hội thoại khách hàng")
-        return api_error("Hộp thư chưa sẵn sàng. Hãy áp dụng migration mới.", 503, "chat_schema_unavailable")
+        response = jsonify({
+            "success": False,
+            "message": "Hộp thư chưa sẵn sàng. Hãy áp dụng migration mới.",
+            "code": "chat_schema_unavailable",
+            "diagnostic": {
+                "stage": stage,
+                "mysql_errno": getattr(exc, "errno", None),
+            },
+        })
+        response.status_code = 503
+        return response
     finally:
         cursor.close()
         conn.close()
