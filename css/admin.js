@@ -48,6 +48,11 @@
     let adminCropDragging = false;
     let adminCropPointerX = 0;
     let adminCropPointerY = 0;
+    const chatPendingFiles = [];
+    const chatAttachmentUrls = new Map();
+    let adminChatRecorder = null;
+    let adminChatRecordingStream = null;
+    let adminChatRecordingChunks = [];
 
     function clampAdminAvatarCrop() {
         const canvas = $('#adminAvatarCropCanvas');
@@ -2219,7 +2224,7 @@
             const heading = element('span', 'store-admin-chat__thread-head');
             heading.append(element('strong', '', thread.HoTen || thread.TenDangNhap || 'Khách hàng'));
             if (Number(thread.ChuaDoc)) heading.append(element('em', '', String(thread.ChuaDoc)));
-            const preview = element('span', 'store-admin-chat__thread-preview', thread.TinCuoi || 'Bắt đầu cuộc trò chuyện');
+            const preview = element('span', 'store-admin-chat__thread-preview', thread.TinCuoi || (thread.VaiTroTinCuoi ? 'Đã gửi tệp đính kèm' : 'Bắt đầu cuộc trò chuyện'));
             const meta = element('span', 'store-admin-chat__thread-meta', `@${thread.TenDangNhap || 'khach'} · ${formatDate(thread.NgayCapNhat)}`);
             button.append(heading, preview, meta);
             button.addEventListener('click', () => openAdminChatThread(thread));
@@ -2227,12 +2232,17 @@
         });
     }
     async function openAdminChatThread(thread) {
+        if (Number(thread.MaHoiThoai) !== Number(state.chatThreadId)) {
+            chatPendingFiles.splice(0);
+            renderAdminChatPendingFiles();
+        }
         state.chatThreadId = Number(thread.MaHoiThoai);
         state.chatMessages = [];
         state.chatLastId = 0;
         renderAdminChatThreads();
         $('#adminChatMessage').disabled = false;
         $('#adminChatSend').disabled = false;
+        ['#adminChatEmoji', '#adminChatChooseFile', '#adminChatRecord'].forEach(selector => { $(selector).disabled = false; });
         $('#adminChatContact').innerHTML = '';
         $('#adminChatContact').append(element('strong', '', thread.HoTen || thread.TenDangNhap || 'Khách hàng'));
         $('#adminChatContact').append(element('span', '', `${thread.Email || ''}${thread.SoDienThoai ? ' · ' + thread.SoDienThoai : ''}`));
@@ -2270,21 +2280,73 @@
         }
         state.chatMessages.forEach(message => {
             const item = element('article', 'store-chat-message ' + (message.VaiTroGui === 'ADMIN' ? 'is-agent' : 'is-customer'));
-            item.append(element('p', '', message.NoiDung));
+            if (message.NoiDung) item.append(element('p', '', message.NoiDung));
             item.append(element('time', '', `${message.VaiTroGui === 'ADMIN' ? 'Cửa hàng' : 'Khách hàng'} · ${formatDate(message.NgayTao)}`));
+            (message.TepDinhKem || []).forEach(file => renderAdminChatAttachment(item, file));
             pane.appendChild(item);
         });
+    }
+    function renderAdminChatAttachment(container, file) {
+        const card = element('div', 'store-chat-attachment');
+        const button = element('button', 'store-chat-file-link', 'Đang tải tệp…');
+        button.type = 'button';
+        button.disabled = true;
+        card.appendChild(button);
+        container.appendChild(card);
+        const mount = url => {
+            button.disabled = false;
+            button.textContent = `${file.TenTepTin} · ${Math.max(1, Math.ceil(Number(file.KichThuoc || 0) / 1024))} KB`;
+            if (file.MimeType.startsWith('image/')) {
+                const image = element('img', 'store-chat-attachment__image');
+                image.src = url;
+                image.alt = file.TenTepTin;
+                card.prepend(image);
+                button.addEventListener('click', () => window.open(url, '_blank', 'noopener'));
+            } else if (file.MimeType.startsWith('audio/')) {
+                const audio = document.createElement('audio');
+                audio.className = 'store-chat-audio';
+                audio.controls = true;
+                audio.preload = 'metadata';
+                audio.src = url;
+                card.prepend(audio);
+            }
+            button.addEventListener('click', () => {
+                if (file.MimeType.startsWith('image/')) return;
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = file.TenTepTin;
+                link.click();
+            });
+        };
+        if (chatAttachmentUrls.has(file.MaTep)) { mount(chatAttachmentUrls.get(file.MaTep)); return; }
+        fetch(Auth.apiBase() + `/api/chat/attachments/${encodeURIComponent(file.MaTep)}`, { headers: { Authorization: `Bearer ${Auth.getToken()}` } })
+            .then(response => { if (!response.ok) throw new Error('Không tải được tệp.'); return response.blob(); })
+            .then(blob => { const url = URL.createObjectURL(blob); chatAttachmentUrls.set(file.MaTep, url); mount(url); })
+            .catch(() => { button.disabled = true; button.textContent = `Không tải được tệp: ${file.TenTepTin}`; });
     }
     async function sendAdminChatMessage(event) {
         event.preventDefault();
         const id = state.chatThreadId;
         const input = $('#adminChatMessage');
         const message = input.value.trim();
-        if (!id || !message) return;
+        if (!id || (!message && !chatPendingFiles.length)) return;
         const button = $('#adminChatSend');
         setBusy(button, true, 'Đang gửi…');
         try {
-            await Auth.request(`/api/admin/chat/${id}/messages`, { method: 'POST', json: { message } });
+            if (chatPendingFiles.length) {
+                const payload = new FormData();
+                payload.append('message', message);
+                chatPendingFiles.forEach(file => payload.append('files', file, file.name));
+                const response = await fetch(Auth.apiBase() + `/api/admin/chat/${id}/messages`, {
+                    method: 'POST', headers: { Authorization: `Bearer ${Auth.getToken()}` }, body: payload
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || data.success === false) throw new Error(data.message || 'Chưa gửi được phản hồi.');
+                chatPendingFiles.splice(0);
+                renderAdminChatPendingFiles();
+            } else {
+                await Auth.request(`/api/admin/chat/${id}/messages`, { method: 'POST', json: { message } });
+            }
             input.value = '';
             await loadAdminChatMessages(false);
             await loadAdminChatThreads();
@@ -2293,6 +2355,90 @@
             setStatus($('#adminChatStatus'), error.message);
         } finally {
             setBusy(button, false);
+        }
+    }
+    function renderAdminChatPendingFiles() {
+        const list = $('#adminChatPendingFiles');
+        list.replaceChildren();
+        chatPendingFiles.forEach((file, index) => {
+            const item = element('span', 'store-chat-pending__item', file.name);
+            const remove = element('button', '', '×');
+            remove.type = 'button';
+            remove.setAttribute('aria-label', `Bỏ ${file.name}`);
+            remove.addEventListener('click', () => { chatPendingFiles.splice(index, 1); renderAdminChatPendingFiles(); });
+            item.append(remove);
+            list.append(item);
+        });
+    }
+    function stageAdminChatFiles(files) {
+        const additions = [...files];
+        if (chatPendingFiles.length + additions.length > 5 || chatPendingFiles.reduce((sum, file) => sum + file.size, 0) + additions.reduce((sum, file) => sum + file.size, 0) > 5 * 1024 * 1024) {
+            setStatus($('#adminChatStatus'), 'Tối đa 5 tệp và tổng dung lượng 5 MB mỗi tin.');
+            return;
+        }
+        if (additions.some(file => file.size > 2 * 1024 * 1024)) {
+            setStatus($('#adminChatStatus'), 'Mỗi tệp chat tối đa 2 MB.');
+            return;
+        }
+        chatPendingFiles.push(...additions);
+        renderAdminChatPendingFiles();
+        setStatus($('#adminChatStatus'), chatPendingFiles.length ? `Đã đính kèm ${chatPendingFiles.length} tệp.` : '');
+    }
+    function setupAdminChatEmojiPicker() {
+        const picker = $('#adminChatEmojiPicker');
+        const textarea = $('#adminChatMessage');
+        ['😀','😃','😄','😊','😉','😍','😎','🤔','👍','👏','🙏','🎉','❤️','🔥','🏸','⚡','✅','💯'].forEach(emoji => {
+            const button = element('button', '', emoji);
+            button.type = 'button';
+            button.addEventListener('click', () => {
+                textarea.setRangeText(emoji, textarea.selectionStart, textarea.selectionEnd, 'end');
+                textarea.focus();
+                picker.hidden = true;
+            });
+            picker.append(button);
+        });
+        $('#adminChatEmoji').addEventListener('click', () => { picker.hidden = !picker.hidden; });
+    }
+    function stopAdminChatRecording() {
+        adminChatRecorder = null;
+        adminChatRecordingChunks = [];
+        if (adminChatRecordingStream) adminChatRecordingStream.getTracks().forEach(track => track.stop());
+        adminChatRecordingStream = null;
+        const button = $('#adminChatRecord');
+        button.textContent = '🎙';
+        button.classList.remove('is-recording');
+        button.setAttribute('aria-label', 'Ghi âm tin nhắn thoại');
+    }
+    async function toggleAdminChatRecording() {
+        const button = $('#adminChatRecord');
+        if (!state.chatThreadId) return;
+        if (adminChatRecorder?.state === 'recording') { adminChatRecorder.stop(); return; }
+        if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+            setStatus($('#adminChatStatus'), 'Trình duyệt chưa hỗ trợ ghi âm; có thể chọn tệp âm thanh.');
+            return;
+        }
+        try {
+            adminChatRecordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const preferred = ['audio/webm;codecs=opus','audio/ogg;codecs=opus','audio/mp4'].find(type => MediaRecorder.isTypeSupported?.(type));
+            adminChatRecorder = new MediaRecorder(adminChatRecordingStream, preferred ? { mimeType: preferred } : undefined);
+            adminChatRecordingChunks = [];
+            adminChatRecorder.addEventListener('dataavailable', event => { if (event.data.size) adminChatRecordingChunks.push(event.data); });
+            adminChatRecorder.addEventListener('stop', () => {
+                const mime = adminChatRecorder?.mimeType || adminChatRecordingChunks[0]?.type || 'audio/webm';
+                const extension = mime.includes('ogg') ? 'ogg' : mime.includes('mp4') ? 'm4a' : 'webm';
+                const blob = new Blob(adminChatRecordingChunks, { type: mime });
+                if (blob.size) stageAdminChatFiles([new File([blob], `ghi-am-${Date.now()}.${extension}`, { type: mime })]);
+                stopAdminChatRecording();
+            }, { once: true });
+            adminChatRecorder.start();
+            button.textContent = '■';
+            button.classList.add('is-recording');
+            button.setAttribute('aria-label', 'Dừng ghi âm');
+            setStatus($('#adminChatStatus'), 'Đang ghi âm… nhấn nút đỏ để kết thúc.');
+            window.setTimeout(() => { if (adminChatRecorder?.state === 'recording') adminChatRecorder.stop(); }, 60_000);
+        } catch (_) {
+            stopAdminChatRecording();
+            setStatus($('#adminChatStatus'), 'Không truy cập được micro. Hãy cấp quyền micro cho trình duyệt.');
         }
     }
 
@@ -2670,6 +2816,10 @@
         $('#adminChatSearch').addEventListener('submit',(event)=>{event.preventDefault();loadAdminChatThreads();});
         $('#chatRefresh').addEventListener('click',()=>{loadAdminChatThreads();loadAdminChatMessages(false);});
         $('#adminChatReply').addEventListener('submit',sendAdminChatMessage);
+        $('#adminChatChooseFile').addEventListener('click',()=>$('#adminChatFileInput').click());
+        $('#adminChatFileInput').addEventListener('change',(event)=>{stageAdminChatFiles(event.target.files||[]);event.target.value='';});
+        setupAdminChatEmojiPicker();
+        $('#adminChatRecord').addEventListener('click',toggleAdminChatRecording);
         loadAdminChatThreads();
         window.setInterval(()=>{loadAdminChatThreads();if(state.currentView==='chat')loadAdminChatMessages(false);},10000);
         $('#contentImage').addEventListener('input',renderContentImagePreview);$('#uploadContentImage').addEventListener('click',()=>$('#contentImageFile').click());$('#contentImageFile').addEventListener('change',async(event)=>{const file=event.target.files?.[0];if(!file)return;try{$('#contentImage').value=await uploadAdminImage(file,'content',$('#uploadContentImage'));renderContentImagePreview();showToast('Đã tải ảnh bài viết.','success');}catch(error){setStatus($('#contentFormStatus'),error.message);}finally{event.target.value='';}});

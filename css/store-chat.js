@@ -16,8 +16,16 @@
             </header>
             <div class="store-chat-messages" id="storeChatBody" aria-live="polite"></div>
             <form class="store-chat-composer" id="storeChatComposer">
+                <div class="store-chat-tools">
+                    <button type="button" class="store-chat-tool" id="storeChatEmoji" aria-label="Chèn emoji">☺</button>
+                    <button type="button" class="store-chat-tool" id="storeChatChooseFile" aria-label="Đính kèm ảnh hoặc tệp">＋</button>
+                    <input id="storeChatFileInput" type="file" accept="image/jpeg,image/png,image/webp,audio/*,application/pdf,text/plain,text/csv,application/json,.docx,.xlsx,.pptx" multiple hidden>
+                    <button type="button" class="store-chat-tool" id="storeChatRecord" aria-label="Ghi âm tin nhắn thoại">🎙</button>
+                    <div class="store-chat-emoji-picker" id="storeChatEmojiPicker" hidden></div>
+                    <div class="store-chat-pending" id="storeChatPendingFiles"></div>
+                </div>
                 <label class="bs-visually-hidden" for="storeChatInput">Tin nhắn</label>
-                <textarea id="storeChatInput" maxlength="2000" rows="2" placeholder="Nhập tin nhắn…" required></textarea>
+                <textarea id="storeChatInput" maxlength="2000" rows="2" placeholder="Nhập tin nhắn…"></textarea>
                 <button id="storeChatSend" type="submit">Gửi</button>
                 <p class="store-chat-status" id="storeChatStatus" role="status"></p>
             </form>
@@ -34,10 +42,16 @@
     const input = widget.querySelector('#storeChatInput');
     const sendButton = widget.querySelector('#storeChatSend');
     const status = widget.querySelector('#storeChatStatus');
+    const fileInput = widget.querySelector('#storeChatFileInput');
+    const pendingFiles = [];
+    const attachmentUrls = new Map();
     let activeMode = null;
     let lastMessageId = 0;
     let loading = false;
     let aiHasMessages = false;
+    let mediaRecorder = null;
+    let recordingStream = null;
+    let recordingChunks = [];
 
     const loginHref = () => 'dangnhap.html?next=' + encodeURIComponent(window.location.pathname.split('/').pop() + window.location.search + window.location.hash);
     const make = (tag, className, text) => {
@@ -53,10 +67,140 @@
     };
     function addMessage(message, mine) {
         const item = make('article', 'store-chat-message' + (mine ? ' is-mine' : ''));
-        item.append(make('p', '', message.NoiDung || ''));
+        if (message.NoiDung) item.append(make('p', '', message.NoiDung));
         const time = make('time', '', message.NgayTao ? new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }).format(new Date(message.NgayTao.replace(' ', 'T'))) : 'Vừa xong');
         item.append(time);
+        (message.TepDinhKem || []).forEach(file => renderAttachment(item, file));
         body.append(item);
+    }
+    function renderAttachment(container, file) {
+        const card = make('div', 'store-chat-attachment');
+        const link = make('button', 'store-chat-file-link', 'Đang tải tệp…');
+        link.type = 'button';
+        link.disabled = true;
+        card.append(link);
+        container.append(card);
+        const cached = attachmentUrls.get(file.MaTep);
+        const mount = (url) => {
+            link.disabled = false;
+            link.textContent = file.TenTepTin + ' · ' + Math.max(1, Math.ceil(Number(file.KichThuoc || 0) / 1024)) + ' KB';
+            if (file.MimeType.startsWith('image/')) {
+                const image = make('img', 'store-chat-attachment__image');
+                image.src = url;
+                image.alt = file.TenTepTin;
+                card.prepend(image);
+                link.addEventListener('click', () => window.open(url, '_blank', 'noopener'));
+            } else if (file.MimeType.startsWith('audio/')) {
+                const audio = document.createElement('audio');
+                audio.className = 'store-chat-audio';
+                audio.controls = true;
+                audio.preload = 'metadata';
+                audio.src = url;
+                card.prepend(audio);
+            }
+            link.addEventListener('click', () => {
+                if (file.MimeType.startsWith('image/')) return;
+                const download = document.createElement('a');
+                download.href = url;
+                download.download = file.TenTepTin;
+                download.click();
+            });
+        };
+        if (cached) { mount(cached); return; }
+        fetch(Auth.apiBase() + '/api/chat/attachments/' + encodeURIComponent(file.MaTep), {
+            headers: { Authorization: 'Bearer ' + Auth.getToken() }
+        }).then(response => {
+            if (!response.ok) throw new Error('Tệp không còn khả dụng');
+            return response.blob();
+        }).then(blob => {
+            const url = URL.createObjectURL(blob);
+            attachmentUrls.set(file.MaTep, url);
+            mount(url);
+        }).catch(() => { link.disabled = true; link.textContent = 'Không tải được tệp: ' + file.TenTepTin; });
+    }
+    function renderPendingFiles() {
+        const list = widget.querySelector('#storeChatPendingFiles');
+        list.replaceChildren();
+        pendingFiles.forEach((file, index) => {
+            const item = make('span', 'store-chat-pending__item', file.name);
+            const remove = make('button', '', '×');
+            remove.type = 'button';
+            remove.setAttribute('aria-label', 'Bỏ ' + file.name);
+            remove.addEventListener('click', () => {
+                pendingFiles.splice(index, 1);
+                renderPendingFiles();
+            });
+            item.append(remove);
+            list.append(item);
+        });
+    }
+    function stageFiles(files) {
+        const additions = [...files];
+        if (pendingFiles.length + additions.length > 5 || pendingFiles.reduce((sum, file) => sum + file.size, 0) + additions.reduce((sum, file) => sum + file.size, 0) > 5 * 1024 * 1024) {
+            setStatus('Tối đa 5 tệp và tổng dung lượng 5 MB mỗi tin.', true);
+            return;
+        }
+        if (additions.some(file => file.size > 2 * 1024 * 1024)) {
+            setStatus('Mỗi tệp chat tối đa 2 MB.', true);
+            return;
+        }
+        pendingFiles.push(...additions);
+        renderPendingFiles();
+        setStatus(pendingFiles.length ? 'Đã đính kèm ' + pendingFiles.length + ' tệp.' : '');
+    }
+    function installEmojiPicker(button, picker, target) {
+        const emojis = ['😀','😃','😄','😁','😆','😊','🙂','😉','😍','🥰','😎','🤔','👍','👏','🙏','🎉','❤️','🔥','🏸','⚡','✅','💯'];
+        emojis.forEach(emoji => {
+            const option = make('button', '', emoji);
+            option.type = 'button';
+            option.addEventListener('click', () => {
+                const start = target.selectionStart;
+                target.setRangeText(emoji, start, target.selectionEnd, 'end');
+                target.focus();
+                picker.hidden = true;
+            });
+            picker.append(option);
+        });
+        button.addEventListener('click', () => { picker.hidden = !picker.hidden; });
+    }
+    function stopRecordingUi(button) {
+        mediaRecorder = null;
+        recordingChunks = [];
+        if (recordingStream) recordingStream.getTracks().forEach(track => track.stop());
+        recordingStream = null;
+        button.textContent = '🎙';
+        button.classList.remove('is-recording');
+        button.setAttribute('aria-label', 'Ghi âm tin nhắn thoại');
+    }
+    async function toggleVoiceRecording(button) {
+        if (mediaRecorder?.state === 'recording') { mediaRecorder.stop(); return; }
+        if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+            setStatus('Trình duyệt này chưa hỗ trợ ghi âm. Bạn vẫn có thể chọn tệp âm thanh.', true);
+            return;
+        }
+        try {
+            recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const preferred = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/mp4'].find(type => MediaRecorder.isTypeSupported?.(type));
+            mediaRecorder = new MediaRecorder(recordingStream, preferred ? { mimeType: preferred } : undefined);
+            recordingChunks = [];
+            mediaRecorder.addEventListener('dataavailable', event => { if (event.data.size) recordingChunks.push(event.data); });
+            mediaRecorder.addEventListener('stop', () => {
+                const mime = mediaRecorder?.mimeType || recordingChunks[0]?.type || 'audio/webm';
+                const ext = mime.includes('ogg') ? 'ogg' : mime.includes('mp4') ? 'm4a' : 'webm';
+                const blob = new Blob(recordingChunks, { type: mime });
+                if (blob.size) stageFiles([new File([blob], 'ghi-am-' + Date.now() + '.' + ext, { type: mime })]);
+                stopRecordingUi(button);
+            }, { once: true });
+            mediaRecorder.start();
+            button.textContent = '■';
+            button.classList.add('is-recording');
+            button.setAttribute('aria-label', 'Dừng ghi âm');
+            setStatus('Đang ghi âm… nhấn nút đỏ để kết thúc.');
+            window.setTimeout(() => { if (mediaRecorder?.state === 'recording') mediaRecorder.stop(); }, 60_000);
+        } catch (_) {
+            stopRecordingUi(button);
+            setStatus('Không truy cập được micro. Hãy cấp quyền micro cho trình duyệt.', true);
+        }
     }
     function showLoginPrompt() {
         body.replaceChildren();
@@ -76,9 +220,14 @@
         widget.querySelector('#storeAiLauncher').setAttribute('aria-expanded', String(mode === 'ai'));
         widget.querySelector('#storeChatTitle').textContent = mode === 'ai' ? 'Trợ lý AI' : 'Nhắn tin với cửa hàng';
         widget.querySelector('#storeChatSubtitle').textContent = mode === 'ai' ? 'Hỏi nhanh về sản phẩm và mua sắm' : 'Tin nhắn riêng với đội ngũ Badminton Store';
+        widget.querySelector('.store-chat-tools').hidden = mode === 'ai';
         status.classList.toggle('store-ai-status', mode === 'ai');
         status.textContent = '';
-        if (mode === 'ai') renderAi();
+        if (mode === 'ai') {
+            pendingFiles.splice(0);
+            renderPendingFiles();
+            renderAi();
+        }
         else {
             input.placeholder = 'Nhập tin nhắn…';
             sendButton.textContent = 'Gửi';
@@ -124,11 +273,26 @@
     async function sendCustomerMessage(event) {
         event.preventDefault();
         const message = input.value.trim();
-        if (!message || activeMode !== 'messenger') return;
+        if ((!message && !pendingFiles.length) || activeMode !== 'messenger') return;
         sendButton.disabled = true;
         setStatus('Đang gửi…');
         try {
-            await Auth.request('/api/chat/messages', { method: 'POST', json: { message } });
+            if (pendingFiles.length) {
+                const payload = new FormData();
+                payload.append('message', message);
+                pendingFiles.forEach(file => payload.append('files', file, file.name));
+                const response = await fetch(Auth.apiBase() + '/api/chat/messages', {
+                    method: 'POST',
+                    headers: { Authorization: 'Bearer ' + Auth.getToken() },
+                    body: payload
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok || result.success === false) throw new Error(result.message || 'Chưa gửi được tin nhắn.');
+                pendingFiles.splice(0);
+                renderPendingFiles();
+            } else {
+                await Auth.request('/api/chat/messages', { method: 'POST', json: { message } });
+            }
             input.value = '';
             setStatus('');
             await loadCustomerMessages(false);
@@ -177,6 +341,10 @@
 
     widget.querySelector('#storeMessengerLauncher').addEventListener('click', () => setMode('messenger'));
     widget.querySelector('#storeAiLauncher').addEventListener('click', () => setMode('ai'));
+    widget.querySelector('#storeChatChooseFile').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', event => { stageFiles(event.target.files || []); event.target.value = ''; });
+    installEmojiPicker(widget.querySelector('#storeChatEmoji'), widget.querySelector('#storeChatEmojiPicker'), input);
+    widget.querySelector('#storeChatRecord').addEventListener('click', event => toggleVoiceRecording(event.currentTarget));
     widget.querySelector('#storeChatClose').addEventListener('click', () => {
         panel.hidden = true;
         activeMode = null;

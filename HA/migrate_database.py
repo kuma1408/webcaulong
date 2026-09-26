@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-MIGRATION_VERSION = "2026-09-26-customer-messenger-v12"
+MIGRATION_VERSION = "2026-09-26-chat-attachments-v13"
 LOCK_NAME = "shop_caulong_schema_migration"
 BASE_TABLES = {
     "nguoidung": {
@@ -99,6 +99,10 @@ OPTIONAL_MANAGED_TABLES = {
     "chattinnhan": {
         "matinnhan", "mahoithoai", "mandgui", "vaitrogui", "noidung",
         "admindadoc", "khachdadoc", "ngaytao",
+    },
+    "chattinhantep": {
+        "matep", "matinnhan", "tenteptin", "mimetype", "kichthuoc",
+        "dulieu", "ngaytao",
     },
 }
 
@@ -908,6 +912,26 @@ def build_plan(cursor, database: str) -> list[Operation]:
             """,
         ))
 
+    if "chattinhantep" not in tables:
+        operations.append(Operation(
+            "table:chattinhantep",
+            "Tạo kho tệp chat riêng tư cho hình ảnh, âm thanh và tài liệu",
+            f"""
+            CREATE TABLE `chattinhantep` (
+                `MaTep` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `MaTinNhan` BIGINT UNSIGNED NOT NULL,
+                `TenTepTin` VARCHAR(180) NOT NULL,
+                `MimeType` VARCHAR(100) NOT NULL,
+                `KichThuoc` INT UNSIGNED NOT NULL,
+                `DuLieu` LONGBLOB NOT NULL,
+                `NgayTao` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`MaTep`),
+                KEY `idx_chattinhantep_message` (`MaTinNhan`),
+                CONSTRAINT `fk_chattinhantep_message` FOREIGN KEY (`MaTinNhan`) REFERENCES `chattinnhan` (`MaTinNhan`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            """,
+        ))
+
     add_index_if_missing(
         operations,
         indexes,
@@ -986,7 +1010,7 @@ def build_plan(cursor, database: str) -> list[Operation]:
                 f"version:{MIGRATION_VERSION}",
                 f"Ghi nhận migration {MIGRATION_VERSION}",
                 f"INSERT IGNORE INTO {migration_table_sql} (`Version`, `Description`) "
-                f"VALUES ('{MIGRATION_VERSION}', 'Customer messenger and admin inbox')",
+                f"VALUES ('{MIGRATION_VERSION}', 'Private messenger attachments for images, audio and documents')",
             )
         )
     return operations

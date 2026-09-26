@@ -1150,13 +1150,13 @@ const API_HEADERS = window.API_HEADERS;
         if (!document.querySelector('link[data-store-chat-styles]')) {
             const styles = document.createElement('link');
             styles.rel = 'stylesheet';
-            styles.href = new URL('css/store-chat.css?v=20260926-1', document.baseURI).href;
+            styles.href = new URL('css/store-chat.css?v=20260926-media-2', document.baseURI).href;
             styles.dataset.storeChatStyles = 'true';
             document.head.appendChild(styles);
         }
         if (document.querySelector('script[data-store-chat-widget]')) return;
         const script = document.createElement('script');
-        script.src = new URL('css/store-chat.js?v=20260926-1', document.baseURI).href;
+        script.src = new URL('css/store-chat.js?v=20260926-media-2', document.baseURI).href;
         script.dataset.storeChatWidget = 'true';
         script.defer = true;
         document.body.appendChild(script);

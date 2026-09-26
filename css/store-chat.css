@@ -6,7 +6,7 @@
     --chat-surface: #fffaf7;
     --chat-line: #ead9d1;
     position: fixed;
-    z-index: 1500;
+    z-index: 9200;
     right: max(18px, env(safe-area-inset-right));
     bottom: max(20px, env(safe-area-inset-bottom));
     display: flex;
@@ -58,6 +58,7 @@
     animation: store-chat-open .2s ease-out both;
 }
 .store-chat-window[hidden] { display: none; }
+.store-chat-window[data-chat-mode="ai"] .store-chat-tools { display: none !important; }
 @keyframes store-chat-open { from { opacity: 0; transform: translateY(9px) scale(.985); } to { opacity: 1; transform: none; } }
 .store-chat-window__head {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -80,6 +81,25 @@
 .store-chat-message p { margin: 0; white-space: pre-wrap; font-size: 13px; line-height: 1.5; }
 .store-chat-message time { display: block; margin-top: 5px; color: var(--chat-muted); font-size: 10px; }
 .store-chat-composer { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 12px; border-top: 1px solid var(--chat-line); background: var(--chat-surface); }
+.store-chat-tools { position: relative; grid-column: 1 / -1; display: flex; align-items: center; gap: 7px; min-height: 34px; }
+.store-chat-tools[hidden] { display: none !important; }
+.store-chat-tool { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 1px solid var(--chat-line); border-radius: 11px; background: var(--chat-surface); color: var(--chat-muted); font: inherit; font-size: 17px; cursor: pointer; transition: transform .16s ease, color .16s ease, border-color .16s ease, background .16s ease; }
+.store-chat-tool:hover { transform: translateY(-2px); border-color: var(--chat-accent); color: var(--chat-accent); }
+.store-chat-tool:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.store-chat-tool.is-recording { color: #fff; border-color: #d92e2e; background: #df3838; animation: store-chat-recording 1s infinite alternate; }
+@keyframes store-chat-recording { to { box-shadow: 0 0 0 6px rgba(226,54,54,.16); } }
+.store-chat-emoji-picker { position: absolute; z-index: 3; left: 0; bottom: calc(100% + 8px); display: grid; grid-template-columns: repeat(6, 36px); gap: 3px; padding: 8px; border: 1px solid var(--chat-line); border-radius: 14px; background: var(--chat-surface); box-shadow: 0 12px 30px rgba(0,0,0,.2); animation: store-chat-open .16s ease-out both; }
+.store-chat-emoji-picker[hidden] { display: none !important; }
+.store-chat-emoji-picker button { width: 36px; height: 36px; border: 0; border-radius: 8px; background: transparent; font-size: 20px; cursor: pointer; }
+.store-chat-emoji-picker button:hover { background: color-mix(in srgb, var(--chat-accent) 13%, var(--chat-surface)); transform: scale(1.1); }
+.store-chat-pending { display: flex; flex: 1; flex-wrap: wrap; gap: 5px; min-width: 0; }
+.store-chat-pending__item { display: inline-flex; align-items: center; gap: 5px; max-width: 170px; padding: 4px 7px; overflow: hidden; border: 1px solid var(--chat-line); border-radius: 99px; color: var(--chat-muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; animation: store-chat-open .16s ease-out both; }
+.store-chat-pending__item button { width: 17px; height: 17px; padding: 0; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--chat-accent) 12%, var(--chat-surface)); color: var(--chat-accent); line-height: 1; cursor: pointer; }
+.store-chat-attachment { display: grid; gap: 7px; min-width: 0; margin-top: 8px; }
+.store-chat-attachment__image { display: block; width: min(250px, 100%); max-height: 210px; object-fit: contain; border-radius: 10px; background: rgba(127,100,88,.08); cursor: zoom-in; }
+.store-chat-audio { display: block; width: min(280px, 100%); height: 38px; }
+.store-chat-file-link { width: fit-content; max-width: 100%; overflow: hidden; padding: 6px 9px; border: 1px solid var(--chat-line); border-radius: 9px; background: transparent; color: var(--chat-accent-dark); font: inherit; font-size: 11px; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.store-chat-file-link:disabled { color: var(--chat-muted); cursor: wait; }
 .store-chat-composer textarea {
     width: 100%; min-height: 42px; max-height: 100px; resize: vertical; box-sizing: border-box;
     padding: 10px 11px; border: 1px solid var(--chat-line); border-radius: 12px; background: #fff; color: var(--chat-ink); font: inherit; font-size: 13px;
@@ -101,17 +121,21 @@
 .store-chat-window[data-chat-mode="ai"] { grid-template-rows: auto minmax(180px, 1fr) auto; }
 .store-ai-content .store-chat-note { margin: 0; padding: 12px 0; }
 .store-ai-status { color: #6c58bf; }
+#bsBackToTop { right: max(18px, env(safe-area-inset-right)) !important; bottom: 138px !important; z-index: 9100 !important; }
 :root[data-theme="dark"] .store-chat-window { --chat-ink: #f5ece8; --chat-muted: #bfaaa0; --chat-surface: #211512; --chat-line: #513126; }
 :root[data-theme="dark"] .store-chat-messages { background: radial-gradient(ellipse at 20% 0%, rgba(242,91,37,.11), transparent 55%); }
 :root[data-theme="dark"] .store-chat-message { background: #2b1b17; }
 :root[data-theme="dark"] .store-chat-message.is-mine { background: #472319; border-color: #713b28; }
 :root[data-theme="dark"] .store-chat-composer textarea, :root[data-theme="dark"] .store-ai-suggestions button { background: #180f0d; color: var(--chat-ink); }
 :root[data-theme="dark"] .store-ai-welcome { border-color: #493d82; background: linear-gradient(135deg, #211d37, #241a21); }
+:root[data-theme="dark"] .store-chat-emoji-picker, :root[data-theme="dark"] .store-chat-tool { background: #211512; }
 @media (max-width: 520px) {
     .store-chat-widget { right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); }
     .store-chat-launcher { min-height: 44px; padding-inline: 13px; }
     .store-chat-window { right: -4px; bottom: 108px; width: min(380px, calc(100vw - 20px)); height: min(520px, calc(100dvh - 135px)); }
+    #bsBackToTop { right: 12px !important; bottom: 122px !important; }
 }
 @media (prefers-reduced-motion: reduce) {
-    .store-chat-launcher, .store-chat-window { animation: none; transition: none; }
+    .store-chat-launcher, .store-chat-window, .store-chat-emoji-picker,
+    .store-chat-pending__item, .store-chat-tool.is-recording { animation: none; transition: none; }
 }

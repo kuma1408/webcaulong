@@ -19,6 +19,7 @@ import ssl
 import threading
 import time
 import unicodedata
+import zipfile
 from collections import defaultdict, deque
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -56,8 +57,8 @@ app.json.ensure_ascii = False
 app.config.update(
     JSON_SORT_KEYS=False,
     # Chừa phần header multipart; từng ảnh vẫn được kiểm tra riêng ở backend.
-    MAX_CONTENT_LENGTH=4 * 1024 * 1024,
-    MAX_FORM_MEMORY_SIZE=4 * 1024 * 1024,
+    MAX_CONTENT_LENGTH=6 * 1024 * 1024,
+    MAX_FORM_MEMORY_SIZE=6 * 1024 * 1024,
     MAX_FORM_PARTS=20,
 )
 
@@ -131,6 +132,9 @@ AVATAR_MAX_BYTES = 2 * 1024 * 1024
 AVATAR_SIZE = (512, 512)
 PUBLIC_IMAGE_MAX_BYTES = 3 * 1024 * 1024
 PUBLIC_IMAGE_MAX_SIZE = (1800, 1800)
+CHAT_ATTACHMENT_MAX_BYTES = 2 * 1024 * 1024
+CHAT_ATTACHMENT_MAX_TOTAL = 5 * 1024 * 1024
+CHAT_ATTACHMENT_MAX_COUNT = 5
 PUBLIC_FILE_EXTENSIONS = {
     ".html", ".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".avif",
     ".svg", ".webmanifest",
@@ -352,7 +356,7 @@ DATABASE_TABLE_NAMES = {
     "phiendangnhap", "sanpham", "schemamigration", "voucher", "yeucaunaptien",
     "datlaimatkhau", "sudungvoucher", "yeuthich", "yeucauhotro", "tepxacminh",
     "thongbaokhachhang", "thongbaodadoc", "pheduyetbosung",
-    "chathoithoai", "chattinnhan",
+    "chathoithoai", "chattinnhan", "chattinhantep",
 }
 _TABLE_REFERENCE_RE = re.compile(
     r"\b(FROM|JOIN|UPDATE|INTO|TABLE|REFERENCES)\s+`?("
@@ -642,6 +646,135 @@ def evidence_error(error):
     return api_error(message, status, code if code in messages else "invalid_evidence")
 
 
+def normalized_chat_attachment(uploaded):
+    """Validate a private chat image, recording, or non-executable document."""
+    if not uploaded or not getattr(uploaded, "filename", ""):
+        raise ValueError("chat_attachment_type")
+    original = os.path.basename(str(uploaded.filename).replace("\\", "/"))[:180]
+    extension = os.path.splitext(original)[1].lower()
+    raw = uploaded.read(CHAT_ATTACHMENT_MAX_BYTES + 1)
+    if not raw:
+        raise ValueError("chat_attachment_empty")
+    if len(raw) > CHAT_ATTACHMENT_MAX_BYTES:
+        raise ValueError("chat_attachment_size")
+    if extension in {".jpg", ".jpeg", ".png", ".webp"}:
+        uploaded.stream.seek(0)
+        content = normalized_public_image(uploaded)
+        filename, mime = os.path.splitext(original)[0] + ".webp", "image/webp"
+    elif extension == ".pdf" and raw.startswith(b"%PDF-"):
+        filename, mime, content = original, "application/pdf", raw
+    elif extension in {".txt", ".csv", ".json"}:
+        try:
+            text = raw.decode("utf-8-sig")
+        except UnicodeDecodeError as exc:
+            raise ValueError("chat_attachment_type") from exc
+        if not text.strip() or any(ord(char) < 9 and char not in "\r\n\t" for char in text):
+            raise ValueError("chat_attachment_type")
+        filename = original
+        mime = {".txt": "text/plain", ".csv": "text/csv", ".json": "application/json"}[extension]
+        content = raw
+    elif extension in {".docx", ".xlsx", ".pptx"} and raw.startswith(b"PK\x03\x04"):
+        required_member, mime = {
+            ".docx": ("word/document.xml", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+            ".xlsx": ("xl/workbook.xml", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+            ".pptx": ("ppt/presentation.xml", "application/vnd.openxmlformats-officedocument.presentationml.presentation"),
+        }[extension]
+        try:
+            with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+                members = archive.infolist()
+                if (
+                    len(members) > 500
+                    or sum(member.file_size for member in members) > 30 * 1024 * 1024
+                    or any(member.filename.startswith("/") or ".." in member.filename.split("/") for member in members)
+                    or "[Content_Types].xml" not in archive.namelist()
+                    or required_member not in archive.namelist()
+                ):
+                    raise ValueError("chat_attachment_type")
+        except (zipfile.BadZipFile, OSError) as exc:
+            raise ValueError("chat_attachment_type") from exc
+        filename, content = original, raw
+    elif extension in {".webm", ".ogg", ".opus", ".mp3", ".m4a", ".mp4", ".wav"}:
+        signatures = {
+            ".webm": raw.startswith(bytes.fromhex("1a45dfa3")),
+            ".ogg": raw.startswith(b"OggS"),
+            ".opus": raw.startswith(b"OggS"),
+            ".mp3": raw.startswith(b"ID3") or (len(raw) > 1 and raw[0] == 0xFF and raw[1] & 0xE0 == 0xE0),
+            ".m4a": len(raw) > 12 and raw[4:8] == b"ftyp",
+            ".mp4": len(raw) > 12 and raw[4:8] == b"ftyp",
+            ".wav": raw.startswith(b"RIFF") and raw[8:12] == b"WAVE",
+        }
+        if not signatures[extension]:
+            raise ValueError("chat_attachment_type")
+        filename = original
+        mime = {
+            ".webm": "audio/webm", ".ogg": "audio/ogg", ".opus": "audio/ogg",
+            ".mp3": "audio/mpeg", ".m4a": "audio/mp4", ".mp4": "audio/mp4",
+            ".wav": "audio/wav",
+        }[extension]
+        content = raw
+    else:
+        raise ValueError("chat_attachment_type")
+    filename = re.sub(r"[^\w .()\-]", "_", filename, flags=re.UNICODE).strip(" .")[:180] or "tep-tin"
+    return filename, mime, content
+
+
+def chat_attachment_error(error):
+    code = str(error)
+    messages = {
+        "chat_attachment_empty": ("Tệp đính kèm đang trống.", 400),
+        "chat_attachment_size": ("Mỗi tệp chat tối đa 2 MB.", 413),
+        "chat_attachment_type": ("Chỉ nhận ảnh, bản ghi âm, PDF, Office Open XML, TXT, CSV hoặc JSON hợp lệ.", 415),
+    }
+    message, status = messages.get(code, ("Tệp đính kèm không hợp lệ.", 415))
+    return api_error(message, status, code if code in messages else "invalid_chat_attachment")
+
+
+def parse_chat_submission():
+    if request.mimetype == "multipart/form-data":
+        message = str(request.form.get("message", "")).strip()
+        uploads = [item for item in request.files.getlist("files") if item and item.filename]
+    else:
+        message = str(body_json().get("message", "")).strip()
+        uploads = []
+    if len(message) > 2000:
+        raise ValueError("invalid_chat_message")
+    if not message and not uploads:
+        raise ValueError("invalid_chat_message")
+    if len(uploads) > CHAT_ATTACHMENT_MAX_COUNT:
+        raise ValueError("chat_attachment_count")
+    attachments = [normalized_chat_attachment(item) for item in uploads]
+    if sum(len(content) for _, _, content in attachments) > CHAT_ATTACHMENT_MAX_TOTAL:
+        raise ValueError("chat_attachment_total")
+    return message, attachments
+
+
+def chat_submission_error(error):
+    if str(error) == "invalid_chat_message":
+        return api_error("Nhập tin nhắn hoặc chọn tệp đính kèm (tối đa 2.000 ký tự).", 400, "invalid_chat_message")
+    if str(error) == "chat_attachment_count":
+        return api_error("Mỗi tin nhắn đính kèm tối đa 5 tệp.", 400, "chat_attachment_count")
+    if str(error) == "chat_attachment_total":
+        return api_error("Tổng dung lượng tệp trong một tin nhắn tối đa 5 MB.", 413, "chat_attachment_total")
+    return chat_attachment_error(error)
+
+
+def chat_attachment_rate_limit(scope, user_id, *, consume=False):
+    """Limit blob storage independently from short text-message bursts."""
+    return RATE_LIMITER.check("chat-files-" + scope, str(user_id), 8, 60 * 60, consume=consume)
+
+
+def chat_attachment_rate_error(retry_after):
+    response = jsonify({
+        "success": False,
+        "message": "Đã đạt giới hạn gửi tệp trong giờ này. Vui lòng thử lại sau.",
+        "code": "chat_file_rate_limited",
+        "retry_after": retry_after,
+    })
+    response.status_code = 429
+    response.headers["Retry-After"] = str(retry_after)
+    return response
+
+
 def public_image_validation_error(error: ValueError):
     code = str(error)
     messages = {
@@ -733,6 +866,26 @@ def serialize_row(row: dict | None) -> dict | None:
     if row is None:
         return None
     return {key: json_value(value) for key, value in row.items()}
+
+
+def serialize_chat_messages(cursor, rows):
+    messages = [serialize_row(row) for row in rows]
+    ids = [message["MaTinNhan"] for message in messages if message]
+    for message in messages:
+        if message is not None:
+            message["TepDinhKem"] = []
+    if not ids:
+        return messages
+    placeholders = ",".join(["%s"] * len(ids))
+    cursor.execute(
+        "SELECT MaTep,MaTinNhan,TenTepTin,MimeType,KichThuoc FROM ChatTepDinhKem "
+        "WHERE MaTinNhan IN (" + placeholders + ") ORDER BY MaTep",
+        ids,
+    )
+    by_message = {message["MaTinNhan"]: message for message in messages if message}
+    for row in cursor.fetchall():
+        by_message[row["MaTinNhan"]]["TepDinhKem"].append(serialize_row(row))
+    return messages
 
 
 def parse_images(value) -> list[str]:
@@ -2752,7 +2905,7 @@ def get_customer_chat():
                ORDER BY MaTinNhan ASC LIMIT 100""",
             (thread_id, after_id),
         )
-        messages = [serialize_row(row) for row in cursor.fetchall()]
+        messages = serialize_chat_messages(cursor, cursor.fetchall())
         cursor.execute(
             """UPDATE ChatTinNhan SET KhachDaDoc=1
                WHERE MaHoiThoai=%s AND VaiTroGui='ADMIN' AND KhachDaDoc=0""",
@@ -2784,9 +2937,14 @@ def send_customer_chat_message():
         response.status_code = 429
         response.headers["Retry-After"] = str(retry_after)
         return response
-    message = str(body_json().get("message", "")).strip()
-    if not message or len(message) > 2000:
-        return api_error("Tin nhắn cần có từ 1 đến 2.000 ký tự.", 400, "invalid_chat_message")
+    try:
+        message, attachments = parse_chat_submission()
+    except ValueError as error:
+        return chat_submission_error(error)
+    if attachments:
+        files_allowed, files_retry = chat_attachment_rate_limit("customer", user_id, consume=True)
+        if not files_allowed:
+            return chat_attachment_rate_error(files_retry)
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
@@ -2806,6 +2964,12 @@ def send_customer_chat_message():
             (thread_id, user_id, message),
         )
         message_id = cursor.lastrowid
+        for filename, mime_type, content in attachments:
+            cursor.execute(
+                """INSERT INTO ChatTepDinhKem (MaTinNhan,TenTepTin,MimeType,KichThuoc,DuLieu)
+                   VALUES (%s,%s,%s,%s,%s)""",
+                (message_id, filename, mime_type, len(content), content),
+            )
         cursor.execute("UPDATE ChatHoiThoai SET TrangThai='MOI',NgayCapNhat=NOW() WHERE MaHoiThoai=%s", (thread_id,))
         conn.commit()
         RATE_LIMITER.check("chat-user", str(user_id), 12, 60)
@@ -4369,7 +4533,7 @@ def admin_get_chat_thread(thread_id):
                    ORDER BY MaTinNhan ASC""",
                 (thread_id,),
             )
-        messages = [serialize_row(row) for row in cursor.fetchall()]
+        messages = serialize_chat_messages(cursor, cursor.fetchall())
         cursor.execute(
             """UPDATE ChatTinNhan SET AdminDaDoc=1
                WHERE MaHoiThoai=%s AND VaiTroGui='CUSTOMER' AND AdminDaDoc=0""",
@@ -4397,9 +4561,14 @@ def admin_send_chat_message(thread_id):
         response.status_code = 429
         response.headers["Retry-After"] = str(retry_after)
         return response
-    message = str(body_json().get("message", "")).strip()
-    if not message or len(message) > 2000:
-        return api_error("Tin nhắn cần có từ 1 đến 2.000 ký tự.", 400, "invalid_chat_message")
+    try:
+        message, attachments = parse_chat_submission()
+    except ValueError as error:
+        return chat_submission_error(error)
+    if attachments:
+        files_allowed, files_retry = chat_attachment_rate_limit("admin", admin_id, consume=True)
+        if not files_allowed:
+            return chat_attachment_rate_error(files_retry)
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
@@ -4415,6 +4584,12 @@ def admin_send_chat_message(thread_id):
             (thread_id, admin_id, message),
         )
         message_id = cursor.lastrowid
+        for filename, mime_type, content in attachments:
+            cursor.execute(
+                """INSERT INTO ChatTepDinhKem (MaTinNhan,TenTepTin,MimeType,KichThuoc,DuLieu)
+                   VALUES (%s,%s,%s,%s,%s)""",
+                (message_id, filename, mime_type, len(content), content),
+            )
         cursor.execute("UPDATE ChatHoiThoai SET TrangThai='DA_PHAN_HOI',NgayCapNhat=NOW() WHERE MaHoiThoai=%s", (thread_id,))
         conn.commit()
         RATE_LIMITER.check("chat-admin", str(admin_id), 40, 60)
@@ -4423,6 +4598,43 @@ def admin_send_chat_message(thread_id):
         conn.rollback()
         app.logger.exception("Không thể gửi phản hồi chat quản trị")
         return api_error("Chưa gửi được phản hồi. Vui lòng thử lại.", 503, "chat_send_failed")
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.get("/api/chat/attachments/<int:attachment_id>")
+@auth_required
+def get_chat_attachment(attachment_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        sql = """SELECT a.TenTepTin,a.MimeType,a.DuLieu,c.MaND
+                 FROM ChatTepDinhKem a
+                 JOIN ChatTinNhan m ON m.MaTinNhan=a.MaTinNhan
+                 JOIN ChatHoiThoai c ON c.MaHoiThoai=m.MaHoiThoai
+                 WHERE a.MaTep=%s"""
+        params = [attachment_id]
+        if g.current_user.get("VaiTro") not in ADMIN_ROLES:
+            sql += " AND c.MaND=%s"
+            params.append(g.current_user["MaND"])
+        cursor.execute(sql, params)
+        attachment = cursor.fetchone()
+        if not attachment:
+            return api_error("Không tìm thấy tệp trong hội thoại của bạn.", 404, "chat_attachment_not_found")
+        mime_type = attachment["MimeType"]
+        inline = mime_type.startswith("image/") or mime_type.startswith("audio/")
+        disposition = "inline" if inline else "attachment"
+        return Response(
+            bytes(attachment["DuLieu"]),
+            mimetype=mime_type,
+            headers={
+                "Cache-Control": "private, no-store",
+                "X-Content-Type-Options": "nosniff",
+                "Content-Security-Policy": "default-src 'none'; sandbox",
+                "Content-Disposition": disposition + "; filename*=UTF-8''" + quote(attachment["TenTepTin"]),
+            },
+        )
     finally:
         cursor.close()
         conn.close()

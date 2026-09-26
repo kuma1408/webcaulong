@@ -23,7 +23,7 @@ const EXCLUDED_FILES = new Set([
 
 const VIEWPORT_TAG = '<meta name="viewport" content="width=device-width, initial-scale=1">';
 const ASSET_VERSION = "20260908-1";
-const AUTH_VERSION = "20260926-chat-1";
+const AUTH_VERSION = "20260926-chat-media-1";
 const REFRESH_LINK = `<link rel="stylesheet" href="css/site-refresh.css?v=${ASSET_VERSION}">`;
 const AUTH_SCRIPT = `<script src="css/auth.js?v=${AUTH_VERSION}"></script>`;
 

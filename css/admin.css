@@ -658,6 +658,27 @@
 .store-admin-chat__reply { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 9px; padding: 12px; border-top: 1px solid var(--bs-line); }
 .store-admin-chat__reply textarea { min-width: 0; resize: vertical; }
 .store-admin-chat__reply .form-status { grid-column: 1 / -1; }
+.store-admin-chat .store-chat-tools { position: relative; grid-column: 1 / -1; display: flex; align-items: center; flex-wrap: wrap; gap: 7px; min-height: 36px; }
+.store-admin-chat .store-chat-tool { display: grid; place-items: center; width: 35px; height: 35px; padding: 0; border: 1px solid var(--bs-line); border-radius: 10px; background: var(--bs-card); color: var(--bs-muted); font-size: 17px; cursor: pointer; transition: transform .16s ease, color .16s ease, border-color .16s ease; }
+.store-admin-chat .store-chat-tool:hover { transform: translateY(-2px); border-color: var(--bs-orange); color: var(--bs-red); }
+.store-admin-chat .store-chat-tool:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.store-admin-chat .store-chat-tool.is-recording { border-color: #dc3434; background: #dc3434; color: #fff; animation: store-chat-recording 1s infinite alternate; }
+.store-admin-chat .store-chat-emoji-picker { position: absolute; z-index: 5; left: 0; bottom: calc(100% + 7px); display: grid; grid-template-columns: repeat(6, 36px); gap: 3px; padding: 8px; border: 1px solid var(--bs-line); border-radius: 13px; background: var(--bs-card); box-shadow: 0 12px 28px rgba(0,0,0,.22); }
+.store-admin-chat .store-chat-emoji-picker[hidden] { display: none !important; }
+.store-admin-chat .store-chat-emoji-picker button { width: 36px; height: 36px; border: 0; border-radius: 8px; background: transparent; font-size: 20px; cursor: pointer; }
+.store-admin-chat .store-chat-pending { display: flex; flex: 1; flex-wrap: wrap; gap: 5px; }
+.store-admin-chat .store-chat-pending__item { display: inline-flex; align-items: center; gap: 5px; max-width: 180px; padding: 4px 8px; overflow: hidden; border: 1px solid var(--bs-line); border-radius: 99px; color: var(--bs-muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.store-admin-chat .store-chat-pending__item button { width: 18px; height: 18px; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--bs-red) 10%, var(--bs-card)); color: var(--bs-red); cursor: pointer; }
+.store-admin-chat .store-chat-attachment { display: grid; gap: 6px; margin-top: 8px; }
+.store-admin-chat .store-chat-attachment__image { display: block; width: min(260px, 100%); max-height: 240px; object-fit: contain; border-radius: 10px; cursor: zoom-in; }
+.store-admin-chat .store-chat-audio { display: block; width: min(300px, 100%); height: 38px; }
+.store-admin-chat .store-chat-file-link { max-width: 100%; padding: 6px 9px; overflow: hidden; border: 1px solid var(--bs-line); border-radius: 9px; background: transparent; color: var(--bs-red); font: inherit; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) {
+    .store-admin-chat .store-chat-tool,
+    .store-admin-chat .store-chat-tool.is-recording,
+    .store-admin-chat .store-chat-emoji-picker,
+    .store-admin-chat .store-chat-pending__item { animation: none; transition: none; }
+}
 @media (max-width: 780px) {
     .store-admin-chat { grid-template-columns: minmax(0, 1fr); max-height: none; }
     .store-admin-chat__list { max-height: 260px; }

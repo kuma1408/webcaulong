@@ -9,10 +9,10 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
 
     <link rel="stylesheet" href="css/account.css?v=20260925-proof-3">
-    <link rel="stylesheet" href="css/admin.css?v=20260926-chat-1">
+    <link rel="stylesheet" href="css/admin.css?v=20260926-chat-media-1">
     <link rel="stylesheet" href="css/dashboard-fx.css?v=20260924-1">
-    <script src="css/auth.js?v=20260926-chat-1" defer></script>
-    <script src="css/admin.js?v=20260926-chat-1" defer></script>
+    <script src="css/auth.js?v=20260926-chat-media-1" defer></script>
+    <script src="css/admin.js?v=20260926-chat-media-1" defer></script>
     <link rel="stylesheet" href="css/admin-theme.css?v=20260925-3">
     <link rel="stylesheet" href="css/admin-polish.css?v=20260925-kpi-readability-1">
     <link rel="stylesheet" href="css/universal-animations.css?v=20260924-1">
@@ -789,8 +789,16 @@
                             <header id="adminChatContact" class="store-admin-chat__contact"><strong>Chọn một hội thoại</strong><span>Các tin nhắn mới sẽ xuất hiện tại đây.</span></header>
                             <div id="adminChatMessages" class="store-admin-chat__messages" aria-live="polite"><p class="admin-empty-cell">Chưa chọn khách hàng.</p></div>
                             <form id="adminChatReply" class="store-admin-chat__reply">
+                                <div class="store-chat-tools">
+                                    <button type="button" class="store-chat-tool" id="adminChatEmoji" aria-label="Chèn emoji" disabled>☺</button>
+                                    <button type="button" class="store-chat-tool" id="adminChatChooseFile" aria-label="Đính kèm ảnh hoặc tệp" disabled>＋</button>
+                                    <input id="adminChatFileInput" type="file" accept="image/jpeg,image/png,image/webp,audio/*,application/pdf,text/plain,text/csv,application/json,.docx,.xlsx,.pptx" multiple hidden>
+                                    <button type="button" class="store-chat-tool" id="adminChatRecord" aria-label="Ghi âm tin nhắn thoại" disabled>🎙</button>
+                                    <div class="store-chat-emoji-picker" id="adminChatEmojiPicker" hidden></div>
+                                    <div class="store-chat-pending" id="adminChatPendingFiles"></div>
+                                </div>
                                 <label class="bs-visually-hidden" for="adminChatMessage">Phản hồi khách hàng</label>
-                                <textarea id="adminChatMessage" maxlength="2000" rows="2" placeholder="Viết phản hồi cho khách hàng…" disabled required></textarea>
+                                <textarea id="adminChatMessage" maxlength="2000" rows="2" placeholder="Viết phản hồi cho khách hàng…" disabled></textarea>
                                 <button class="admin-primary" id="adminChatSend" type="submit" disabled>Gửi trả lời</button>
                                 <p id="adminChatStatus" class="form-status" role="status"></p>
                             </form>
