@@ -275,6 +275,12 @@ class ApiSmokeTest(unittest.TestCase):
         statement = normalize_sql_table_names("SELECT * FROM YeuCauHoTro")
         self.assertIn("`yeucauhotro`", statement)
 
+    def test_chat_attachment_table_name_matches_production_schema(self):
+        statement = normalize_sql_table_names(
+            "SELECT * FROM ChatTinHanTep WHERE MaTinNhan=%s"
+        )
+        self.assertIn("FROM `chattinhantep`", statement)
+
     def test_support_validation_does_not_touch_database(self):
         response = self.client.post(
             "/api/lien-he",

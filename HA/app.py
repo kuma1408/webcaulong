@@ -878,7 +878,7 @@ def serialize_chat_messages(cursor, rows):
         return messages
     placeholders = ",".join(["%s"] * len(ids))
     cursor.execute(
-        "SELECT MaTep,MaTinNhan,TenTepTin,MimeType,KichThuoc FROM ChatTepDinhKem "
+        "SELECT MaTep,MaTinNhan,TenTepTin,MimeType,KichThuoc FROM ChatTinHanTep "
         "WHERE MaTinNhan IN (" + placeholders + ") ORDER BY MaTep",
         ids,
     )
@@ -2981,7 +2981,7 @@ def send_customer_chat_message():
         message_id = cursor.lastrowid
         for filename, mime_type, content in attachments:
             cursor.execute(
-                """INSERT INTO ChatTepDinhKem (MaTinNhan,TenTepTin,MimeType,KichThuoc,DuLieu)
+                """INSERT INTO ChatTinHanTep (MaTinNhan,TenTepTin,MimeType,KichThuoc,DuLieu)
                    VALUES (%s,%s,%s,%s,%s)""",
                 (message_id, filename, mime_type, len(content), content),
             )
@@ -4601,7 +4601,7 @@ def admin_send_chat_message(thread_id):
         message_id = cursor.lastrowid
         for filename, mime_type, content in attachments:
             cursor.execute(
-                """INSERT INTO ChatTepDinhKem (MaTinNhan,TenTepTin,MimeType,KichThuoc,DuLieu)
+                """INSERT INTO ChatTinHanTep (MaTinNhan,TenTepTin,MimeType,KichThuoc,DuLieu)
                    VALUES (%s,%s,%s,%s,%s)""",
                 (message_id, filename, mime_type, len(content), content),
             )
@@ -4625,7 +4625,7 @@ def get_chat_attachment(attachment_id):
     cursor = conn.cursor(dictionary=True)
     try:
         sql = """SELECT a.TenTepTin,a.MimeType,a.DuLieu,c.MaND
-                 FROM ChatTepDinhKem a
+                 FROM ChatTinHanTep a
                  JOIN ChatTinNhan m ON m.MaTinNhan=a.MaTinNhan
                  JOIN ChatHoiThoai c ON c.MaHoiThoai=m.MaHoiThoai
                  WHERE a.MaTep=%s"""
