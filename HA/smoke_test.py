@@ -310,7 +310,7 @@ class ApiSmokeTest(unittest.TestCase):
 
         oversized = self.client.post(
             "/api/dang-nhap",
-            data=b'{"payload":"' + b"x" * (4 * 1024 * 1024 + 1) + b'"}',
+            data=b'{"payload":"' + b"x" * (app.config["MAX_CONTENT_LENGTH"] + 1) + b'"}',
             content_type="application/json",
         )
         self.assertEqual(oversized.status_code, 413)
