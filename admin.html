@@ -9,10 +9,10 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
 
     <link rel="stylesheet" href="css/account.css?v=20260925-proof-3">
-    <link rel="stylesheet" href="css/admin.css?v=20260926-chat-media-1">
+    <link rel="stylesheet" href="css/admin.css?v=20260927-admin-chat-fixed-1">
     <link rel="stylesheet" href="css/dashboard-fx.css?v=20260924-1">
     <script src="css/auth.js?v=20260926-chat-media-1" defer></script>
-    <script src="css/admin.js?v=20260926-chat-media-1" defer></script>
+    <script src="css/admin.js?v=20260927-admin-chat-fixed-1" defer></script>
     <link rel="stylesheet" href="css/admin-theme.css?v=20260925-3">
     <link rel="stylesheet" href="css/admin-polish.css?v=20260925-kpi-readability-1">
     <link rel="stylesheet" href="css/universal-animations.css?v=20260924-1">
@@ -782,11 +782,12 @@
                     <div class="admin-approval-intro"><div><p class="eyebrow">HỖ TRỢ TRỰC TIẾP</p><h2>Hộp thư khách hàng</h2><p>Tin nhắn riêng giữa khách hàng và cửa hàng. Danh sách tự cập nhật định kỳ.</p></div><button type="button" class="admin-detail-button" id="chatRefresh">Làm mới</button></div>
                     <div class="store-admin-chat">
                         <aside class="store-admin-chat__list" aria-label="Danh sách hội thoại">
+                            <div class="store-admin-chat__list-heading"><div><span>HỘP THƯ</span><strong>Khách hàng</strong></div><small id="adminChatCount">Đang tải…</small></div>
                             <form id="adminChatSearch" class="admin-search"><label class="bs-visually-hidden" for="adminChatQuery">Tìm khách hàng</label><input id="adminChatQuery" type="search" placeholder="Tìm tên, email hoặc tài khoản"><button type="submit">Tìm</button></form>
                             <div id="adminChatThreads" class="store-admin-chat__threads"><p class="admin-empty-cell">Đang tải hội thoại…</p></div>
                         </aside>
                         <section class="store-admin-chat__conversation" aria-label="Nội dung hội thoại">
-                            <header id="adminChatContact" class="store-admin-chat__contact"><strong>Chọn một hội thoại</strong><span>Các tin nhắn mới sẽ xuất hiện tại đây.</span></header>
+                            <header id="adminChatContact" class="store-admin-chat__contact"><span class="store-admin-chat__avatar store-admin-chat__avatar--contact" aria-hidden="true">B</span><div class="store-admin-chat__contact-identity"><strong>Chọn một hội thoại</strong><span>Tin nhắn riêng với khách hàng sẽ hiển thị tại đây.</span></div><span class="store-admin-chat__contact-status">Hộp thư cửa hàng</span></header>
                             <div id="adminChatMessages" class="store-admin-chat__messages" aria-live="polite"><p class="admin-empty-cell">Chưa chọn khách hàng.</p></div>
                             <form id="adminChatReply" class="store-admin-chat__reply">
                                 <div class="store-chat-tools">

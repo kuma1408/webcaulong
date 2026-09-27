@@ -2213,7 +2213,9 @@
     }
     function renderAdminChatThreads() {
         const list = $('#adminChatThreads');
+        const count = $('#adminChatCount');
         list.innerHTML = '';
+        if (count) count.textContent = `${state.chatThreads.length} cuộc trò chuyện`;
         if (!state.chatThreads.length) {
             list.append(element('p', 'admin-empty-cell', 'Chưa có hội thoại nào.'));
             return;
@@ -2221,12 +2223,18 @@
         state.chatThreads.forEach(thread => {
             const button = element('button', 'store-admin-chat__thread' + (Number(thread.MaHoiThoai) === Number(state.chatThreadId) ? ' is-active' : ''));
             button.type = 'button';
+            const avatar = element('span', 'store-admin-chat__avatar', (thread.HoTen || thread.TenDangNhap || 'K').trim().slice(0, 1).toLocaleUpperCase('vi'));
+            avatar.setAttribute('aria-hidden', 'true');
+            applyAvatarImage(avatar, thread.Avatar, avatar.textContent);
+            const details = element('span', 'store-admin-chat__thread-content');
             const heading = element('span', 'store-admin-chat__thread-head');
             heading.append(element('strong', '', thread.HoTen || thread.TenDangNhap || 'Khách hàng'));
             if (Number(thread.ChuaDoc)) heading.append(element('em', '', String(thread.ChuaDoc)));
+            const meta = element('span', 'store-admin-chat__thread-meta');
+            meta.append(element('span', '', `@${thread.TenDangNhap || 'khach'}`), element('time', '', formatDate(thread.NgayCapNhat)));
             const preview = element('span', 'store-admin-chat__thread-preview', thread.TinCuoi || (thread.VaiTroTinCuoi ? 'Đã gửi tệp đính kèm' : 'Bắt đầu cuộc trò chuyện'));
-            const meta = element('span', 'store-admin-chat__thread-meta', `@${thread.TenDangNhap || 'khach'} · ${formatDate(thread.NgayCapNhat)}`);
-            button.append(heading, preview, meta);
+            details.append(heading, preview, meta);
+            button.append(avatar, details);
             button.addEventListener('click', () => openAdminChatThread(thread));
             list.appendChild(button);
         });
@@ -2244,8 +2252,14 @@
         $('#adminChatSend').disabled = false;
         ['#adminChatEmoji', '#adminChatChooseFile', '#adminChatRecord'].forEach(selector => { $(selector).disabled = false; });
         $('#adminChatContact').innerHTML = '';
-        $('#adminChatContact').append(element('strong', '', thread.HoTen || thread.TenDangNhap || 'Khách hàng'));
-        $('#adminChatContact').append(element('span', '', `${thread.Email || ''}${thread.SoDienThoai ? ' · ' + thread.SoDienThoai : ''}`));
+        const avatar = element('span', 'store-admin-chat__avatar store-admin-chat__avatar--contact', (thread.HoTen || thread.TenDangNhap || 'K').trim().slice(0, 1).toLocaleUpperCase('vi'));
+        avatar.setAttribute('aria-hidden', 'true');
+        applyAvatarImage(avatar, thread.Avatar, avatar.textContent);
+        const identity = element('div', 'store-admin-chat__contact-identity');
+        identity.append(element('strong', '', thread.HoTen || thread.TenDangNhap || 'Khách hàng'));
+        identity.append(element('span', '', `@${thread.TenDangNhap || 'khach'}${thread.Email ? ' · ' + thread.Email : ''}${thread.SoDienThoai ? ' · ' + thread.SoDienThoai : ''}`));
+        const contactStatus = element('span', 'store-admin-chat__contact-status', 'Hội thoại riêng');
+        $('#adminChatContact').append(avatar, identity, contactStatus);
         await loadAdminChatMessages(true);
         loadAdminChatThreads();
     }
@@ -2278,12 +2292,29 @@
             pane.append(element('p', 'admin-empty-cell', 'Chưa có tin nhắn. Bạn có thể gửi lời chào trước.'));
             return;
         }
+        const currentThread = state.chatThreads.find(thread => Number(thread.MaHoiThoai) === Number(state.chatThreadId));
+        let previousDate = '';
         state.chatMessages.forEach(message => {
-            const item = element('article', 'store-chat-message ' + (message.VaiTroGui === 'ADMIN' ? 'is-agent' : 'is-customer'));
+            const timestamp = String(message.NgayTao || '');
+            const dateKey = timestamp.slice(0, 10);
+            if (dateKey && dateKey !== previousDate) {
+                const parsed = new Date(timestamp.replace(' ', 'T'));
+                const label = Number.isNaN(parsed.getTime()) ? dateKey : new Intl.DateTimeFormat('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' }).format(parsed);
+                pane.append(element('div', 'store-admin-chat__day', label));
+                previousDate = dateKey;
+            }
+            const isAgent = message.VaiTroGui === 'ADMIN';
+            const row = element('div', 'store-admin-chat__message-row ' + (isAgent ? 'is-agent' : 'is-customer'));
+            const avatarLabel = isAgent ? 'B' : (currentThread?.HoTen || currentThread?.TenDangNhap || 'K').trim().slice(0, 1).toLocaleUpperCase('vi');
+            const avatar = element('span', 'store-admin-chat__avatar store-admin-chat__message-avatar ' + (isAgent ? 'is-store' : ''), avatarLabel);
+            avatar.setAttribute('aria-hidden', 'true');
+            const item = element('article', 'store-chat-message ' + (isAgent ? 'is-agent' : 'is-customer'));
             if (message.NoiDung) item.append(element('p', '', message.NoiDung));
-            item.append(element('time', '', `${message.VaiTroGui === 'ADMIN' ? 'Cửa hàng' : 'Khách hàng'} · ${formatDate(message.NgayTao)}`));
             (message.TepDinhKem || []).forEach(file => renderAdminChatAttachment(item, file));
-            pane.appendChild(item);
+            const time = element('time', '', formatDate(message.NgayTao));
+            item.append(time);
+            row.append(avatar, item);
+            pane.appendChild(row);
         });
     }
     function renderAdminChatAttachment(container, file) {
