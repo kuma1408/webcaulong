@@ -21,6 +21,9 @@ const customStyles = new Map([
   ["500.html", ["css/home.css", "css/error-page.css"]],
 ]);
 
+// Trang quản trị có shell riêng; trang lỗi/điểm vào không cần footer cửa hàng.
+const footerExemptions = new Set(["admin.html", "404.html", "500.html", "index.html"]);
+
 const forbiddenFrontendExtensions = new Set([
   ".db", ".env", ".key", ".pem", ".pfx", ".p12", ".py", ".pyc", ".sql", ".sqlite", ".sqlite3",
 ]);
@@ -202,6 +205,15 @@ for (const fileName of htmlFiles) {
   const absoluteHtmlPath = resolve(root, fileName);
   const html = await readFile(absoluteHtmlPath, "utf8");
   frontendTextFiles.add(absoluteHtmlPath);
+
+  const hasFooterMount = /\bid\s*=\s*(["'])cuoitrang\1/i.test(html);
+  const hasStaticFooter = /<footer\b/i.test(html);
+  if (!footerExemptions.has(fileName.toLowerCase()) && !hasFooterMount && !hasStaticFooter) {
+    addError(`${fileName}: thiếu footer cửa hàng (vùng #cuoitrang hoặc <footer>)`);
+  }
+  if (hasFooterMount && !/css\/auth\.js(?:[?#][^"']*)?/i.test(html)) {
+    addError(`${fileName}: có #cuoitrang nhưng thiếu css/auth.js để dựng footer dùng chung`);
+  }
 
   if (!/<html\b[^>]*\blang\s*=\s*(["'])vi\1/i.test(html)) {
     addError(`${fileName}: thiếu lang="vi" trên thẻ html`);
