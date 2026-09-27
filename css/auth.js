@@ -522,6 +522,7 @@
             .bs-brand{display:flex;align-items:center;gap:10px;color:var(--bs-ink)!important;text-decoration:none!important;white-space:nowrap}.bs-brand__mark{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;color:#fff;font-size:18px;font-weight:900;background:linear-gradient(135deg,var(--bs-red),var(--bs-orange));box-shadow:0 9px 24px rgba(233,56,27,.25)}.bs-brand__text{display:grid;line-height:1}.bs-brand__text strong{font-size:15px;letter-spacing:.04em}.bs-brand__text small{font-size:10px;letter-spacing:.16em;color:var(--bs-red);margin-top:5px;font-weight:800}
             .bs-search{height:44px;display:flex;border:1px solid var(--bs-line);background:var(--bs-bg);border-radius:14px;overflow:hidden;transition:.2s}.bs-search:focus-within{border-color:var(--bs-orange);box-shadow:0 0 0 4px rgba(255,122,26,.12)}.bs-search__input{flex:1;min-width:0;border:0!important;outline:0!important;background:transparent!important;color:var(--bs-ink)!important;padding:0 16px!important;font:inherit!important;height:100%!important}.bs-search__button{width:48px;border:0;background:transparent;color:var(--bs-red);cursor:pointer;display:grid;place-items:center}.bs-search__button:hover{background:rgba(233,56,27,.08)}
             .bs-header__actions{display:flex;align-items:center;gap:6px}.bs-icon-button{position:relative;width:42px;height:42px;display:grid;place-items:center;border:1px solid transparent;border-radius:13px;background:transparent;color:var(--bs-ink);cursor:pointer;text-decoration:none!important;font:inherit}.bs-icon-button:hover,.bs-icon-button:focus-visible{background:var(--bs-bg);border-color:var(--bs-line);outline:0}.bs-icon-button svg{width:21px;height:21px}.bs-cart-count{position:absolute;right:-2px;top:-3px;min-width:18px;height:18px;border-radius:20px;padding:0 4px;display:grid;place-items:center;background:var(--bs-red);color:#fff;font-size:10px;font-weight:800;border:2px solid var(--bs-card)}.bs-cart-count[hidden]{display:none}
+            .bs-notification-widget{position:relative;display:inline-flex;flex:none}.bs-notification-badge{position:absolute;right:-2px;top:-2px;min-width:17px;height:17px;padding:0 4px;display:grid;place-items:center;border:2px solid var(--bs-card);border-radius:999px;background:#ef3340;color:#fff;font-family:inherit;font-size:9px;font-weight:800;line-height:1}.bs-notification-badge[hidden]{display:none}.bs-notification-popover{position:absolute;z-index:5000;top:calc(100% + 12px);right:-8px;width:min(360px,calc(100vw - 24px));overflow:hidden;border:1px solid var(--bs-line);border-radius:18px;background:var(--bs-card);color:var(--bs-ink);box-shadow:var(--bs-shadow);animation:bs-notice-in .18s ease-out}.bs-notification-popover[hidden]{display:none}.bs-notification-popover__head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 17px;border-bottom:1px solid var(--bs-line)}.bs-notification-popover__head strong{font-size:14px}.bs-notification-popover__head span{color:var(--bs-muted);font-size:11px}.bs-notification-list{max-height:min(360px,55vh);overflow:auto;overscroll-behavior:contain;padding:7px}.bs-notification-item{display:block;padding:11px 12px;border-radius:12px;color:var(--bs-ink)!important;text-decoration:none!important;transition:background .16s ease}.bs-notification-item:hover{background:var(--bs-bg)}.bs-notification-item.is-unread{background:color-mix(in srgb,var(--bs-red) 8%,var(--bs-card))}.bs-notification-item strong{display:block;margin-bottom:4px;font-size:12px;line-height:1.4}.bs-notification-item p{display:-webkit-box;margin:0;color:var(--bs-muted);font-size:11px;line-height:1.45;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2}.bs-notification-empty{margin:0;padding:24px 12px;color:var(--bs-muted);font-size:12px;text-align:center}.bs-notification-more{display:block;padding:12px;border-top:1px solid var(--bs-line);color:var(--bs-red)!important;font-size:12px;font-weight:800;text-align:center;text-decoration:none!important}.bs-notification-more:hover{background:var(--bs-bg)}@keyframes bs-notice-in{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
             .bs-user{position:relative}.bs-user summary{list-style:none}.bs-user summary::-webkit-details-marker{display:none}.bs-user-menu{position:absolute;right:0;top:calc(100% + 10px);width:260px;padding:10px;background:var(--bs-card);border:1px solid var(--bs-line);border-radius:18px;box-shadow:var(--bs-shadow);z-index:1200}.bs-user-menu__identity{padding:10px 12px 12px;border-bottom:1px solid var(--bs-line);margin-bottom:6px}.bs-user-menu__identity strong,.bs-user-menu__identity span{display:block;overflow:hidden;text-overflow:ellipsis}.bs-user-menu__identity span{font-size:12px;color:var(--bs-muted);margin-top:3px}.bs-user-menu a,.bs-user-menu button{width:100%;min-height:40px;display:flex;align-items:center;gap:9px;padding:8px 11px;border:0;border-radius:10px;background:transparent;color:var(--bs-ink)!important;text-decoration:none!important;font:600 13px/1.2 inherit;cursor:pointer;text-align:left}.bs-user-menu a:hover,.bs-user-menu button:hover{background:var(--bs-bg);color:var(--bs-red)!important}.bs-user-menu .bs-user-menu__danger{color:#c62d19!important}
             #menu:has(.bs-nav){width:100%!important;height:auto!important;float:none!important;background:color-mix(in srgb,var(--bs-card) 96%,transparent)!important;border-bottom:1px solid var(--bs-line)!important;position:sticky!important;top:var(--bs-header-height,72px)!important;z-index:950!important;margin:0!important;padding:0!important;box-shadow:0 10px 28px rgba(80,21,8,.09)!important;backdrop-filter:blur(18px)}
             .bs-nav{max-width:1240px;margin:auto;display:flex;align-items:center;padding:0 22px;font-family:"Segoe UI Variable Text","Segoe UI",Tahoma,Arial,sans-serif}
@@ -999,7 +1000,14 @@
                     <div class="bs-header__actions">
                          <button class="bs-icon-button bs-ambient-action" type="button" data-ambient-toggle aria-label="Tắt hiệu ứng hạt tuyết" aria-pressed="true"><span aria-hidden="true">❄</span></button>
                         <button class="bs-icon-button bs-theme-action" type="button" data-theme-toggle aria-label="Đổi giao diện"><span data-theme-icon aria-hidden="true">☾</span></button>
-                        <a class="bs-icon-button bs-notification-link" href="canhan.html#notifications" aria-label="Xem thông báo">${icons.bell}</a>
+                        <div class="bs-notification-widget" data-notification-widget>
+                            <button class="bs-icon-button" type="button" data-notification-toggle aria-label="Thông báo" aria-expanded="false">${icons.bell}<span class="bs-notification-badge" data-notification-badge hidden></span></button>
+                            <section class="bs-notification-popover" data-notification-popover aria-label="Thông báo mới" hidden>
+                                <div class="bs-notification-popover__head"><strong>Thông báo</strong><span data-notification-summary>Đang tải…</span></div>
+                                <div class="bs-notification-list" data-notification-list><p class="bs-notification-empty">Đang tải thông báo…</p></div>
+                                <a class="bs-notification-more" href="canhan.html#notifications">Xem thêm thông báo →</a>
+                            </section>
+                        </div>
                         <a class="bs-icon-button" href="giohang.html" aria-label="Giỏ hàng">${icons.cart}<span class="bs-cart-count" data-cart-count hidden>0</span></a>
                         <details class="bs-user">
                             <summary class="bs-icon-button" aria-label="Tài khoản">${icons.user}</summary>
@@ -1058,6 +1066,7 @@
         setupSearchSuggestions();
         setupStickyShell();
         setupExperienceEffects();
+        setupNotificationWidgets();
 
         // Tự động nâng cấp giao diện Chi tiết sản phẩm nếu có
         enhanceDetailPage();
@@ -1096,6 +1105,88 @@
             userMenu.appendChild(signout);
             capNhatBadgeGioHang();
         }
+    }
+
+    function setupNotificationWidgets() {
+        const widgets = [...document.querySelectorAll('[data-notification-widget]')];
+        if (!widgets.length) return;
+        widgets.forEach((widget) => {
+            if (widget.dataset.notificationBound) return;
+            widget.dataset.notificationBound = 'true';
+            const button = widget.querySelector('[data-notification-toggle]');
+            const popover = widget.querySelector('[data-notification-popover]');
+            const list = widget.querySelector('[data-notification-list]');
+            const summary = widget.querySelector('[data-notification-summary]');
+            if (!button || !popover || !list) return;
+            button.addEventListener('click', () => {
+                const opening = popover.hidden;
+                popover.hidden = !opening;
+                button.setAttribute('aria-expanded', String(opening));
+                if (opening) loadNotificationPreview(widget);
+            });
+            document.addEventListener('pointerdown', (event) => {
+                if (!widget.contains(event.target)) {
+                    popover.hidden = true;
+                    button.setAttribute('aria-expanded', 'false');
+                }
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    popover.hidden = true;
+                    button.setAttribute('aria-expanded', 'false');
+                }
+            });
+            if (!getToken()) {
+                summary.textContent = 'Dành cho tài khoản của bạn';
+                list.replaceChildren(makeNotificationEmpty('Đăng nhập để xem thông báo.'));
+            }
+        });
+        if (getToken()) loadNotificationPreview(widgets[0]);
+    }
+
+    let notificationPreviewRequest = null;
+    async function loadNotificationPreview(widget) {
+        if (!getToken()) return;
+        const target = widget || document.querySelector('[data-notification-widget]');
+        if (!target) return;
+        const list = target.querySelector('[data-notification-list]');
+        const summary = target.querySelector('[data-notification-summary]');
+        if (!list || !summary) return;
+        try {
+            notificationPreviewRequest ||= request('/api/thong-bao').finally(() => { notificationPreviewRequest = null; });
+            const data = await notificationPreviewRequest;
+            const unread = Math.max(0, Number(data.unread) || 0);
+            document.querySelectorAll('[data-notification-badge]').forEach((badge) => {
+                badge.textContent = unread > 99 ? '99+' : String(unread);
+                badge.hidden = unread < 1;
+                badge.closest('[data-notification-toggle]')?.setAttribute('aria-label', unread ? `Thông báo, ${unread} chưa đọc` : 'Thông báo');
+            });
+            const notices = Array.isArray(data.notifications) ? data.notifications : [];
+            summary.textContent = unread ? `${unread} chưa đọc` : 'Cập nhật mới nhất';
+            list.replaceChildren();
+            if (!notices.length) list.appendChild(makeNotificationEmpty('Bạn chưa có thông báo nào.'));
+            notices.slice(0, 5).forEach((notice) => {
+                const item = document.createElement('a');
+                item.className = `bs-notification-item${notice.DaDoc ? '' : ' is-unread'}`;
+                item.href = 'canhan.html#notifications';
+                const title = document.createElement('strong');
+                title.textContent = notice.TieuDe || 'Thông báo từ Badminton Store';
+                const body = document.createElement('p');
+                body.textContent = notice.NoiDung || '';
+                item.append(title, body);
+                list.appendChild(item);
+            });
+        } catch (_) {
+            summary.textContent = 'Chưa thể tải';
+            list.replaceChildren(makeNotificationEmpty('Không thể tải thông báo lúc này. Thử lại sau nhé.'));
+        }
+    }
+
+    function makeNotificationEmpty(message) {
+        const empty = document.createElement('p');
+        empty.className = 'bs-notification-empty';
+        empty.textContent = message;
+        return empty;
     }
 
     // API tương thích cho các trang cũ.

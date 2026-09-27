@@ -33,7 +33,7 @@
     </script>
     <link rel="stylesheet" href="css/home.css?v=20260925-seam-1">
     <link rel="stylesheet" href="css/sport-system.css?v=20260924-1">
-    <script src="css/auth.js?v=20260927-notification-bell-1" defer></script>
+    <script src="css/auth.js?v=20260927-notification-preview-1" defer></script>
     <script src="css/home.js?v=20260924-1" defer></script>
     <link rel="stylesheet" href="css/mega-animations.css?v=20260924-1">
     <link rel="stylesheet" href="css/universal-animations.css?v=20260924-1">
@@ -94,6 +94,17 @@
                     <span class="theme-toggle__sun" aria-hidden="true">☀</span>
                     <span class="theme-toggle__moon" aria-hidden="true">☾</span>
                 </button>
+                <div class="bs-notification-widget" data-notification-widget>
+                    <button class="icon-button bs-icon-button" type="button" data-notification-toggle aria-label="Thông báo" aria-expanded="false">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg>
+                        <span class="bs-notification-badge" data-notification-badge hidden></span>
+                    </button>
+                    <section class="bs-notification-popover" data-notification-popover aria-label="Thông báo mới" hidden>
+                        <div class="bs-notification-popover__head"><strong>Thông báo</strong><span data-notification-summary>Đang tải…</span></div>
+                        <div class="bs-notification-list" data-notification-list><p class="bs-notification-empty">Đang tải thông báo…</p></div>
+                        <a class="bs-notification-more" href="canhan.html#notifications">Xem thêm thông báo →</a>
+                    </section>
+                </div>
                 <a class="account-link" id="accountLink" href="dangnhap.html">
                     <span class="account-link__avatar" id="accountAvatar" aria-hidden="true">T</span>
                     <span id="accountLabel">Tài khoản</span>
