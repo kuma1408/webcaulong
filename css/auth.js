@@ -563,7 +563,8 @@
     const icons = {
         search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.6-3.6"></path></svg>',
         cart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L20 8H7"></path><circle cx="10" cy="20" r="1"></circle><circle cx="18" cy="20" r="1"></circle></svg>',
-        user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>'
+        user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>',
+        bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg>'
     };
 
     function setupStickyShell() {
@@ -998,6 +999,7 @@
                     <div class="bs-header__actions">
                          <button class="bs-icon-button bs-ambient-action" type="button" data-ambient-toggle aria-label="Tắt hiệu ứng hạt tuyết" aria-pressed="true"><span aria-hidden="true">❄</span></button>
                         <button class="bs-icon-button bs-theme-action" type="button" data-theme-toggle aria-label="Đổi giao diện"><span data-theme-icon aria-hidden="true">☾</span></button>
+                        <a class="bs-icon-button bs-notification-link" href="canhan.html#notifications" aria-label="Xem thông báo">${icons.bell}</a>
                         <a class="bs-icon-button" href="giohang.html" aria-label="Giỏ hàng">${icons.cart}<span class="bs-cart-count" data-cart-count hidden>0</span></a>
                         <details class="bs-user">
                             <summary class="bs-icon-button" aria-label="Tài khoản">${icons.user}</summary>
