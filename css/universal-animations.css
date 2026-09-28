@@ -676,7 +676,6 @@ dialog::backdrop, .modal-backdrop {
 :root[data-theme="dark"] .guide-card,
 :root[data-theme="dark"] .cart-items-box,
 :root[data-theme="dark"] .cart-summary-box,
-:root[data-theme="dark"] .detail-info-box,
 :root[data-theme="dark"] .detail-section-box {
     background: #1a110d !important;
     border-color: rgba(255, 255, 255, 0.09) !important;
