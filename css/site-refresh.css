@@ -2547,8 +2547,8 @@ footer {
   transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
 }
 .detail-price-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 40px rgba(233, 56, 27, 0.12);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(233, 56, 27, 0.1);
   border-color: var(--bs-orange, #ff7a1a);
 }
 :root[data-theme="dark"] .detail-price-card {
@@ -2621,8 +2621,7 @@ footer {
 }
 :root[data-theme="dark"] .detail-price-card .price {
   color: #ff6a3d !important;
-  text-shadow: 0 2px 14px rgba(255, 106, 61, 0.35);
-  text-shadow: 0 2px 18px rgba(255, 106, 61, 0.45);
+  text-shadow: none;
 }
 .price-original-del {
   font-size: 16px;
@@ -2674,7 +2673,7 @@ footer {
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.03em;
-  box-shadow: 0 4px 12px rgba(233, 56, 27, 0.3);
+  box-shadow: none;
   font-weight: 750;
   padding: 4px 10px;
   border-radius: 8px;
@@ -2682,6 +2681,7 @@ footer {
   border: 1px solid var(--border-color);
   color: var(--text-color);
 }
+
 .price-perk-chip--voucher {
   background: rgba(233, 56, 27, 0.08);
   border-color: rgba(233, 56, 27, 0.28);
@@ -3286,4 +3286,22 @@ footer {
 }
 .detail-img-thumbnails .swiper-slide {
     background: transparent !important;
+}
+
+/* Keep the gallery visually attached to its parent card instead of drawing a
+   second dark slab below the white image tile; simplify the price hierarchy. */
+.detail-img-box { background: transparent !important; }
+.detail-price-card { padding: 18px 20px; border-radius: 18px; }
+.price-main-wrap { grid-template-columns: minmax(0, max-content) max-content; column-gap: 10px; row-gap: 8px; }
+.detail-price-card .price { font-size: clamp(27px, 3vw, 36px); font-weight: 850; letter-spacing: -0.035em; }
+.price-original-del { font-size: 14px; }
+.price-discount-tag { box-shadow: none; animation: none; border-radius: 10px; }
+.price-perk-chip { border-radius: 999px; box-shadow: none; }
+.price-incentive-line { gap: 7px; }
+@media (max-width: 560px) {
+  .detail-price-card { padding: 16px; }
+  .price-main-wrap { grid-template-columns: minmax(0, 1fr); align-items: start; }
+  .price-main-wrap .price-original-del { grid-column: 1; grid-row: 2; }
+  .price-main-wrap .price-discount-tag { grid-row: 3; }
+  .detail-price-card .price { font-size: clamp(28px, 8vw, 36px); overflow-wrap: anywhere; }
 }
