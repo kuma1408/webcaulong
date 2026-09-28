@@ -284,7 +284,7 @@
 
     /* ---- 6. LIVE SOCIAL PROOF TICKER ---- */
     function initSocialProofTicker() {
-        if (reduced || isAdmin || document.body.classList.contains('account-body')) return;
+        if (reduced || isAdmin || document.body.classList.contains('account-body') || document.querySelector('.product-detail-layout')) return;
         if (sessionStorage.getItem('bs_ticker_dismissed') === 'true') return;
 
         const events = [
