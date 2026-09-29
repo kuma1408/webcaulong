@@ -169,7 +169,6 @@
 [data-aos].aos-animate  { opacity: 1 !important; transform: none !important; }
 
 /* ---- 4. PRODUCT CARDS ---- */
-.product-card {
 .product-card,
 .product-card-upgraded {
     transition: transform 0.45s cubic-bezier(0.16,1,0.3,1),
@@ -177,7 +176,6 @@
     position: relative;
     overflow: hidden;
 }
-.product-card::after {
 .product-card::after,
 .product-card-upgraded::after {
     content: '';
@@ -193,8 +191,6 @@
 .product-card:hover::after,
 .product-card-upgraded:hover::after { opacity: 1; }
 /* Sweep shimmer */
-.product-card .product-card__media { position: relative; overflow: hidden; }
-.product-card .product-card__media::after {
 .product-card .product-card__media,
 .product-card-upgraded .img-container { position: relative; overflow: hidden; }
 .product-card .product-card__media::after,
@@ -207,20 +203,15 @@
     transform: skewX(-20deg);
     pointer-events: none;
 }
-.product-card:hover .product-card__media::after {
 .product-card:hover .product-card__media::after,
 .product-card-upgraded:hover .img-container::after {
     animation: sweepLight 0.7s ease forwards;
 }
-.product-card:hover {
 .product-card:hover,
 .product-card-upgraded:hover {
     transform: translateY(-8px) scale(1.02) !important;
-    box-shadow: 0 28px 60px rgba(0,0,0,0.15), 0 10px 24px rgba(255,85,32,0.1) !important;
     box-shadow: 0 28px 60px rgba(0,0,0,0.15), 0 10px 24px rgba(255,85,32,0.15) !important;
 }
-:root[data-theme="dark"] .product-card:hover {
-    box-shadow: 0 28px 60px rgba(0,0,0,0.5), 0 10px 24px rgba(255,85,32,0.25) !important;
 :root[data-theme="dark"] .product-card:hover,
 :root[data-theme="dark"] .product-card-upgraded:hover {
     box-shadow: 0 28px 60px rgba(0,0,0,0.5), 0 10px 24px rgba(255,85,32,0.3) !important;
@@ -652,6 +643,7 @@ a { transition: color 0.25s ease !important; }
 /* ---- 46. BACK-TO-TOP VISIBLE ---- */
 .sport-back-to-top.visible, .to-top.visible {
     animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
 /* ---- 47. FLY TO CART ANIMATION ---- */
 .fly-to-cart-shuttlecock {
     position: fixed;

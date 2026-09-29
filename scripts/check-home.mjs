@@ -20,6 +20,8 @@ assert((html.match(/<h1\b/gi) || []).length === 1, "Trang chủ phải có đún
 assert(/<meta\s+name="viewport"/i.test(html), "Thiếu meta viewport.");
 assert(/<meta\s+name="description"/i.test(html), "Thiếu meta description.");
 assert(/<main\b/i.test(html) && /<nav\b/i.test(html), "Thiếu landmark main hoặc nav.");
+assert(/<div\s+id="cuoitrang"><\/div>/i.test(html), "Trang chủ phải dùng footer dùng chung để giữ bố cục thống nhất.");
+assert(!/<footer\b/i.test(html), "Trang chủ không được khai báo footer riêng làm lệch giao diện dùng chung.");
 assert(!/swiper|unpkg\.com/i.test(html), "Trang chủ vẫn còn phụ thuộc Swiper/CDN.");
 assert(!/\+123|Đường ABC|support@thethao/i.test(html), "Trang chủ còn dữ liệu liên hệ mẫu.");
 assert((html.match(/<img\b(?![^>]*\balt=)[^>]*>/gi) || []).length === 0, "Có ảnh thiếu alt text.");

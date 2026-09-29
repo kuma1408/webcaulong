@@ -4,6 +4,7 @@
 @media (prefers-reduced-motion: no-preference) {
     .product-card, .news-card, .brand-item {
         transition: box-shadow .24s ease, border-color .24s ease, transform .24s ease;
+    }
     .product-card, .news-card, .brand-item, .category-card {
         transition: box-shadow .38s cubic-bezier(0.16, 1, 0.3, 1),
                     border-color .3s ease,

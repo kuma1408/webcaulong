@@ -138,6 +138,33 @@ function compactSyntaxError(result) {
   return output.split(/\r?\n/).slice(0, 5).join(" | ") || `Node thoát với mã ${result.status}`;
 }
 
+function balancedCssBraces(source) {
+  let depth = 0;
+  let quote = "";
+  let escaped = false;
+  let comment = false;
+  for (let index = 0; index < source.length; index += 1) {
+    const char = source[index];
+    const next = source[index + 1];
+    if (comment) {
+      if (char === "*" && next === "/") { comment = false; index += 1; }
+      continue;
+    }
+    if (!quote && char === "/" && next === "*") { comment = true; index += 1; continue; }
+    if (quote) {
+      if (escaped) escaped = false;
+      else if (char === "\\") escaped = true;
+      else if (char === quote) quote = "";
+      continue;
+    }
+    if (char === "\"" || char === "'") { quote = char; continue; }
+    if (char === "{") depth += 1;
+    if (char === "}") depth -= 1;
+    if (depth < 0) return false;
+  }
+  return depth === 0 && !quote && !comment;
+}
+
 function checkJavaScriptSource(source, label, module = false) {
   if (!source.trim()) return true;
   const args = ["--check"];
@@ -269,6 +296,9 @@ for (const filePath of clientFiles) {
 for (const filePath of frontendTextFiles) {
   const source = await readFile(filePath, "utf8");
   const sourceLabel = relative(root, filePath);
+  if (extname(filePath).toLowerCase() === ".css" && !balancedCssBraces(source)) {
+    addError(`${sourceLabel}: CSS có dấu ngoặc không cân bằng`);
+  }
   for (const [label, pattern] of secretPatterns) {
     if (pattern.test(source)) {
       addError(`${sourceLabel}: phát hiện ${label} trong tài nguyên frontend`);
