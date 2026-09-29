@@ -74,29 +74,48 @@
 .dropdown-menu li:nth-child(4) { animation-delay: 0.11s; }
 .dropdown-menu li:nth-child(5) { animation-delay: 0.14s; }
 
-/* ---- PRODUCT PRICE: Highlight ---- */
-.product-price, .price, [class*="price"] {
-    transition: color 0.3s ease, transform 0.3s ease !important;
-    display: inline-block;
+/* ---- PRODUCT PRICE: Highlight without changing the surrounding layout ---- */
+.product-price, .price {
+    transition: color 0.24s ease, text-shadow 0.24s ease;
 }
 .product-card:hover .product-price,
 .product-card:hover .price {
     color: #ff5520 !important;
-    transform: scale(1.05);
+    text-shadow: 0 2px 14px rgba(255, 85, 32, 0.16);
 }
 
 /* ---- PRODUCT ACTIONS (Quick add buttons) ---- */
 .product-card__actions,
 [class*="card-actions"],
 .quick-add-btn {
-    transition: opacity 0.3s ease, transform 0.3s ease !important;
-    opacity: 0;
-    transform: translateY(8px);
+    transition: opacity 0.24s ease, transform 0.24s ease;
 }
-.product-card:hover .product-card__actions,
-.product-card:hover [class*="card-actions"] {
-    opacity: 1;
-    transform: translateY(0);
+@media (hover: hover) and (pointer: fine) {
+    .product-card__actions,
+    .product-card [class*="card-actions"],
+    .product-card .quick-add-btn {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    .product-card:hover .product-card__actions,
+    .product-card:hover [class*="card-actions"],
+    .product-card:hover .quick-add-btn,
+    .product-card:focus-within .product-card__actions,
+    .product-card:focus-within [class*="card-actions"],
+    .product-card:focus-within .quick-add-btn {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Touch and keyboard users must never need hover to discover a purchase action. */
+@media (hover: none), (pointer: coarse) {
+    .product-card__actions,
+    .product-card [class*="card-actions"],
+    .product-card .quick-add-btn {
+        opacity: 1;
+        transform: none;
+    }
 }
 
 /* ---- PAGINATION ---- */
@@ -327,6 +346,52 @@ blockquote:hover {
 .floating-cart:hover {
     transform: scale(1.05) !important;
     box-shadow: 0 16px 40px rgba(0,0,0,0.2) !important;
+}
+
+/* Consistent, restrained motion and keyboard focus across the storefront/account/admin. */
+:where(.header-btn, .cart-icon, .login-icon, .wishlist-icon, .admin-theme-toggle,
+       .icon-button, .notification-button, .theme-toggle, .account-nav__icon) {
+    transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease,
+                box-shadow 180ms ease, transform 180ms cubic-bezier(.2,.8,.2,1);
+}
+:where(.account-tabs button span, .metric-icon, .activity-item__icon, .session-item__icon) {
+    border: 1px solid rgba(255, 85, 32, .14);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .52), 0 4px 12px rgba(140, 52, 24, .06);
+}
+:root[data-theme="dark"] :where(.account-tabs button span, .metric-icon,
+                                .activity-item__icon, .session-item__icon) {
+    border-color: rgba(255, 154, 100, .22);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04), 0 5px 14px rgba(0, 0, 0, .16);
+}
+:where(.header-btn, .cart-icon, .login-icon, .wishlist-icon, .admin-theme-toggle,
+       .icon-button, .notification-button, .theme-toggle, .account-nav__icon):focus-visible {
+    outline: 3px solid rgba(255, 85, 32, .72);
+    outline-offset: 3px;
+}
+@media (hover: hover) and (pointer: fine) {
+    :where(.header-btn, .cart-icon, .login-icon, .wishlist-icon, .admin-theme-toggle,
+           .icon-button, .notification-button, .theme-toggle):hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(211, 55, 20, .16);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-delay: 0ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    .product-card:hover,
+    .category-card:hover,
+    .service-strip article:hover,
+    .guide-card:hover,
+    .product-card:hover .product-price,
+    .product-card:hover .price {
+        transform: none !important;
+    }
 }
 
 /* ---- RELATED PRODUCTS SECTION ---- */
