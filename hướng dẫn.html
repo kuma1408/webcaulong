@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Shop Cầu Lông</title>
+    <title>Hướng dẫn mua hàng & cẩm nang cầu lông | Badminton Store</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="canonical" href="https://haianh.alwaysdata.net/h%C6%B0%E1%BB%9Bng%20d%E1%BA%ABn.html">
 
@@ -11,43 +11,34 @@
     <link href="css/tutaoo.css" rel="stylesheet" style="text/css" />
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-            color: #333;
-        }
-        header {
-            background: #007BFF;
-            color: #fff;
-            padding: 10px 15px;
-            text-align: center;
-        }
-        main {
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-            background: #fff;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        h1, h2 {
-            color: #007BFF;
-        }
-        ul {
-            list-style: disc;
-            margin-left: 20px;
-        }
-        a {
-            color: #007BFF;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        
+        .guide-page { max-width: 1080px; margin: 34px auto 60px; padding: 0 20px; color: var(--text-color); }
+        .guide-hero { padding: clamp(24px, 5vw, 48px); border-radius: 26px; color: #fff8f3; background: radial-gradient(circle at 90% 10%, rgba(255,150,68,.28), transparent 30%), linear-gradient(135deg, #38160e, #8e2d17 62%, #df4b20); box-shadow: var(--shadow-md); }
+        .guide-hero .eyebrow { margin: 0 0 8px; color: #ffb482; font-size: .76rem; font-weight: 800; letter-spacing: .14em; }
+        .guide-hero h1 { margin: 0; color: inherit; font-size: clamp(1.8rem, 4vw, 2.8rem); line-height: 1.12; }
+        .guide-hero p { max-width: 700px; margin: 14px 0 0; color: #ffe3d4; }
+        .guide-shortcuts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+        .guide-shortcuts a, .guide-cta { display: inline-flex; align-items: center; min-height: 42px; padding: 9px 15px; border: 1px solid rgba(255,255,255,.26); border-radius: 999px; color: #fff; background: rgba(255,255,255,.1); text-decoration: none; font-weight: 700; }
+        .guide-section { margin-top: 24px; padding: clamp(20px, 4vw, 32px); border: 1px solid var(--border-color); border-radius: 22px; background: var(--card-bg); box-shadow: var(--shadow-sm); scroll-margin-top: 110px; }
+        .guide-section h2 { margin: 0 0 10px; color: var(--text-color); font-size: clamp(1.25rem, 2.5vw, 1.65rem); }
+        .guide-section > p { color: var(--text-muted); }
+        .guide-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+        .guide-tip { padding: 18px; border: 1px solid var(--border-color); border-radius: 16px; background: color-mix(in srgb, var(--card-bg) 78%, var(--primary-soft)); }
+        .guide-tip h3 { margin: 0 0 7px; font-size: 1rem; }
+        .guide-tip p, .guide-tip li { color: var(--text-muted); }
+        .guide-tip p { margin: 0; }
+        .guide-tip ul { padding-left: 20px; margin: 8px 0 0; }
+        .guide-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; counter-reset: steps; margin-top: 18px; }
+        .guide-step { padding: 16px; border: 1px solid var(--border-color); border-radius: 16px; background: var(--input-bg); }
+        .guide-step::before { counter-increment: steps; content: "0" counter(steps); display: block; margin-bottom: 8px; color: var(--primary-color); font-size: .8rem; font-weight: 900; letter-spacing: .1em; }
+        .guide-step strong { display: block; margin-bottom: 5px; }
+        .guide-step p { margin: 0; color: var(--text-muted); font-size: .92rem; }
+        .guide-note { margin-top: 18px; padding: 15px 18px; border-left: 4px solid var(--primary-color); border-radius: 0 12px 12px 0; background: var(--primary-soft); color: var(--text-color); }
+        .guide-faq details { padding: 15px 0; border-bottom: 1px solid var(--border-color); }
+        .guide-faq details:last-child { border-bottom: 0; }
+        .guide-faq summary { cursor: pointer; color: var(--text-color); font-weight: 750; }
+        .guide-faq details p { margin: 9px 0 0; color: var(--text-muted); }
+        .guide-cta { margin-top: 12px; border-color: transparent; background: var(--primary-gradient); }
+        @media (max-width: 680px) { .guide-page { margin-top: 20px; padding: 0 14px; } .guide-grid, .guide-steps { grid-template-columns: 1fr; } }
     </style>
     <link rel="stylesheet" href="css/site-refresh.css?v=20260929-site-refresh-css-fix-1">
     <link rel="stylesheet" href="css/mega-animations.css?v=20260929-css-parse-fix-2">
@@ -122,47 +113,75 @@
 
   
     
-    <main>
-        <h2>1. Đối với khách hàng mua trực tiếp tại các chi nhánh</h2>
-        <ul>
-            <li>Thanh toán bằng tiền mặt, chuyển khoản ngân hàng hoặc thẻ tín dụng (Badmnton Sport chịu phí thẻ).</li>
-            <li>Quý khách có thể đến trực tiếp chi nhánh hoặc liên hệ hotline để biết thêm chi tiết.</li>
-            <li>Vui lòng kiểm tra sản phẩm kỹ trước khi thanh toán.</li>
-        </ul>
+    <main class="guide-page">
+        <header class="guide-hero">
+            <p class="eyebrow">BADMINTON STORE · CẨM NANG KHÁCH HÀNG</p>
+            <h1>Hướng dẫn mua sắm & chăm sóc đồ cầu lông</h1>
+            <p>Từ chọn vợt, đặt hàng, theo dõi đơn đến xem thông báo tài khoản — các bước thiết yếu được gom tại một nơi để bạn dễ tra cứu.</p>
+            <nav class="guide-shortcuts" aria-label="Mục lục hướng dẫn">
+                <a href="#chon-vot">Chọn vợt</a><a href="#dat-hang">Đặt hàng</a><a href="#thanh-toan">Thanh toán & giao hàng</a><a href="#thong-bao">Thông báo</a><a href="#bao-quan">Bảo quản</a>
+            </nav>
+        </header>
 
-        <h2>2. Đối với khách hàng mua hàng online qua Website</h2>
-        <h3>2.1 Thanh toán chuyển khoản hoặc thanh toán khi nhận hàng (COD)</h3>
-        <ul>
-            <li>Shop sẽ gọi điện xác nhận đơn hàng trong vòng 24h sau khi nhận thông tin đặt hàng.</li>
-            <li>Khách hàng có thể chọn thanh toán COD hoặc chuyển khoản trước qua tài khoản ngân hàng.</li>
-            <li>Với sản phẩm vợt yêu cầu đan cước, quý khách cần thanh toán trước toàn bộ giá trị đơn hàng.</li>
-            <li>Hotline hỗ trợ: 0338000308</li>
-        </ul>
-        <p><strong>Thông tin tài khoản ngân hàng:</strong></p>
-        <ul>
-            <li><strong>Ngân hàng:</strong> MB Bank</li>
-            <li><strong>Số tài khoản:</strong> 6914082007</li>
-            <li><strong>Chủ tài khoản:</strong> Nguyễn Hải Anh</li>
-        </ul>
-        <p><em>Lưu ý:</em> Vui lòng kiểm tra kỹ thông tin trước khi thực hiện giao dịch.</p>
+        <section class="guide-section" id="chon-vot">
+            <h2>Chọn vợt phù hợp với trình độ và lối chơi</h2>
+            <p>Đừng chỉ chọn theo màu sắc hay thông số căng tối đa. Hãy ưu tiên cảm giác thoải mái, khả năng kiểm soát và mức phù hợp với thể lực của bạn.</p>
+            <div class="guide-grid">
+                <article class="guide-tip"><h3>Người mới bắt đầu</h3><p>Ưu tiên cây dễ điều khiển, thân có độ linh hoạt vừa phải và mức căng dây vừa sức. Nếu có thể, hãy thử cầm vợt trước khi mua.</p></article>
+                <article class="guide-tip"><h3>Đánh đôi, thiên tốc độ</h3><p>Tìm cảm giác vung nhanh, xoay trở gọn và dễ phòng thủ. Trọng lượng nhẹ hơn không tự động đồng nghĩa với phù hợp — độ cân bằng và cán cầm cũng quan trọng.</p></article>
+                <article class="guide-tip"><h3>Ưa tấn công</h3><p>Vợt nặng đầu có thể hỗ trợ cảm giác đập cầu, nhưng đòi hỏi thể lực và kỹ thuật tốt hơn. Hãy tăng dần, không chọn quá cứng hoặc căng quá cao ngay từ đầu.</p></article>
+                <article class="guide-tip"><h3>Kiểm tra thông số</h3><p>Đọc trọng lượng, điểm cân bằng, độ cứng, cỡ cán và khuyến nghị căng dây trên đúng phiên bản sản phẩm. Thông số giữa các phiên bản có thể khác nhau.</p></article>
+            </div>
+            <div class="guide-note">Đau cổ tay hoặc vai khi chơi không phải dấu hiệu cần “cố quen” với vợt. Hãy dừng chơi, kiểm tra kỹ thuật và cân nhắc chọn cấu hình nhẹ nhàng hơn.</div>
+        </section>
 
-        <h3>2.2 Thanh toán trả góp qua Website</h3>
-        <ul>
-            <li>Lựa chọn trả góp qua CCCD hoặc thẻ tín dụng trong giỏ hàng.</li>
-            <li>Các hình thức hỗ trợ: Home Paylater, Muadee hoặc trả góp qua thẻ ngân hàng.</li>
-            <li>Tham khảo thêm bài viết: <a href="#">Hướng dẫn Mua vợt cầu lông trả góp tại Badminton Sport</a>.</li>
-        </ul>
+        <section class="guide-section" id="dat-hang">
+            <h2>Cách đặt hàng trên website</h2>
+            <div class="guide-steps">
+                <div class="guide-step"><strong>Tìm sản phẩm</strong><p>Dùng ô tìm kiếm, danh mục hoặc bộ lọc. Đọc kỹ phiên bản, kích cỡ và tình trạng hàng.</p></div>
+                <div class="guide-step"><strong>Kiểm tra giỏ</strong><p>Chọn số lượng và tùy chọn sản phẩm; rà lại tạm tính, phí giao hàng và thông tin nhận.</p></div>
+                <div class="guide-step"><strong>Chọn thanh toán</strong><p>Chọn một phương thức đang hiển thị ở bước thanh toán và làm theo hướng dẫn trên màn hình.</p></div>
+                <div class="guide-step"><strong>Theo dõi đơn</strong><p>Đăng nhập, mở Tài khoản → Đơn hàng để xem trạng thái và thông tin cập nhật.</p></div>
+            </div>
+            <div class="guide-note">Đơn chỉ được ghi nhận khi website báo đặt hàng thành công. Nếu trang bị tải lại hoặc bạn chưa chắc đơn đã tạo, hãy kiểm tra mục Đơn hàng trước khi đặt lại để tránh trùng đơn.</div>
+        </section>
 
-        <h2>3. Đối với khách hàng mua hàng qua hotline</h2>
-        <ul>
-            <li>Thanh toán COD hoặc chuyển khoản trước qua tài khoản ngân hàng.</li>
-            <li>Danh sách số tài khoản của từng chi nhánh được cập nhật khi liên hệ.</li>
-        </ul>
+        <section class="guide-section" id="thanh-toan">
+            <h2>Thanh toán, giao hàng & nhận hàng</h2>
+            <div class="guide-grid">
+                <article class="guide-tip"><h3>Phương thức thanh toán</h3><p>Giỏ hàng hiện hỗ trợ các phương thức được bật cho đơn của bạn (ví dụ: COD, chuyển khoản VietQR hoặc số dư nếu đủ điều kiện). Chỉ chuyển tiền theo thông tin do chính bước thanh toán của website tạo ra; không dùng số tài khoản từ bài viết cũ hay tin nhắn không xác minh.</p></article>
+                <article class="guide-tip"><h3>Phí và thời gian giao</h3><p>Phí, địa chỉ giao và thời gian dự kiến phụ thuộc khu vực, đơn vị vận chuyển và nội dung giỏ hàng. Kiểm tra phần tóm tắt đơn trước khi xác nhận; nếu chưa hiển thị rõ, liên hệ cửa hàng để được xác nhận.</p></article>
+                <article class="guide-tip"><h3>Khi nhận bưu kiện</h3><p>Kiểm tra tình trạng gói hàng, sản phẩm và phụ kiện ngay khi nhận. Nếu có vấn đề, giữ lại bao bì, chụp ảnh hoặc video hiện trạng và liên hệ cửa hàng kèm mã đơn.</p></article>
+                <article class="guide-tip"><h3>Đổi trả & bảo hành</h3><p>Điều kiện phụ thuộc loại sản phẩm, lỗi phát sinh và chính sách áp dụng tại thời điểm mua. Vui lòng xem xác nhận đơn/phiếu bảo hành hoặc hỏi cửa hàng trước khi gửi sản phẩm; không tự gửi hàng khi chưa có hướng dẫn.</p></article>
+            </div>
+            <p><a class="guide-cta" href="giohang.html">Mở giỏ hàng</a> <a class="guide-cta" href="canhan.html#orders">Xem đơn hàng</a></p>
+        </section>
 
-        <h2>4. Đối với khách hàng mua sỉ</h2>
-        <ul>
-            <li>Liên hệ số: 1234 567891 để được Nguyễn Minh Đức hỗ trợ.</li>
-        </ul>
+        <section class="guide-section" id="thong-bao">
+            <h2>Xem thông báo đơn hàng và tài khoản</h2>
+            <div class="guide-grid">
+                <article class="guide-tip"><h3>Chuông trên trang chủ</h3><p>Nhấn biểu tượng chuông để xem nhanh các cập nhật gần đây. Chọn “Xem thêm thông báo” để mở danh sách đầy đủ trong tài khoản.</p></article>
+                <article class="guide-tip"><h3>Danh sách thông báo</h3><p>Đăng nhập rồi vào Tài khoản → Thông báo. Tại đây có thể xem cập nhật thanh toán, trạng thái đơn và tin từ cửa hàng gửi đến tài khoản.</p></article>
+            </div>
+            <div class="guide-note">Không thấy cập nhật? Hãy đăng nhập đúng tài khoản đặt hàng, nhấn “Làm mới” trong mục Thông báo và kiểm tra thêm mục Đơn hàng. Thông báo chỉ xuất hiện khi có sự kiện tương ứng.</div>
+            <p><a class="guide-cta" href="canhan.html#notifications">Mở thông báo tài khoản</a></p>
+        </section>
+
+        <section class="guide-section" id="bao-quan">
+            <h2>Mẹo bảo quản vợt, giày và phụ kiện</h2>
+            <div class="guide-grid">
+                <article class="guide-tip"><h3>Vợt & dây</h3><p>Lau khô sau buổi chơi, tránh để vợt trong cốp xe nóng hoặc nơi ẩm. Không vượt mức căng dây khuyến nghị của nhà sản xuất; kiểm tra khung nếu va chạm mạnh.</p></article>
+                <article class="guide-tip"><h3>Giày cầu lông</h3><p>Để giày khô tự nhiên ở nơi thoáng; không phơi sát nguồn nhiệt. Làm sạch đế và kiểm tra độ bám định kỳ để hạn chế trượt trên sân.</p></article>
+            </div>
+        </section>
+
+        <section class="guide-section guide-faq" id="cau-hoi-thuong-gap">
+            <h2>Câu hỏi thường gặp</h2>
+            <details><summary>Tôi có thể sửa địa chỉ sau khi đặt không?</summary><p>Mở mục Đơn hàng và liên hệ cửa hàng sớm nhất có thể. Việc sửa địa chỉ còn phụ thuộc trạng thái xử lý và bàn giao vận chuyển.</p></details>
+            <details><summary>Tôi cần làm gì nếu thanh toán thành công nhưng đơn chưa cập nhật?</summary><p>Đừng thanh toán lần nữa ngay. Lưu mã giao dịch/biên nhận, kiểm tra lại Đơn hàng và liên hệ cửa hàng qua trang Liên hệ để đối soát.</p></details>
+            <details><summary>Làm sao hỏi về thông số hoặc tình trạng còn hàng?</summary><p>Mở trang Liên hệ hoặc dùng nút Nhắn cửa hàng trên website; gửi kèm tên/mã sản phẩm và phiên bản cần hỏi để cửa hàng kiểm tra chính xác.</p></details>
+            <p><a class="guide-cta" href="lienhe.html#contactMain">Liên hệ cửa hàng</a> <a class="guide-cta" href="tin tức.html">Đọc cẩm nang & tin tức</a></p>
+        </section>
     </main>
 
 

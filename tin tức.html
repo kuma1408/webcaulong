@@ -11,76 +11,35 @@
     <link href="css/tutaoo.css" rel="stylesheet" style="text/css" />
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
     <style>
-.card-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 20px;
-}
-
-.card {
-    position: relative;
-    background-color: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-    flex: 1 1 calc(33.333% - 20px);
-    max-width: calc(33.333% - 20px);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-}
-
-.card img {
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.card:hover img {
-    transform: scale(1.1);
-}
-
-.card-content {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    padding: 15px;
-    text-align: center;
-    opacity: 1; /* Đảm bảo rằng nó luôn hiển thị */
-    transition: none; /* Loại bỏ hiệu ứng chuyển đổi */
-}
-
-
-.card:hover .card-content {
-    opacity: 1;
-}
-
-.card-title {
-    font-size: 16px;
-    font-weight: bold;
-    margin: 0 0 10px;
-    color: #fff;
-}
-
-.card-date {
-    font-size: 14px;
-    color: #ffa500;
-    margin-bottom: 10px;
-}
-
-.card-description {
-    font-size: 14px;
-    color: #ccc;
-    margin: 0;
-}     
+        .news-hub { max-width: 1240px; margin: 34px auto 56px; padding: 0 20px; color: var(--text-color); }
+        .news-hero { padding: clamp(24px, 5vw, 46px); border-radius: 26px; color: #fff8f3; background: radial-gradient(circle at 86% 4%, rgba(255,154,74,.28), transparent 28%), linear-gradient(135deg,#35150e,#852a16 60%,#d8451d); box-shadow: var(--shadow-md); }
+        .news-hero .eyebrow { margin: 0 0 8px; color: #ffbd91; font-size: .76rem; font-weight: 850; letter-spacing: .15em; }
+        .news-hero h1 { margin: 0; color: inherit; font-size: clamp(1.9rem, 4vw, 2.8rem); line-height: 1.12; }
+        .news-hero p { max-width: 680px; color: #ffe4d5; }
+        .news-section-title { margin: 32px 0 14px; }
+        .news-section-title h2 { margin: 0; color: var(--text-color); font-size: clamp(1.35rem, 3vw, 1.8rem); }
+        .news-section-title p { margin: 6px 0 0; color: var(--text-muted); }
+        .card-container { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; padding: 0; }
+        .card { min-width: 0; overflow: hidden; border: 1px solid var(--border-color); border-radius: 20px; background: var(--card-bg); box-shadow: var(--shadow-sm); transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+        .card:hover { transform: translateY(-5px); border-color: var(--primary-color); box-shadow: var(--shadow-md); }
+        .card > a:first-child { display: block; overflow: hidden; background: var(--primary-soft); }
+        .card img { display: block; width: 100%; height: 220px; object-fit: cover; transition: transform .35s ease; }
+        .card:hover img { transform: scale(1.04); }
+        .card-content { position: static; padding: 18px; color: var(--text-color); background: transparent; text-align: left; }
+        .card-title { margin: 0 0 9px; color: var(--text-color); font-size: 1.05rem; line-height: 1.4; }
+        .card-date { margin: 0 0 10px; color: var(--primary-color); font-size: .82rem; font-weight: 700; }
+        .card-description { color: var(--text-muted); font-size: .93rem; line-height: 1.6; }
+        .news-card-link { display: inline-flex; margin-top: 12px; color: var(--primary-color); font-weight: 800; text-decoration: none; }
+        .news-card-link:hover { text-decoration: underline; }
+        .guide-card-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+        .guide-news-card { display: flex; min-height: 220px; flex-direction: column; padding: 22px; border: 1px solid var(--border-color); border-radius: 20px; background: var(--card-bg); box-shadow: var(--shadow-sm); }
+        .guide-news-card .topic-icon { display: grid; width: 46px; height: 46px; place-items: center; margin-bottom: 16px; border-radius: 14px; background: var(--primary-soft); font-size: 1.35rem; }
+        .guide-news-card h3 { margin: 0 0 8px; }
+        .guide-news-card p { margin: 0; color: var(--text-muted); line-height: 1.6; }
+        .guide-news-card a { margin-top: auto; padding-top: 16px; color: var(--primary-color); font-weight: 800; text-decoration: none; }
+        .news-archive-note { margin: 18px 0 0; padding: 14px 17px; border-left: 4px solid var(--primary-color); border-radius: 0 12px 12px 0; color: var(--text-muted); background: var(--primary-soft); }
+        @media (max-width: 900px) { .card-container, .guide-card-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+        @media (max-width: 600px) { .news-hub { margin: 20px auto 42px; padding: 0 14px; } .card-container, .guide-card-grid { grid-template-columns: 1fr; } .card img { height: 210px; } }
     </style>
     <link rel="stylesheet" href="css/site-refresh.css?v=20260929-site-refresh-css-fix-1">
     <link rel="stylesheet" href="css/mega-animations.css?v=20260929-css-parse-fix-2">
@@ -153,12 +112,33 @@
             </ul>
         </div>
 
+        <main class="news-hub">
+        <header class="news-hero">
+            <p class="eyebrow">BADMINTON STORE · GÓC CẦU LÔNG</p>
+            <h1>Tin tức, kinh nghiệm & cẩm nang chơi cầu</h1>
+            <p>Bài viết chọn dụng cụ, chăm sóc gear và cập nhật nội dung cửa hàng. Với thông tin giá, tồn kho, chính sách hoặc địa điểm có thể thay đổi, hãy xác nhận lại trước khi mua hay di chuyển.</p>
+        </header>
+
+        <section aria-labelledby="new-guides-title">
+            <div class="news-section-title"><h2 id="new-guides-title">Cẩm nang thiết thực</h2><p>Nội dung tham khảo nhanh dành cho người mới và người chơi phong trào.</p></div>
+            <div class="guide-card-grid">
+                <article class="guide-news-card"><span class="topic-icon" aria-hidden="true">🏸</span><h3>Chọn vợt theo lối chơi</h3><p>Hiểu trọng lượng, độ cân bằng, độ cứng và cách chọn mức căng phù hợp thay vì chỉ chạy theo thông số cao.</p><a href="hướng dẫn.html#chon-vot">Đọc hướng dẫn chọn vợt →</a></article>
+                <article class="guide-news-card"><span class="topic-icon" aria-hidden="true">📦</span><h3>Đặt hàng và theo dõi đơn</h3><p>Các bước kiểm tra giỏ hàng, lựa chọn thanh toán, nhận hàng và xử lý khi trạng thái đơn chưa cập nhật.</p><a href="hướng dẫn.html#dat-hang">Xem quy trình mua hàng →</a></article>
+                <article class="guide-news-card"><span class="topic-icon" aria-hidden="true">🔔</span><h3>Thông báo tài khoản</h3><p>Tìm cập nhật đơn hàng, thanh toán và tin nhắn cửa hàng tại chuông trên trang chủ hoặc trong trang cá nhân.</p><a href="hướng dẫn.html#thong-bao">Tìm hiểu cách xem thông báo →</a></article>
+                <article class="guide-news-card"><span class="topic-icon" aria-hidden="true">🧽</span><h3>Bảo quản vợt và giày</h3><p>Mẹo cơ bản giúp giữ dụng cụ khô ráo, tránh nhiệt độ cao và phát hiện sớm hao mòn.</p><a href="hướng dẫn.html#bao-quan">Xem mẹo bảo quản →</a></article>
+                <article class="guide-news-card"><span class="topic-icon" aria-hidden="true">💳</span><h3>Thanh toán an toàn</h3><p>Chỉ dùng phương thức hiển thị ngay tại bước thanh toán và lưu lại biên nhận để dễ đối soát.</p><a href="hướng dẫn.html#thanh-toan">Xem hướng dẫn thanh toán →</a></article>
+                <article class="guide-news-card"><span class="topic-icon" aria-hidden="true">💬</span><h3>Cần tư vấn thêm?</h3><p>Gửi tên hoặc mã sản phẩm cùng phiên bản bạn quan tâm để cửa hàng hỗ trợ chính xác hơn.</p><a href="lienhe.html#contact">Liên hệ cửa hàng →</a></article>
+            </div>
+        </section>
+
+        <section aria-labelledby="archive-news-title">
+            <div class="news-section-title"><h2 id="archive-news-title">Bài viết & điểm chơi</h2><p>Một số bài viết lưu trữ về vợt và sân cầu lông.</p></div>
         <div class="card-container">
             <div class="card">
                 <a href="chi tiết tin tức 1.html" style="text-decoration: none; color: inherit;"><img src="HA/ảnh tin tức/vot6u.png" alt="News 1"></a>
                 <div class="card-content">
                     <a href="chi tiết tin tức 1.html" style="text-decoration: none; color: inherit;"><h3 class="card-title">Vợt Cầu Lông 6U Là Gì? Top 5 Cây Vợt Cầu Lông 6U Được Ưa Chuộng</h3></a>
-                    <p class="card-date">20-12-2024 17:19</p>
+                    <p class="card-date">Bài viết lưu trữ · 20-12-2024</p>
                     <p class="card-description">Nếu bạn đang tìm kiếm một cây vợt cầu lông có trọng lượng nhẹ để có được độ linh hoạt trong lối chơi...</p>
                 </div>
             </div>
@@ -166,7 +146,7 @@
                 <a href="chi tiết tin tức 2.html" style="text-decoration: none; color: inherit;"><img src="HA/ảnh tin tức/tin2.png" alt="News 2"></a>
                 <div class="card-content">
                     <a href="chi tiết tin tức 2.html" style="text-decoration: none; color: inherit;"><h3 class="card-title">Khám phá sân cầu lông Tô Ngọc Vân chất lượng đáng để trải</h3></a>
-                    <p class="card-date">26-11-2024 13:30</p>
+                    <p class="card-date">Bài viết lưu trữ · 26-11-2024</p>
                     <p class="card-description">Sân cầu lông Tô Ngọc Vân được biết đến là một trong những cụm sân cầu lông chất lượng tại TP. Thủ Đứ...</p>
                 </div>
             </div>
@@ -174,7 +154,7 @@
                 <a href="chi tiết tin tức 3.html" style="text-decoration: none; color: inherit;"><img src="HA/ảnh tin tức/tin3.png" alt="News 3"></a>
                 <div class="card-content">
                     <a href="chi tiết tin tức 3.html" style="text-decoration: none; color: inherit;"><h3 class="card-title">Khám phá sân cầu lông An Bình Biên Hoà uy tín và chất lượng</h3></a>
-                    <p class="card-date">19-11-2024 08:59</p>
+                    <p class="card-date">Bài viết lưu trữ · 19-11-2024</p>
                     <p class="card-description">Sân cầu lông An Bình Biên Hoà là một trong những điểm đến lý tưởng cho các anh em lông thủ tại TP. B...</p>
                 </div>
             </div>
@@ -182,7 +162,7 @@
                 <a href="chi tiết tin tức 4.html" style="text-decoration: none; color: inherit;"><img src="HA/ảnh tin tức/tin4.png" alt="News 4"></a>
                 <div class="card-content">
                     <a href="chi tiết tin tức 4.html" style="text-decoration: none; color: inherit;"><h3 class="card-title">Top 5 cây vợt cầu lông thiên công giá tầm giá 1 triệu đến 1</h3></a>
-                    <p class="card-date">04-11-2024 08:46</p>
+                    <p class="card-date">Bài viết lưu trữ · 04-11-2024</p>
                     <p class="card-description">Nếu các bạn đang tìm cho mình một cây vợt cầu lông thiên về lối chơi tấn công mạnh mẽ với một mức gi...</p>
                 </div>
             </div>
@@ -190,7 +170,7 @@
                 <a href="chi tiết tin tức 5.html" style="text-decoration: none; color: inherit;"><img src="HA/ảnh tin tức/tin5.png" alt="News 5"></a>
                 <div class="card-content">
                     <a href="chi tiết tin tức 5.html" style="text-decoration: none; color: inherit;"><h3 class="card-title">Tổng hợp danh sách các sân cầu lông Phú Quốc uy tín được</h3></a>
-                    <p class="card-date">04-11-2024 11:31</p>
+                    <p class="card-date">Bài viết lưu trữ · 04-11-2024</p>
                     <p class="card-description">Hiện tại, phong trào cầu lông ở Phú Quốc đang phát triển mạnh mẽ và có rất nhiều bạn muốn tìm một sâ...</p>
                 </div>
             </div>
@@ -198,11 +178,14 @@
                 <a href="chi tiết tin tức 6.html" style="text-decoration: none; color: inherit;"><img src="HA/ảnh tin tức/tin6.png" alt="News 6"></a>
                 <div class="card-content">
                     <a href="chi tiết tin tức 6.html" style="text-decoration: none; color: inherit;"><h3 class="card-title">Review sân cầu lông Oanh Toàn đẹp và chất lượng tại TP. Phú</h3></a>
-                    <p class="card-date">04-11-2024 11:28</p>
+                    <p class="card-date">Bài viết lưu trữ · 04-11-2024</p>
                     <p class="card-description">Sân cầu lông Oanh Toàn với không gian thông thoáng, cơ sở vật chất sạch đẹp, được biết đến là một tr...</p>
                 </div>
             </div>
         </div>
+        <p class="news-archive-note">Các bài về sân được đăng từ năm 2024; giờ hoạt động, giá sân và tình trạng dịch vụ có thể đã thay đổi. Vui lòng liên hệ địa điểm trước khi đến.</p>
+        </section>
+        </main>
  
 
 
