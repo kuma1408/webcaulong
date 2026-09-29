@@ -877,11 +877,22 @@ def serialize_chat_messages(cursor, rows):
     if not ids:
         return messages
     placeholders = ",".join(["%s"] * len(ids))
-    cursor.execute(
-        "SELECT MaTep,MaTinNhan,TenTepTin,MimeType,KichThuoc FROM ChatTinHanTep "
-        "WHERE MaTinNhan IN (" + placeholders + ") ORDER BY MaTep",
-        ids,
-    )
+    try:
+        cursor.execute(
+            "SELECT MaTep,MaTinNhan,TenTepTin,MimeType,KichThuoc FROM ChatTinHanTep "
+            "WHERE MaTinNhan IN (" + placeholders + ") ORDER BY MaTep",
+            ids,
+        )
+    except mysql.connector.Error as exc:
+        # A missing optional attachment table should not disable text chat. This
+        # can happen when the app and phpMyAdmin point at different schemas or
+        # an older release is running while its migration is pending.
+        if getattr(exc, "errno", None) != 1146:
+            raise
+        app.logger.warning(
+            "Chat attachment table is unavailable; returning text messages only."
+        )
+        return messages
     by_message = {message["MaTinNhan"]: message for message in messages if message}
     for row in cursor.fetchall():
         by_message[row["MaTinNhan"]]["TepDinhKem"].append(serialize_row(row))

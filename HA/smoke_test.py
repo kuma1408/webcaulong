@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 from decimal import Decimal
 
+import mysql.connector
 from PIL import Image
 from werkzeug.datastructures import FileStorage
 
@@ -33,6 +34,7 @@ from HA.app import (
     review_product,
     sanitize_plain_text,
     sanitize_rich_text,
+    serialize_chat_messages,
     update_cart,
     validate_racket_configuration,
     validated_product_specs,
@@ -280,6 +282,25 @@ class ApiSmokeTest(unittest.TestCase):
             "SELECT * FROM ChatTinHanTep WHERE MaTinNhan=%s"
         )
         self.assertIn("FROM `chattinhantep`", statement)
+
+    def test_chat_history_remains_available_when_attachment_table_is_missing(self):
+        cursor = MagicMock()
+        cursor.execute.side_effect = mysql.connector.Error(
+            msg="Table does not exist", errno=1146
+        )
+        rows = [{
+            "MaTinNhan": 12,
+            "MaNDGui": 4,
+            "VaiTroGui": "CUSTOMER",
+            "NoiDung": "Xin chào shop",
+            "NgayTao": None,
+        }]
+
+        messages = serialize_chat_messages(cursor, rows)
+
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0]["NoiDung"], "Xin chào shop")
+        self.assertEqual(messages[0]["TepDinhKem"], [])
 
     def test_support_validation_does_not_touch_database(self):
         response = self.client.post(
