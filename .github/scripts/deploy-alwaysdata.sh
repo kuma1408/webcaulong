@@ -48,6 +48,12 @@ else
   "$python_bin" HA/migrate_database.py --require-current
 fi
 
+# Seed the production content catalog and verified product candidates after
+# the additive schema migration. Both seeders are idempotent; product drafts
+# remain hidden with zero stock until an administrator verifies them.
+"$python_bin" -m HA.migrate_content_catalog
+"$python_bin" -m HA.catalog_candidates_2026_09 --apply
+
 if [ -f "$app_path/wsgi.py" ]; then
   tar --exclude=.venv --exclude=.env --exclude=HA/avatars --exclude=HA/uploads \
     -czf "$backup_dir/webcaulong-code-$stamp.tar.gz" -C "$app_path" .
