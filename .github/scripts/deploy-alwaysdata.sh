@@ -53,6 +53,7 @@ fi
 # remain hidden with zero stock until an administrator verifies them.
 "$python_bin" -m HA.migrate_content_catalog
 "$python_bin" -m HA.catalog_candidates_2026_09 --apply
+"$python_bin" -m HA.seed_candidate_images
 
 if [ -f "$app_path/wsgi.py" ]; then
   tar --exclude=.venv --exclude=.env --exclude=HA/avatars --exclude=HA/uploads \
