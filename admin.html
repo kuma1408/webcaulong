@@ -403,6 +403,13 @@
                             <option value="active">Đang bán</option>
                             <option value="hidden">Đã ẩn</option>
                         </select>
+                        <label class="bs-visually-hidden" for="productSort">Sắp xếp sản phẩm</label>
+                        <select id="productSort" aria-label="Sắp xếp sản phẩm">
+                            <option value="newest">Mới nhất</option>
+                            <option value="oldest">Cũ nhất</option>
+                            <option value="price_desc">Giá cao đến thấp</option>
+                            <option value="price_asc">Giá thấp đến cao</option>
+                        </select>
                         <button class="admin-primary" type="button" id="addProduct">+ Thêm sản phẩm</button>
                     </div>
                     <div class="admin-filter-pills" id="productFilterPills" role="tablist" aria-label="Lọc nhanh sản phẩm">
@@ -548,6 +555,11 @@
                             <option value="all">Tất cả nội dung</option>
                             <option value="TIN_TUC">Tin tức</option>
                             <option value="HUONG_DAN">Hướng dẫn</option>
+                        </select>
+                        <label class="bs-visually-hidden" for="contentSort">Sắp xếp nội dung</label>
+                        <select id="contentSort" aria-label="Sắp xếp tin tức và hướng dẫn">
+                            <option value="newest">Mới nhất</option>
+                            <option value="oldest">Cũ nhất</option>
                         </select>
                         <button class="admin-primary" type="button" id="addContent">+ Thêm nội dung</button>
                     </div>

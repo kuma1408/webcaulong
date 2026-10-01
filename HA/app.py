@@ -3681,6 +3681,8 @@ def admin_products():
     if request.method == "GET":
         keyword = request.args.get("q", "").strip()[:120]
         status = request.args.get("status", "all")
+        quick_filter = request.args.get("quick_filter", "all")
+        sort = request.args.get("sort", "newest")
         category = request.args.get("category", type=int)
         page = clamp_int(request.args.get("page"), 1, 1, 100000)
         limit = clamp_int(request.args.get("limit"), 20, 1, 100)
@@ -3697,6 +3699,16 @@ def admin_products():
         if category:
             where.append("sp.MaDM = %s")
             params.append(category)
+        if quick_filter == "lowstock":
+            where.append("sp.TonKho < 10")
+        elif quick_filter == "sale":
+            where.append("sp.GiaGoc IS NOT NULL AND sp.GiaGoc > sp.GiaBan")
+        order_by = {
+            "newest": "sp.NgayTao IS NULL ASC, sp.NgayTao DESC, sp.MaSP DESC",
+            "oldest": "sp.NgayTao IS NULL ASC, sp.NgayTao ASC, sp.MaSP ASC",
+            "price_desc": "sp.GiaBan DESC, sp.MaSP DESC",
+            "price_asc": "sp.GiaBan ASC, sp.MaSP ASC",
+        }.get(sort, "sp.NgayTao IS NULL ASC, sp.NgayTao DESC, sp.MaSP DESC")
         where_sql = " AND ".join(where)
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -3704,14 +3716,21 @@ def admin_products():
             cursor.execute(
                 f"""
                 SELECT sp.*, dm.TenDM FROM SanPham sp LEFT JOIN DanhMuc dm ON dm.MaDM = sp.MaDM
-                WHERE {where_sql} ORDER BY sp.NgayTao DESC LIMIT %s OFFSET %s
+                WHERE {where_sql} ORDER BY {order_by} LIMIT %s OFFSET %s
                 """,
                 params + [limit, (page - 1) * limit],
             )
             products = [serialize_product(row) for row in cursor.fetchall()]
             cursor.execute(f"SELECT COUNT(*) AS total FROM SanPham sp WHERE {where_sql}", params)
             total = cursor.fetchone()["total"]
-            return jsonify({"success": True, "products": products, "total": total, "page": page})
+            cursor.execute(
+                """SELECT COUNT(*) AS total, COALESCE(SUM(TrangThai=1),0) AS active,
+                          COALESCE(SUM(TonKho < 10),0) AS low_stock,
+                          COALESCE(SUM(GiaGoc IS NOT NULL AND GiaGoc > GiaBan),0) AS on_sale
+                   FROM SanPham"""
+            )
+            metrics = cursor.fetchone()
+            return jsonify({"success": True, "products": products, "total": total, "page": page, "metrics": metrics})
         finally:
             cursor.close()
             conn.close()
@@ -4835,14 +4854,27 @@ def admin_update_support_request(support_id):
 def admin_content():
     if request.method == "GET":
         kind = str(request.args.get("loai", "all")).upper()
+        sort = request.args.get("sort", "newest")
+        order_by = {
+            "newest": "NgayDang IS NULL ASC, NgayDang DESC, MaBV DESC",
+            "oldest": "NgayDang IS NULL ASC, NgayDang ASC, MaBV ASC",
+        }.get(sort, "NgayDang IS NULL ASC, NgayDang DESC, MaBV DESC")
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         try:
             if kind in {"TIN_TUC", "HUONG_DAN"}:
-                cursor.execute("SELECT * FROM BaiViet WHERE Loai=%s ORDER BY NgayDang DESC", (kind,))
+                cursor.execute(f"SELECT * FROM BaiViet WHERE Loai=%s ORDER BY {order_by}", (kind,))
             else:
-                cursor.execute("SELECT * FROM BaiViet ORDER BY NgayDang DESC")
-            return jsonify({"success": True, "items": [serialize_row(row) for row in cursor.fetchall()]})
+                cursor.execute(f"SELECT * FROM BaiViet ORDER BY {order_by}")
+            items = [serialize_row(row) for row in cursor.fetchall()]
+            cursor.execute(
+                """SELECT COUNT(*) AS total,
+                          COALESCE(SUM(Loai='TIN_TUC'),0) AS news,
+                          COALESCE(SUM(Loai='HUONG_DAN'),0) AS guides,
+                          COALESCE(SUM(TrangThai=1),0) AS published
+                   FROM BaiViet"""
+            )
+            return jsonify({"success": True, "items": items, "metrics": cursor.fetchone()})
         except mysql.connector.Error:
             app.logger.exception("Không thể tải nội dung quản trị")
             return api_error(

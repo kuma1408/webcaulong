@@ -3,6 +3,17 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const source = readFileSync(new URL('../css/admin.js', import.meta.url), 'utf8');
+const markup = readFileSync(new URL('../admin.html', import.meta.url), 'utf8');
+for (const control of ['productSort', 'contentSort']) {
+    assert.match(markup, new RegExp(`id="${control}"`), `${control} must exist in the admin toolbar`);
+    assert.ok(source.includes(`#${control}`), `${control} must be wired into admin behavior`);
+}
+assert.match(source, /quick_filter:\s*state\.productQuickFilter/,
+    'Quick product filters must be sent to the paginated API, not applied only to the current page');
+assert.match(source, /sort:\s*\$\('#productSort'\)\.value/,
+    'Product sort selection must reach the admin API');
+assert.match(source, /sort:\$\('#contentSort'\)\.value/,
+    'News and guide sort selection must reach the admin API');
 const nodes = new Map();
 function node() { return { hidden: true, value: '', textContent: '', innerHTML: '', children: [],
     appendChild(child) { this.children.push(child); }, setAttribute() {} }; }

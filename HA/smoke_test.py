@@ -45,6 +45,58 @@ from HA.vietqr import build_payload as build_vietqr_payload, make_png as make_vi
 
 
 class ApiSmokeTest(unittest.TestCase):
+    def test_admin_product_sort_and_quick_filters_are_server_side_and_whitelisted(self):
+        cases = {
+            "newest": "sp.NgayTao DESC, sp.MaSP DESC",
+            "oldest": "sp.NgayTao ASC, sp.MaSP ASC",
+            "price_desc": "sp.GiaBan DESC, sp.MaSP DESC",
+            "price_asc": "sp.GiaBan ASC, sp.MaSP ASC",
+        }
+        for sort, expected_order in cases.items():
+            with self.subTest(sort=sort):
+                conn = MagicMock()
+                cursor = conn.cursor.return_value
+                cursor.fetchall.return_value = []
+                cursor.fetchone.side_effect = [
+                    {"total": 0},
+                    {"total": 20, "active": 12, "low_stock": 3, "on_sale": 4},
+                ]
+                with app.test_request_context(
+                    f"/api/admin/products?sort={sort}&quick_filter=lowstock", method="GET"
+                ):
+                    with patch("HA.app.get_db_connection", return_value=conn):
+                        response = admin_products.__wrapped__()
+                product_query = cursor.execute.call_args_list[0].args[0]
+                self.assertIn(expected_order, product_query)
+                self.assertIn("sp.TonKho < 10", product_query)
+                self.assertEqual(response.get_json()["metrics"]["total"], 20)
+
+        conn = MagicMock()
+        cursor = conn.cursor.return_value
+        cursor.fetchall.return_value = []
+        cursor.fetchone.side_effect = [
+            {"total": 0}, {"total": 20, "active": 12, "low_stock": 3, "on_sale": 4}
+        ]
+        with app.test_request_context("/api/admin/products?sort=DROP%20TABLE", method="GET"):
+            with patch("HA.app.get_db_connection", return_value=conn):
+                admin_products.__wrapped__()
+        self.assertIn("sp.NgayTao DESC", cursor.execute.call_args_list[0].args[0])
+
+    def test_admin_content_sort_keeps_type_filter_and_has_stable_ties(self):
+        conn = MagicMock()
+        cursor = conn.cursor.return_value
+        cursor.fetchall.return_value = []
+        cursor.fetchone.return_value = {"total": 8, "news": 5, "guides": 3, "published": 7}
+        with app.test_request_context(
+            "/api/admin/noi-dung?loai=HUONG_DAN&sort=oldest", method="GET"
+        ):
+            with patch("HA.app.get_db_connection", return_value=conn):
+                response = admin_content.__wrapped__()
+        query, params = cursor.execute.call_args_list[0].args
+        self.assertIn("ORDER BY NgayDang IS NULL ASC, NgayDang ASC, MaBV ASC", query)
+        self.assertEqual(params, ("HUONG_DAN",))
+        self.assertEqual(response.get_json()["metrics"]["news"], 5)
+
     def test_unchanged_product_update_succeeds_without_writing(self):
         conn = MagicMock()
         cursor = conn.cursor.return_value

@@ -29,10 +29,10 @@
     };
     const state = {
         currentView: 'overview', loaded: new Set(), admin: null, categories: [],
-        products: [], productPage: 1, productTotal: 0,
+        products: [], productPage: 1, productTotal: 0, productQuickFilter: 'all', productMetrics: null, productRequestId: 0,
         orders: [], orderPage: 1, orderTotal: 0,
         users: [], userPage: 1, userTotal: 0,
-        deposits: [], content: [], vouchers: [], support: [], supportPage: 1, supportTotal: 0,
+        deposits: [], content: [], contentMetrics: null, contentRequestId: 0, vouchers: [], support: [], supportPage: 1, supportTotal: 0,
         chatThreads: [], chatThreadId: null, chatMessages: [], chatLastId: 0
     };
     let pendingUserAvatar = null;
@@ -1722,17 +1722,29 @@
     }
 
     async function loadProducts() {
+        const requestId = ++state.productRequestId;
         const tbody = $('#productRows');
         emptyRow(tbody, 6, 'Đang tải sản phẩm…');
-        const params = new URLSearchParams({ page: state.productPage, limit: 20, q: $('#productQuery').value.trim(), status: $('#productStatus').value });
+        const params = new URLSearchParams({ page: state.productPage, limit: 20, q: $('#productQuery').value.trim(), status: $('#productStatus').value, quick_filter: state.productQuickFilter, sort: $('#productSort').value });
         try {
             const data = await Auth.request(`/api/admin/products?${params}`);
+            if (requestId !== state.productRequestId) return;
+            const total = Number(data.total) || 0;
+            const lastPage = Math.max(1, Math.ceil(total / 20));
+            if (state.productPage > lastPage) {
+                state.productPage = lastPage;
+                return loadProducts();
+            }
             state.products = data.products || [];
-            state.productTotal = Number(data.total) || 0;
+            state.productTotal = total;
+            state.productMetrics = data.metrics || null;
             renderProducts();
-            await loadCategories();
+            try { await loadCategories(); }
+            catch (error) { console.warn('Không tải được danh mục sản phẩm:', error); }
         } catch (error) {
+        if (requestId !== state.productRequestId) return;
         state.products = []; state.productTotal = 0;
+        state.productMetrics = null;
         emptyRow($('#productRows'), 6, 'Không tải được dữ liệu. ' + error.message);
         state.loaded.delete('products');
             await loadCategories();
@@ -2483,8 +2495,10 @@
     function openSupport(item){$('#supportId').value=item.MaYeuCau;$('#supportDialogStatus').value=item.TrangThai;$('#supportAdminNote').value=item.GhiChuAdmin||'';$('#supportDialogTitle').textContent=`Phiếu HT-${String(item.MaYeuCau).padStart(6,'0')}`;const detail=$('#supportDetail');detail.innerHTML='';[['Người gửi',item.HoTen],['Liên hệ',`${item.Email}${item.SoDienThoai?` · ${item.SoDienThoai}`:''}`],['Chủ đề',supportSubject(item.ChuDe)],['Mã đơn',item.MaDonHang||'Không có'],['Kênh phản hồi',item.KenhPhanHoi==='DIEN_THOAI'?'Điện thoại':'Email'],['Nội dung',item.NoiDung],['Tiếp nhận lúc',formatDate(item.NgayTao)]].forEach(([label,value])=>{const fact=element('div');fact.append(element('span','',label),element('strong','',value));detail.appendChild(fact);});setStatus($('#supportFormStatus'));$('#supportDialog').showModal();}
     async function saveSupport(event){event.preventDefault();const id=Number($('#supportId').value);const button=$('#supportSave');setBusy(button,true,'Đang lưu…');try{const data=await Auth.request(`/api/admin/ho-tro/${id}`,{method:'PATCH',json:{status:$('#supportDialogStatus').value,note:$('#supportAdminNote').value.trim()}});$('#supportDialog').close();showToast(data.message,'success');loadSupport();}catch(error){setStatus($('#supportFormStatus'),error.message);}finally{setBusy(button,false);}}
 
-    async function loadContent(){const tbody=$('#contentRows');emptyRow(tbody,5,'Đang tải nội dung…');try{const data=await Auth.request(`/api/admin/noi-dung?loai=${encodeURIComponent($('#contentTypeFilter').value)}`);state.content=data.items||[];renderContent();}catch(error){
+    async function loadContent(){const requestId=++state.contentRequestId;const tbody=$('#contentRows');emptyRow(tbody,5,'Đang tải nội dung…');try{const params=new URLSearchParams({loai:$('#contentTypeFilter').value,sort:$('#contentSort').value});const data=await Auth.request(`/api/admin/noi-dung?${params}`);if(requestId!==state.contentRequestId)return;state.content=data.items||[];state.contentMetrics=data.metrics||null;renderContent();}catch(error){
+        if(requestId!==state.contentRequestId)return;
         state.content = [];
+        state.contentMetrics = null;
         emptyRow($('#contentRows'), 5, 'Không tải được dữ liệu. ' + error.message);
         state.loaded.delete('content');
     }}
@@ -2508,13 +2522,11 @@
        ========================================================================== */
     function updateProductKpis(products) {
         if (!Array.isArray(products)) return;
-        animateMetric($('#kpiProductTotal'), state.productTotal || products.length);
-        const active = products.filter(p => p.TrangThai !== 0).length;
-        animateMetric($('#kpiProductActive'), active);
-        const lowStock = products.filter(p => (Number(p.TonKho) || 0) < 10).length;
-        animateMetric($('#kpiProductLowStock'), lowStock);
-        const sale = products.filter(p => Number(p.GiaGoc || 0) > Number(p.GiaBan || 0)).length;
-        animateMetric($('#kpiProductOnSale'), sale);
+        const metrics = state.productMetrics;
+        animateMetric($('#kpiProductTotal'), metrics ? Number(metrics.total) : products.length);
+        animateMetric($('#kpiProductActive'), metrics ? Number(metrics.active) : products.filter(p => p.TrangThai !== 0).length);
+        animateMetric($('#kpiProductLowStock'), metrics ? Number(metrics.low_stock) : products.filter(p => (Number(p.TonKho) || 0) < 10).length);
+        animateMetric($('#kpiProductOnSale'), metrics ? Number(metrics.on_sale) : products.filter(p => Number(p.GiaGoc || 0) > Number(p.GiaBan || 0)).length);
     }
 
     function updateOrderKpis(orders) {
@@ -2544,13 +2556,11 @@
 
     function updateContentKpis(content) {
         if (!Array.isArray(content)) return;
-        animateMetric($('#kpiContentTotal'), content.length);
-        const news = content.filter(c => c.Loai === 'TIN_TUC').length;
-        animateMetric($('#kpiContentNews'), news);
-        const guides = content.filter(c => c.Loai === 'HUONG_DAN').length;
-        animateMetric($('#kpiContentGuides'), guides);
-        const published = content.filter(c => c.TrangThai !== 0).length;
-        animateMetric($('#kpiContentPublished'), published);
+        const metrics = state.contentMetrics;
+        animateMetric($('#kpiContentTotal'), metrics ? Number(metrics.total) : content.length);
+        animateMetric($('#kpiContentNews'), metrics ? Number(metrics.news) : content.filter(c => c.Loai === 'TIN_TUC').length);
+        animateMetric($('#kpiContentGuides'), metrics ? Number(metrics.guides) : content.filter(c => c.Loai === 'HUONG_DAN').length);
+        animateMetric($('#kpiContentPublished'), metrics ? Number(metrics.published) : content.filter(c => c.TrangThai !== 0).length);
     }
 
     function updateSupportKpis(support) {
@@ -2656,33 +2666,6 @@
         });
     }
 
-    function renderFilteredProducts(products) {
-        const tbody = $('#productRows');
-        tbody.innerHTML = '';
-        if (!products.length) { emptyRow(tbody, 6, 'Không có sản phẩm trong danh mục lọc này.'); return; }
-        products.forEach((product) => {
-            const row = element('tr');
-            const productCell = element('td');
-            const productInfo = element('div', 'admin-product');
-            const image = document.createElement('img'); image.src = safeImage(product.HinhAnh); image.alt = ''; image.loading = 'lazy';
-            const copy = element('div'); copy.append(element('strong', '', product.TenSP), element('span', '', `${product.ThuongHieu || 'Chưa có thương hiệu'} · #${product.MaSP}`));
-            productInfo.append(image, copy); productCell.appendChild(productInfo);
-            row.append(productCell, element('td', '', product.TenDM || `#${product.MaDM}`), element('td', '', formatMoney(product.GiaBan)), element('td', '', String(product.TonKho ?? 0)));
-            const statusCell = element('td');
-            statusCell.appendChild(element('span', `admin-badge ${product.TrangThai ? 'admin-badge--success' : 'admin-badge--danger'}`, product.TrangThai ? 'Đang bán' : 'Đã ẩn'));
-            if (Number(product.GiaGoc || 0) > Number(product.GiaBan || 0)) statusCell.appendChild(element('span', 'admin-badge admin-badge--danger', 'Sale Off'));
-            row.appendChild(statusCell);
-            const actionsCell = element('td');
-            const actions = element('div', 'admin-row-actions');
-            const detailRow = buildProductDetailRow(product);
-            const detailButton = element('button', '', 'Xem chi tiết'); detailButton.type = 'button'; detailButton.setAttribute('aria-expanded', 'false'); detailButton.addEventListener('click', () => { const opening = detailRow.hidden; detailRow.hidden = !opening; detailButton.textContent = opening ? 'Thu gọn' : 'Xem chi tiết'; detailButton.setAttribute('aria-expanded', String(opening)); });
-            const edit = element('button', '', 'Sửa'); edit.type = 'button'; edit.addEventListener('click', () => openProductDialog(product));
-            const toggle = element('button', product.TrangThai ? 'danger' : '', product.TrangThai ? 'Ẩn' : 'Hiện'); toggle.type = 'button'; toggle.addEventListener('click', () => toggleProduct(product));
-            const remove = element('button', 'danger', 'Ngừng bán'); remove.type = 'button'; remove.addEventListener('click', () => removeProduct(product));
-            actions.append(detailButton, edit, toggle, remove); actionsCell.appendChild(actions); row.appendChild(actionsCell); tbody.append(row, detailRow);
-        });
-    }
-
     function renderFilteredVouchers(vouchers) {
         const tbody = $('#voucherRows');
         tbody.innerHTML = '';
@@ -2718,14 +2701,14 @@
                 const filter = btn.dataset.filter;
                 if (filter === 'all' || filter === 'active' || filter === 'hidden') {
                     $('#productStatus').value = filter;
+                    state.productQuickFilter = 'all';
                     state.productPage = 1;
                     loadProducts();
-                } else if (filter === 'lowstock') {
-                    const low = state.products.filter(p => (Number(p.TonKho) || 0) < 10);
-                    renderFilteredProducts(low);
-                } else if (filter === 'sale') {
-                    const sale = state.products.filter(p => Number(p.GiaGoc || 0) > Number(p.GiaBan || 0));
-                    renderFilteredProducts(sale);
+                } else if (filter === 'lowstock' || filter === 'sale') {
+                    $('#productStatus').value = 'all';
+                    state.productQuickFilter = filter;
+                    state.productPage = 1;
+                    loadProducts();
                 }
             });
         });
@@ -2817,7 +2800,8 @@
         $$('[data-jump-view]').forEach((button)=>button.addEventListener('click',()=>activateView(button.dataset.jumpView)));
         $('#adminRefresh').addEventListener('click',async(event)=>{const button=event.currentTarget;button.classList.add('is-refreshing');button.disabled=true;try{await activateView(state.currentView,true);}finally{window.setTimeout(()=>{button.classList.remove('is-refreshing');button.disabled=false;},260);}});
         $('#productSearch').addEventListener('submit',(event)=>{event.preventDefault();state.productPage=1;loadProducts();});
-        $('#productStatus').addEventListener('change',()=>{state.productPage=1;loadProducts();});
+        $('#productStatus').addEventListener('change',()=>{state.productQuickFilter='all';state.productPage=1;const active=$(`#productFilterPills [data-filter="${$('#productStatus').value}"]`);if(active){$$('#productFilterPills .admin-pill-btn').forEach((btn)=>btn.classList.toggle('is-active',btn===active));}loadProducts();});
+        $('#productSort').addEventListener('change',()=>{state.productPage=1;loadProducts();});
         $('#productSale').addEventListener('change',()=>{const enabled=$('#productSale').checked;$('#productOriginalPrice').disabled=!enabled;if(enabled)$('#productOriginalPrice').focus();else $('#productOriginalPrice').value='';});
         $('#addProduct').addEventListener('click',()=>openProductDialog());$('#productForm').addEventListener('submit',saveProduct);
         $('#productImage').addEventListener('input', renderProductMediaPreviews);
@@ -2842,7 +2826,7 @@
         $('#closeAdminAvatarCrop').addEventListener('click',closeAdminCrop);$('#cancelAdminAvatarCrop').addEventListener('click',closeAdminCrop);
         $('#confirmAdminAvatarCrop').addEventListener('click',()=>{$('#adminAvatarCropCanvas').toBlob((blob)=>{if(!blob){setStatus($('#userFormStatus'),'Không thể tạo ảnh đại diện.');return;}pendingUserAvatar=new File([blob],'avatar.jpg',{type:'image/jpeg'});const url=URL.createObjectURL(blob);const preview=$('#editUserAvatarPreview');preview.textContent='';preview.style.backgroundImage=`url("${url}")`;preview.classList.add('has-image');$('#editUserAvatarName').textContent='Đã chọn và cắt vùng ảnh · nhấn “Lưu người dùng” để hoàn tất';$('#adminAvatarCropDialog').close();$('#editUserAvatar').value='';adminCropImage=null;},'image/jpeg',0.9);});
         $('#userPrev').addEventListener('click',()=>{if(state.userPage>1){state.userPage-=1;loadUsers();}});$('#userNext').addEventListener('click',()=>{if(state.userPage*20<state.userTotal){state.userPage+=1;loadUsers();}});
-        $('#contentTypeFilter').addEventListener('change',loadContent);$('#addContent').addEventListener('click',()=>openContentDialog());$('#contentForm').addEventListener('submit',saveContent);$('#contentActive').addEventListener('change',syncContentPublishHint);
+        $('#contentTypeFilter').addEventListener('change',()=>{const active=$(`#contentFilterPills [data-filter="${$('#contentTypeFilter').value}"]`);if(active){$$('#contentFilterPills .admin-pill-btn').forEach((btn)=>btn.classList.toggle('is-active',btn===active));}loadContent();});$('#contentSort').addEventListener('change',loadContent);$('#addContent').addEventListener('click',()=>openContentDialog());$('#contentForm').addEventListener('submit',saveContent);$('#contentActive').addEventListener('change',syncContentPublishHint);
         $('#supportSearch').addEventListener('submit',(event)=>{event.preventDefault();state.supportPage=1;loadSupport();});$('#supportStatus').addEventListener('change',()=>{state.supportPage=1;loadSupport();});$('#supportPrev').addEventListener('click',()=>{if(state.supportPage>1){state.supportPage-=1;loadSupport();}});$('#supportNext').addEventListener('click',()=>{if(state.supportPage*20<state.supportTotal){state.supportPage+=1;loadSupport();}});$('#supportForm').addEventListener('submit',saveSupport);
         $('#adminChatSearch').addEventListener('submit',(event)=>{event.preventDefault();loadAdminChatThreads();});
         $('#chatRefresh').addEventListener('click',()=>{loadAdminChatThreads();loadAdminChatMessages(false);});
