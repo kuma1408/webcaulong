@@ -30,9 +30,10 @@
     const state = {
         currentView: 'overview', loaded: new Set(), admin: null, categories: [],
         products: [], productPage: 1, productTotal: 0, productQuickFilter: 'all', productMetrics: null, productRequestId: 0,
-        orders: [], orderPage: 1, orderTotal: 0,
-        users: [], userPage: 1, userTotal: 0,
-        deposits: [], content: [], contentMetrics: null, contentRequestId: 0, vouchers: [], support: [], supportPage: 1, supportTotal: 0,
+        orders: [], orderPage: 1, orderTotal: 0, orderMetrics: null, orderRequestId: 0,
+        users: [], userPage: 1, userTotal: 0, userMetrics: null, userRequestId: 0,
+        deposits: [], depositRequestId: 0, content: [], contentMetrics: null, contentRequestId: 0, vouchers: [], support: [], supportPage: 1, supportTotal: 0, supportMetrics: null, supportRequestId: 0,
+        auditRequestId: 0, approvalsRequestId: 0, evidenceRequestId: 0, noticesRequestId: 0,
         chatThreads: [], chatThreadId: null, chatMessages: [], chatLastId: 0
     };
     let pendingUserAvatar = null;
@@ -1879,12 +1880,18 @@
     }
 
     async function loadOrders() {
+        const requestId = ++state.orderRequestId;
         const tbody = $('#adminOrderRows'); emptyRow(tbody, 7, 'Đang tải đơn hàng…');
         const params = new URLSearchParams({ page: state.orderPage, limit: 20, q: $('#adminOrderQuery').value.trim(), status: $('#adminOrderStatus').value });
         try {
             const data = await Auth.request(`/api/admin/orders?${params}`);
-            state.orders = data.orders || []; state.orderTotal = Number(data.total) || 0; renderOrders();
+            if (requestId !== state.orderRequestId) return;
+            state.orderTotal = Number(data.total) || 0;
+            const lastPage = Math.max(1, Math.ceil(state.orderTotal / 20));
+            if (state.orderPage > lastPage) { state.orderPage = lastPage; return loadOrders(); }
+            state.orders = data.orders || []; state.orderMetrics = data.metrics || null; renderOrders();
         } catch (error) {
+        if (requestId !== state.orderRequestId) return;
         state.orders = []; state.orderTotal = 0;
         emptyRow($('#adminOrderRows'), 7, 'Không tải được dữ liệu. ' + error.message);
         state.loaded.delete('orders');
@@ -1984,10 +1991,12 @@
     }
 
     async function loadUsers() {
+        const requestId = ++state.userRequestId;
         const tbody=$('#userRows');emptyRow(tbody,6,'Đang tải người dùng…');
         const params=new URLSearchParams({page:state.userPage,limit:20,q:$('#userQuery').value.trim(),role:$('#userRole').value});
-        try{const data=await Auth.request(`/api/admin/users?${params}`);state.users=data.users||[];state.userTotal=Number(data.total)||0;renderUsers();}
+        try{const data=await Auth.request(`/api/admin/users?${params}`);if(requestId!==state.userRequestId)return;state.userTotal=Number(data.total)||0;const lastPage=Math.max(1,Math.ceil(state.userTotal/20));if(state.userPage>lastPage){state.userPage=lastPage;return loadUsers();}state.users=data.users||[];state.userMetrics=data.metrics||null;renderUsers();}
         catch(error){
+        if(requestId!==state.userRequestId)return;
         state.users = []; state.userTotal = 0;
         emptyRow($('#userRows'), 6, 'Không tải được dữ liệu. ' + error.message);
         state.loaded.delete('users');
@@ -2064,9 +2073,19 @@
             const savedUserId = id || Number(data.id);
             if (pendingUserAvatar && savedUserId) {
                 const form = new FormData(); form.append('avatar', pendingUserAvatar);
-                const response = await fetch(`${window.API_BASE}/api/admin/users/${savedUserId}/avatar`, { method: 'POST', headers: { Authorization: `Bearer ${Auth.getToken()}` }, body: form });
-                const avatarResult = await response.json();
-                if (!response.ok || avatarResult.success === false) throw new Error(avatarResult.message || 'Không thể cập nhật ảnh đại diện.');
+                let avatarError = '';
+                try {
+                    const response = await fetch(`${window.API_BASE}/api/admin/users/${savedUserId}/avatar`, { method: 'POST', headers: { Authorization: `Bearer ${Auth.getToken()}` }, body: form });
+                    const avatarResult = await response.json().catch(() => ({}));
+                    if (!response.ok || avatarResult.success === false) avatarError = avatarResult.message || 'hãy mở Sửa hồ sơ để thử lại ảnh.';
+                } catch (error) { avatarError = error.message || 'hãy mở Sửa hồ sơ để thử lại ảnh.'; }
+                if (avatarError) {
+                    pendingUserAvatar = null;
+                    $('#userDialog').close();
+                    showToast(`Tài khoản đã được lưu, nhưng ảnh đại diện chưa cập nhật: ${avatarError}`, 'warning');
+                    await loadUsers(); loadDashboard();
+                    return;
+                }
             }
             pendingUserAvatar = null;
             $('#userDialog').close(); showToast(data.message, 'success'); await loadUsers(); loadDashboard();
@@ -2075,9 +2094,11 @@
     }
 
     async function loadDeposits(){
+        const requestId=++state.depositRequestId;
         const tbody=$('#depositAdminRows');emptyRow(tbody,6,'Đang tải yêu cầu nạp tiền…');
-        try{const data=await Auth.request(`/api/admin/nap-tien?status=${encodeURIComponent($('#depositAdminStatus').value)}`);state.deposits=data.requests||[];renderDeposits();}
+        try{const data=await Auth.request(`/api/admin/nap-tien?status=${encodeURIComponent($('#depositAdminStatus').value)}`);if(requestId!==state.depositRequestId)return;state.deposits=data.requests||[];renderDeposits();}
         catch(error){
+        if(requestId!==state.depositRequestId)return;
         state.deposits = [];
         emptyRow($('#depositAdminRows'), 6, 'Không tải được dữ liệu. ' + error.message);
         state.loaded.delete('deposits');
@@ -2102,10 +2123,11 @@
     }
 
     async function loadAudit(){
+        const requestId=++state.auditRequestId;
         const tbody=$('#auditRows');emptyRow(tbody,6,'Đang tải nhật ký…');
-        try{const data=await Auth.request('/api/admin/audit-logs');renderAudit(data.logs||[]);addAuditOrderControls(data.logs||[]);}
+        try{const data=await Auth.request('/api/admin/audit-logs');if(requestId!==state.auditRequestId)return;renderAudit(data.logs||[]);addAuditOrderControls(data.logs||[]);}
         catch(error){
-            console.warn('Backend chưa sẵn sàng, nạp FALLBACK_ADMIN_AUDIT:', error.message);
+            if(requestId!==state.auditRequestId)return;
             emptyRow(tbody, 6, 'Không tải được nhật ký. ' + error.message);
         }
     }
@@ -2129,17 +2151,19 @@
     function addAuditOrderControls(logs){const tbody=$('#auditRows');logs.forEach((log,index)=>{if(log.DoiTuong!=='DonHang')return;const cell=tbody.rows[index]?.cells[4];if(!cell)return;const detail=element('button','admin-detail-button','Chi tiết đơn, khách và sản phẩm');detail.type='button';detail.addEventListener('click',()=>openChangeDetail({title:`${actionLabels[log.HanhDong]||log.HanhDong} đơn hàng #${log.MaDoiTuong}`,eyebrow:'Thông tin thanh toán và đơn hàng',meta:[`Người thao tác: @${log.TenDangNhap}`,`Thời điểm ghi nhận: ${formatDate(log.NgayTao)}`,log.TrangThaiPheDuyet?badgeText(log.TrangThaiPheDuyet):''],before:{},after:{...parsedObject(log.ChiTiet),CoAnhChuyenKhoan:Boolean(log.CoAnhChuyenKhoan)},compare:false,entity:'DonHang',entityId:log.MaDoiTuong}));cell.appendChild(detail);if(log.CoAnhChuyenKhoan){const proof=element('button','admin-detail-button','Xem ảnh chuyển khoản');proof.type='button';proof.addEventListener('click',()=>openPaymentProof(log.MaDoiTuong));cell.appendChild(proof);}});}
 
     async function loadApprovals(){
+        const requestId=++state.approvalsRequestId;
         const tbody=$('#approvalRows');emptyRow(tbody,6,'Đang tải thay đổi…');
-        try{const selected=$('#approvalStatus').value;const data=await Auth.request(`/api/admin/phe-duyet-thay-doi?status=${encodeURIComponent(selected)}`);const changes=Array.isArray(data.changes)?data.changes:[];updateApprovalKpis(changes,data.summary);updateNavBadge($('#navPendingApprovals'),Number(data.summary?.CHO_XEM??changes.filter(item=>item.TrangThai==='CHO_XEM').length));renderApprovals(changes);}
+        try{const selected=$('#approvalStatus').value;const data=await Auth.request(`/api/admin/phe-duyet-thay-doi?status=${encodeURIComponent(selected)}`);if(requestId!==state.approvalsRequestId)return;const changes=Array.isArray(data.changes)?data.changes:[];updateApprovalKpis(changes,data.summary);updateNavBadge($('#navPendingApprovals'),Number(data.summary?.CHO_XEM??changes.filter(item=>item.TrangThai==='CHO_XEM').length));renderApprovals(changes);}
         catch(error){
-            console.warn('Backend chưa sẵn sàng, nạp FALLBACK_ADMIN_APPROVALS:', error.message);
+            if(requestId!==state.approvalsRequestId)return;
             emptyRow($('#approvalRows'), 6, 'Không tải được phê duyệt. ' + error.message);
         }
     }
     async function loadSupplementalEvidence(){
+        const requestId=++state.evidenceRequestId;
         const tbody=$('#supplementEvidenceRows');emptyRow(tbody,6,'Đang tải yêu cầu bổ sung…');
-        try{const data=await Auth.request('/api/admin/phe-duyet-bo-sung');renderSupplementalEvidence(data.requests||[]);}
-        catch(error){emptyRow($('#supplementEvidenceRows'),6,'Không tải được yêu cầu. '+error.message);}
+        try{const data=await Auth.request('/api/admin/phe-duyet-bo-sung');if(requestId!==state.evidenceRequestId)return;renderSupplementalEvidence(data.requests||[]);}
+        catch(error){if(requestId===state.evidenceRequestId)emptyRow($('#supplementEvidenceRows'),6,'Không tải được yêu cầu. '+error.message);}
     }
     function renderSupplementalEvidence(items){
         const tbody=$('#supplementEvidenceRows');tbody.innerHTML='';
@@ -2170,9 +2194,10 @@
         catch(error){setStatus($('#supplementEvidenceStatus'),error.message);}finally{setBusy(button,false);}
     }
     async function loadCustomerNotices(){
+        const requestId=++state.noticesRequestId;
         const tbody=$('#customerNoticeRows');emptyRow(tbody,6,'Đang tải thông báo…');
-        try{const data=await Auth.request('/api/admin/thong-bao');renderCustomerNotices(data.notifications||[]);}
-        catch(error){emptyRow($('#customerNoticeRows'),6,`Không tải được thông báo. ${error.message}`);}
+        try{const data=await Auth.request('/api/admin/thong-bao');if(requestId!==state.noticesRequestId)return;renderCustomerNotices(data.notifications||[]);}
+        catch(error){if(requestId===state.noticesRequestId)emptyRow($('#customerNoticeRows'),6,`Không tải được thông báo. ${error.message}`);}
     }
     function renderCustomerNotices(items){
         const tbody=$('#customerNoticeRows');tbody.innerHTML='';
@@ -2485,13 +2510,14 @@
         }
     }
 
-    async function loadSupport(){const tbody=$('#supportRows');emptyRow(tbody,7,'Đang tải yêu cầu hỗ trợ…');const params=new URLSearchParams({page:state.supportPage,limit:20,status:$('#supportStatus').value,q:$('#supportQuery').value.trim()});try{const data=await Auth.request(`/api/admin/ho-tro?${params}`);state.support=data.requests||[];state.supportTotal=Number(data.total)||0;renderSupport();}catch(error){
+    async function loadSupport(){const requestId=++state.supportRequestId;const tbody=$('#supportRows');emptyRow(tbody,7,'Đang tải yêu cầu hỗ trợ…');const params=new URLSearchParams({page:state.supportPage,limit:20,status:$('#supportStatus').value,q:$('#supportQuery').value.trim()});try{const data=await Auth.request(`/api/admin/ho-tro?${params}`);if(requestId!==state.supportRequestId)return;state.supportTotal=Number(data.total)||0;const lastPage=Math.max(1,Math.ceil(state.supportTotal/20));if(state.supportPage>lastPage){state.supportPage=lastPage;return loadSupport();}state.support=data.requests||[];state.supportMetrics=data.metrics||null;renderSupport();}catch(error){
+        if(requestId!==state.supportRequestId)return;
         state.support = []; state.supportTotal = 0;
         emptyRow($('#supportRows'), 7, 'Không tải được dữ liệu. ' + error.message);
         state.loaded.delete('support');
     }}
     function supportSubject(value){return {TU_VAN_SAN_PHAM:'Tư vấn sản phẩm',DON_HANG:'Đơn hàng',THANH_TOAN:'Thanh toán',TAI_KHOAN:'Tài khoản',BAO_LOI:'Báo lỗi',KHAC:'Khác'}[value]||value||'—';}
-    function renderSupport(){const tbody=$('#supportRows');tbody.innerHTML='';if(!state.support.length)emptyRow(tbody,7,'Không có yêu cầu phù hợp.');state.support.forEach(item=>{const row=element('tr');row.append(element('td','',`HT-${String(item.MaYeuCau).padStart(6,'0')}`));const sender=element('td');sender.append(element('strong','',item.HoTen),element('span','admin-detail-summary',`${item.Email}${item.SoDienThoai?` · ${item.SoDienThoai}`:''}`));row.append(sender,element('td','',supportSubject(item.ChuDe)),element('td','admin-support-preview',item.NoiDung),element('td','',formatDate(item.NgayTao)));const status=element('td');status.appendChild(badge(item.TrangThai));row.appendChild(status);const action=element('td');const button=element('button','admin-detail-button','Mở phiếu');button.type='button';button.addEventListener('click',()=>openSupport(item));action.appendChild(button);row.appendChild(action);tbody.appendChild(row);});const pages=Math.max(1,Math.ceil(state.supportTotal/20));$('#supportPageInfo').textContent=`Trang ${state.supportPage}/${pages}`;$('#supportPrev').disabled=state.supportPage<=1;$('#supportNext').disabled=state.supportPage>=pages;const pending=state.support.filter(item=>item.TrangThai==='MOI').length;updateNavBadge($('#navPendingSupport'),pending);updateSupportKpis(state.support);}
+    function renderSupport(){const tbody=$('#supportRows');tbody.innerHTML='';if(!state.support.length)emptyRow(tbody,7,'Không có yêu cầu phù hợp.');state.support.forEach(item=>{const row=element('tr');row.append(element('td','',`HT-${String(item.MaYeuCau).padStart(6,'0')}`));const sender=element('td');sender.append(element('strong','',item.HoTen),element('span','admin-detail-summary',`${item.Email}${item.SoDienThoai?` · ${item.SoDienThoai}`:''}`));row.append(sender,element('td','',supportSubject(item.ChuDe)),element('td','admin-support-preview',item.NoiDung),element('td','',formatDate(item.NgayTao)));const status=element('td');status.appendChild(badge(item.TrangThai));row.appendChild(status);const action=element('td');const button=element('button','admin-detail-button','Mở phiếu');button.type='button';button.addEventListener('click',()=>openSupport(item));action.appendChild(button);row.appendChild(action);tbody.appendChild(row);});const pages=Math.max(1,Math.ceil(state.supportTotal/20));$('#supportPageInfo').textContent=`Trang ${state.supportPage}/${pages}`;$('#supportPrev').disabled=state.supportPage<=1;$('#supportNext').disabled=state.supportPage>=pages;const pending=state.supportMetrics?Number(state.supportMetrics.new):state.support.filter(item=>item.TrangThai==='MOI').length;updateNavBadge($('#navPendingSupport'),pending);updateSupportKpis(state.support);}
     function openSupport(item){$('#supportId').value=item.MaYeuCau;$('#supportDialogStatus').value=item.TrangThai;$('#supportAdminNote').value=item.GhiChuAdmin||'';$('#supportDialogTitle').textContent=`Phiếu HT-${String(item.MaYeuCau).padStart(6,'0')}`;const detail=$('#supportDetail');detail.innerHTML='';[['Người gửi',item.HoTen],['Liên hệ',`${item.Email}${item.SoDienThoai?` · ${item.SoDienThoai}`:''}`],['Chủ đề',supportSubject(item.ChuDe)],['Mã đơn',item.MaDonHang||'Không có'],['Kênh phản hồi',item.KenhPhanHoi==='DIEN_THOAI'?'Điện thoại':'Email'],['Nội dung',item.NoiDung],['Tiếp nhận lúc',formatDate(item.NgayTao)]].forEach(([label,value])=>{const fact=element('div');fact.append(element('span','',label),element('strong','',value));detail.appendChild(fact);});setStatus($('#supportFormStatus'));$('#supportDialog').showModal();}
     async function saveSupport(event){event.preventDefault();const id=Number($('#supportId').value);const button=$('#supportSave');setBusy(button,true,'Đang lưu…');try{const data=await Auth.request(`/api/admin/ho-tro/${id}`,{method:'PATCH',json:{status:$('#supportDialogStatus').value,note:$('#supportAdminNote').value.trim()}});$('#supportDialog').close();showToast(data.message,'success');loadSupport();}catch(error){setStatus($('#supportFormStatus'),error.message);}finally{setBusy(button,false);}}
 
@@ -2531,26 +2557,28 @@
 
     function updateOrderKpis(orders) {
         if (!Array.isArray(orders)) return;
-        animateMetric($('#kpiOrderTotal'), state.orderTotal || orders.length);
-        const pending = orders.filter(o => o.TrangThai === 'CHO_XAC_NHAN').length;
+        const metrics = state.orderMetrics;
+        animateMetric($('#kpiOrderTotal'), metrics ? Number(metrics.total) : (state.orderTotal || orders.length));
+        const pending = metrics ? Number(metrics.pending) : orders.filter(o => o.TrangThai === 'CHO_XAC_NHAN').length;
         animateMetric($('#kpiOrderPending'), pending);
-        const shipping = orders.filter(o => o.TrangThai === 'DANG_GIAO').length;
+        const shipping = metrics ? Number(metrics.shipping) : orders.filter(o => o.TrangThai === 'DANG_GIAO').length;
         animateMetric($('#kpiOrderShipping'), shipping);
         const completed = orders.filter(o => o.TrangThai === 'HOAN_THANH');
-        const revenue = completed.reduce((sum, o) => sum + (Number(o.TongTien) || 0), 0);
+        const revenue = metrics ? Number(metrics.completed_revenue) : completed.reduce((sum, o) => sum + (Number(o.TongTien) || 0), 0);
         animateMetric($('#kpiOrderCompletedRevenue'), revenue, formatMoney);
         const countNode = $('#kpiOrderCompletedCount');
-        if (countNode) countNode.textContent = `${completed.length} đơn hoàn thành`;
+        if (countNode) countNode.textContent = `${metrics ? Number(metrics.completed_count) : completed.length} đơn hoàn thành`;
     }
 
     function updateUserKpis(users) {
         if (!Array.isArray(users)) return;
-        animateMetric($('#kpiUserTotal'), state.userTotal || users.length);
-        const admins = users.filter(u => ['admin', 'superadmin'].includes(u.VaiTro)).length;
+        const metrics = state.userMetrics;
+        animateMetric($('#kpiUserTotal'), metrics ? Number(metrics.total) : (state.userTotal || users.length));
+        const admins = metrics ? Number(metrics.admins) : users.filter(u => ['admin', 'superadmin'].includes(u.VaiTro)).length;
         animateMetric($('#kpiUserAdmins'), admins);
-        const members = users.filter(u => !['admin', 'superadmin'].includes(u.VaiTro)).length;
+        const members = metrics ? Number(metrics.members) : users.filter(u => !['admin', 'superadmin'].includes(u.VaiTro)).length;
         animateMetric($('#kpiUserMembers'), members);
-        const totalBalance = users.reduce((sum, u) => sum + (Number(u.SoDu) || 0), 0);
+        const totalBalance = metrics ? Number(metrics.total_balance) : users.reduce((sum, u) => sum + (Number(u.SoDu) || 0), 0);
         animateMetric($('#kpiUserTotalBalance'), totalBalance, formatMoney);
     }
 
@@ -2565,12 +2593,13 @@
 
     function updateSupportKpis(support) {
         if (!Array.isArray(support)) return;
-        animateMetric($('#kpiSupportTotal'), state.supportTotal || support.length);
-        const newTickets = support.filter(s => s.TrangThai === 'MOI').length;
+        const metrics = state.supportMetrics;
+        animateMetric($('#kpiSupportTotal'), metrics ? Number(metrics.total) : (state.supportTotal || support.length));
+        const newTickets = metrics ? Number(metrics.new) : support.filter(s => s.TrangThai === 'MOI').length;
         animateMetric($('#kpiSupportNew'), newTickets);
-        const processing = support.filter(s => s.TrangThai === 'DANG_XU_LY').length;
+        const processing = metrics ? Number(metrics.processing) : support.filter(s => s.TrangThai === 'DANG_XU_LY').length;
         animateMetric($('#kpiSupportProcessing'), processing);
-        const resolved = support.filter(s => ['DA_DONG', 'DA_PHAN_HOI'].includes(s.TrangThai)).length;
+        const resolved = metrics ? Number(metrics.resolved) : support.filter(s => ['DA_DONG', 'DA_PHAN_HOI'].includes(s.TrangThai)).length;
         animateMetric($('#kpiSupportResolved'), resolved);
     }
 

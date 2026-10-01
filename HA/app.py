@@ -3980,7 +3980,17 @@ def admin_orders():
             f"SELECT COUNT(*) AS total FROM DonHang dh JOIN NguoiDung nd ON nd.MaND = dh.MaND WHERE {where_sql}",
             params,
         )
-        return jsonify({"success": True, "orders": orders, "total": cursor.fetchone()["total"], "page": page})
+        total = cursor.fetchone()["total"]
+        cursor.execute(
+            """SELECT COUNT(*) AS total,
+                      COALESCE(SUM(TrangThai='CHO_XAC_NHAN'),0) AS pending,
+                      COALESCE(SUM(TrangThai='DANG_GIAO'),0) AS shipping,
+                      COALESCE(SUM(TrangThai='HOAN_THANH'),0) AS completed_count,
+                      COALESCE(SUM(CASE WHEN TrangThai='HOAN_THANH' THEN TongTien ELSE 0 END),0) AS completed_revenue
+                 FROM DonHang"""
+        )
+        metrics = serialize_row(cursor.fetchone())
+        return jsonify({"success": True, "orders": orders, "total": total, "page": page, "metrics": metrics})
     finally:
         cursor.close()
         conn.close()
@@ -4268,7 +4278,16 @@ def admin_users():
         )
         users = [serialize_row(row) for row in cursor.fetchall()]
         cursor.execute(f"SELECT COUNT(*) AS total FROM NguoiDung WHERE {where_sql}", params)
-        return jsonify({"success": True, "users": users, "total": cursor.fetchone()["total"], "page": page})
+        total = cursor.fetchone()["total"]
+        cursor.execute(
+            """SELECT COUNT(*) AS total,
+                      COALESCE(SUM(VaiTro IN ('admin','superadmin')),0) AS admins,
+                      COALESCE(SUM(VaiTro='user'),0) AS members,
+                      COALESCE(SUM(SoDu),0) AS total_balance
+                 FROM NguoiDung"""
+        )
+        metrics = serialize_row(cursor.fetchone())
+        return jsonify({"success": True, "users": users, "total": total, "page": page, "metrics": metrics})
     finally:
         cursor.close()
         conn.close()
@@ -4483,11 +4502,21 @@ def admin_support_requests():
             """,
             params + [limit, (page - 1) * limit],
         )
+        requests = [serialize_row(row) for row in cursor.fetchall()]
+        cursor.execute(
+            """SELECT COUNT(*) AS total,
+                      COALESCE(SUM(TrangThai='MOI'),0) AS `new`,
+                      COALESCE(SUM(TrangThai='DANG_XU_LY'),0) AS processing,
+                      COALESCE(SUM(TrangThai IN ('DA_DONG','DA_PHAN_HOI')),0) AS resolved
+                 FROM YeuCauHoTro"""
+        )
+        metrics = serialize_row(cursor.fetchone())
         return jsonify({
             "success": True,
-            "requests": [serialize_row(row) for row in cursor.fetchall()],
+            "requests": requests,
             "total": total,
             "page": page,
+            "metrics": metrics,
         })
     except mysql.connector.Error:
         app.logger.exception("Không thể đọc hộp thư hỗ trợ")

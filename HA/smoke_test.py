@@ -16,7 +16,10 @@ from HA.app import (
     SlidingWindowLimiter,
     add_to_cart,
     admin_content,
+    admin_orders,
     admin_products,
+    admin_support_requests,
+    admin_users,
     admin_update_product,
     admin_vouchers,
     app,
@@ -45,6 +48,55 @@ from HA.vietqr import build_payload as build_vietqr_payload, make_png as make_vi
 
 
 class ApiSmokeTest(unittest.TestCase):
+    def test_admin_list_endpoints_return_global_metrics_separately_from_filtered_totals(self):
+        cases = [
+            (
+                admin_orders,
+                "/api/admin/orders?q=alice&status=CHO_XAC_NHAN",
+                [],
+                [{"total": 1}, {"total": 50, "pending": 4, "shipping": 3, "completed_count": 20, "completed_revenue": Decimal("125000.00")}],
+                "orders",
+            ),
+            (
+                admin_users,
+                "/api/admin/users?q=alice&role=user",
+                [],
+                [{"total": 1}, {"total": 80, "admins": 2, "members": 78, "total_balance": Decimal("500000.00")}],
+                "users",
+            ),
+            (
+                admin_support_requests,
+                "/api/admin/ho-tro?q=alice&status=MOI",
+                [{"MaYeuCau": 9}],
+                [{"total": 1}, {"total": 24, "new": 2, "processing": 5, "resolved": 17}],
+                "requests",
+            ),
+        ]
+        expected = {
+            "orders": {"pending": 4, "completed_count": 20, "completed_revenue": 125000.0},
+            "users": {"admins": 2, "members": 78, "total_balance": 500000.0},
+            "requests": {"new": 2, "processing": 5, "resolved": 17},
+        }
+        for handler, path, rows, aggregates, collection in cases:
+            with self.subTest(endpoint=collection):
+                conn = MagicMock()
+                cursor = conn.cursor.return_value
+                cursor.fetchall.return_value = rows
+                cursor.fetchone.side_effect = aggregates
+                with app.test_request_context(path, method="GET"):
+                    with patch("HA.app.get_db_connection", return_value=conn):
+                        response = handler.__wrapped__()
+                payload = response.get_json()
+                self.assertEqual(payload["metrics"]["total"], 50 if collection == "orders" else 80 if collection == "users" else 24)
+                for key, value in expected[collection].items():
+                    self.assertEqual(payload["metrics"][key], value)
+                if collection == "orders":
+                    self.assertEqual(payload["total"], 1)
+                if collection == "users":
+                    self.assertEqual(payload["total"], 1)
+                if collection == "requests":
+                    self.assertEqual(payload["requests"], [{"MaYeuCau": 9}])
+
     def test_admin_product_sort_and_quick_filters_are_server_side_and_whitelisted(self):
         cases = {
             "newest": "sp.NgayTao DESC, sp.MaSP DESC",
