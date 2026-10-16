@@ -2709,7 +2709,7 @@
 :root[data-theme="dark"] .legend-title {
     color: #ffffff !important;
 }
-.legend-fill {
+.legend-indicator {
     width: 10px !important;
     height: 10px !important;
     border-radius: 50% !important;
