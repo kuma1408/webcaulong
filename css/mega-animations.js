@@ -18,6 +18,10 @@
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     // Trên trang admin: tắt các hiệu ứng nặng (3D tilt, parallax) để tối ưu hiệu suất
     const isAdmin = document.body.classList.contains('admin-body') || document.querySelector('.admin-shell') !== null;
+    let aosObserver = null;
+    let tiltObserver = null;
+    let enhancementObserver = null;
+    let enhancementFrame = 0;
 
     /* ---- 1. AOS - SCROLL REVEAL ENGINE ---- */
     function initAOS() {
@@ -26,7 +30,7 @@
             return;
         }
 
-        const obs = new IntersectionObserver((entries) => {
+        if (!aosObserver) aosObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('aos-animate');
@@ -43,7 +47,7 @@
                 const delay = el.dataset.aosDelay || (i % 6) * 75;
                 el.style.transitionDelay = delay + 'ms';
             }
-            obs.observe(el);
+            aosObserver.observe(el);
         });
     }
 
@@ -137,15 +141,16 @@
 
         document.querySelectorAll(tiltTargets).forEach(attachTilt);
 
-        if (typeof MutationObserver !== 'undefined') {
-            new MutationObserver(records => {
+        if (!tiltObserver && typeof MutationObserver !== 'undefined') {
+            tiltObserver = new MutationObserver(records => {
                 records.forEach(r => r.addedNodes.forEach(node => {
                     if (node.nodeType === 1) {
                         if (node.matches && node.matches(tiltTargets)) attachTilt(node);
                         if (node.querySelectorAll) node.querySelectorAll(tiltTargets).forEach(attachTilt);
                     }
                 }));
-            }).observe(document.body, { childList: true, subtree: true });
+            });
+            tiltObserver.observe(document.body, { childList: true, subtree: true });
         }
     }
 
@@ -596,7 +601,6 @@
             initWaveTitles();
             initSparkles();
             initFlyToCart();
-            initSocialProofTicker();
             initPageTransitions();
         }
         if (!reduced) {
@@ -613,13 +617,19 @@
             });
         }, 2000);
 
-        if (!isAdmin && typeof MutationObserver !== 'undefined') {
-            new MutationObserver(() => {
-                tagForAOS();
-                initAOS();
-                init3DTilt();
-                initMagnetic();
-            }).observe(document.body, { childList: true, subtree: true });
+        if (!isAdmin && typeof MutationObserver !== 'undefined' && !enhancementObserver) {
+            enhancementObserver = new MutationObserver(() => {
+                if (enhancementFrame) return;
+                enhancementFrame = requestAnimationFrame(() => {
+                    enhancementFrame = 0;
+                    if (!document.body.isConnected) return;
+                    tagForAOS();
+                    initAOS();
+                    init3DTilt();
+                    initMagnetic();
+                });
+            });
+            enhancementObserver.observe(document.body, { childList: true, subtree: true });
         }
     }
 
