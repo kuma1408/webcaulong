@@ -20,7 +20,7 @@
         }
         if (!document.querySelector('link[href*="css/ui-polish.css"]')) {
             const link = document.createElement('link');
-            link.rel = 'stylesheet'; link.href = 'css/ui-polish.css?v=20260924-layout-1';
+            link.rel = 'stylesheet'; link.href = 'css/ui-polish.css?v=20261028-ux-1';
             document.head.appendChild(link);
         }
         if (!document.querySelector('script[src*="css/ui-motion.js"]')) {
@@ -86,6 +86,7 @@
     }
 
     async function request(path, options = {}) {
+        const requestToken = getToken();
         const { auth = true, json, headers, ...fetchOptions } = options;
         const finalHeaders = auth ? getApiHeaders(headers) : { 'Content-Type': 'application/json', ...(headers || {}) };
         const response = await fetch(`${window.API_BASE}${path}`, {
@@ -100,7 +101,7 @@
             payload = {};
         }
         if (!response.ok || payload.success === false) {
-            if (response.status === 401 && auth) clearSession();
+            if (response.status === 401 && auth && requestToken === getToken()) clearSession();
             throw new ApiError(
                 payload.message || 'Không thể xử lý yêu cầu lúc này.',
                 response.status,
@@ -115,8 +116,10 @@
         if (!getToken()) return null;
         if (currentUser && !force) return currentUser;
         if (currentUserRequest && !force) return currentUserRequest;
-        currentUserRequest = request('/api/me')
+        const token = getToken();
+        const pending = request('/api/me')
             .then((data) => {
+                if (token !== getToken() || currentUserRequest !== pending) return null;
                 currentUser = data.user || data;
                 window.dispatchEvent(new CustomEvent('badminton:auth-changed', { detail: { user: currentUser } }));
                 return currentUser;
@@ -125,8 +128,9 @@
                 if (error.status !== 401) console.warn('Không thể tải hồ sơ:', error.message);
                 return null;
             })
-            .finally(() => { currentUserRequest = null; });
-        return currentUserRequest;
+            .finally(() => { if (currentUserRequest === pending) currentUserRequest = null; });
+        currentUserRequest = pending;
+        return pending;
     }
 
     function safeNext(defaultPage = 'canhan.html') {
@@ -1047,6 +1051,18 @@
                 </ul>
             </nav>`;
             const toggle = menu.querySelector('.bs-mobile-toggle');
+            const closeMobileMenu = () => {
+                menu.querySelector('.bs-nav')?.classList.remove('is-open');
+                toggle?.setAttribute('aria-expanded', 'false');
+            };
+            document.addEventListener('keydown', event => {
+                if (event.key === 'Escape' && toggle?.getAttribute('aria-expanded') === 'true') {
+                    closeMobileMenu(); toggle.focus();
+                }
+            });
+            document.addEventListener('pointerdown', event => {
+                if (!menu.contains(event.target)) closeMobileMenu();
+            });
             toggle?.addEventListener('click', () => {
                 const nav = toggle.closest('.bs-nav');
                 const open = nav.classList.toggle('is-open');

@@ -462,7 +462,7 @@
                         </div>
                     </div>
 
-                    <div class="pay-method-card" id="bankingMethodCard" onclick="selectPayMethod('banking')">
+                    <div class="pay-method-card" id="bankingMethodCard" hidden onclick="selectPayMethod('banking')">
                         <input type="radio" name="payment_method" id="payBanking" value="BANKING">
                         <div style="flex:1;">
                             <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
@@ -841,7 +841,7 @@
     </div>
 
     <!-- Script Layout & Auth -->
-    <script src="css/auth.js?v=20260927-notification-bell-1"></script>
+    <script src="css/auth.js?v=20261028-ux-1"></script>
     <script>
         let cartItems = [];
         let cartTotal = 0;
@@ -849,6 +849,10 @@
         let userBalanceVal = 0;
         let appliedCouponCode = '';
         let appliedDiscount = 0;
+        let cartUpdating = false;
+        let checkoutPending = false;
+        let cartReady = false;
+        let couponRequestId = 0;
 
         const racketConfigLabels = {
             KHONG_CANG: 'Chưa căng cước', YONEX_BG65: 'Yonex BG65',
@@ -890,34 +894,19 @@
                 showToast(error.message || 'Không thể tải thông tin tài khoản.', 'error');
             }
 
-            window.__bankPaymentConfig = {
-                bank_id: 'MB',
-                bank_name: 'MB Bank (Ngân hàng Quân Đội)',
-                account_no: '0394061318',
-                account_name: 'SHOP CAU LONG PREMIUM',
-                configured: true
-            };
-
+            window.__bankPaymentConfig = { configured: false };
+            const bankingCard = document.getElementById('bankingMethodCard');
+            bankingCard.hidden = true;
             fetch(`${API_BASE}/api/thanh-toan/cau-hinh`)
                 .then(readJson)
                 .then(data => {
-                    if (data?.payment) {
-                        window.__bankPaymentConfig = {
-                            ...window.__bankPaymentConfig,
-                            ...data.payment,
-                            bank_name: data.payment.bank_name || window.__bankPaymentConfig.bank_name,
-                            account_no: data.payment.account_no || window.__bankPaymentConfig.account_no,
-                            account_name: data.payment.account_name || window.__bankPaymentConfig.account_name,
-                            configured: true
-                        };
-                    }
-                    document.getElementById('bankingMethodCard').hidden = false;
+                    window.__bankPaymentConfig = data.payment || { configured: false };
+                    bankingCard.hidden = !window.__bankPaymentConfig.configured;
                 })
-                .catch(() => {
-                    document.getElementById('bankingMethodCard').hidden = false;
-                });
+                .catch(() => { bankingCard.hidden = true; });
 
             await fetchCartItems();
+            if (userBalanceVal < cartTotal) selectPayMethod('cod');
         }
 
         function renderCartItem(item) {
@@ -991,14 +980,14 @@
             remove.setAttribute('aria-label', `Xóa ${name.textContent} khỏi giỏ hàng`);
             remove.textContent = '×';
             remove.addEventListener('click', () => {
-                row.classList.add('is-removing');
-                setTimeout(() => updateItemQuantity(productId, 0), 280);
+                updateItemQuantity(productId, 0);
             });
             row.append(image, details, quantityControl, total, remove);
             return row;
         }
 
         async function fetchCartItems() {
+            cartReady = false;
             const list = document.getElementById('cartItemsList');
             try {
                 const response = await fetch(`${API_BASE}/api/gio-hang`, {
@@ -1007,8 +996,10 @@
                     body: '{}'
                 });
                 const data = await readJson(response);
+                list.style.cssText = '';
                 list.replaceChildren();
                 cartItems = Array.isArray(data.items) ? data.items : [];
+                cartReady = true;
                 document.getElementById('checkoutForm').style.display = cartItems.length ? '' : 'none';
 
                 if (cartItems.length) {
@@ -1029,6 +1020,15 @@
         }
 
         async function updateItemQuantity(productId, absoluteQuantity) {
+            if (cartUpdating || checkoutPending) return;
+            cartUpdating = true;
+            couponRequestId++;
+            appliedCouponCode = ''; appliedDiscount = 0;
+            document.getElementById('couponMsg').textContent = 'Giỏ hàng thay đổi. Hãy áp dụng lại mã giảm giá nếu có.';
+            document.getElementById('couponMsg').style.display = 'block';
+            recalculateInvoice(cartTotal);
+            document.querySelectorAll('#cartItemsList button').forEach(button => { button.disabled = true; });
+            document.getElementById('cartItemsList').setAttribute('aria-busy', 'true');
             try {
                 const response = await fetch(`${API_BASE}/api/gio-hang/cap-nhat`, {
                     method: 'POST',
@@ -1041,6 +1041,10 @@
                 capNhatBadgeGioHang();
             } catch (error) {
                 showToast(error.message || 'Không thể cập nhật giỏ hàng.', 'error');
+            } finally {
+                cartUpdating = false;
+                document.querySelectorAll('#cartItemsList button').forEach(button => { button.disabled = false; });
+                document.getElementById('cartItemsList').setAttribute('aria-busy', 'false');
             }
         }
 
@@ -1053,6 +1057,8 @@
         }
 
         async function applyCoupon() {
+            if (cartUpdating || checkoutPending) return;
+            const requestId = ++couponRequestId;
             const code = document.getElementById('couponInput').value.trim().toUpperCase();
             const message = document.getElementById('couponMsg');
             if (!cartTotal) return showToast('Giỏ hàng của bạn đang trống.', 'warning');
@@ -1061,6 +1067,7 @@
                 appliedDiscount = 0;
                 message.style.color = '#b42318';
                 message.textContent = 'Mã giảm giá chưa đúng định dạng.';
+                recalculateInvoice(cartTotal);
                 message.style.display = 'block';
                 return;
             }
@@ -1072,12 +1079,14 @@
                     method: 'POST', headers: authHeaders(), body: JSON.stringify({ voucher: code })
                 });
                 const data = await readJson(response);
+                if (requestId !== couponRequestId) return;
                 appliedCouponCode = data.voucher;
                 appliedDiscount = Number(data.discount || 0);
                 message.style.color = '#168052';
                 message.textContent = data.message;
                 if (window.triggerConfetti) window.triggerConfetti();
             } catch (error) {
+                if (requestId !== couponRequestId) return;
                 appliedCouponCode = '';
                 appliedDiscount = 0;
                 message.style.color = '#b42318';
@@ -1086,44 +1095,30 @@
             recalculateInvoice(cartTotal);
         }
 
-        function buildVietQrPaymentData(customPayment = null) {
-            const cfg = window.__bankPaymentConfig || {};
-            const amount = Number(customPayment?.amount ?? Math.max(0, cartTotal - appliedDiscount));
-            const bankName = customPayment?.bank_name || cfg.bank_name || 'MB Bank (Ngân hàng Quân Đội)';
-            const accountNo = customPayment?.account_no || cfg.account_no || '0394061318';
-            const accountName = customPayment?.account_name || cfg.account_name || 'SHOP CAU LONG PREMIUM';
-            const phoneHint = (document.getElementById('shippingPhone')?.value || '').replace(/\D+/g, '').slice(-6);
-            const content = customPayment?.content || (phoneHint ? `SCL CK ${phoneHint}` : `SCL DH${String(Date.now()).slice(-6)}`);
-            let qrUrl = '';
-            if (customPayment?.qr_url) {
-                qrUrl = /^https?:\/\//i.test(customPayment.qr_url) ? customPayment.qr_url : `${API_BASE}${customPayment.qr_url}`;
-            } else {
-                const bankBin = String(cfg.bank_id || 'MB').toUpperCase();
-                qrUrl = `https://img.vietqr.io/image/${encodeURIComponent(bankBin)}-${encodeURIComponent(accountNo)}-compact2.png?amount=${Math.max(0, Math.round(amount))}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(accountName)}`;
-            }
-            return {
-                bank_name: bankName,
-                account_no: accountNo,
-                account_name: accountName,
-                amount,
-                content,
-                qr_url: qrUrl,
-                orderPlaced: Boolean(customPayment?.orderPlaced)
-            };
+        function buildVietQrPaymentData(payment = null) {
+            // QR and transfer reference must belong to an order issued by the server.
+            if (!payment?.orderPlaced || !payment.configured || !payment.qr_url || !payment.account_no || !payment.content) return null;
+            try {
+                const qr = new URL(payment.qr_url, API_BASE);
+                if (!['https:', 'http:'].includes(qr.protocol) || qr.origin !== new URL(API_BASE).origin) return null;
+                return { ...payment, qr_url: qr.href };
+            } catch (_) { return null; }
         }
 
         function openQrPaymentModal(customPayment = null) {
             const modal = document.getElementById('qrPaymentPopupModal');
             if (!modal) return;
             const info = buildVietQrPaymentData(customPayment);
+            if (!info) { showToast('Chưa có thông tin chuyển khoản hợp lệ. Hãy xem đơn hàng hoặc liên hệ cửa hàng.', 'warning'); return; }
             window.__lastQrPaymentData = info;
             const qrImg = document.getElementById('qrPopupImage');
             if (qrImg) {
-                qrImg.src = info.qr_url;
+                qrImg.hidden = false;
                 qrImg.onerror = () => {
-                    qrImg.onerror = null;
-                    qrImg.src = `https://img.vietqr.io/image/MB-0394061318-compact2.png?amount=${Math.max(0, Math.round(info.amount))}&addInfo=${encodeURIComponent(info.content)}&accountName=${encodeURIComponent(info.account_name)}`;
+                    qrImg.hidden = true;
+                    showToast('Không tải được ảnh QR. Bạn có thể dùng thông tin chuyển khoản bên dưới.', 'warning');
                 };
+                qrImg.src = info.qr_url;
             }
             document.getElementById('qrPopupBankName').textContent = info.bank_name;
             document.getElementById('qrPopupAccountName').textContent = info.account_name;
@@ -1200,8 +1195,6 @@
             const reopenWrap = document.getElementById('successQrReopenWrap');
             const customData = {
                 ...(payment || {}),
-                amount: payment?.amount ?? Math.max(0, cartTotal - appliedDiscount),
-                content: payment?.content || (orderId ? `SCL DH${orderId}` : 'SCL THANHTOAN'),
                 orderPlaced: true
             };
             if (reopenWrap) reopenWrap.style.display = 'block';
@@ -1210,6 +1203,9 @@
 
         async function processCheckout(event) {
             event.preventDefault();
+            if (checkoutPending || cartUpdating) return;
+            if (!cartReady || !cartItems.length) { showToast('Vui lòng tải lại giỏ hàng trước khi đặt hàng.', 'warning'); return; }
+            if (!document.getElementById('checkoutForm').reportValidity()) return;
             const name = document.getElementById('shippingName').value.trim();
             const phone = document.getElementById('shippingPhone').value.trim();
             const address = document.getElementById('shippingAddress').value.trim();
@@ -1221,6 +1217,9 @@
                 return;
             }
 
+            if (paymentMethod === 'BANKING' && !window.__bankPaymentConfig?.configured) { showToast('Chuyển khoản hiện chưa khả dụng.', 'warning'); return; }
+            checkoutPending = true;
+            couponRequestId++;
             const button = document.getElementById('btnPlaceOrder');
             button.disabled = true;
             button.textContent = 'Đang xử lý đặt hàng…';
@@ -1261,6 +1260,7 @@
                 capNhatBadgeGioHang();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } catch (error) {
+                checkoutPending = false;
                 showToast(error.message || 'Không thể hoàn tất đơn hàng.', 'error');
                 button.disabled = false;
                 button.textContent = 'ĐẶT HÀNG NGAY';
@@ -1299,9 +1299,12 @@
             }
         });
 
+        document.querySelectorAll('input[name="payment_method"]').forEach(input => {
+            input.addEventListener('change', () => selectPayMethod(input.value === 'COD' ? 'cod' : input.value === 'BANKING' ? 'banking' : 'balance'));
+        });
         // Khởi động
         document.addEventListener('DOMContentLoaded', initCartPage);
     </script>
-    <script src="css/mega-animations.js?v=20260909-1" defer></script>
+    <script src="css/mega-animations.js?v=20261028-ux-1" defer></script>
 </body>
 </html>

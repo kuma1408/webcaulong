@@ -28,7 +28,7 @@
         HOP_CAU_LONG: 'Hộp cầu lông'
     };
     const state = {
-        currentView: 'overview', loaded: new Set(), admin: null, categories: [],
+        dashboardRequestId: 0, currentView: 'overview', loaded: new Set(), admin: null, categories: [],
         products: [], productPage: 1, productTotal: 0, productQuickFilter: 'all', productMetrics: null, productRequestId: 0,
         orders: [], orderPage: 1, orderTotal: 0, orderMetrics: null, orderRequestId: 0,
         users: [], userPage: 1, userTotal: 0, userMetrics: null, userRequestId: 0,
@@ -111,7 +111,7 @@
         let stopped = false;
         function step(now) {
             if (stopped) return;
-            const p = Math.min((now - start) / duration, 1);
+            const p = Math.max(0, Math.min((now - start) / duration, 1));
             onFrame(cubicEase(p));
             if (p < 1) requestAnimationFrame(step);
         }
@@ -284,6 +284,12 @@
         $$('[data-admin-view]').forEach((button) => button.classList.toggle('is-active', button.dataset.adminView === view));
         $$('[data-admin-panel]').forEach((panel) => { panel.hidden = panel.dataset.adminPanel !== view; });
         $('#adminPageTitle').textContent = pageTitles[view];
+        const navigationToggle = $('#adminNavigationToggle');
+        if (navigationToggle) {
+            navigationToggle.textContent = `Điều hướng · ${pageTitles[view]}`;
+            navigationToggle.setAttribute('aria-expanded', 'false');
+            $('#adminNavigation')?.classList.add('is-collapsed');
+        }
         history.replaceState(null, '', `#${view}`);
         if (reload || !state.loaded.has(view)) {
             state.loaded.add(view);
@@ -311,12 +317,15 @@
 
 
     async function loadDashboard() {
+        const requestId = ++state.dashboardRequestId;
         let data = null;
         try {
             data = await Auth.request('/api/admin/dashboard');
+            if (requestId !== state.dashboardRequestId) return;
             if (!data || !data.metrics) throw new Error('API format invalid');
         } catch (error) {
-            console.warn('Backend chưa sẵn sàng, kích hoạt dữ liệu bảng quản trị sống động:', error.message);
+            if (requestId !== state.dashboardRequestId) return;
+            console.warn('Không tải được dữ liệu tổng quan:', error.message);
             showToast('Không tải được tổng quan. ' + error.message, 'error');
             $('.admin-live').textContent = 'Chưa cập nhật được dữ liệu';
             return;
@@ -463,9 +472,9 @@
         // Nút xoá cache máy chủ & làm mới
         const btnClearCache = $('#btnAdminClearCache');
         if (btnClearCache) {
-            btnClearCache.addEventListener('click', () => {
-                showToast('Bộ nhớ đệm máy chủ và kết nối đã được làm mới sạch sẽ!', 'success');
-                replayAllDashboardAnimations();
+            btnClearCache.addEventListener('click', async () => {
+                btnClearCache.disabled = true;
+                try { await loadDashboard(); } finally { btnClearCache.disabled = false; }
             });
         }
     }
@@ -1262,6 +1271,10 @@
     }
 
     /* ---------- DOANH SỐ THEO DANH MỤC (Tròn 3D + Cột Horizontal) ---------- */
+    function escapeMarkup(value) {
+        return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    }
+
     function renderCategoryDistribution(items) {
         if (Array.isArray(items)) cachedCategoryData = items;
         const catList = cachedCategoryData || [];
@@ -1309,7 +1322,7 @@
                     stroke="${color}"
                     stroke-dasharray="${actualDash.toFixed(2)} ${gap.toFixed(2)}"
                     stroke-dashoffset="${offset.toFixed(2)}"
-                    data-cat-name="${item.TenDM}"
+                    data-cat-name="${escapeMarkup(item.TenDM)}"
                     data-count="${count}"
                     data-pct="${Math.round(fraction * 100)}"
                     style="--seg-color:${color}; animation-delay: ${idx * 0.1}s;"
@@ -1374,7 +1387,7 @@
 
         catList.forEach((item) => {
             const count = Number(item.DoanhThu ?? item.TongDoanhThu) || 0;
-            const pct = totalItems ? Math.round((count / totalItems) * 100) : 0;
+            const pct = totalItems ? Number(((count / totalItems) * 100).toFixed(1)) : 0;
             const color = categoryPalette[item.TenDM] || '#9b776a';
             const rev = Number(item.DoanhThu ?? item.TongDoanhThu) || 0;
 
@@ -1385,18 +1398,21 @@
                 <div class="legend-card-header">
                     <div class="legend-title-group">
                         <i class="legend-indicator" style="background:${color}"></i>
-                        <span class="legend-title">${item.TenDM}</span>
+                        <span class="legend-title">${escapeMarkup(item.TenDM)}</span>
                     </div>
                     <div class="legend-stat">
                         <strong class="legend-count">${formatMoney(count)}</strong>
                         <span class="legend-pct">${pct}%</span>
                     </div>
                 </div>
-                <div class="legend-track">
+                <div class="legend-track" role="meter" aria-label="Tỷ trọng doanh thu ${escapeMarkup(item.TenDM)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}">
                     <div class="legend-fill" data-pct="${pct}" style="width:${pct}%; background:${color};"></div>
                 </div>
                 ${rev > 0 ? `<div class="legend-meta" style="margin-top:4px; font-size:11px; color:var(--bs-muted); display:flex; justify-content:space-between;"><span>Doanh thu:</span><b>${formatShortMoney(rev)}</b></div>` : ''}
             `;
+            card.tabIndex = 0;
+            card.addEventListener('focus', () => setCatFocus(item));
+            card.addEventListener('blur', resetCatFocus);
             card.addEventListener('mouseenter', () => { card.classList.add('is-active'); setCatFocus(item); });
             card.addEventListener('mouseleave', () => { card.classList.remove('is-active'); resetCatFocus(); });
             legend.appendChild(card);
@@ -1585,10 +1601,10 @@
         const funnelData = cachedFunnelData || {};
 
         function playFunnel() {
-            const users = Number(funnelData.users || funnelData.registered_users) || 384;
-            const carts = Number(funnelData.carts || funnelData.users_with_cart) || 196;
-            const buyers = Number(funnelData.buyers || funnelData.buyers_30d) || 142;
-            const completed = Number(funnelData.completed_30 || funnelData.completed_orders_30d) || 112;
+            const users = Math.max(0, Number(funnelData.users ?? funnelData.registered_users) || 0);
+            const carts = Math.max(0, Number(funnelData.carts ?? funnelData.users_with_cart) || 0);
+            const buyers = Math.max(0, Number(funnelData.buyers ?? funnelData.buyers_30d) || 0);
+            const completed = Math.max(0, Number(funnelData.completed_30 ?? funnelData.completed_orders_30d) || 0);
             const base = Math.max(1, users);
 
             animateMetric($('#funnelUsers'), users);
@@ -1596,24 +1612,27 @@
             animateMetric($('#funnelBuyers'), buyers);
             animateMetric($('#funnelCompleted30'), completed);
 
-            const convRate = ((completed / base) * 100).toFixed(1);
+            const convRate = ((buyers / base) * 100).toFixed(1);
             const convRateEl = $('#funnelConvRate');
             if (convRateEl) convRateEl.textContent = `${convRate}%`;
 
             const cartPct = Math.min(100, ((carts / base) * 100).toFixed(1));
             const buyerPct = Math.min(100, ((buyers / base) * 100).toFixed(1));
-            const fulfillmentRate = buyers ? ((completed / buyers) * 100).toFixed(1) : '78.9';
+            const ordersPerBuyer = buyers ? (completed / buyers).toFixed(1) : '0';
 
             const subCart = $('#funnelCartSub');
-            if (subCart) subCart.textContent = `${cartPct}% quan tâm mua sắm`;
+            if (subCart) subCart.textContent = `${cartPct}% tài khoản có giỏ hàng`;
             const subBuyer = $('#funnelBuyerSub');
-            if (subBuyer) subBuyer.textContent = `${buyerPct}% tạo đơn mua hàng`;
+            if (subBuyer) subBuyer.textContent = `${buyerPct}% tài khoản đã mua trong 30 ngày`;
             const subComp = $('#funnelCompletedSub');
-            if (subComp) subComp.textContent = `Tỷ lệ hoàn thành: ${fulfillmentRate}%`;
+            if (subComp) subComp.textContent = `${ordersPerBuyer} đơn hoàn tất / khách đã mua`;
 
             const barCart = $('#funnelCartBar');
             const barBuyer = $('#funnelBuyerBar');
             const barComp = $('#funnelCompleted30Bar');
+            if (barComp) barComp.parentElement.hidden = true;
+            const firstBar = $('#funnelStep1Bar');
+            if (firstBar) firstBar.style.width = users ? '100%' : '0%';
 
             [barCart, barBuyer, barComp].forEach(b => {
                 if (b) {
@@ -1633,7 +1652,7 @@
                 }
                 if (barComp) {
                     barComp.style.transition = 'width 1.2s cubic-bezier(0.16, 1, 0.3, 1)';
-                    barComp.style.width = `${Math.min(100, parseFloat(fulfillmentRate))}%`;
+                    barComp.style.width = '0%';
                 }
             }, 60);
         }
@@ -2823,6 +2842,10 @@
     }
 
     function installEvents(){
+        $('#adminNavigationToggle')?.addEventListener('click', event => {
+            const collapsed = $('#adminNavigation').classList.toggle('is-collapsed');
+            event.currentTarget.setAttribute('aria-expanded', String(!collapsed));
+        });
         setupAdminTheme();
         setupFilterPills();
         $$('[data-admin-view]').forEach((button)=>button.addEventListener('click',()=>activateView(button.dataset.adminView)));

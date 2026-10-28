@@ -22,6 +22,7 @@
     let tiltObserver = null;
     let enhancementObserver = null;
     let enhancementFrame = 0;
+    const observedAos = new WeakSet();
 
     /* ---- 1. AOS - SCROLL REVEAL ENGINE ---- */
     function initAOS() {
@@ -34,6 +35,7 @@
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('aos-animate');
+                    if (entry.target.dataset.aosOnce === 'true') aosObserver.unobserve(entry.target);
                 } else {
                     if (entry.target.dataset.aosOnce !== 'true') {
                         entry.target.classList.remove('aos-animate');
@@ -43,6 +45,8 @@
         }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
 
         document.querySelectorAll('[data-aos]').forEach((el, i) => {
+            if (observedAos.has(el)) return;
+            observedAos.add(el);
             if (!el.style.transitionDelay) {
                 const delay = el.dataset.aosDelay || (i % 6) * 75;
                 el.style.transitionDelay = delay + 'ms';
@@ -84,6 +88,7 @@
                 if (!el.dataset.aos) {
                     el.dataset.aos = animation;
                     el.dataset.aosDelay = (i % 6) * 75;
+                    el.dataset.aosOnce = 'true';
                 }
             });
         });
@@ -442,7 +447,9 @@
 
     /* ---- 10. STAGGERED NUMBER COUNTERS ---- */
     function initCounters() {
-        const counters = document.querySelectorAll('[data-count], .admin-kpi-value, .stat-value, #metricSpent, #walletBalance');
+        // Dynamic account and admin values are rendered by their own data loaders.
+        if (document.body.classList.contains('admin-body')) return;
+        const counters = document.querySelectorAll('[data-count]');
         if (!counters.length) return;
 
         const obs = new IntersectionObserver((entries) => {
@@ -577,9 +584,8 @@
             if (href.includes('://') && !href.startsWith(window.location.origin)) return;
 
             link.addEventListener('click', (e) => {
-                if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.shiftKey) return;
+                if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0 || link.hasAttribute('download')) return;
                 overlay.style.opacity = '1';
-                setTimeout(() => { window.location.href = href; }, 180);
             });
         });
 
