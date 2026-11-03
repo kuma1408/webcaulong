@@ -3,6 +3,8 @@
 
     const Auth = window.BadmintonAuth;
     const page = document.body.dataset.accountPage;
+    let ordersRequestId = 0;
+    const pendingOrderActions = new Set();
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
     const money = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 });
@@ -329,10 +331,12 @@
     }
 
     async function loadOrders() {
+        const requestId = ++ordersRequestId;
         const tbody = $('#orderRows');
         tbody.innerHTML = '<tr><td colspan="6" class="empty-cell">Đang tải đơn hàng…</td></tr>';
         try {
             const data = await Auth.request('/api/lich-su-don-hang', { method: 'POST', json: { trang: orderPage } });
+            if (requestId !== ordersRequestId) return;
             orderItems = data.orders || [];
             orderTotal = Number(data.total) || 0;
             renderOrders();
@@ -341,6 +345,7 @@
                 await showOrderDetail(requestedOrderId);
             }
         } catch (error) {
+            if (requestId !== ordersRequestId) return;
             tbody.innerHTML = '';
             const row = element('tr');
             const cell = element('td', 'empty-cell', error.message);
@@ -504,11 +509,13 @@
     }
 
     async function updateOrder(orderId, action) {
+        if (pendingOrderActions.has(orderId)) return;
         const isCancel = action === 'cancel';
         const question = isCancel
             ? `Hủy đơn hàng #${orderId}? Nếu đã thanh toán bằng số dư, tiền sẽ được hoàn tự động.`
             : `Xác nhận bạn đã nhận đơn hàng #${orderId}?`;
         if (!window.confirm(question)) return;
+        pendingOrderActions.add(orderId);
         try {
             const data = await Auth.request(isCancel ? '/api/don-hang/huy' : '/api/don-hang/hoan-thanh', {
                 method: 'POST', json: { ma_don_hang: orderId }
@@ -519,6 +526,8 @@
             if (fresh) bindProfile(fresh);
         } catch (error) {
             showToast(error.message, 'error');
+        } finally {
+            pendingOrderActions.delete(orderId);
         }
     }
 

@@ -20,12 +20,12 @@
         }
         if (!document.querySelector('link[href*="css/ui-polish.css"]')) {
             const link = document.createElement('link');
-            link.rel = 'stylesheet'; link.href = 'css/ui-polish.css?v=20261028-ux-1';
+            link.rel = 'stylesheet'; link.href = 'css/ui-polish.css?v=20261103-flows-1';
             document.head.appendChild(link);
         }
         if (!document.querySelector('script[src*="css/ui-motion.js"]')) {
             const script = document.createElement('script');
-            script.src = `css/ui-motion.js?v=${SPORT_ASSET_VERSION}`;
+            script.src = 'css/ui-motion.js?v=20261103-flows-1';
             script.defer = true;
             document.head.appendChild(script);
         }
@@ -298,8 +298,12 @@
             let timer = 0;
             let controller = null;
             let activeIndex = -1;
+            let searchGeneration = 0;
 
             const close = () => {
+                searchGeneration++;
+                window.clearTimeout(timer);
+                controller?.abort();
                 panel.hidden = true;
                 input.setAttribute('aria-expanded', 'false');
                 input.removeAttribute('aria-activedescendant');
@@ -366,10 +370,6 @@
                         price.append(original, discount);
                     }
                     link.append(image, copy, price);
-                    link.addEventListener('click', (event) => {
-                        event.preventDefault();
-                        window.location.assign(link.href);
-                    });
                     panel.appendChild(link);
                 });
                 const all = document.createElement('a');
@@ -385,20 +385,23 @@
                 if (keyword.length < 2) { close(); return; }
                 controller?.abort();
                 controller = new AbortController();
+                const generation = ++searchGeneration;
                 showStatus('Đang tìm sản phẩm…');
                 try {
                     const response = await fetch(`${window.API_BASE}/api/tim-kiem?q=${encodeURIComponent(keyword)}&limit=10&sap_xep=phu_hop`, { signal: controller.signal });
                     if (!response.ok) throw new Error('search_failed');
                     const data = await response.json();
+                    if (generation !== searchGeneration || input.value.trim() !== keyword) return;
                     render(data.success && Array.isArray(data.products) ? data.products : [], keyword);
                 } catch (error) {
-                    if (error.name !== 'AbortError') showStatus('Chưa thể tải gợi ý. Nhấn Enter để tìm kiếm.');
+                    if (generation === searchGeneration && error.name !== 'AbortError') showStatus('Chưa thể tải gợi ý. Nhấn Enter để tìm kiếm.');
                 }
             };
 
             input.addEventListener('input', () => {
-                window.clearTimeout(timer);
-                timer = window.setTimeout(load, 230);
+                close();
+                panel.replaceChildren();
+                if (input.value.trim().length >= 2) timer = window.setTimeout(load, 230);
             });
             input.addEventListener('focus', () => {
                 if (input.value.trim().length >= 2 && panel.childElementCount) open();

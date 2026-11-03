@@ -3,6 +3,8 @@
     const Auth=window.BadmintonAuth;
     const grid=document.getElementById('wishlistGrid');
     const title=document.getElementById('wishlistTitle');
+    let requestId = 0;
+    const removing = new Set();
     const money=value=>`${Number(value||0).toLocaleString('vi-VN')} ₫`;
 
     function empty(message='Bạn chưa lưu sản phẩm nào.', heading='0 sản phẩm đã lưu'){
@@ -30,11 +32,33 @@
     }
 
     async function load(){
+        if (removing.size) return;
+        const current = ++requestId;
+        grid.setAttribute('aria-busy', 'true');
         grid.innerHTML='<p class="wishlist-state">Đang tải sản phẩm yêu thích…</p>';
-        try{const data=await Auth.request('/api/yeu-thich');const products=Array.isArray(data.products)?data.products:[];if(!products.length){empty();return}grid.replaceChildren(...products.map(card));title.textContent=`${products.length} sản phẩm đã lưu`}
-        catch(error){empty(error.message||'Không thể tải danh sách yêu thích. Hãy thử làm mới.','Chưa tải được danh sách')}
+        try{const data=await Auth.request('/api/yeu-thich');if(current!==requestId)return;const products=Array.isArray(data.products)?data.products:[];if(!products.length){empty();return}grid.replaceChildren(...products.map(card));title.textContent=`${products.length} sản phẩm đã lưu`}
+        catch(error){if(current===requestId)empty(error.message||'Không thể tải danh sách yêu thích. Hãy thử làm mới.','Chưa tải được danh sách')}
+        finally{if(current===requestId)grid.setAttribute('aria-busy','false')}
     }
-    async function removeItem(article,id){article.classList.add('is-removing');try{await Auth.request(`/api/yeu-thich/${id}`,{method:'DELETE'});article.remove();const count=grid.querySelectorAll('.wish-card').length;if(!count)empty();else title.textContent=`${count} sản phẩm đã lưu`;window.showToast?.('Đã bỏ sản phẩm khỏi danh sách.','success')}catch(error){article.classList.remove('is-removing');window.showToast?.(error.message||'Không thể bỏ sản phẩm.','error')}}
+    async function removeItem(article,id){
+        if(removing.has(id))return;
+        removing.add(id);
+        article.setAttribute('aria-busy','true');
+        const buttons=[...article.querySelectorAll('button')];
+        const disabled=buttons.map(button=>button.disabled);
+        buttons.forEach(button=>button.disabled=true);
+        try{
+            await Auth.request(`/api/yeu-thich/${id}`,{method:'DELETE'});
+            if(!matchMedia('(prefers-reduced-motion: reduce)').matches && article.animate){
+                await article.animate([{opacity:1,scale:'1'},{opacity:0,scale:'.96'}],{duration:180}).finished.catch(()=>{});
+            }
+            article.remove();
+            const count=grid.querySelectorAll('.wish-card').length;
+            if(!count)empty();else title.textContent=`${count} sản phẩm đã lưu`;
+            window.showToast?.('Đã bỏ sản phẩm khỏi danh sách.','success');
+        }catch(error){window.showToast?.(error.message||'Không thể bỏ sản phẩm.','error')}
+        finally{removing.delete(id);article.setAttribute('aria-busy','false');buttons.forEach((button,index)=>button.disabled=disabled[index])}
+    }
     async function addCart(button,id){button.disabled=true;try{await Auth.request('/api/gio-hang/them',{method:'POST',json:{ma_san_pham:id,so_luong:1}});window.showToast?.('Đã thêm sản phẩm vào giỏ hàng.','success');window.capNhatBadgeGioHang?.()}catch(error){window.showToast?.(error.message||'Không thể thêm vào giỏ.','error')}finally{button.disabled=false}}
     async function init(){const user=await Auth.me();if(!user){location.replace(`dangnhap.html?next=${encodeURIComponent('yeuthich.html')}`);return}document.getElementById('wishlistRefresh')?.addEventListener('click',load);await load()}
     document.addEventListener('DOMContentLoaded',init);

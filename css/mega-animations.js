@@ -15,7 +15,19 @@
 (function () {
     'use strict';
 
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let reduced = motionPreference.matches;
+    motionPreference.addEventListener('change', event => {
+        reduced = event.matches;
+        if (reduced) {
+            aosObserver?.disconnect();
+            document.querySelectorAll('[data-aos]').forEach(el => el.classList.add('aos-animate'));
+            document.querySelectorAll('.__tilt-shine').forEach(el => { el.style.opacity = '0'; });
+            document.querySelectorAll('[style]').forEach(el => {
+                if (el._tiltReady || el._magReady) el.style.transform = 'none';
+            });
+        }
+    });
     // Trên trang admin: tắt các hiệu ứng nặng (3D tilt, parallax) để tối ưu hiệu suất
     const isAdmin = document.body.classList.contains('admin-body') || document.querySelector('.admin-shell') !== null;
     let aosObserver = null;
@@ -26,7 +38,7 @@
 
     /* ---- 1. AOS - SCROLL REVEAL ENGINE ---- */
     function initAOS() {
-        if (reduced) {
+        if (reduced || !('IntersectionObserver' in window)) {
             document.querySelectorAll('[data-aos]').forEach(el => el.classList.add('aos-animate'));
             return;
         }
@@ -117,10 +129,12 @@
             }
 
             el.addEventListener('mouseenter', () => {
+                if (reduced) return;
                 shine.style.opacity = '1';
             });
 
             el.addEventListener('mousemove', (e) => {
+                if (reduced) return;
                 const rect = el.getBoundingClientRect();
                 const x = (e.clientX - rect.left) / rect.width - 0.5;
                 const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -170,6 +184,7 @@
         }
 
         function triggerFly(startX, startY) {
+            if (reduced) return;
             const cartTarget = getCartTarget();
             if (!cartTarget) return;
 
@@ -369,7 +384,8 @@
     /* ---- 7. SPARKLE & HEART BURST ENGINE ---- */
     function initSparkles() {
         document.addEventListener('click', (e) => {
-            const btn = e.target.closest('.wishlist-btn, .heart-btn, [class*="wish"] button, .yeuthich-btn');
+            if (reduced) return;
+            const btn = e.target.closest('.wishlist-btn, .heart-btn, .yeuthich-btn');
             if (!btn) return;
 
             const emojis = ['❤️', '💖', '✨', '✦', '⭐'];
@@ -418,6 +434,7 @@
             btn._magReady = true;
 
             btn.addEventListener('mousemove', (e) => {
+                if (reduced || btn.disabled) return;
                 const rect = btn.getBoundingClientRect();
                 const x = (e.clientX - rect.left - rect.width / 2) * 0.28;
                 const y = (e.clientY - rect.top - rect.height / 2) * 0.28;
@@ -440,6 +457,7 @@
         if (!banner) return;
 
         window.addEventListener('scroll', () => {
+            if (reduced) { banner.style.backgroundPositionY = ''; return; }
             const y = window.scrollY * 0.3;
             banner.style.backgroundPositionY = y + 'px';
         }, { passive: true });
@@ -538,8 +556,9 @@
     function initRipple() {
         if (reduced) return;
         document.addEventListener('click', (e) => {
+            if (reduced) return;
             const el = e.target.closest('button, .btn, .button, .add-to-cart, .admin-nav button, .tab-btn, .page-btn, .bs-chip');
-            if (!el) return;
+            if (!el || el.disabled) return;
 
             const ripple = document.createElement('span');
             const rect = el.getBoundingClientRect();

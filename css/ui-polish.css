@@ -1,5 +1,21 @@
 /* Shared interaction polish. Components keep their existing layout contracts. */
 :root { --ui-radius: 16px; --ui-ease: cubic-bezier(.2,.7,.2,1); }
+/* Feedback stays visible while data is loading; motion never blocks an action. */
+:is(#wishlistGrid, #productGrid)[aria-busy="true"] { opacity: .65; }
+.wish-card[aria-busy="true"] { opacity: .65; cursor: progress; }
+.wish-actions :is(button,a) { min-height: 44px; }
+:is(.bs-search-suggestions, .search-suggest) { overscroll-behavior: contain; }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .wish-card:hover { box-shadow: 0 12px 28px rgba(72,30,14,.12); }
+    .wish-media img { transition: transform .35s var(--ui-ease); }
+    .wish-card:hover .wish-media img { transform: scale(1.045); }
+}
+@media (prefers-reduced-motion: no-preference) {
+    :is(.bs-search-suggestions, .search-suggest):not([hidden]) { animation: ui-dialog-in .18s var(--ui-ease); }
+    :is(.customer-notice, .wishlist-state) { animation: ui-dialog-in .28s var(--ui-ease); }
+    :is(#wishlistGrid, #productGrid, .wish-card) { transition: opacity .18s ease; }
+    .admin-body [data-admin-panel]:not([hidden]) { animation: ui-dialog-in .22s var(--ui-ease); }
+}
 [hidden]:not([hidden="until-found"]) { display: none !important; }
 /* Shared readable surfaces and predictable keyboard/touch controls. */
 .store-state { grid-column: 1 / -1; padding: 40px 20px; text-align: center; color: var(--text-muted, #715a54); border: 1px dashed var(--border-color, #d7afa1); border-radius: 16px; }

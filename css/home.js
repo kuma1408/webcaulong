@@ -246,6 +246,8 @@
         }
 
         function close() {
+            controller?.abort();
+            lastQuery = '';
             panel.hidden = true;
             panel.replaceChildren();
             input.setAttribute('aria-expanded', 'false');
@@ -351,8 +353,9 @@
             if (!base) return;
             controller?.abort();
             controller = new AbortController();
-            const signal = controller.signal;
-            const timeout = window.setTimeout(function () { controller.abort(); }, 3200);
+            const currentController = controller;
+            const signal = currentController.signal;
+            const timeout = window.setTimeout(function () { currentController.abort(); }, 3200);
             panel.classList.add('is-loading');
             try {
                 const response = await fetch(
@@ -361,14 +364,14 @@
                 );
                 if (!response.ok) throw new Error('search_failed');
                 const data = await response.json();
-                if (query !== lastQuery) return;
+                if (signal.aborted || currentController !== controller || query !== lastQuery) return;
                 render(mapProducts(data.products), query);
             } catch (error) {
                 if (signal.aborted || query !== lastQuery) return;
                 renderMessage('Không tải được gợi ý. Nhấn Enter để xem trang kết quả.');
             } finally {
                 window.clearTimeout(timeout);
-                panel.classList.remove('is-loading');
+                if (currentController === controller) panel.classList.remove('is-loading');
             }
         }
 
@@ -383,6 +386,7 @@
 
         input.addEventListener('input', function () {
             const query = input.value.trim();
+            close();
             lastQuery = query;
             if (query.length < 2) {
                 controller?.abort();
@@ -418,7 +422,7 @@
         });
 
         document.addEventListener('click', function (event) {
-            if (!panel.hidden && !panel.contains(event.target) && event.target !== input) close();
+            if (!panel.contains(event.target) && event.target !== input) close();
         });
     }
 
