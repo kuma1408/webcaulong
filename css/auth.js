@@ -23,9 +23,14 @@
             link.rel = 'stylesheet'; link.href = 'css/ui-polish.css?v=20261103-flows-1';
             document.head.appendChild(link);
         }
+        if (!document.querySelector('link[href*="css/visual-refresh.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet'; link.href = 'css/visual-refresh.css?v=20261104-design-1';
+            document.head.appendChild(link);
+        }
         if (!document.querySelector('script[src*="css/ui-motion.js"]')) {
             const script = document.createElement('script');
-            script.src = 'css/ui-motion.js?v=20261103-flows-1';
+            script.src = 'css/ui-motion.js?v=20261104-design-1';
             script.defer = true;
             document.head.appendChild(script);
         }

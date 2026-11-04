@@ -11,8 +11,8 @@
     function enter(node, index = 0) {
         if (preference.matches || !node.animate || node.hasAttribute('data-aos') || !node.isConnected) return;
         const animation = node.animate([
-            { opacity: .4, translate: '0 12px' }, { opacity: 1, translate: '0 0' }
-        ], { duration: 420, delay: Math.min(index % 4, 3) * 55, easing: 'cubic-bezier(.2,.7,.2,1)' });
+            { opacity: .15, translate: '0 24px', scale: '.97' }, { opacity: 1, translate: '0 0', scale: '1' }
+        ], { duration: 620, delay: Math.min(index % 6, 5) * 65, easing: 'cubic-bezier(.16,1,.3,1)' });
         active.add(animation);
         animation.finished.catch(() => {}).finally(() => active.delete(animation));
     }
