@@ -181,23 +181,8 @@
     }
 
     function setupReveal() {
-        const targets = document.querySelectorAll('[data-reveal]');
-        if (!targets.length) return;
-        if (prefersReducedMotion() || typeof IntersectionObserver !== 'function') {
-            targets.forEach(function (node) { node.classList.add('is-revealed'); });
-            return;
-        }
-        const observer = new IntersectionObserver(function (entries) {
-            entries.forEach(function (entry) {
-                if (!entry.isIntersecting) return;
-                entry.target.classList.add('is-revealed');
-                observer.unobserve(entry.target);
-            });
-        }, { threshold: 0.02 });
-        targets.forEach(function (node) { observer.observe(node); });
-        window.setTimeout(function () {
-            targets.forEach(function (node) { node.classList.add('is-revealed'); });
-        }, 1500);
+        // Shared ui-motion reveals cards without moving their parent sections.
+        document.querySelectorAll('[data-reveal]').forEach(node => node.classList.add('is-revealed'));
     }
 
     function setupTheme() {

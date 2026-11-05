@@ -25,12 +25,12 @@
         }
         if (!document.querySelector('link[href*="css/visual-refresh.css"]')) {
             const link = document.createElement('link');
-            link.rel = 'stylesheet'; link.href = 'css/visual-refresh.css?v=20261104-design-1';
+            link.rel = 'stylesheet'; link.href = 'css/visual-refresh.css?v=20261104-refine-2';
             document.head.appendChild(link);
         }
         if (!document.querySelector('script[src*="css/ui-motion.js"]')) {
             const script = document.createElement('script');
-            script.src = 'css/ui-motion.js?v=20261104-design-1';
+            script.src = 'css/ui-motion.js?v=20261104-refine-2';
             script.defer = true;
             document.head.appendChild(script);
         }
@@ -597,7 +597,7 @@
     function setupAmbientEffect() {
         const buttons = document.querySelectorAll('[data-ambient-toggle]');
         const saved = localStorage.getItem('badminton_ambient');
-        const enabled = saved === null ? true : saved === 'true';
+        const enabled = saved === 'true';
         if (window.__badmintonAmbient) {
             window.__badmintonAmbient.setEnabled(enabled);
             buttons.forEach((button) => window.__badmintonAmbient.bind(button));

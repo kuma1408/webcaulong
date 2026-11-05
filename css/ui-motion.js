@@ -7,12 +7,12 @@
     const seen = new WeakSet();
     const queue = new Set();
     let frame = 0;
-    const selector = '.product-card,.news-card,.wish-card,.account-card,.stat-card,.admin-kpi-card,.top-product-card,.admin-card,.category-card,.san-pham-goi-y-item';
+    const selector = '.product-card,.product-card-upgraded,.news-card,.wish-card,.account-card,.stat-card,.admin-kpi-card,.top-product-card,.admin-card,.category-card,.san-pham-goi-y-item';
     function enter(node, index = 0) {
         if (preference.matches || !node.animate || node.hasAttribute('data-aos') || !node.isConnected) return;
         const animation = node.animate([
-            { opacity: .15, translate: '0 24px', scale: '.97' }, { opacity: 1, translate: '0 0', scale: '1' }
-        ], { duration: 620, delay: Math.min(index % 6, 5) * 65, easing: 'cubic-bezier(.16,1,.3,1)' });
+            { opacity: .5, translate: '0 10px' }, { opacity: 1, translate: '0 0' }
+        ], { duration: 360, delay: Math.min(index % 4, 3) * 35, easing: 'cubic-bezier(.22,1,.36,1)' });
         active.add(animation);
         animation.finished.catch(() => {}).finally(() => active.delete(animation));
     }

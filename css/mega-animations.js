@@ -615,22 +615,13 @@
 
     /* ---- BOOT ENGINE ---- */
     function boot() {
-        if (!isAdmin) {
-            tagForAOS();
-            initAOS();
-        }
+        // Shared ui-motion owns card reveals; do not stack transform engines.
+        if (!isAdmin) initAOS();
         if (!reduced && !isAdmin) {
-            init3DTilt();
-            initMagnetic();
-            initParallax();
-            initWaveTitles();
             initSparkles();
             initFlyToCart();
-            initPageTransitions();
         }
-        if (!reduced) {
-            initRipple();
-        }
+        // Button feedback is handled once by ui-motion.
         initCounters();
         initLazyImages();
         initScrollProgress();
@@ -648,10 +639,7 @@
                 enhancementFrame = requestAnimationFrame(() => {
                     enhancementFrame = 0;
                     if (!document.body.isConnected) return;
-                    tagForAOS();
                     initAOS();
-                    init3DTilt();
-                    initMagnetic();
                 });
             });
             enhancementObserver.observe(document.body, { childList: true, subtree: true });
