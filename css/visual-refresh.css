@@ -329,3 +329,14 @@ html:root[data-theme] body :is(.hero__edition,.hero__feature) { z-index: 2; }
 @media (max-width:600px) {
     html:root[data-theme] body .hero__visual::after { background: linear-gradient(180deg,#24304455,transparent 45%,#65395355) !important; }
 }
+
+/* Round the shared header surface without clipping its account/search popovers. */
+html:root[data-theme] body .header:has(.bs-header) {
+    background: var(--vr-surface) !important; border-color: var(--vr-line) !important;
+}
+html:root[data-theme] body .bs-header {
+    border-radius: 20px; background-clip: padding-box;
+}
+@media (max-width:820px) {
+    html:root[data-theme] body .bs-header { border-radius: 16px; }
+}

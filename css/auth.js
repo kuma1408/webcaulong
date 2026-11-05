@@ -25,12 +25,12 @@
         }
         if (!document.querySelector('link[href*="css/visual-refresh.css"]')) {
             const link = document.createElement('link');
-            link.rel = 'stylesheet'; link.href = 'css/visual-refresh.css?v=20261105-menu-1';
+            link.rel = 'stylesheet'; link.href = 'css/visual-refresh.css?v=20261105-rounded-1';
             document.head.appendChild(link);
         }
         if (!document.querySelector('script[src*="css/ui-motion.js"]')) {
             const script = document.createElement('script');
-            script.src = 'css/ui-motion.js?v=20261105-menu-1';
+            script.src = 'css/ui-motion.js?v=20261105-rounded-1';
             script.defer = true;
             document.head.appendChild(script);
         }
