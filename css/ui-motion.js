@@ -7,12 +7,12 @@
     const seen = new WeakSet();
     const queue = new Set();
     let frame = 0;
-    const selector = '.product-card,.product-card-upgraded,.news-card,.wish-card,.account-card,.stat-card,.admin-kpi-card,.top-product-card,.admin-card,.category-card,.san-pham-goi-y-item';
+    const selector = '.product-card,.product-card-upgraded,.news-card,.wish-card,.account-card,.stat-card,.admin-kpi-card,.top-product-card,.admin-card,.category-card,.san-pham-goi-y-item,.playstyle-card,.service-strip article';
     function enter(node, index = 0) {
         if (preference.matches || !node.animate || node.hasAttribute('data-aos') || !node.isConnected) return;
         const animation = node.animate([
-            { opacity: .5, translate: '0 10px' }, { opacity: 1, translate: '0 0' }
-        ], { duration: 360, delay: Math.min(index % 4, 3) * 35, easing: 'cubic-bezier(.22,1,.36,1)' });
+            { opacity: .25, translate: '0 22px' }, { opacity: 1, translate: '0 0' }
+        ], { duration: 560, delay: Math.min(index % 4, 3) * 65, easing: 'cubic-bezier(.22,1,.36,1)' });
         active.add(animation);
         animation.finished.catch(() => {}).finally(() => active.delete(animation));
     }
@@ -35,6 +35,14 @@
     }
     function start() {
         scan(document);
+        const hero = document.querySelector('.hero');
+        if (hero && 'IntersectionObserver' in window) {
+            let visible = false;
+            const sync = () => { hero.dataset.motionVisible = String(visible && !document.hidden && !preference.matches); };
+            new IntersectionObserver(entries => { visible = entries[0].isIntersecting; sync(); }).observe(hero);
+            document.addEventListener('visibilitychange', sync);
+            preference.addEventListener('change', sync);
+        }
         new MutationObserver(records => {
             for (const record of records) {
                 for (const node of record.addedNodes) if (node.nodeType === 1) queue.add(node);
