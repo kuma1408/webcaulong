@@ -365,3 +365,32 @@ html:root[data-theme] body .bs-header {
 @media (max-width:820px) {
     html:root[data-theme] body .bs-header { border-radius: 16px; }
 }
+
+/* Mobile spacing, touch targets, and content grids across storefront pages. */
+@media (max-width:600px) {
+    html:root[data-theme] body { overflow-x: clip; }
+    html:root[data-theme] body :is(.shell,.container,.bs-footer__inner) { width: min(100% - 24px,1240px); }
+    html:root[data-theme] body .section { margin-block: 30px; }
+    html:root[data-theme] body .section-heading { align-items: flex-start; }
+    html:root[data-theme] body .section-heading h2 { font-size: clamp(24px,7vw,30px); }
+    html:root[data-theme] body .category-grid { gap: 10px; }
+    html:root[data-theme] body .category-grid .category-card { min-width: 0; }
+    html:root[data-theme] body .catalog-toolbar { align-items: stretch; flex-wrap: wrap; gap: 10px; }
+    html:root[data-theme] body :is(.catalog-toolbar select,.catalog-toolbar button,.catalog-filter-toggle) { min-height: 44px; }
+    html:root[data-theme] body :is(.product-grid,.products-grid,.wishlist-grid,.related-products-grid) { grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: 12px !important; }
+    html:root[data-theme] body :is(.product-card__body,.card-info,.wish-body) { padding: 12px; }
+    html:root[data-theme] body :is(.product-card__title,.product-card-upgraded .title,.wish-body h3) { font-size: 14px; line-height: 1.4; }
+    html:root[data-theme] body :is(.product-card__actions,.wish-actions) { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    html:root[data-theme] body :is(.product-card__actions button,.wish-actions button) { min-height: 42px; }
+    html:root[data-theme] body :is(.cart-layout,.checkout-layout,.product-detail-layout,.account-layout) { grid-template-columns: minmax(0,1fr) !important; gap: 16px; }
+    html:root[data-theme] body :is(.cart-summary,.checkout-form,.account-card,.wishlist-panel) { border-radius: 18px !important; padding: 16px; }
+    html:root[data-theme] body .bs-footer__grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px 14px; }
+    html:root[data-theme] body .admin-body .admin-metrics { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+    html:root[data-theme] body .admin-body :is(.admin-card,.stat-card,.admin-metrics article) { min-width: 0; }
+    html:root[data-theme] body .admin-body .health-item { min-width: 0; }
+}
+@media (max-width:359px) {
+    html:root[data-theme] body :is(.product-grid,.products-grid,.wishlist-grid,.related-products-grid,.admin-body .admin-metrics) { grid-template-columns: minmax(0,1fr) !important; }
+    html:root[data-theme] body .header__inner .brand__text { display: none; }
+    html:root[data-theme] body .category-grid { grid-template-columns: minmax(0,1fr); }
+}
