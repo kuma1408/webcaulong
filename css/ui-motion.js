@@ -35,19 +35,25 @@
     }
     function start() {
         scan(document);
-        const hero = document.querySelector('.hero');
-        if (hero && 'IntersectionObserver' in window) {
-            let visible = false;
-            const sync = () => { hero.dataset.motionVisible = String(visible && !document.hidden && !preference.matches); };
-            new IntersectionObserver(entries => { visible = entries[0].isIntersecting; sync(); }).observe(hero);
-            document.addEventListener('visibilitychange', sync);
-            preference.addEventListener('change', sync);
+        const ambientSelector = '.hero,.category-card,.product-card__media,.wish-media,.img-container';
+        const ambientSeen = new WeakSet();
+        const ambientObserver = 'IntersectionObserver' in window ? new IntersectionObserver(entries => {
+            entries.forEach(entry => { entry.target.dataset.motionVisible = String(entry.isIntersecting); });
+        }, { rootMargin: '30px' }) : null;
+        function observeAmbient(root) {
+            const nodes = [...(root.matches?.(ambientSelector) ? [root] : []), ...root.querySelectorAll(ambientSelector)];
+            nodes.forEach(node => { if (!ambientSeen.has(node)) { ambientSeen.add(node); ambientObserver?.observe(node); } });
         }
+        const syncPage = () => { document.documentElement.dataset.motionPaused = String(document.hidden || preference.matches); };
+        document.addEventListener('visibilitychange', syncPage);
+        preference.addEventListener('change', syncPage);
+        syncPage(); observeAmbient(document);
         new MutationObserver(records => {
             for (const record of records) {
-                for (const node of record.addedNodes) if (node.nodeType === 1) queue.add(node);
+                for (const node of record.addedNodes) if (node.nodeType === 1) { queue.add(node); observeAmbient(node); }
                 for (const node of record.removedNodes) {
                     if (node.nodeType !== 1) continue;
+                    [node, ...node.querySelectorAll(ambientSelector)].forEach(child => { ambientObserver?.unobserve(child); ambientSeen.delete(child); });
                     [node, ...node.querySelectorAll(selector)].forEach(child => {
                         if (!child.isConnected) { observer?.unobserve(child); seen.delete(child); }
                     });
