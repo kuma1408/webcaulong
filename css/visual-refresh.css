@@ -310,3 +310,22 @@ html:root[data-motion-paused="true"] body :is(.product-card__media,.wish-media,.
     html:root[data-theme] body :is(.category-card img,.hero__feature b),
     html:root[data-theme] body :is(.product-card__media,.wish-media,.img-container)::after { animation: none !important; }
 }
+
+/* Paint the entire navigation rail, not only its constrained inner container. */
+html:root[data-theme] body #menu:has(.bs-nav) {
+    background: var(--vr-surface) !important; border-color: var(--vr-line) !important;
+    backdrop-filter: none !important; box-shadow: 0 5px 16px rgb(0 0 0 / .06) !important;
+}
+html:root[data-theme] body #menu .bs-nav { background: transparent !important; box-shadow: none !important; }
+html:root[data-theme] body :is(.bs-nav__catalog,.bs-nav__catalog-grid a) { background: var(--vr-surface) !important; color: var(--vr-ink) !important; border-color: var(--vr-line) !important; }
+html:root[data-theme] body .bs-nav__catalog-grid a:hover { background: color-mix(in srgb,var(--vr-accent) 12%,var(--vr-surface)) !important; }
+/* A translucent gradient unifies the campaign photograph and its colour field. */
+html:root[data-theme] body .hero__visual { isolation: isolate; }
+html:root[data-theme] body .hero__visual::after {
+    content: '' !important; display: block !important; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(90deg,#243044a6,transparent 32%),linear-gradient(145deg,#b05d7755,transparent 48%,#32618b88) !important;
+}
+html:root[data-theme] body :is(.hero__edition,.hero__feature) { z-index: 2; }
+@media (max-width:600px) {
+    html:root[data-theme] body .hero__visual::after { background: linear-gradient(180deg,#24304455,transparent 45%,#65395355) !important; }
+}
