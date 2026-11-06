@@ -394,3 +394,30 @@ html:root[data-theme] body .bs-header {
     html:root[data-theme] body .header__inner .brand__text { display: none; }
     html:root[data-theme] body .category-grid { grid-template-columns: minmax(0,1fr); }
 }
+
+/* New shared motion details: soft light sweep, icon feedback and card image lift. */
+@media (prefers-reduced-motion: no-preference) {
+    html:root[data-theme] body :is(.button,.button--accent,.wish-cart,.btn-filter-apply,.site-search button,.admin-topbar button) {
+        position: relative; isolation: isolate; overflow: hidden;
+        transition: transform .26s cubic-bezier(.2,.8,.2,1),box-shadow .28s ease,filter .25s ease,background-color .25s ease;
+    }
+    html:root[data-theme] body :is(.button,.button--accent,.wish-cart,.btn-filter-apply,.site-search button,.admin-topbar button)::after {
+        content: ''; position: absolute; inset: -60% auto -60% -45%; width: 36%;
+        background: linear-gradient(100deg,transparent,#ffffff70,transparent); transform: translateX(-180%) skewX(-18deg);
+        pointer-events: none;
+    }
+    html:root[data-theme] body :is(.button,.button--accent,.wish-cart,.btn-filter-apply,.site-search button,.admin-topbar button):is(:hover,:focus-visible)::after { animation: ui-light-sweep .75s ease both; }
+    html:root[data-theme] body :is(.button,.button--accent,.wish-cart,.btn-filter-apply,.site-search button,.admin-topbar button):hover { transform: translateY(-2px); filter: brightness(1.06); box-shadow: 0 10px 24px #0a142533; }
+    html:root[data-theme] body :is(.product-card,.product-card-upgraded,.wish-card,.news-card,.blog-card,.category-card) { transform-style: preserve-3d; }
+    html:root[data-theme] body :is(.product-card__media img,.wish-media img,.category-card img,.img-container img) { transition: transform .6s cubic-bezier(.2,.8,.2,1),filter .4s ease; }
+    html:root[data-theme] body :is(.product-card,.product-card-upgraded,.wish-card,.news-card,.blog-card,.category-card):hover :is(.product-card__media img,.wish-media img,.category-card img,.img-container img) { transform: scale(1.045); filter: saturate(1.12); }
+    html:root[data-theme] body :is(.header__actions button,.bs-icon-button,.icon-button,.admin-nav button) svg { transition: transform .3s cubic-bezier(.2,.8,.2,1); }
+    html:root[data-theme] body :is(.header__actions button,.bs-icon-button,.icon-button,.admin-nav button):hover svg { transform: rotate(-8deg) scale(1.1); }
+    html:root[data-theme] body :is(.site-header,.bs-header,.bs-nav__catalog,.bs-notification-popover,.search-suggest) { transition: background-color .25s ease,border-color .25s ease,box-shadow .3s ease; }
+    html:root[data-theme] body :is(.bs-nav__catalog,.bs-notification-popover,.search-suggest):not([hidden]) { animation: ui-panel-in .24s cubic-bezier(.2,.8,.2,1) both; transform-origin: top center; }
+}
+@keyframes ui-light-sweep { to { transform: translateX(520%) skewX(-18deg); } }
+@keyframes ui-panel-in { from { opacity: 0; transform: translateY(-8px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+    html:root[data-theme] body :is(.button,.button--accent,.wish-cart,.btn-filter-apply,.site-search button,.admin-topbar button)::after { display: none !important; }
+}

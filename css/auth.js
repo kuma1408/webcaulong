@@ -25,7 +25,7 @@
         }
         if (!document.querySelector('link[href*="css/visual-refresh.css"]')) {
             const link = document.createElement('link');
-            link.rel = 'stylesheet'; link.href = 'css/visual-refresh.css?v=20261105-rounded-1';
+            link.rel = 'stylesheet'; link.href = 'css/visual-refresh.css?v=20261106-motion-1';
             document.head.appendChild(link);
         }
         if (!document.querySelector('script[src*="css/ui-motion.js"]')) {
