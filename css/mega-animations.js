@@ -79,9 +79,6 @@
             '.news-card': 'fade-up',
             '.blog-card': 'fade-up',
             '.feature-item': 'flip-up',
-            '.admin-card': 'fade-up',
-            '.stat-card': 'fade-up',
-            '.admin-kpi-card': 'fade-up',
             '.conversion-funnel-card': 'zoom-in',
             '.funnel-step': 'fade-left',
             '.section-title': 'fade-up',
@@ -90,9 +87,12 @@
             '.service-strip article': 'pop-in',
             '.cart-item, .cart-item-row': 'fade-left',
             '.wishlist-item': 'fade-left',
-            '.admin-trend-card': 'fade-up',
             '.hero-float-badge': 'pop-in',
             '.guide': 'fade-up',
+            '.catalog-header': 'fade-down',
+            '.contact-form': 'fade-up',
+            '.guide-card': 'fade-up',
+            '.order-summary, .cart-summary': 'fade-left',
         };
 
         Object.entries(map).forEach(([selector, animation]) => {
@@ -112,7 +112,7 @@
         const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
         if (!canHover) return;
 
-        const tiltTargets = '.product-card, .product-card-upgraded, .playstyle-card, .category-card, .service-strip article, .review-item, .brand-chip, .hero-float-badge';
+        const tiltTargets = '.product-card, .product-card-upgraded, .playstyle-card, .category-card, .service-strip article, .review-item, .brand-chip, .hero-float-badge, .news-card, .wish-card, .guide-card, .san-pham-goi-y-item, .trust-badge';
 
         function attachTilt(el) {
             if (el._tiltReady) return;
@@ -180,6 +180,8 @@
         function getCartTarget() {
             return document.querySelector('.bs-cart-count') ||
                    document.querySelector('#giohang-count') ||
+                   document.querySelector('.cart-link') ||
+                   document.querySelector('a[href*="giohang"]') ||
                    document.querySelector('.bs-icon-button svg, .cart-icon, a[href*="giohang"]');
         }
 
@@ -224,13 +226,28 @@
                 } else {
                     shuttle.remove();
                     triggerCartBounce();
+                    try {
+                        for (let i = 0; i < 6; i++) {
+                            const sp = document.createElement('div');
+                            sp.textContent = '✨';
+                            sp.style.cssText = `position:fixed;left:${endX}px;top:${endY}px;font-size:14px;pointer-events:none;z-index:9999999;user-select:none;transform:translate(-50%,-50%);`;
+                            document.body.appendChild(sp);
+                            const angle = (i / 6) * Math.PI * 2;
+                            const d = 26 + Math.random() * 14;
+                            sp.animate([
+                                { transform: 'translate(-50%, -50%) scale(0.5)', opacity: 1 },
+                                { transform: `translate(calc(-50% + ${Math.cos(angle)*d}px), calc(-50% + ${Math.sin(angle)*d}px)) scale(1.2)`, opacity: 0 }
+                            ], { duration: 550, easing: 'cubic-bezier(0.16,1,0.3,1)', fill: 'forwards' });
+                            setTimeout(() => sp.remove(), 600);
+                        }
+                    } catch (e) {}
                 }
             }
             requestAnimationFrame(frame);
         }
 
         function triggerCartBounce() {
-            const badge = document.querySelector('.bs-cart-count') || document.querySelector('#giohang-count');
+            const badge = document.querySelector('.bs-cart-count') || document.querySelector('#giohang-count') || document.querySelector('.cart-link');
             if (badge) {
                 badge.classList.remove('cart-badge-bounce', 'is-bouncing');
                 void badge.offsetWidth; // force reflow
@@ -245,7 +262,7 @@
         window.triggerCartBounce = triggerCartBounce;
 
         document.addEventListener('click', (e) => {
-            const btn = e.target.closest('.add-to-cart, .btn-add-cart, [data-add-cart], .btn-them-gio, [onclick*="themVaoGio"]');
+            const btn = e.target.closest('.add-to-cart, .btn-add-cart, [data-add-cart], .btn-them-gio, [onclick*="themVaoGio"], .btn-buy-now, .quick-buy, .btn-them, .bs-cart-btn, [data-action="add-cart"]');
             if (!btn) return;
             const rect = btn.getBoundingClientRect();
             triggerFly(rect.left + rect.width / 2, rect.top + rect.height / 2);
@@ -385,7 +402,7 @@
     function initSparkles() {
         document.addEventListener('click', (e) => {
             if (reduced) return;
-            const btn = e.target.closest('.wishlist-btn, .heart-btn, .yeuthich-btn');
+            const btn = e.target.closest('.wishlist-btn, .heart-btn, .yeuthich-btn, [data-wishlist], .wish-action, .like-btn, .star, .rating-star, .wishlist-action');
             if (!btn) return;
 
             const emojis = ['❤️', '💖', '✨', '✦', '⭐'];
@@ -427,7 +444,7 @@
         const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
         if (!canHover) return;
 
-        const targets = '.add-to-cart, .btn-primary, .button--primary, .button--accent, .primary-button, .cta-button, .soft-button';
+        const targets = '.add-to-cart, .btn-primary, .button--primary, .button--accent, .primary-button, .cta-button, .soft-button, .btn-buy-now, .hero__feature, .btn-filter-apply';
 
         function attachMagnetic(btn) {
             if (btn._magReady) return;
@@ -615,13 +632,20 @@
 
     /* ---- BOOT ENGINE ---- */
     function boot() {
-        // Shared ui-motion owns card reveals; do not stack transform engines.
-        if (!isAdmin) initAOS();
+        if (!isAdmin) {
+            tagForAOS();
+            initAOS();
+        }
         if (!reduced && !isAdmin) {
+            init3DTilt();
             initSparkles();
             initFlyToCart();
+            initMagnetic();
+            initRipple();
+            initSocialProofTicker();
+            initParallax();
+            initPageTransitions();
         }
-        // Button feedback is handled once by ui-motion.
         initCounters();
         initLazyImages();
         initScrollProgress();
@@ -631,7 +655,8 @@
             document.querySelectorAll('.admin-card, .admin-metrics article, .stat-card').forEach(el => {
                 el.classList.add('animation-done');
             });
-        }, 2000);
+            document.querySelectorAll('[data-aos]').forEach(el => el.classList.add('aos-animate'));
+        }, 1800);
 
         if (!isAdmin && typeof MutationObserver !== 'undefined' && !enhancementObserver) {
             enhancementObserver = new MutationObserver(() => {
@@ -639,7 +664,12 @@
                 enhancementFrame = requestAnimationFrame(() => {
                     enhancementFrame = 0;
                     if (!document.body.isConnected) return;
+                    tagForAOS();
                     initAOS();
+                    if (!reduced) {
+                        init3DTilt();
+                        initMagnetic();
+                    }
                 });
             });
             enhancementObserver.observe(document.body, { childList: true, subtree: true });

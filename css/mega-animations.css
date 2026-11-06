@@ -993,8 +993,20 @@ a { transition: color 0.25s ease !important; }
     border-color: #ff5520;
 }
 
-.hero-float-badge--1 { animation: floatBadge1 4s ease-in-out infinite; }
-.hero-float-badge--2 { animation: floatBadge2 5s ease-in-out infinite 0.5s; }
+.hero-float-badge--1 {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    z-index: 5;
+    animation: floatBadge1 4s ease-in-out infinite;
+}
+.hero-float-badge--2 {
+    position: absolute;
+    bottom: 96px;
+    left: 24px;
+    z-index: 5;
+    animation: floatBadge2 5s ease-in-out infinite 0.5s;
+}
 
 @media (max-width: 600px) {
     .hero-float-badge {
@@ -1034,6 +1046,121 @@ a { transition: color 0.25s ease !important; }
 .service-strip article span {
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s ease;
     display: inline-block;
+}
+
+/* ---- 56. CART & CHECKOUT KINETIC FX ---- */
+.cart-item {
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.32s ease,
+                border-color 0.28s ease !important;
+}
+.cart-item:hover {
+    transform: translateX(6px) !important;
+    box-shadow: 0 12px 32px rgba(255, 85, 32, 0.12) !important;
+}
+.quantity-btn {
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+                background-color 0.2s ease !important;
+}
+.quantity-btn:hover {
+    transform: scale(1.18) !important;
+    color: #ff5520 !important;
+}
+.quantity-btn:active {
+    transform: scale(0.88) !important;
+}
+.cart-summary, .checkout-box {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.35s ease !important;
+}
+.cart-summary:hover {
+    box-shadow: 0 20px 48px rgba(255, 85, 32, 0.15) !important;
+}
+
+/* ---- 57. PRODUCT DETAIL GALLERY & INTERACTIVE CONTROLS ---- */
+.detail-img-main {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    transition: box-shadow 0.4s ease, border-color 0.3s ease;
+}
+.detail-img-main:hover {
+    box-shadow: 0 24px 60px rgba(255, 85, 32, 0.18) !important;
+    border-color: rgba(255, 85, 32, 0.5) !important;
+}
+.detail-img-main img {
+    transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.detail-img-main:hover img {
+    transform: scale(1.08) !important;
+}
+.detail-badge-pill {
+    animation: glowBadge 2.5s ease-in-out infinite;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.tension-btn, .spec-btn, .option-btn {
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+                border-color 0.25s ease,
+                background-color 0.25s ease,
+                box-shadow 0.25s ease !important;
+}
+.tension-btn:hover, .spec-btn:hover, .option-btn:hover {
+    transform: translateY(-2px) scale(1.05) !important;
+    border-color: #ff5520 !important;
+}
+.tension-btn.active, .spec-btn.active, .option-btn.active {
+    animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    border-color: #ff5520 !important;
+    box-shadow: 0 0 14px rgba(255, 85, 32, 0.35) !important;
+}
+
+/* ---- 58. RIPPLE INK & SPARKLE ACCENTS ---- */
+.mega-ripple-ink {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: rippleExpand 0.65s ease-out forwards;
+}
+@keyframes rippleExpand {
+    0%   { transform: scale(0); opacity: 0.9; }
+    100% { transform: scale(3.5); opacity: 0; }
+}
+
+/* ---- 59. VIETQR CODE SCANNING BEAM & VOUCHER PULSE ---- */
+.vietqr-box, #qrContainer {
+    position: relative;
+    overflow: hidden;
+    border-radius: 14px;
+}
+.vietqr-box::after, #qrContainer::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #00f5a0 30%, #00f2fe 70%, transparent);
+    box-shadow: 0 0 12px #00f5a0;
+    animation: laserScan 2.4s ease-in-out infinite;
+    pointer-events: none;
+}
+.voucher-applied-pulse {
+    animation: heartBeat 1.2s ease-in-out;
+}
+
+/* ---- 60. SMOOTH BREADCRUMBS & SECTION HEADINGS ---- */
+.breadcrumb-nav a {
+    transition: color 0.2s ease, transform 0.2s ease !important;
+    display: inline-block;
+}
+.breadcrumb-nav a:hover {
+    color: #ff5520 !important;
+    transform: translateX(2px);
+}
+.section-heading h2 {
+    transition: color 0.3s ease;
 }
 
 /* ---- SAFE: prefers-reduced-motion ---- */
