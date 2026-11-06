@@ -592,7 +592,11 @@
                 animation: rippleExpand 0.6s ease forwards;
             `;
             el.style.position = el.style.position || 'relative';
-            el.style.overflow = 'hidden';
+            // Không set overflow:hidden nếu button chứa badge giỏ hàng (bị cắt badge)
+            const hasBadge = el.querySelector('.bs-cart-count, .cart-link__count, #giohang-count, .badge');
+            if (!hasBadge) {
+                el.style.overflow = 'hidden';
+            }
             el.appendChild(ripple);
             setTimeout(() => ripple.remove(), 650);
         });
@@ -633,7 +637,8 @@
     /* ---- BOOT ENGINE ---- */
     function boot() {
         if (!isAdmin) {
-            tagForAOS();
+            // tagForAOS() đã tắt: ui-motion.js quản lý entrance reveals,
+            // tránh xung đột data-aos lock transform khiến hover card không hoạt động.
             initAOS();
         }
         if (!reduced && !isAdmin) {
@@ -642,9 +647,9 @@
             initFlyToCart();
             initMagnetic();
             initRipple();
-            initSocialProofTicker();
+            // initSocialProofTicker() đã tắt: popup mua hàng giả che footer/nội dung.
             initParallax();
-            initPageTransitions();
+            // initPageTransitions() đã tắt: overlay blur cam khi click link nội bộ.
         }
         initCounters();
         initLazyImages();
@@ -664,7 +669,7 @@
                 enhancementFrame = requestAnimationFrame(() => {
                     enhancementFrame = 0;
                     if (!document.body.isConnected) return;
-                    tagForAOS();
+                    // Không gọi tagForAOS() cho node mới — ui-motion.js xử lý.
                     initAOS();
                     if (!reduced) {
                         init3DTilt();

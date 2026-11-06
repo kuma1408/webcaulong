@@ -166,7 +166,7 @@
 [data-aos="fade-right"] { opacity: 0; transform: translateX(-60px); }
 [data-aos="zoom-in"]    { opacity: 0; transform: scale(0.8); }
 [data-aos="flip-up"]    { opacity: 0; transform: perspective(600px) rotateX(-30deg); }
-[data-aos].aos-animate  { opacity: 1 !important; transform: none !important; }
+[data-aos].aos-animate  { opacity: 1; transform: none; }
 
 /* ---- 4. PRODUCT CARDS ---- */
 .product-card,
@@ -652,7 +652,7 @@ a { transition: color 0.25s ease !important; }
     font-size: 26px;
     line-height: 1;
     filter: drop-shadow(0 8px 16px rgba(255, 85, 32, 0.6));
-    transition: transform 0.85s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.85s ease;
+    /* Không dùng CSS transition cho transform — requestAnimationFrame quản lý trực tiếp */
     transform-origin: center center;
 }
 
