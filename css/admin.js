@@ -1586,7 +1586,7 @@
                     <img src="${safeImage(prod.HinhAnh)}" alt="" loading="lazy">
                 </div>
                 <div class="top-product-info">
-                    <strong class="top-product-title">${prod.TenSP}</strong>
+                    <strong class="top-product-title">${escapeMarkup(prod.TenSP)}</strong>
                     <div class="top-product-metrics">
                         <span class="top-product-sold">🔥 Đã bán: <b>${sold}</b> cái</span>
                         <span class="top-product-rev">Doanh thu: <b>${formatShortMoney(rev)}</b></span>

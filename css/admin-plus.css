@@ -132,3 +132,17 @@
 .admin-table-wrap td .admin-row-actions > * { white-space: nowrap; }
 /* Số KPI nhiều chữ số không được xuống dòng ("7 / 5"). */
 .admin-kpi-card > strong, .stat-card .value, .admin-metrics .value { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* ---------- Top sản phẩm bán chạy: không còn bị nén chồng lên nhau ---------- */
+/* admin-polish.css ép danh sách thành flex cao tối đa 420px; các thẻ (overflow:hidden) bị co
+   từ ~96px xuống ~68px nên ảnh và thanh tiến trình bị cắt. Dùng lưới, không giới hạn chiều cao. */
+.admin-body #adminTopProductsList {
+    display: grid !important; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)) !important;
+    gap: 12px !important; max-height: none !important; overflow: visible !important; padding: 16px 18px 18px !important;
+}
+.admin-body #adminTopProductsList .top-product-card {
+    flex-shrink: 0; min-height: 96px; grid-template-columns: 34px 64px minmax(0, 1fr) !important;
+    border: 1px solid var(--bs-line, rgba(255, 255, 255, .08)) !important; border-radius: 14px;
+}
+.admin-body #adminTopProductsList .top-product-card:last-child { border-bottom: 1px solid var(--bs-line, rgba(255, 255, 255, .08)) !important; }
+.admin-body #adminTopProductsList .top-product-title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
