@@ -531,6 +531,11 @@
 
     /* ---- 12. SCROLL PROGRESS BAR ---- */
     function initScrollProgress() {
+        // auth.js đã vẽ thanh tiến trình dùng chung (#bsScrollProgress); không tạo thanh thứ hai chồng lên.
+        if (window.BadmintonAuth || document.getElementById('bsScrollProgress')) {
+            document.querySelector('.scroll-progress')?.remove();
+            return;
+        }
         let bar = document.querySelector('.scroll-progress');
         if (!bar) {
             bar = document.createElement('div');

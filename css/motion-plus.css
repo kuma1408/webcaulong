@@ -1,0 +1,148 @@
+/* =============================================================
+   MOTION PLUS — lớp hiệu ứng bổ sung cho toàn bộ cửa hàng
+   - Chỉ dùng thuộc tính translate/scale/rotate riêng lẻ để không
+     xung đột với transform của tilt 3D và hover có sẵn.
+   - Tắt hoàn toàn khi người dùng bật "giảm chuyển động".
+   ============================================================= */
+
+/* ---------- Keyframes dùng chung ---------- */
+@keyframes adm-card-in { from { opacity: 0; translate: 0 18px; scale: .97; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@keyframes bs-slide-in-right { from { opacity: 0; translate: 46px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes bs-slide-in-left { from { opacity: 0; translate: -46px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes mp-word-rise { from { opacity: 0; translate: 0 .55em; rotate: 4deg; filter: blur(6px); } to { opacity: 1; translate: 0 0; rotate: 0deg; filter: blur(0); } }
+@keyframes mp-fade-up { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }
+@keyframes mp-header-drop { from { opacity: 0; translate: 0 -18px; } to { opacity: 1; translate: 0 0; } }
+@keyframes mp-line-grow { from { scale: 0 1; } to { scale: 1 1; } }
+@keyframes mp-shuttle-flight {
+    0% { offset-distance: 0%; opacity: 0; }
+    8% { opacity: 1; }
+    88% { opacity: 1; }
+    100% { offset-distance: 100%; opacity: 0; }
+}
+@keyframes mp-trail { from { stroke-dashoffset: 900; opacity: .7; } 70% { opacity: .5; } to { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes mp-spark { from { opacity: 1; translate: 0 0; scale: 1; } to { opacity: 0; translate: var(--mp-dx) var(--mp-dy); scale: .2; } }
+@keyframes mp-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+@keyframes mp-pop { 0% { scale: 1; } 35% { scale: 1.35; } 65% { scale: .92; } 100% { scale: 1; } }
+@keyframes mp-float-in { from { opacity: 0; translate: 0 26px; scale: .8; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@keyframes mp-gradient-run { from { background-position: 0% 50%; } to { background-position: 200% 50%; } }
+@keyframes mp-caret { 50% { opacity: 0; } }
+@keyframes mp-badge-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 61, .55); } 50% { box-shadow: 0 0 0 7px rgba(255, 107, 61, 0); } }
+
+@media (prefers-reduced-motion: no-preference) {
+    /* ---------- Header trượt xuống khi tải trang ---------- */
+    html.mp-ready .site-header,
+    html.mp-ready .header:has(.bs-header) { animation: mp-header-drop .7s cubic-bezier(.22, 1, .36, 1) backwards; }
+
+    /* ---------- Tiêu đề hero: từng chữ bay lên ---------- */
+    .mp-word { display: inline-block; white-space: pre; animation: mp-word-rise .8s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(var(--mp-i, 0) * 70ms + 120ms); }
+    .mp-split em.mp-word { white-space: normal; }
+    .hero__lead, .hero__actions, .hero__facts > div { animation: mp-fade-up .75s cubic-bezier(.22, 1, .36, 1) both; }
+    .hero__lead { animation-delay: .55s; }
+    .hero__actions { animation-delay: .7s; }
+    .hero__facts > div:nth-child(1) { animation-delay: .85s; }
+    .hero__facts > div:nth-child(2) { animation-delay: .95s; }
+    .hero__facts > div:nth-child(3) { animation-delay: 1.05s; }
+
+    /* ---------- Đèn rọi theo con trỏ trong hero ---------- */
+    :where(.hero.mp-spot) { position: relative; }
+    .hero.mp-spot::after {
+        content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: inherit;
+        background: radial-gradient(420px circle at var(--mp-x, 30%) var(--mp-y, 40%), rgba(255, 140, 80, .16), transparent 62%);
+        opacity: var(--mp-spot-o, 0); transition: opacity .45s ease;
+    }
+
+    /* ---------- Quả cầu lông bay ngang hero ---------- */
+    .mp-shuttle-stage { position: absolute; inset: 0; z-index: 4; overflow: hidden; pointer-events: none; border-radius: inherit; }
+    .mp-shuttle-stage svg.mp-trail { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .mp-shuttle-stage .mp-trail path { fill: none; stroke: url(#mpTrailGradient); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 900; stroke-dashoffset: 900; }
+    .mp-shuttle-stage.is-flying .mp-trail path { animation: mp-trail 2.4s cubic-bezier(.45, .05, .35, 1) both; }
+    .mp-shuttle {
+        position: absolute; left: 0; top: 0; width: 38px; height: 38px; opacity: 0;
+        offset-path: var(--mp-path); offset-rotate: auto 45deg; offset-distance: 0%;
+        filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .35));
+    }
+    .mp-shuttle-stage.is-flying .mp-shuttle { animation: mp-shuttle-flight 2.4s cubic-bezier(.45, .05, .35, 1) both; }
+
+    /* ---------- Gạch chân tiêu đề vẽ ra khi cuộn tới ---------- */
+    :where(.mp-heading) { position: relative; }
+    .mp-heading::after {
+        content: ""; position: absolute; left: 0; bottom: -8px; width: min(120px, 60%); height: 3px; border-radius: 3px;
+        background: linear-gradient(90deg, #ff5a1f, #ffb347, transparent); transform-origin: left center; scale: 0 1;
+        transition: scale .9s cubic-bezier(.22, 1, .36, 1) .15s;
+    }
+    .mp-heading.is-inview::after { scale: 1 1; }
+    .eyebrow > span:first-child:empty { transform-origin: left center; }
+    .mp-inview .eyebrow > span:first-child:empty { animation: mp-line-grow .8s cubic-bezier(.22, 1, .36, 1) both; }
+
+    /* ---------- Viền phát sáng theo con trỏ trên thẻ ---------- */
+    :where(.mp-glow) { position: relative; }
+    .mp-glow-ring {
+        position: absolute; inset: 0; z-index: 6; pointer-events: none; border-radius: inherit; padding: 1.5px;
+        background: radial-gradient(260px circle at var(--mp-gx, 50%) var(--mp-gy, 50%), rgba(255, 128, 64, .95), rgba(255, 196, 92, .35) 40%, transparent 70%);
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor; mask-composite: exclude;
+        opacity: 0; transition: opacity .35s ease;
+    }
+    .mp-glow:hover > .mp-glow-ring, .mp-glow:focus-visible > .mp-glow-ring { opacity: 1; }
+
+    /* ---------- Ảnh sản phẩm: shimmer trong lúc tải ---------- */
+    :where(.mp-img-loading) { position: relative; }
+    .mp-img-loading::after {
+        content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+        background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, .22) 50%, transparent 80%) 0 0 / 200% 100%;
+        animation: mp-shimmer 1.2s linear infinite;
+    }
+
+    /* ---------- Tia lửa khi bấm nút chính ---------- */
+    .mp-spark { position: fixed; z-index: 99999; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%; pointer-events: none; background: var(--mp-c, #ff7a3d); box-shadow: 0 0 10px var(--mp-c, #ff7a3d); animation: mp-spark .62s cubic-bezier(.2, .7, .3, 1) forwards; }
+    .mp-spark--feather { width: 4px; height: 12px; border-radius: 4px 4px 1px 1px; background: #fff; box-shadow: 0 0 8px rgba(255, 255, 255, .7); rotate: var(--mp-r, 0deg); }
+
+    /* ---------- Số trong dải cam kết / lối chơi nảy lên ---------- */
+    .service-strip article > span, .playstyle-card__number { display: inline-block; }
+    .mp-inview .service-strip article > span, .service-strip.mp-inview article > span { animation: mp-pop .7s cubic-bezier(.22, 1, .36, 1) both; }
+    .service-strip article:nth-child(2) > span { animation-delay: .1s; }
+    .service-strip article:nth-child(3) > span { animation-delay: .2s; }
+    .service-strip article:nth-child(4) > span { animation-delay: .3s; }
+    .service-strip article { transition: translate .35s cubic-bezier(.22, 1, .36, 1), border-color .35s ease, box-shadow .35s ease; }
+    .service-strip article:hover { translate: 0 -4px; border-color: rgba(255, 122, 61, .55); box-shadow: 0 14px 30px rgba(0, 0, 0, .18); }
+    .playstyle-card__line { transform-origin: left center; }
+    .playstyle-card.mp-inview .playstyle-card__line { animation: mp-line-grow 1s cubic-bezier(.22, 1, .36, 1) .2s both; }
+    .playstyle-card a span { display: inline-block; transition: translate .3s cubic-bezier(.22, 1, .36, 1); }
+    .playstyle-card a:hover span { translate: 6px 0; }
+
+    /* ---------- Nút nổi xuất hiện lần lượt ---------- */
+    html.mp-ready .store-chat-widget { animation: mp-float-in .6s cubic-bezier(.22, 1, .36, 1) .9s backwards; }
+
+    /* ---------- Số lượng giỏ hàng nảy khi thay đổi ---------- */
+    .mp-bump { animation: mp-pop .6s cubic-bezier(.22, 1, .36, 1), mp-badge-glow .9s ease-out; }
+
+    /* ---------- Footer: đường viền gradient chạy ---------- */
+    .bs-footer { position: relative; }
+    .bs-footer::before {
+        content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; pointer-events: none;
+        background: linear-gradient(90deg, transparent, #ff5a1f, #ffb347, #2fd47a, #ff5a1f, transparent) 0 0 / 200% 100%;
+        animation: mp-gradient-run 6s linear infinite;
+    }
+    .bs-footer a { display: inline-block; transition: translate .25s cubic-bezier(.22, 1, .36, 1), color .2s ease; }
+    .bs-footer a:hover { translate: 5px 0; }
+
+    /* ---------- Con trỏ nhấp nháy cho placeholder đang gõ ---------- */
+    .mp-typing::placeholder { opacity: 1; }
+
+    /* ---------- Link xem tất cả: mũi tên trượt ---------- */
+    .text-link span { display: inline-block; transition: translate .3s cubic-bezier(.22, 1, .36, 1); }
+    .text-link:hover span { translate: 3px -3px; }
+
+    /* ---------- Thương hiệu: sáng dần khi hover ---------- */
+    .brand-strip__list strong { transition: color .3s ease, letter-spacing .4s cubic-bezier(.22, 1, .36, 1), text-shadow .3s ease; cursor: default; }
+    .brand-strip__list strong:hover { color: #ff7a3d; letter-spacing: .14em; text-shadow: 0 0 18px rgba(255, 122, 61, .45); }
+}
+
+/* Khi tab bị ẩn hoặc trang tạm dừng chuyển động: dừng các vòng lặp vô hạn */
+html[data-motion-paused="true"] .bs-footer::before,
+html[data-motion-paused="true"] .mp-img-loading::after { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+    .mp-shuttle-stage, .mp-spark { display: none !important; }
+    .mp-word { animation: none !important; opacity: 1 !important; }
+}

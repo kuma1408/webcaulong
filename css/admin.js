@@ -316,9 +316,28 @@
     }
 
 
+    const clockFormat = new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    function setLiveStatus(online, latencyMs) {
+        const live = $('#adminLive');
+        const text = $('#adminLiveText');
+        const server = $('#adminServerStatus');
+        const dot = $('#adminServerDot');
+        live?.classList.toggle('is-offline', !online);
+        dot?.classList.toggle('is-offline', !online);
+        if (online) {
+            const speed = latencyMs < 300 ? 'nhanh' : latencyMs < 1000 ? 'ổn định' : 'chậm';
+            if (text) text.textContent = `Cập nhật lúc ${clockFormat.format(new Date())}`;
+            if (server) server.textContent = `Trực tuyến · ${Math.round(latencyMs)} ms (${speed})`;
+        } else {
+            if (text) text.textContent = 'Mất kết nối máy chủ';
+            if (server) server.textContent = 'Không phản hồi · thử Làm mới';
+        }
+    }
+
     async function loadDashboard() {
         const requestId = ++state.dashboardRequestId;
         let data = null;
+        const startedAt = performance.now();
         try {
             data = await Auth.request('/api/admin/dashboard');
             if (requestId !== state.dashboardRequestId) return;
@@ -327,14 +346,14 @@
             if (requestId !== state.dashboardRequestId) return;
             console.warn('Không tải được dữ liệu tổng quan:', error.message);
             showToast('Không tải được tổng quan. ' + error.message, 'error');
-            $('.admin-live').textContent = 'Chưa cập nhật được dữ liệu';
+            setLiveStatus(false);
             return;
         }
+        setLiveStatus(true, performance.now() - startedAt);
         renderDashboardData(data);
     }
 
     function renderDashboardData(data) {
-        $('.admin-live').textContent = 'Dữ liệu vừa cập nhật';
         const metrics = data.metrics || {};
         cachedMetricsData = metrics;
         cachedFunnelData = data.funnel || {};
@@ -2898,6 +2917,15 @@
         $('#adminLogout').addEventListener('click', async (event)=>{const button=event.currentTarget;button.disabled=true;button.textContent='Đang đăng xuất…';await Auth.logout();});
         $$('[data-close-dialog]').forEach((button)=>button.addEventListener('click',()=>document.getElementById(button.dataset.closeDialog).close()));
     }
+
+    // API nhỏ cho admin-plus.js (bảng lệnh, phím tắt, tự làm mới).
+    window.BadmintonAdmin = {
+        views: () => ({ ...pageTitles }),
+        currentView: () => state.currentView,
+        activateView: (view) => activateView(view),
+        refresh: () => activateView(state.currentView, true),
+        role: () => state.admin?.role || null
+    };
 
     async function init(){
         let admin = null;

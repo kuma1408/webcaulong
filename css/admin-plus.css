@@ -1,0 +1,134 @@
+/* =============================================================
+   ADMIN PLUS — giao diện cho bảng lệnh, sắp xếp bảng, chuyển mục
+   ============================================================= */
+:root {
+    --ap-card: var(--bs-card, #fffdfb);
+    --ap-ink: var(--bs-ink, #2b1c17);
+    --ap-muted: var(--bs-muted, #765f56);
+    --ap-line: var(--bs-line, #ead5cc);
+    --ap-accent: #ff5a1f;
+    --ap-accent-2: #ff9d4d;
+    --ap-ease: cubic-bezier(.22, 1, .36, 1);
+}
+
+@keyframes ap-panel-in { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }
+@keyframes ap-card-in { from { opacity: 0; translate: 0 18px; scale: .985; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@keyframes ap-row-in { from { opacity: 0; translate: -10px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes ap-palette-in { from { opacity: 0; translate: 0 -14px; scale: .97; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@keyframes ap-item-in { from { opacity: 0; translate: 0 6px; } to { opacity: 1; translate: 0 0; } }
+@keyframes ap-dot-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, .55); } 50% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } }
+@keyframes ap-dot-alert { 0%, 100% { box-shadow: 0 0 0 0 rgba(239, 51, 64, .6); } 50% { box-shadow: 0 0 0 6px rgba(239, 51, 64, 0); } }
+@keyframes ap-shine { from { background-position: 200% 0; } to { background-position: -100% 0; } }
+
+/* ---------- Trạng thái kết nối thật ---------- */
+.admin-live.is-offline { color: #ef3340 !important; }
+.admin-live.is-offline::before { background: #ef3340 !important; box-shadow: 0 0 8px #ef3340 !important; }
+.live-status-dot.is-offline { background: #ef3340 !important; animation: ap-dot-alert 1.4s ease-in-out infinite !important; }
+
+/* ---------- Nút mở bảng lệnh ---------- */
+.ap-palette-trigger {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 10px 0 13px;
+    border: 1px solid var(--ap-line); border-radius: 12px; background: color-mix(in srgb, var(--ap-card) 80%, transparent);
+    color: var(--ap-muted); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+    transition: border-color .25s ease, color .25s ease, box-shadow .25s ease, translate .25s var(--ap-ease);
+}
+.ap-palette-trigger:hover, .ap-palette-trigger:focus-visible { border-color: var(--ap-accent); color: var(--ap-ink); box-shadow: 0 8px 22px rgba(255, 90, 31, .18); translate: 0 -1px; }
+.ap-palette-trigger kbd, .ap-palette kbd {
+    display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px;
+    border: 1px solid var(--ap-line); border-bottom-width: 2px; border-radius: 6px;
+    background: color-mix(in srgb, var(--ap-card) 70%, transparent); color: var(--ap-muted); font: 700 10px/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+@media (max-width: 720px) { .ap-palette-trigger__text, .ap-palette-trigger kbd { display: none; } }
+
+/* ---------- Bảng lệnh ---------- */
+.ap-palette { position: fixed; inset: 0; z-index: 100000; display: grid; justify-items: center; align-items: start; padding: min(14vh, 120px) 16px 16px; }
+.ap-palette[hidden] { display: none; }
+.ap-palette__backdrop { position: absolute; inset: 0; background: rgba(10, 8, 12, .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; transition: opacity .18s ease; }
+.ap-palette.is-open .ap-palette__backdrop { opacity: 1; }
+.ap-palette__panel {
+    position: relative; width: min(620px, 100%); max-height: min(560px, 76vh); display: flex; flex-direction: column; overflow: hidden;
+    border: 1px solid var(--ap-line); border-radius: 20px; background: var(--ap-card); color: var(--ap-ink);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .38), 0 0 0 1px rgba(255, 90, 31, .08);
+    opacity: 0;
+}
+.ap-palette.is-open .ap-palette__panel { animation: ap-palette-in .26s var(--ap-ease) forwards; }
+.ap-palette__panel::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--ap-accent), var(--ap-accent-2), transparent) 0 0 / 200% 100%; animation: ap-shine 2.6s linear infinite; }
+.ap-palette__search { display: flex; align-items: center; gap: 10px; padding: 16px 18px; border-bottom: 1px solid var(--ap-line); }
+.ap-palette__search > span { color: var(--ap-accent); font-size: 18px; }
+.ap-palette__search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--ap-ink); font: inherit; font-size: 15px; }
+.ap-palette__search input::placeholder { color: var(--ap-muted); }
+.ap-palette__list { flex: 1; margin: 0; padding: 8px; overflow: auto; list-style: none; overscroll-behavior: contain; }
+.ap-palette__group { padding: 10px 10px 6px; color: var(--ap-muted); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.ap-palette__item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 650;
+    transition: background-color .15s ease, color .15s ease, translate .2s var(--ap-ease);
+    animation: ap-item-in .3s var(--ap-ease) both; animation-delay: calc(var(--ap-i, 0) * 18ms);
+}
+.ap-palette__item kbd { margin-left: auto; }
+.ap-palette__item.is-active { background: linear-gradient(90deg, rgba(255, 90, 31, .16), rgba(255, 157, 77, .06)); color: var(--ap-ink); translate: 3px 0; }
+.ap-palette__item.is-active .ap-palette__icon { background: linear-gradient(135deg, var(--ap-accent), var(--ap-accent-2)); color: #fff; scale: 1.06; }
+.ap-palette__icon { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 9px; background: color-mix(in srgb, var(--ap-accent) 12%, transparent); color: var(--ap-accent); font-size: 14px; transition: background .2s ease, color .2s ease, scale .2s var(--ap-ease); }
+.ap-palette__empty { padding: 28px 12px; color: var(--ap-muted); text-align: center; font-size: 13px; }
+.ap-palette__foot { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 11px 16px; border-top: 1px solid var(--ap-line); color: var(--ap-muted); font-size: 11px; }
+.ap-palette__foot span { display: inline-flex; align-items: center; gap: 4px; }
+
+/* ---------- Sắp xếp bảng ---------- */
+.ap-sortable { cursor: pointer; user-select: none; white-space: nowrap; transition: color .2s ease; }
+.ap-sortable::after { content: "↕"; display: inline-block; margin-left: 6px; opacity: .28; font-size: .9em; transition: opacity .2s ease, rotate .3s var(--ap-ease); }
+.ap-sortable:hover::after, .ap-sortable:focus-visible::after { opacity: .7; }
+.ap-sortable:hover, .ap-sortable[aria-sort] { color: var(--ap-accent) !important; }
+.ap-sortable[aria-sort="ascending"]::after { content: "↑"; opacity: 1; }
+.ap-sortable[aria-sort="descending"]::after { content: "↓"; opacity: 1; }
+.ap-sortable:focus-visible { outline: 2px solid var(--ap-accent); outline-offset: -2px; }
+
+/* Tiêu đề bảng dính khi cuộn trong vùng bảng */
+.admin-table-wrap { scroll-behavior: smooth; }
+.admin-table-wrap thead th { position: sticky; top: 0; z-index: 2; background: var(--ap-card); }
+.admin-table-wrap tbody tr { transition: background-color .2s ease, box-shadow .2s ease; }
+.admin-table-wrap tbody tr:hover { background: color-mix(in srgb, var(--ap-accent) 6%, transparent); box-shadow: inset 3px 0 0 var(--ap-accent); }
+
+/* ---------- Chỉ báo mục đang chọn trong sidebar ---------- */
+#adminNavigation { position: relative; }
+.ap-nav-indicator {
+    position: absolute; left: 0; top: 0; width: 3px; height: 0; border-radius: 3px; pointer-events: none; opacity: 0;
+    background: linear-gradient(180deg, var(--ap-accent), var(--ap-accent-2)); box-shadow: 0 0 12px rgba(255, 90, 31, .6);
+    transition: transform .45s var(--ap-ease), height .45s var(--ap-ease), opacity .3s ease;
+}
+
+/* ---------- Nút tự làm mới ---------- */
+.ap-auto { display: inline-flex; align-items: center; gap: 7px; font-variant-numeric: tabular-nums; }
+.ap-auto__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ap-muted); opacity: .6; transition: background .3s ease, opacity .3s ease; }
+.ap-auto[aria-pressed="true"] { border-color: rgba(16, 185, 129, .55) !important; }
+.ap-auto[aria-pressed="true"] .ap-auto__dot { background: #10b981; opacity: 1; animation: ap-dot-pulse 1.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: no-preference) {
+    /* Chuyển mục: khung mục trượt lên, các thẻ con xuất hiện lần lượt */
+    .ap-panel-in { animation: ap-panel-in .42s var(--ap-ease) backwards; }
+    .ap-panel-in > :is(.admin-card, .admin-approval-intro, .stat-grid, .admin-metrics, .admin-table-card, .admin-toolbar, .admin-kpi-row, div) { animation: ap-card-in .5s var(--ap-ease) backwards; }
+    .ap-panel-in > :nth-child(2) { animation-delay: .05s; }
+    .ap-panel-in > :nth-child(3) { animation-delay: .1s; }
+    .ap-panel-in > :nth-child(4) { animation-delay: .15s; }
+    .ap-panel-in > :nth-child(n+5) { animation-delay: .2s; }
+    .ap-row-in { animation: ap-row-in .42s var(--ap-ease) backwards; animation-delay: calc(var(--ap-row, 0) * 22ms); }
+
+    /* Nút sidebar: biểu tượng nhích nhẹ khi hover */
+    #adminNavigation [data-admin-view] > span { display: inline-block; transition: scale .3s var(--ap-ease), rotate .3s var(--ap-ease); }
+    #adminNavigation [data-admin-view]:hover > span { scale: 1.18; rotate: -8deg; }
+    #adminNavigation [data-admin-view] em:not([hidden]) { animation: ap-dot-alert 2s ease-in-out infinite; }
+
+    /* Hộp thoại mở ra mượt hơn */
+    dialog.admin-dialog[open] { animation: ap-palette-in .3s var(--ap-ease); }
+    dialog.admin-dialog[open]::backdrop { animation: ap-panel-in .3s ease; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ap-palette__panel { opacity: 1; }
+    .ap-palette.is-open .ap-palette__panel, .ap-palette__item, .ap-palette__panel::before { animation: none !important; }
+}
+
+/* ---------- Sửa lỗi bố cục bảng & KPI ---------- */
+/* Cột thao tác quá hẹp khiến 4 nút xếp chồng 4 hàng (dòng cao ~210px): xếp thành lưới 2 cột gọn. */
+.admin-table-wrap td .admin-row-actions { display: grid !important; grid-template-columns: repeat(2, max-content); gap: 6px; min-width: 176px; justify-content: start; }
+.admin-table-wrap td .admin-row-actions > * { white-space: nowrap; }
+/* Số KPI nhiều chữ số không được xuống dòng ("7 / 5"). */
+.admin-kpi-card > strong, .stat-card .value, .admin-metrics .value { white-space: nowrap; font-variant-numeric: tabular-nums; }

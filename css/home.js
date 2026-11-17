@@ -642,17 +642,33 @@
 
     let allSuggestedProducts = [];
     let currentProductPage = 0;
-    const SUGGEST_PAGE_SIZE = 4;
+    let suggestPageSize = 4;
+    let productSlideDirection = 0;
+
+    // Số thẻ mỗi trang khớp với số cột thực tế của lưới để không còn thẻ lẻ xuống dòng.
+    function measureSuggestPageSize() {
+        const track = selectors.productTrack;
+        if (!track) return 4;
+        const columns = getComputedStyle(track).gridTemplateColumns.split(' ').filter(Boolean).length || 4;
+        if (columns >= 3) return columns;
+        return columns === 2 ? 4 : 2;
+    }
 
     function renderCurrentProductPage() {
         if (!selectors.productTrack) return;
-        const start = currentProductPage * SUGGEST_PAGE_SIZE;
-        const pageItems = allSuggestedProducts.slice(start, start + SUGGEST_PAGE_SIZE);
+        suggestPageSize = measureSuggestPageSize();
+        const totalPages = Math.max(1, Math.ceil(allSuggestedProducts.length / suggestPageSize));
+        currentProductPage = Math.min(currentProductPage, totalPages - 1);
+        const start = currentProductPage * suggestPageSize;
+        const pageItems = allSuggestedProducts.slice(start, start + suggestPageSize);
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const enterName = productSlideDirection > 0 ? 'bs-slide-in-right' : productSlideDirection < 0 ? 'bs-slide-in-left' : 'adm-card-in';
         const cards = pageItems.map(function (item, idx) {
             const card = productCard(item);
-            card.style.animation = `adm-card-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 0.06}s both`;
+            if (!reduceMotion) card.style.animation = `${enterName} 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 0.07}s both`;
             return card;
         });
+        productSlideDirection = 0;
         selectors.productTrack.classList.remove('is-error');
         selectors.productTrack.replaceChildren(...cards);
         selectors.productTrack.setAttribute('aria-busy', 'false');
@@ -746,7 +762,7 @@
     }
 
     function updateSliderState() {
-        const totalPages = Math.max(1, Math.ceil(allSuggestedProducts.length / SUGGEST_PAGE_SIZE));
+        const totalPages = Math.max(1, Math.ceil(allSuggestedProducts.length / suggestPageSize));
         if (selectors.productPrev) selectors.productPrev.disabled = currentProductPage <= 0;
         if (selectors.productNext) selectors.productNext.disabled = currentProductPage >= totalPages - 1;
         if (selectors.productProgress) {
@@ -756,12 +772,24 @@
 
     function setupProductControls() {
         function switchPage(direction) {
-            const totalPages = Math.max(1, Math.ceil(allSuggestedProducts.length / SUGGEST_PAGE_SIZE));
+            const totalPages = Math.max(1, Math.ceil(allSuggestedProducts.length / suggestPageSize));
             const nextPage = Math.min(totalPages - 1, Math.max(0, currentProductPage + direction));
             if (nextPage === currentProductPage) return;
             currentProductPage = nextPage;
+            productSlideDirection = direction;
             renderCurrentProductPage();
         }
+        let resizeFrame = 0;
+        window.addEventListener('resize', function () {
+            if (resizeFrame) return;
+            resizeFrame = window.requestAnimationFrame(function () {
+                resizeFrame = 0;
+                if (allSuggestedProducts.length && measureSuggestPageSize() !== suggestPageSize) {
+                    currentProductPage = Math.floor((currentProductPage * suggestPageSize) / measureSuggestPageSize());
+                    renderCurrentProductPage();
+                }
+            });
+        }, { passive: true });
         selectors.productPrev?.addEventListener('click', function () { switchPage(-1); });
         selectors.productNext?.addEventListener('click', function () { switchPage(1); });
         updateSliderState();
