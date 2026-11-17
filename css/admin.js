@@ -98,6 +98,40 @@
         const parsed = new Date(String(value).replace(' ', 'T'));
         return Number.isNaN(parsed.getTime()) ? String(value) : dateTimeFull.format(parsed);
     }
+    function relativeTime(value) {
+        if (!value) return '—';
+        const parsed = new Date(String(value).replace(' ', 'T'));
+        if (Number.isNaN(parsed.getTime())) return String(value);
+        const seconds = Math.round((Date.now() - parsed.getTime()) / 1000);
+        if (seconds < 45) return 'vừa xong';
+        if (seconds < 3600) return `${Math.round(seconds / 60)} phút trước`;
+        if (seconds < 86400) return `${Math.round(seconds / 3600)} giờ trước`;
+        if (seconds < 7 * 86400) return `${Math.round(seconds / 86400)} ngày trước`;
+        return formatDate(value);
+    }
+    function copyButton(text, label) {
+        const button = element('button', 'ap-copy', '⧉');
+        button.type = 'button';
+        button.title = label;
+        button.setAttribute('aria-label', label);
+        button.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(String(text));
+                button.classList.add('is-done'); button.textContent = '✓';
+                showToast(`Đã sao chép “${text}”.`, 'success');
+                setTimeout(() => { button.classList.remove('is-done'); button.textContent = '⧉'; }, 1400);
+            } catch (_) { showToast('Trình duyệt không cho phép sao chép tự động.', 'error'); }
+        });
+        return button;
+    }
+    function activityMeta(action) {
+        const key = String(action || '').toUpperCase();
+        if (/CREATE|THEM|TAO/.test(key)) return { label: 'Tạo mới', icon: '＋', pill: 'v2-pill--success', color: '#4ade80' };
+        if (/DELETE|XOA|HIDE|NGUNG/.test(key)) return { label: 'Xóa / ẩn', icon: '−', pill: 'v2-pill--danger', color: '#f87171' };
+        if (/STATUS|DUYET|APPROVE|REJECT|KHOA|LOCK/.test(key)) return { label: 'Đổi trạng thái', icon: '⇄', pill: 'v2-pill--violet', color: '#a78bfa' };
+        if (/UPDATE|SUA|EDIT/.test(key)) return { label: 'Cập nhật', icon: '✎', pill: 'v2-pill--info', color: '#60a5fa' };
+        return { label: action || 'Thao tác', icon: '•', pill: 'v2-pill--warning', color: '#fbbf24' };
+    }
     function cubicEase(t) {
         return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
     }
@@ -1697,7 +1731,10 @@
             const avatar = userAvatar(order); avatar.classList.add('admin-list-item__avatar');
             row.appendChild(avatar);
             const info = element('div');
-            info.append(element('strong', '', order.HoTen || order.TenDangNhap), element('span', '', `${formatDate(order.NgayDat)} · ${statusMeta[order.TrangThai]?.[0] || order.TrangThai}`));
+            const meta = element('span', '', `#${order.MaDH} · ${relativeTime(order.NgayDat)}`);
+            meta.title = formatDateFull(order.NgayDat);
+            meta.appendChild(badge(order.TrangThai));
+            info.append(element('strong', '', order.HoTen || order.TenDangNhap), meta);
             row.append(info, element('strong', 'admin-list-item__value', formatMoney(order.TongTien)));
             list.appendChild(row);
         });
@@ -1715,7 +1752,9 @@
             image.src = safeImage(product.HinhAnh); image.alt = ''; image.loading = 'lazy';
             const info = element('div');
             info.append(element('strong', '', product.TenSP), element('span', '', `Mã sản phẩm #${product.MaSP}`));
-            row.append(image, info, element('strong', 'admin-list-item__value', `Còn ${product.TonKho}`));
+            const stock = Number(product.TonKho) || 0;
+            const pill = element('span', `admin-list-item__value v2-pill ${stock <= 0 ? 'v2-pill--danger' : stock <= 3 ? 'v2-pill--warning' : 'v2-pill--info'}`, stock <= 0 ? 'Hết hàng' : `Còn ${stock}`);
+            row.append(image, info, pill);
             list.appendChild(row);
         });
     }
@@ -1728,14 +1767,20 @@
             const row = element('div', 'admin-list-item');
             row.style.animation = 'adminRowIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both';
             row.style.animationDelay = `${index * 0.04}s`;
-            const avatar = userAvatar(item); avatar.classList.add('admin-list-item__avatar');
+            const action = activityMeta(item.HanhDong);
+            const icon = element('span', 'v2-activity-icon', action.icon);
+            icon.style.setProperty('--pill', action.color);
+            icon.setAttribute('aria-hidden', 'true');
             const info = element('div');
-            const target = item.MaDoiTuong ? `${item.DoiTuong} #${item.MaDoiTuong}` : item.DoiTuong;
-            info.append(
-                element('strong', '', `${item.HanhDong} · ${target || 'Hệ thống'}`),
-                element('span', '', `${item.HoTen || item.TenDangNhap} · ${formatDate(item.NgayTao)}`)
-            );
-            row.append(avatar, info, element('strong', 'admin-list-item__value', 'LIVE'));
+            const objectName = { SanPham: 'sản phẩm', DonHang: 'đơn hàng', NguoiDung: 'người dùng', Voucher: 'voucher', BaiViet: 'bài viết', NapTien: 'yêu cầu nạp tiền', HoTro: 'phiếu hỗ trợ' }[item.DoiTuong] || item.DoiTuong || 'hệ thống';
+            let detailName = '';
+            try { const detail = typeof item.ChiTiet === 'string' ? JSON.parse(item.ChiTiet) : item.ChiTiet; detailName = detail?.name || detail?.ten || detail?.code || ''; } catch (_) { detailName = ''; }
+            const title = `${action.label} ${objectName}${item.MaDoiTuong ? ` #${item.MaDoiTuong}` : ''}${detailName ? ` · ${detailName}` : ''}`;
+            const meta = element('span', '', `${item.HoTen || item.TenDangNhap || 'Quản trị viên'} · ${relativeTime(item.NgayTao)}`);
+            meta.title = formatDateFull(item.NgayTao);
+            info.append(element('strong', '', title), meta);
+            const pill = element('span', `admin-list-item__value v2-pill ${action.pill}`, action.label);
+            row.append(icon, info, pill);
             list.appendChild(row);
         });
     }
@@ -2577,7 +2622,7 @@
         emptyRow($('#voucherRows'), 7, 'Không tải được dữ liệu. ' + error.message);
         state.loaded.delete('vouchers');
     }}
-    function renderVouchers(){const tbody=$('#voucherRows');tbody.innerHTML='';if(!state.vouchers.length){emptyRow(tbody,7,'Chưa có voucher.');return;}state.vouchers.forEach(v=>{const row=element('tr');let value=formatMoney(v.GiaTri);if(v.LoaiGiam==='PHAN_TRAM'){value=`${Number(v.GiaTri)}%`;if(v.GiamToiDa)value+=` · tối đa ${formatMoney(v.GiamToiDa)}`;}row.append(element('td','',v.MaVoucher),element('td','',value),element('td','',formatMoney(v.DonToiThieu)),element('td','',`${v.DaSuDung}/${v.SoLuong}`),element('td','',v.NgayHetHan?formatDate(v.NgayHetHan):'Không giới hạn'));const status=element('td');status.append(element('span',`admin-badge ${v.TrangThai?'admin-badge--success':'admin-badge--danger'}`,v.TrangThai?'Hoạt động':'Tạm tắt'));row.append(status);const action=element('td');const toggle=element('button',v.TrangThai?'danger':'',v.TrangThai?'Tắt':'Bật');toggle.type='button';toggle.addEventListener('click',async()=>{try{const data=await Auth.request(`/api/admin/vouchers/${encodeURIComponent(v.MaVoucher)}`,{method:'PATCH',json:{active:!Boolean(v.TrangThai)}});showToast(data.message,'success');loadVouchers();}catch(error){showToast(error.message,'error');}});action.append(toggle);row.append(action);tbody.append(row);});updateVoucherKpis(state.vouchers);}
+    function renderVouchers(){const tbody=$('#voucherRows');tbody.innerHTML='';if(!state.vouchers.length){emptyRow(tbody,7,'Chưa có voucher.');return;}state.vouchers.forEach(v=>{const row=element('tr');let value=formatMoney(v.GiaTri);if(v.LoaiGiam==='PHAN_TRAM'){value=`${Number(v.GiaTri)}%`;if(v.GiamToiDa)value+=` · tối đa ${formatMoney(v.GiamToiDa)}`;}const codeCell=element('td');codeCell.append(element('span','v2-code',v.MaVoucher),copyButton(v.MaVoucher,'Sao chép mã voucher'));const used=Number(v.DaSuDung)||0;const total=Math.max(1,Number(v.SoLuong)||0);const usage=element('td');const usageBox=element('div','v2-usage');const bar=element('div','v2-usage__bar');const fill=element('i',used>=total?'is-full':'');fill.style.width=`${Math.min(100,Math.round(used/total*100))}%`;bar.appendChild(fill);usageBox.append(element('span','',`${used}/${v.SoLuong} lượt`),bar);usage.appendChild(usageBox);const expired=v.NgayHetHan&&new Date(String(v.NgayHetHan).replace(' ','T')).getTime()<Date.now();const soldOut=used>=total;row.append(codeCell,element('td','',value),element('td','',formatMoney(v.DonToiThieu)),usage,element('td','',v.NgayHetHan?formatDate(v.NgayHetHan):'Không giới hạn'));const status=element('td');status.append(element('span',`admin-badge ${!v.TrangThai||expired||soldOut?'admin-badge--danger':'admin-badge--success'}`,!v.TrangThai?'Tạm tắt':expired?'Hết hạn':soldOut?'Hết lượt':'Hoạt động'));row.append(status);const action=element('td');const toggle=element('button',v.TrangThai?'danger':'',v.TrangThai?'Tắt':'Bật');toggle.type='button';toggle.addEventListener('click',async()=>{try{const data=await Auth.request(`/api/admin/vouchers/${encodeURIComponent(v.MaVoucher)}`,{method:'PATCH',json:{active:!Boolean(v.TrangThai)}});showToast(data.message,'success');loadVouchers();}catch(error){showToast(error.message,'error');}});action.append(toggle);row.append(action);tbody.append(row);});updateVoucherKpis(state.vouchers);}
     function openVoucherDialog(){const form=$('#voucherForm');form.reset();$('#voucherQuantity').value='100';$('#voucherMinimum').value='0';$('#voucherActive').checked=true;setStatus($('#voucherFormStatus'));$('#voucherDialog').showModal();}
     async function saveVoucher(event){event.preventDefault();const payload={code:$('#voucherCode').value.trim().toUpperCase(),type:$('#voucherType').value,value:$('#voucherValue').value,maximum:$('#voucherMaximum').value||null,minimum:$('#voucherMinimum').value||0,quantity:$('#voucherQuantity').value,starts_at:$('#voucherStarts').value||null,expires_at:$('#voucherExpires').value||null,active:$('#voucherActive').checked};const button=$('#voucherSave');setBusy(button,true,'Đang tạo…');try{const data=await Auth.request('/api/admin/vouchers',{method:'POST',json:payload});$('#voucherDialog').close();showToast(data.message,'success');loadVouchers();}catch(error){setStatus($('#voucherFormStatus'),error.message);}finally{setBusy(button,false);}}
 
@@ -2950,7 +2995,10 @@
         $('#adminMain').setAttribute('aria-busy', 'false');
         installEvents();
         const requested = window.location.hash.slice(1);
-        activateView(pageTitles[requested] ? requested : 'overview', true);
+        const firstView = pageTitles[requested] ? requested : 'overview';
+        activateView(firstView, true);
+        // Mở thẳng một mục khác: vẫn tải tổng quan nền để có số đếm trên sidebar và trạng thái máy chủ.
+        if (firstView !== 'overview') { state.loaded.add('overview'); loadDashboard(); }
     }
     init();
 })();

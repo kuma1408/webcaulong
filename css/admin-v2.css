@@ -1,0 +1,264 @@
+/* =============================================================
+   ADMIN V2 — lớp giao diện thống nhất, nạp SAU CÙNG trên admin.html
+   Trang admin trước đây chồng 7 tệp CSS (admin, dashboard-fx, admin-theme,
+   admin-polish, admin-refinements…) định nghĩa lại cùng một thành phần theo
+   nhiều cách khác nhau (flex / grid / !important), gây chữ bị bẻ dòng, số
+   tràn khỏi thẻ, giá trị không căn phải, nút kích thước lộn xộn.
+   Tệp này là nguồn sự thật cuối cùng cho các thành phần dùng chung.
+   ============================================================= */
+html body.admin-body {
+    --v2-accent: #ff5a1f;
+    --v2-accent-2: #ff9d4d;
+    --v2-surface: var(--bs-card, #16202c);
+    --v2-surface-2: color-mix(in srgb, var(--bs-card, #16202c) 82%, var(--bs-bg, #0d141c));
+    --v2-line: color-mix(in srgb, var(--bs-line, #2a3542) 85%, transparent);
+    --v2-ink: var(--bs-ink, #eef2f7);
+    --v2-muted: var(--bs-muted, #8c99a8);
+    --v2-radius: 16px;
+    --v2-ease: cubic-bezier(.22, 1, .36, 1);
+    --v2-success: #16a34a;
+    --v2-warning: #f59e0b;
+    --v2-danger: #ef4444;
+    --v2-info: #3b82f6;
+}
+
+/* ---------- Sidebar: bỏ đốm sáng trôi nổi, thêm nhóm mục ---------- */
+html body.admin-body .admin-sidebar::before,
+html body.admin-body .admin-sidebar::after { content: none !important; display: none !important; }
+html body.admin-body .admin-nav__label {
+    display: block; margin: 14px 12px 6px; color: var(--v2-muted); font-size: 10px; font-weight: 800;
+    letter-spacing: .12em; text-transform: uppercase; opacity: .75; pointer-events: none;
+}
+html body.admin-body .admin-nav__label:first-child { margin-top: 2px; }
+html body.admin-body .admin-nav.is-collapsed .admin-nav__label { display: none; }
+@media (min-width: 821px) { html body.admin-body .admin-nav.is-collapsed .admin-nav__label { display: block; } }
+
+/* ---------- Thẻ KPI ở mọi mục: bố cục dọc rõ ràng ---------- */
+html body.admin-body .admin-kpi-grid {
+    display: grid !important; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important; gap: 14px !important;
+}
+html body.admin-body .admin-kpi-card {
+    display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-areas: "label icon" "value value" "hint hint" !important;
+    align-items: center !important; gap: 4px 12px !important; min-width: 0;
+    padding: 16px 18px 16px 20px !important; border-radius: var(--v2-radius) !important;
+    border: 1px solid var(--v2-line) !important; background: var(--v2-surface) !important;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 10px 26px rgba(0, 0, 0, .12) !important;
+    backdrop-filter: none !important; opacity: 1 !important;
+    animation: v2-rise .5s var(--v2-ease) backwards !important;
+}
+html body.admin-body .admin-kpi-card:nth-child(2) { animation-delay: .05s !important; }
+html body.admin-body .admin-kpi-card:nth-child(3) { animation-delay: .1s !important; }
+html body.admin-body .admin-kpi-card:nth-child(4) { animation-delay: .15s !important; }
+/* Thanh màu nhận diện bên trái thay cho các vòng tròn trang trí */
+html body.admin-body .admin-kpi-card::before {
+    content: "" !important; position: absolute !important; inset: 14px auto 14px 0 !important; z-index: 1 !important;
+    width: 3px !important; height: auto !important; border-radius: 0 3px 3px 0 !important;
+    background: var(--kpi-color, var(--v2-accent)) !important; transform: none !important; opacity: .9;
+}
+html body.admin-body .admin-kpi-card::after { content: none !important; }
+html body.admin-body .admin-kpi-card .metric-spark { display: none !important; }
+html body.admin-body .admin-kpi-card__head { display: contents !important; }
+html body.admin-body .admin-kpi-card__head > span:first-child {
+    grid-area: label; max-width: none !important; margin: 0 !important; color: var(--v2-muted) !important;
+    font-size: 11px !important; font-weight: 800 !important; letter-spacing: .06em; line-height: 1.35 !important;
+    text-transform: uppercase !important; overflow-wrap: normal !important; word-break: normal !important;
+}
+html body.admin-body .admin-kpi-card .admin-kpi-icon {
+    grid-area: icon; width: 38px !important; height: 38px !important; border-radius: 11px !important; font-size: 17px !important;
+    background: color-mix(in srgb, var(--kpi-color, var(--v2-accent)) 14%, transparent) !important;
+    border-color: color-mix(in srgb, var(--kpi-color, var(--v2-accent)) 30%, transparent) !important;
+}
+html body.admin-body .admin-kpi-card > strong {
+    grid-area: value; display: block; min-width: 0; margin: 6px 0 0 !important; color: var(--v2-ink) !important;
+    font-size: clamp(22px, 1.9vw, 30px) !important; font-weight: 850 !important; line-height: 1.15 !important;
+    letter-spacing: -.02em; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis;
+    overflow-wrap: normal !important; word-break: normal !important; font-variant-numeric: tabular-nums;
+}
+html body.admin-body .admin-kpi-card > small {
+    grid-area: hint; display: block; margin: 0 !important; color: var(--v2-muted) !important; font-size: 12px !important; line-height: 1.4 !important;
+}
+html body.admin-body .admin-kpi-card:hover { transform: translateY(-3px) !important; border-color: color-mix(in srgb, var(--kpi-color, var(--v2-accent)) 55%, var(--v2-line)) !important; }
+html body.admin-body .admin-kpi-card[data-tone="red"] { --kpi-color: #ef4444; }
+html body.admin-body .admin-kpi-card[data-tone="orange"] { --kpi-color: #ff7a1a; }
+html body.admin-body .admin-kpi-card[data-tone="gold"] { --kpi-color: #eab308; }
+html body.admin-body .admin-kpi-card[data-tone="violet"] { --kpi-color: #8b5cf6; }
+html body.admin-body .admin-kpi-card[data-tone="green"], html body.admin-body .admin-kpi-card[data-tone="success"] { --kpi-color: #22c55e; }
+html body.admin-body .admin-kpi-card[data-tone="blue"], html body.admin-body .admin-kpi-card[data-tone="info"] { --kpi-color: #3b82f6; }
+html body.admin-body .admin-kpi-card[data-tone="teal"] { --kpi-color: #14b8a6; }
+html body.admin-body .admin-kpi-card[data-tone="danger"] { --kpi-color: #ef4444; }
+html body.admin-body .admin-kpi-card[data-tone="warning"] { --kpi-color: #f59e0b; }
+
+/* Thẻ chỉ số trang tổng quan: luôn hiển thị, không chờ JS gắn "animation-done" */
+html body.admin-body .stat-grid .stat-card { opacity: 1 !important; filter: none !important; animation: v2-rise .5s var(--v2-ease) backwards !important; }
+html body.admin-body .stat-grid .stat-card .value { white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- Danh sách ở tổng quan: giá trị luôn căn phải ---------- */
+html body.admin-body .admin-list-item {
+    display: grid !important; grid-template-columns: 40px minmax(0, 1fr) auto !important; align-items: center !important;
+    gap: 12px !important; min-height: 64px; padding: 10px 16px !important; border-bottom: 1px solid var(--v2-line) !important;
+    border-radius: 12px; transform: none !important;
+}
+html body.admin-body .admin-list-item:last-child { border-bottom: 0 !important; }
+html body.admin-body .admin-list-item:hover { background: color-mix(in srgb, var(--v2-accent) 6%, transparent) !important; }
+html body.admin-body .admin-list-item > img,
+html body.admin-body .admin-list-item > .admin-list-item__avatar { width: 40px !important; height: 40px !important; border-radius: 11px !important; }
+html body.admin-body .admin-list-item > div { min-width: 0; }
+html body.admin-body .admin-list-item > div > strong { font-size: 13px !important; color: var(--v2-ink) !important; }
+html body.admin-body .admin-list-item > div > span { display: flex !important; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px; font-size: 12px !important; white-space: normal !important; }
+html body.admin-body .admin-list-item__value { justify-self: end; font-size: 13px !important; font-weight: 800 !important; color: var(--v2-ink) !important; white-space: nowrap; font-variant-numeric: tabular-nums; }
+html body.admin-body .admin-list-item .admin-badge { font-size: 11px !important; }
+html body.admin-body .admin-list-item__value.v2-pill { color: var(--pill) !important; font-size: 11px !important; }
+
+/* Nhãn tồn kho / hành động */
+html body.admin-body .v2-pill {
+    display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; white-space: nowrap;
+    background: color-mix(in srgb, var(--pill, var(--v2-muted)) 14%, transparent); color: var(--pill, var(--v2-muted));
+    border: 1px solid color-mix(in srgb, var(--pill, var(--v2-muted)) 30%, transparent);
+}
+html body.admin-body .v2-pill--danger { --pill: #f87171; }
+html body.admin-body .v2-pill--warning { --pill: #fbbf24; }
+html body.admin-body .v2-pill--success { --pill: #4ade80; }
+html body.admin-body .v2-pill--info { --pill: #60a5fa; }
+html body.admin-body .v2-pill--violet { --pill: #a78bfa; }
+:root[data-theme="light"] body.admin-body .v2-pill--danger { --pill: #dc2626; }
+:root[data-theme="light"] body.admin-body .v2-pill--warning { --pill: #b45309; }
+:root[data-theme="light"] body.admin-body .v2-pill--success { --pill: #15803d; }
+:root[data-theme="light"] body.admin-body .v2-pill--info { --pill: #1d4ed8; }
+:root[data-theme="light"] body.admin-body .v2-pill--violet { --pill: #6d28d9; }
+
+/* ---------- Bảng: nút thao tác đồng bộ kích thước ---------- */
+html body.admin-body .admin-table-wrap table { border-collapse: separate; border-spacing: 0; }
+html body.admin-body .admin-table-wrap thead th { font-size: 11px !important; letter-spacing: .06em; padding-top: 13px !important; padding-bottom: 13px !important; }
+html body.admin-body .admin-table-wrap tbody td { vertical-align: middle; }
+html body.admin-body .admin-table-wrap td .admin-row-actions { display: flex !important; flex-wrap: wrap; gap: 6px !important; min-width: 180px; align-items: center; }
+html body.admin-body .admin-table-wrap td .admin-row-actions > :is(button, a),
+html body.admin-body .admin-table-wrap td > :is(button, a):not(.ap-copy),
+html body.admin-body .admin-table-wrap .admin-detail-button {
+    display: inline-flex !important; align-items: center !important; justify-content: center; gap: 6px; height: 32px !important; min-height: 0 !important;
+    padding: 0 12px !important; border: 1px solid var(--v2-line) !important; border-radius: 9px !important;
+    background: var(--v2-surface-2) !important; color: var(--v2-ink) !important; font: inherit; font-size: 12px !important; font-weight: 750 !important;
+    line-height: 1 !important; white-space: nowrap !important; text-decoration: none !important; cursor: pointer; box-shadow: none !important;
+    transition: border-color .2s ease, background-color .2s ease, color .2s ease, translate .2s var(--v2-ease) !important;
+}
+html body.admin-body .admin-table-wrap td .admin-row-actions > :is(button, a):hover,
+html body.admin-body .admin-table-wrap td > :is(button, a):not(.ap-copy):hover,
+html body.admin-body .admin-table-wrap .admin-detail-button:hover { border-color: var(--v2-accent) !important; color: var(--v2-accent-2) !important; translate: 0 -1px; }
+html body.admin-body .admin-table-wrap td :is(button, a).danger:not(.ap-copy) {
+    border-color: color-mix(in srgb, var(--v2-danger) 40%, transparent) !important; color: #f87171 !important;
+    background: color-mix(in srgb, var(--v2-danger) 9%, transparent) !important;
+}
+html body.admin-body .admin-table-wrap td :is(button, a).danger:not(.ap-copy):hover { background: var(--v2-danger) !important; border-color: var(--v2-danger) !important; color: #fff !important; }
+html body.admin-body .admin-table-wrap td select { height: 32px; border-radius: 9px; font-size: 12px; }
+/* Bỏ lưới 2x2 tạm thời của bản trước, dùng flex gọn hơn khi cột đủ rộng */
+html body.admin-body .admin-table-wrap td .admin-row-actions { max-width: 260px; }
+
+/* Nút sao chép mã */
+html body.admin-body .ap-copy {
+    display: inline-grid; place-items: center; width: 26px; height: 26px; margin-left: 6px; padding: 0; vertical-align: middle;
+    border: 1px solid var(--v2-line); border-radius: 7px; background: transparent; color: var(--v2-muted); font-size: 12px; cursor: pointer;
+    transition: color .2s ease, border-color .2s ease, background-color .2s ease;
+}
+html body.admin-body .ap-copy:hover { color: var(--v2-accent-2); border-color: var(--v2-accent); }
+html body.admin-body .ap-copy.is-done { color: #4ade80; border-color: #4ade80; }
+html body.admin-body .v2-code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-weight: 800; letter-spacing: .04em; }
+html body.admin-body .v2-usage { display: grid; gap: 5px; min-width: 110px; }
+html body.admin-body .v2-usage__bar { height: 5px; border-radius: 5px; background: var(--v2-line); overflow: hidden; }
+html body.admin-body .v2-usage__bar > i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--v2-accent), var(--v2-accent-2)); transform-origin: left; animation: v2-grow .8s var(--v2-ease) backwards; }
+html body.admin-body .v2-usage__bar > i.is-full { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+/* ---------- Biểu mẫu: chọn tệp & select đồng bộ ---------- */
+html body.admin-body input[type="file"] {
+    width: 100%; padding: 8px; border: 1px dashed var(--v2-line); border-radius: 12px; background: var(--v2-surface-2); color: var(--v2-muted); font: inherit; font-size: 12px; cursor: pointer;
+}
+html body.admin-body input[type="file"]::file-selector-button {
+    margin-right: 12px; padding: 8px 14px; border: 0; border-radius: 9px; cursor: pointer;
+    background: linear-gradient(135deg, var(--v2-accent), var(--v2-accent-2)); color: #fff; font: inherit; font-size: 12px; font-weight: 800;
+    transition: filter .2s ease;
+}
+html body.admin-body input[type="file"]:hover::file-selector-button { filter: brightness(1.08); }
+html body.admin-body .admin-view select:not([multiple]) {
+    min-height: 40px; padding: 0 36px 0 12px; border: 1px solid var(--v2-line); border-radius: 11px;
+    background-color: var(--v2-surface-2); color: var(--v2-ink); font: inherit; font-size: 13px; font-weight: 650;
+    appearance: none; -webkit-appearance: none; cursor: pointer;
+    background-image: linear-gradient(45deg, transparent 50%, var(--v2-muted) 50%), linear-gradient(135deg, var(--v2-muted) 50%, transparent 50%);
+    background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%; background-size: 5px 5px; background-repeat: no-repeat;
+}
+html body.admin-body .admin-view select:not([multiple]):focus-visible { outline: 2px solid var(--v2-accent); outline-offset: 1px; }
+
+/* ---------- Công cụ bảng: lọc nhanh, đếm, xuất CSV, mật độ ---------- */
+html body.admin-body .ap-table-tools {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 12px 16px; border-bottom: 1px solid var(--v2-line);
+}
+html body.admin-body .ap-table-tools__search { position: relative; flex: 1 1 220px; max-width: 340px; }
+html body.admin-body .ap-table-tools__search input {
+    width: 100%; height: 34px; padding: 0 12px 0 32px; border: 1px solid var(--v2-line); border-radius: 10px;
+    background: var(--v2-surface-2); color: var(--v2-ink); font: inherit; font-size: 12px;
+}
+html body.admin-body .ap-table-tools__search input:focus { outline: none; border-color: var(--v2-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--v2-accent) 18%, transparent); }
+html body.admin-body .ap-table-tools__search::before { content: "⌕"; position: absolute; left: 11px; top: 50%; translate: 0 -50%; color: var(--v2-muted); font-size: 14px; pointer-events: none; }
+html body.admin-body .ap-table-tools__count { color: var(--v2-muted); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+html body.admin-body .ap-table-tools__spacer { flex: 1; }
+html body.admin-body .ap-table-tools button {
+    display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: 1px solid var(--v2-line); border-radius: 10px;
+    background: var(--v2-surface-2); color: var(--v2-ink); font: inherit; font-size: 12px; font-weight: 750; cursor: pointer;
+    transition: border-color .2s ease, color .2s ease;
+}
+html body.admin-body .ap-table-tools button:hover, html body.admin-body .ap-table-tools button[aria-pressed="true"] { border-color: var(--v2-accent); color: var(--v2-accent-2); }
+html body.admin-body .admin-table-card.is-compact .admin-table-wrap td { padding-top: 6px !important; padding-bottom: 6px !important; }
+html body.admin-body .admin-table-card.is-compact .admin-product img, html body.admin-body .admin-table-card.is-compact .admin-user-cell > :first-child { width: 32px !important; height: 32px !important; }
+html body.admin-body tr.ap-filtered-out { display: none !important; }
+html body.admin-body .ap-table-empty td { padding: 26px !important; color: var(--v2-muted); text-align: center; }
+html body.admin-body mark.ap-hit { padding: 0 2px; border-radius: 3px; background: color-mix(in srgb, var(--v2-accent) 30%, transparent); color: inherit; }
+
+/* ---------- Hoạt động quản trị ---------- */
+html body.admin-body .v2-activity-icon {
+    display: grid; place-items: center; width: 40px; height: 40px; border-radius: 11px; font-size: 16px;
+    background: color-mix(in srgb, var(--pill, var(--v2-accent)) 14%, transparent); color: var(--pill, var(--v2-accent));
+}
+
+/* ---------- Thẻ & hộp thoại chung ---------- */
+html body.admin-body .admin-card { border-radius: var(--v2-radius) !important; }
+html body.admin-body .admin-approval-intro { border-radius: var(--v2-radius) !important; }
+html body.admin-body dialog.admin-dialog { border-radius: 20px !important; }
+
+@keyframes v2-rise { from { opacity: 0; translate: 0 12px; } to { opacity: 1; translate: 0 0; } }
+@keyframes v2-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+@media (max-width: 640px) {
+    html body.admin-body .admin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+    html body.admin-body .admin-kpi-card { padding: 13px 14px 13px 16px !important; }
+    html body.admin-body .admin-kpi-card .admin-kpi-icon { width: 32px !important; height: 32px !important; font-size: 14px !important; }
+    html body.admin-body .admin-kpi-card > strong { font-size: 20px !important; }
+    html body.admin-body .ap-table-tools__search { max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    html body.admin-body .admin-kpi-card, html body.admin-body .stat-grid .stat-card, html body.admin-body .v2-usage__bar > i { animation: none !important; }
+}
+
+/* Ô có nút + select (Chuyển trạng thái đơn): giữ trên một hàng */
+html body.admin-body .admin-table-wrap td:has(> select) { white-space: nowrap; }
+html body.admin-body .admin-table-wrap td:has(> select) > * { vertical-align: middle; }
+html body.admin-body .admin-table-wrap td:has(> select) > * + * { margin-left: 6px; }
+
+/* ---------- Mobile ---------- */
+/* Thanh công cụ chuyển sang cột: flex-basis (240px/140px) bị hiểu thành CHIỀU CAO
+   khiến ô tìm kiếm cao ~240px. Dùng hàng có xuống dòng thay vì cột. */
+@media (max-width: 820px) {
+    html body.admin-body .admin-toolbar { flex-direction: row !important; flex-wrap: wrap !important; align-items: stretch !important; gap: 8px !important; }
+    html body.admin-body .admin-toolbar > * { flex: 1 1 auto !important; height: auto !important; min-height: 40px; }
+    html body.admin-body .admin-toolbar > form { flex: 1 1 100% !important; }
+    html body.admin-body .admin-toolbar > form input { height: 42px !important; min-height: 42px !important; }
+    html body.admin-body .admin-toolbar > select { height: 42px !important; }
+    html body.admin-body .admin-toolbar > .admin-toolbar__copy { flex: 1 1 100% !important; }
+}
+/* Nút bảng lệnh trên màn hình nhỏ: chỉ hiện biểu tượng, không thành ô trống */
+html body.admin-body .ap-palette-trigger > span:first-child { display: inline !important; font-size: 15px; }
+@media (max-width: 720px) {
+    html body.admin-body .ap-palette-trigger { width: 40px; justify-content: center; padding: 0 !important; }
+}
+/* Số KPI dài trên thẻ hẹp: co chữ theo bề rộng thẻ thay vì cắt "…" */
+html body.admin-body .admin-kpi-card { container-type: inline-size; }
+@supports (font-size: 1cqi) {
+    html body.admin-body .admin-kpi-card > strong { font-size: clamp(15px, 14cqi, 30px) !important; text-overflow: clip; }
+}

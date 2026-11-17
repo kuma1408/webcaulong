@@ -266,6 +266,7 @@
             return String(a.key.value).localeCompare(String(b.key.value), 'vi') * factor || a.index - b.index;
         });
         const first = new Map(rows.map((row) => [row, row.getBoundingClientRect().top]));
+        table.dataset.apSorting = '1';
         tbody.append(...keyed.flatMap((item) => [item.row, ...item.extra]));
         if (reduced()) return;
         keyed.forEach(({ row }) => {
@@ -273,6 +274,122 @@
             if (delta) row.animate([{ transform: `translateY(${delta}px)` }, { transform: 'none' }], { duration: 380, easing: 'cubic-bezier(.22,1,.36,1)' });
         });
     }
+    /* ---------- 3b. Công cụ bảng: lọc nhanh, đếm, xuất CSV, hiển thị gọn ---------- */
+    const DENSITY_KEY = 'badminton_admin_compact';
+    const isCompanionRow = (row) => row.cells.length === 1 && row.cells[0].colSpan > 1;
+    const isPlaceholderRow = (row, index) => index === 0 && isCompanionRow(row) && !row.previousElementSibling;
+    function exportableColumns(table) {
+        return $$('thead th', table).map((th, index) => ({ index, label: th.textContent.replace(/[↕↑↓]/g, '').trim() }))
+            .filter((column) => column.label && !/thao tác|hành động|chuyển trạng thái/i.test(column.label));
+    }
+    function csvCell(value) {
+        const text = String(value ?? '').replace(/\s*\n+\s*/g, ' · ').trim();
+        return /[",;\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    }
+    function exportTableCsv(table, view) {
+        const columns = exportableColumns(table);
+        const rows = [...(table.tBodies[0]?.rows || [])].filter((row, index) => !isCompanionRow(row) && !isPlaceholderRow(row, index) && !row.classList.contains('ap-filtered-out'));
+        if (!rows.length) { window.showToast?.('Không có dòng nào để xuất.', 'info'); return; }
+        const lines = [columns.map((column) => csvCell(column.label)).join(',')];
+        const cellText = (cell) => {
+            if (!cell) return '';
+            let text = cell.innerText || '';
+            // Bỏ chữ cái viết tắt của avatar và nút phụ (sao chép…) khỏi dữ liệu xuất.
+            cell.querySelectorAll('.admin-user-avatar, .ap-copy').forEach((node) => {
+                const extra = (node.innerText || '').trim();
+                if (!extra) return;
+                const escaped = extra.replace(/[.*+?^$(){}|[\]\\]/g, '\\$&');
+                text = text.replace(new RegExp('^\\s*' + escaped + '\\s*\\n?|\\s*' + escaped + '\\s*$'), '');
+            });
+            return text;
+        };
+        rows.forEach((row) => lines.push(columns.map((column) => csvCell(cellText(row.cells[column.index]))).join(',')));
+        const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+        const link = document.createElement('a');
+        const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
+        link.href = URL.createObjectURL(blob);
+        link.download = `badminton-${view || 'bang'}-${stamp}.csv`;
+        document.body.appendChild(link); link.click(); link.remove();
+        setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+        window.showToast?.(`Đã xuất ${rows.length} dòng ra CSV.`, 'success');
+    }
+    function installTableTools(table) {
+        const card = table.closest('.admin-table-card, .admin-card');
+        const wrap = table.closest('.admin-table-wrap');
+        if (!card || !wrap || table.dataset.apTools) return;
+        table.dataset.apTools = 'true';
+        const view = table.closest('[data-admin-panel]')?.dataset.adminPanel || '';
+        const tools = document.createElement('div');
+        tools.className = 'ap-table-tools';
+        tools.innerHTML = `
+            <label class="ap-table-tools__search"><span class="bs-visually-hidden">Lọc nhanh trong bảng</span><input type="search" placeholder="Lọc nhanh trong trang này…" autocomplete="off"></label>
+            <span class="ap-table-tools__count" aria-live="polite"></span>
+            <span class="ap-table-tools__spacer"></span>
+            <button type="button" data-ap-density aria-pressed="false" title="Thu gọn khoảng cách dòng">☰ Gọn</button>
+            <button type="button" data-ap-export title="Xuất các dòng đang hiển thị ra tệp CSV">⇩ Xuất CSV</button>`;
+        wrap.before(tools);
+        const input = $('input', tools);
+        const count = $('.ap-table-tools__count', tools);
+        const density = $('[data-ap-density]', tools);
+        const applyFilter = () => {
+            const tbody = table.tBodies[0];
+            if (!tbody) return;
+            const terms = normalize(input.value).split(/\s+/).filter(Boolean);
+            let total = 0; let shown = 0; let lastVisible = true;
+            [...tbody.rows].forEach((row, index) => {
+                if (row.classList.contains('ap-table-empty')) return;
+                if (isCompanionRow(row)) {
+                    if (isPlaceholderRow(row, index)) return;
+                    row.classList.toggle('ap-filtered-out', !lastVisible);
+                    return;
+                }
+                total += 1;
+                const match = !terms.length || terms.every((term) => normalize(row.innerText).includes(term));
+                row.classList.toggle('ap-filtered-out', !match);
+                lastVisible = match;
+                if (match) shown += 1;
+            });
+            const first = tbody.rows[0];
+            const onlyPlaceholder = total === 0 && first && isCompanionRow(first);
+            count.textContent = onlyPlaceholder ? '' : terms.length ? `Hiển thị ${shown}/${total} dòng` : `${total} dòng`;
+            let empty = $('.ap-table-empty', tbody);
+            if (terms.length && total && !shown) {
+                if (!empty) {
+                    empty = document.createElement('tr');
+                    empty.className = 'ap-table-empty';
+                    const cell = document.createElement('td');
+                    cell.colSpan = table.tHead?.rows[0]?.cells.length || 1;
+                    empty.appendChild(cell);
+                    table.dataset.apSorting = '1';
+                    tbody.appendChild(empty);
+                }
+                empty.cells[0].textContent = `Không có dòng nào khớp “${input.value.trim()}” trong trang này.`;
+            } else if (empty) {
+                table.dataset.apSorting = '1';
+                empty.remove();
+            }
+        };
+        table.apApplyFilter = applyFilter;
+        let timer = 0;
+        input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(applyFilter, 120); });
+        input.addEventListener('keydown', (event) => { if (event.key === 'Escape' && input.value) { event.stopPropagation(); input.value = ''; applyFilter(); } });
+        $('[data-ap-export]', tools).addEventListener('click', () => exportTableCsv(table, view));
+        const setDensity = (compact) => {
+            card.classList.toggle('is-compact', compact);
+            density.setAttribute('aria-pressed', String(compact));
+        };
+        setDensity(store.get(DENSITY_KEY) === 'on');
+        density.addEventListener('click', () => {
+            const compact = density.getAttribute('aria-pressed') !== 'true';
+            store.set(DENSITY_KEY, compact ? 'on' : 'off');
+            $$('.admin-table-card').forEach((other) => {
+                other.classList.toggle('is-compact', compact);
+                other.querySelector('[data-ap-density]')?.setAttribute('aria-pressed', String(compact));
+            });
+        });
+        applyFilter();
+    }
+
     function prepareTables(scope = document) {
         $$('.admin-table-wrap table, table.admin-table', scope).forEach((table) => {
             const headers = $$('thead th', table);
@@ -287,11 +404,14 @@
                 th.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activate(); } });
             });
             const tbody = table.tBodies[0];
+            installTableTools(table);
             if (tbody && !tbody.dataset.apWatch) {
                 tbody.dataset.apWatch = 'true';
                 // Dữ liệu mới thay thế: bỏ trạng thái sắp xếp cũ và cho hàng mới trượt vào.
                 new MutationObserver(() => {
+                    if (table.dataset.apSorting) { delete table.dataset.apSorting; return; }
                     $$('th[aria-sort]', table).forEach((th) => th.removeAttribute('aria-sort'));
+                    table.apApplyFilter?.();
                     if (reduced()) return;
                     [...tbody.rows].slice(0, 20).forEach((row, i) => {
                         if (row.dataset.apIn) return;

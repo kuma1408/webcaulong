@@ -25,6 +25,9 @@ Flask + MySQL.
 - Phím tắt quản trị: `Ctrl/⌘ + K` mở bảng lệnh nhanh, `Alt + 1…9` chuyển mục,
   `/` tìm trong mục, `Shift + R` làm mới; bấm tiêu đề cột để sắp xếp bảng; nút
   “Tự làm mới” cập nhật tổng quan mỗi 60 giây; cảnh báo khi đóng hộp thoại chưa lưu.
+- Mỗi bảng quản trị có thanh công cụ: lọc nhanh không dấu trong trang, đếm dòng,
+  chế độ hiển thị gọn và xuất CSV (UTF-8, mở được bằng Excel). Voucher có nút sao
+  chép mã và thanh lượt dùng. Giao diện thống nhất nằm ở `css/admin-v2.css`.
 - Quản trị vận hành: funnel người mua 30 ngày, hoạt động mới nhất, dung lượng
   database, hàng chờ căng cước, đối soát VietQR và xuất đơn hàng CSV UTF-8.
 
