@@ -21,3 +21,5 @@ webcaulong_actions*
 __pycache__/
 *.py[cod]
 .DS_Store
+.vscode/
+debug.log
