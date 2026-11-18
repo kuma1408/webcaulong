@@ -297,6 +297,25 @@
     }
     function emptyRow(tbody, columns, message) {
         tbody.innerHTML = '';
+        // Trạng thái đang tải: hiện khung xương lấp lánh thay cho một dòng chữ.
+        if (/^Đang tải/.test(String(message || '')) && typeof tbody.querySelectorAll === 'function') {
+            for (let index = 0; index < 4; index += 1) {
+                const skeleton = element('tr', 'v2-skeleton-row');
+                skeleton.setAttribute('aria-hidden', 'true');
+                for (let column = 0; column < columns; column += 1) {
+                    const cell = element('td');
+                    const bar = element('span', 'v2-skeleton');
+                    bar.style.width = `${column === 0 ? 70 : 40 + ((index * 17 + column * 23) % 45)}%`;
+                    cell.appendChild(bar);
+                    skeleton.appendChild(cell);
+                }
+                tbody.appendChild(skeleton);
+            }
+            const live = element('tr', 'bs-visually-hidden');
+            const liveCell = element('td', '', message); liveCell.colSpan = columns; live.appendChild(liveCell);
+            tbody.appendChild(live);
+            return;
+        }
         const row = element('tr');
         const cell = element('td', 'admin-empty-cell', message);
         cell.colSpan = columns;
@@ -1846,7 +1865,10 @@
             const image = document.createElement('img'); image.src = safeImage(product.HinhAnh); image.alt = ''; image.loading = 'lazy';
             const copy = element('div'); copy.append(element('strong', '', product.TenSP), element('span', '', `${product.ThuongHieu || 'Chưa có thương hiệu'} · #${product.MaSP}`));
             productInfo.append(image, copy); productCell.appendChild(productInfo);
-            row.append(productCell, element('td', '', product.TenDM || `#${product.MaDM}`), element('td', '', formatMoney(product.GiaBan)), element('td', '', String(product.TonKho ?? 0)));
+            const stock = Number(product.TonKho ?? 0);
+            const stockCell = element('td');
+            stockCell.appendChild(element('span', `v2-pill ${stock <= 0 ? 'v2-pill--danger' : stock < 10 ? 'v2-pill--warning' : 'v2-pill--success'}`, stock <= 0 ? 'Hết hàng' : String(stock)));
+            row.append(productCell, element('td', '', product.TenDM || `#${product.MaDM}`), element('td', '', formatMoney(product.GiaBan)), stockCell);
             const statusCell = element('td');
             statusCell.appendChild(element('span', `admin-badge ${product.TrangThai ? 'admin-badge--success' : 'admin-badge--danger'}`, product.TrangThai ? 'Đang bán' : 'Đã ẩn'));
             if (Number(product.GiaGoc || 0) > Number(product.GiaBan || 0)) statusCell.appendChild(element('span', 'admin-badge admin-badge--danger', 'Sale Off'));
@@ -1856,9 +1878,10 @@
             const detailRow = buildProductDetailRow(product);
             const detailButton = element('button', '', 'Xem chi tiết'); detailButton.type = 'button'; detailButton.setAttribute('aria-expanded', 'false'); detailButton.addEventListener('click', () => { const opening = detailRow.hidden; detailRow.hidden = !opening; detailButton.textContent = opening ? 'Thu gọn' : 'Xem chi tiết'; detailButton.setAttribute('aria-expanded', String(opening)); });
             const edit = element('button', '', 'Sửa'); edit.type = 'button'; edit.addEventListener('click', () => openProductDialog(product));
+            const duplicate = element('button', '', 'Nhân bản'); duplicate.type = 'button'; duplicate.title = 'Tạo sản phẩm mới từ thông tin của sản phẩm này'; duplicate.addEventListener('click', () => openProductDialog(product, { duplicate: true }));
             const toggle = element('button', product.TrangThai ? 'danger' : '', product.TrangThai ? 'Ẩn' : 'Hiện'); toggle.type = 'button'; toggle.addEventListener('click', () => toggleProduct(product));
             const remove = element('button', 'danger', 'Ngừng bán'); remove.type = 'button'; remove.addEventListener('click', () => removeProduct(product));
-            actions.append(detailButton, edit, toggle, remove); actionsCell.appendChild(actions); row.appendChild(actionsCell); tbody.append(row, detailRow);
+            actions.append(detailButton, edit, duplicate, toggle, remove); actionsCell.appendChild(actions); row.appendChild(actionsCell); tbody.append(row, detailRow);
         });
         const pages = Math.max(1, Math.ceil(state.productTotal / 20));
         $('#productPageInfo').textContent = `Trang ${state.productPage}/${pages}`;
@@ -1889,13 +1912,14 @@
         content.append(source, storefront); panel.append(gallery, content); cell.appendChild(panel); row.appendChild(cell); return row;
     }
 
-    async function openProductDialog(product = null) {
+    async function openProductDialog(product = null, options = {}) {
         try { await loadCategories(); }
         catch (error) { showToast(error.message, 'error'); return; }
+        const duplicate = Boolean(product && options.duplicate);
         $('#productForm').reset();
-        $('#productId').value = product?.MaSP || '';
-        $('#productDialogTitle').textContent = product ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm';
-        $('#productName').value = product?.TenSP || '';
+        $('#productId').value = duplicate ? '' : (product?.MaSP || '');
+        $('#productDialogTitle').textContent = duplicate ? 'Nhân bản sản phẩm' : product ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm';
+        $('#productName').value = duplicate ? `${product.TenSP} (bản sao)` : (product?.TenSP || '');
         $('#productCategory').value = product?.MaDM || '';
         $('#productPrice').value = product?.GiaBan ?? '';
         $('#productOriginalPrice').value = product?.GiaGoc ?? '';
@@ -2024,11 +2048,39 @@
             const shipping=element('div','admin-order-shipping');shipping.append(element('strong','','Thông tin giao hàng'),element('p','',order.DiaChiGiao||'Chưa có địa chỉ'),element('span','',`Ghi chú: ${order.GhiChu||'Không có ghi chú'}`));
             const timeline=element('div','admin-order-timeline');timeline.appendChild(element('strong','','Lịch sử phê duyệt và xử lý'));const created=element('div','admin-order-timeline__item');created.append(element('i'),element('div','',`Đơn hàng được tạo · ${formatDate(order.NgayDat)}`));timeline.appendChild(created);(Array.isArray(order.LichSuXuLy)?order.LichSuXuLy:[]).forEach(event=>{const data=parsedObject(event.ChiTiet);const item=element('div','admin-order-timeline__item');const label=data.to?`Chuyển từ ${statusMeta[data.from]?.[0]||data.from||'—'} sang ${statusMeta[data.to]?.[0]||data.to}`:(actionLabels[event.HanhDong]||event.HanhDong);item.append(element('i'),element('div','',`${label} · ${formatDate(event.NgayTao)} · bởi @${event.TenDangNhap}`));timeline.appendChild(item);});
             if(order.PhuongThuc==='BANKING'){const proof=element('div','admin-order-proof');if(order.CoAnhChuyenKhoan){const button=element('button','admin-detail-button','Xem ảnh chuyển khoản');button.type='button';button.addEventListener('click',()=>openPaymentProof(order.MaDH));proof.append(button,element('span','admin-badge admin-badge--success','Đã gửi ảnh'));}else proof.appendChild(element('span','admin-badge','Khách chưa gửi ảnh chuyển khoản'));detailPanel.appendChild(proof);}
-            detailPanel.append(productHeading,list,shipping,timeline);detailCell.appendChild(detailPanel);detailRow.appendChild(detailCell);tbody.appendChild(detailRow);
+            const tools=element('div','v2-order-tools');const printButton=element('button','admin-detail-button','🖨 In phiếu giao hàng');printButton.type='button';printButton.addEventListener('click',()=>printOrder(order));const copyId=element('button','admin-detail-button','⧉ Sao chép mã đơn');copyId.type='button';copyId.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(`#${order.MaDH}`);showToast(`Đã sao chép mã đơn #${order.MaDH}.`,'success');}catch(_){showToast('Trình duyệt không cho phép sao chép tự động.','error');}});tools.append(printButton,copyId);
+            detailPanel.append(tools,productHeading,list,shipping,timeline);detailCell.appendChild(detailPanel);detailRow.appendChild(detailCell);tbody.appendChild(detailRow);
             detailButton.addEventListener('click',()=>{detailRow.hidden=!detailRow.hidden;detailButton.textContent=detailRow.hidden?'Xem sản phẩm':'Thu gọn';});
         });
         const pages=Math.max(1,Math.ceil(state.orderTotal/20)); $('#adminOrderPageInfo').textContent=`Trang ${state.orderPage}/${pages}`; $('#adminOrderPrev').disabled=state.orderPage<=1; $('#adminOrderNext').disabled=state.orderPage>=pages;
         updateOrderKpis(state.orders);
+    }
+
+    // Phiếu giao hàng in được (A5/A4) — mở cửa sổ riêng, mọi dữ liệu đều được escape.
+    function printOrder(order) {
+        const esc = escapeMarkup;
+        const items = Array.isArray(order.SanPham) ? order.SanPham : [];
+        const rows = items.map((item, index) => `<tr><td>${index + 1}</td><td>${esc(item.TenSP || `Sản phẩm #${item.MaSP}`)}${item.CauHinh ? `<small>${esc(typeof item.CauHinh === 'string' ? item.CauHinh : JSON.stringify(item.CauHinh))}</small>` : ''}</td><td class="n">${esc(item.SoLuong)}</td><td class="n">${esc(formatMoney(item.GiaBan))}</td><td class="n">${esc(formatMoney(Number(item.GiaBan || 0) * Number(item.SoLuong || 0)))}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">Không có dữ liệu sản phẩm</td></tr>';
+        const html = `<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Phiếu giao hàng #${esc(order.MaDH)}</title><style>
+            *{box-sizing:border-box}body{margin:0;padding:28px;font:13px/1.5 "Segoe UI",Arial,sans-serif;color:#1f1512}
+            header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #ff5a1f;padding-bottom:14px;margin-bottom:18px}
+            h1{margin:0;font-size:22px;color:#e9381b}h2{margin:0 0 4px;font-size:15px}.muted{color:#6b5a54}
+            .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;margin-bottom:18px}.box{border:1px solid #eadbd4;border-radius:10px;padding:12px 14px}
+            table{width:100%;border-collapse:collapse;margin-bottom:16px}th,td{padding:8px 10px;border-bottom:1px solid #eadbd4;text-align:left;vertical-align:top}
+            th{background:#fff4ef;font-size:11px;text-transform:uppercase;letter-spacing:.05em}td.n,th.n{text-align:right;white-space:nowrap}td small{display:block;color:#6b5a54}
+            .total{display:flex;justify-content:flex-end;gap:24px;font-size:16px;font-weight:800}.empty{text-align:center;color:#6b5a54}
+            footer{margin-top:36px;display:grid;grid-template-columns:1fr 1fr;text-align:center;gap:24px}footer div{padding-top:60px;border-top:1px dashed #cbb8b0}
+            @media print{body{padding:0}@page{margin:14mm}}</style></head><body>
+            <header><div><h1>BADMINTON STORE</h1><div class="muted">Phiếu giao hàng</div></div><div style="text-align:right"><h2>Đơn #${esc(order.MaDH)}</h2><div class="muted">Ngày đặt: ${esc(formatDateFull(order.NgayDat))}</div><div class="muted">In lúc: ${esc(formatDateFull(new Date().toISOString()))}</div></div></header>
+            <div class="grid"><div class="box"><h2>Người nhận</h2><div><b>${esc(order.HoTen || order.TenDangNhap)}</b></div><div>${esc(order.SoDienThoai || 'Chưa có SĐT')}</div><div>${esc(order.DiaChiGiao || 'Chưa có địa chỉ')}</div></div>
+            <div class="box"><h2>Thanh toán</h2><div>Phương thức: <b>${esc(paymentLabel(order.PhuongThuc))}</b></div><div>Trạng thái đơn: <b>${esc(statusMeta[order.TrangThai]?.[0] || order.TrangThai)}</b></div><div>Ghi chú: ${esc(order.GhiChu || 'Không có')}</div></div></div>
+            <table><thead><tr><th>#</th><th>Sản phẩm</th><th class="n">SL</th><th class="n">Đơn giá</th><th class="n">Thành tiền</th></tr></thead><tbody>${rows}</tbody></table>
+            <div class="total"><span>Tổng thanh toán</span><span>${esc(formatMoney(order.TongTien))}</span></div>
+            <footer><div>Người giao hàng</div><div>Người nhận hàng</div></footer>
+            <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),150));<\/script></body></html>`;
+        const popup = window.open('', '_blank', 'width=820,height=900');
+        if (!popup) { showToast('Trình duyệt đã chặn cửa sổ in. Hãy cho phép pop-up cho trang này.', 'error'); return; }
+        popup.document.open(); popup.document.write(html); popup.document.close();
     }
 
     async function updateOrderStatus(id, nextStatus, select) {

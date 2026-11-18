@@ -527,6 +527,96 @@
         });
     }
 
+    /* ---------- 7. Gợn sóng khi bấm & xuất hiện khi cuộn ---------- */
+    const RIPPLE_SELECTOR = '.admin-primary, #adminNavigation [data-admin-view], .admin-pill-btn, .btn-health-action, .ap-table-tools button, .admin-view .admin-toolbar > button, #adminRefresh, .ap-palette-trigger';
+    function installRipple() {
+        document.addEventListener('pointerdown', (event) => {
+            if (reduced() || event.button !== 0) return;
+            const button = event.target.closest?.(RIPPLE_SELECTOR);
+            if (!button || button.disabled) return;
+            const style = getComputedStyle(button);
+            if (style.position === 'static') button.style.position = 'relative';
+            if (style.overflow === 'visible') button.style.overflow = 'hidden';
+            const rect = button.getBoundingClientRect();
+            const ripple = document.createElement('span');
+            ripple.className = 'v2-ripple';
+            ripple.style.left = `${event.clientX - rect.left}px`;
+            ripple.style.top = `${event.clientY - rect.top}px`;
+            button.appendChild(ripple);
+            ripple.addEventListener('animationend', () => ripple.remove(), { once: true });
+            setTimeout(() => ripple.remove(), 900);
+        }, { passive: true });
+    }
+    function installScrollReveal() {
+        if (!('IntersectionObserver' in window) || reduced()) return;
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add('is-revealed');
+                observer.unobserve(entry.target);
+            });
+        }, { threshold: 0.12 });
+        // Chỉ những khối đang nằm dưới màn hình mới được gắn hiệu ứng, để nội dung đang nhìn thấy không bị nháy.
+        $$('[data-admin-panel="overview"] .admin-card, [data-admin-panel="overview"] .system-health-bar, .admin-table-card').forEach((node) => {
+            if (node.getBoundingClientRect().top < window.innerHeight) return;
+            node.classList.add('v2-reveal');
+            observer.observe(node);
+        });
+    }
+
+    /* ---------- 8. Xem trước thông báo khách hàng ---------- */
+    function installNoticePreview() {
+        const form = $('#customerNoticeForm');
+        if (!form || $('.v2-notice-layout')) return;
+        const layout = document.createElement('div');
+        layout.className = 'v2-notice-layout';
+        form.before(layout);
+        const preview = document.createElement('aside');
+        preview.className = 'admin-card v2-notice-preview';
+        preview.setAttribute('aria-label', 'Xem trước thông báo');
+        preview.innerHTML = `
+            <p class="eyebrow">XEM TRƯỚC</p><h3>Khách hàng sẽ thấy</h3>
+            <div class="v2-notice-phone"><div class="v2-notice-bell" aria-hidden="true">🔔</div>
+                <article class="v2-notice-card"><img alt="" hidden><div><strong data-preview-title>Tiêu đề thông báo</strong><p data-preview-body>Nội dung sẽ hiển thị tại đây khi bạn nhập.</p><small data-preview-meta>Gửi tới: Tất cả khách hàng · vừa xong</small></div></article>
+            </div>
+            <ul class="v2-notice-checks"><li data-check="title">Có tiêu đề</li><li data-check="body">Có nội dung</li><li data-check="length">Nội dung gọn (≤ 300 ký tự hiển thị đầy đủ)</li></ul>`;
+        layout.append(form, preview);
+        const title = $('#customerNoticeTitle');
+        const body = $('#customerNoticeBody');
+        const audience = $('#customerNoticeAudience');
+        const imageUrl = $('#customerNoticeImage');
+        const file = $('#customerNoticeImageFile');
+        const image = $('img', preview);
+        let objectUrl = '';
+        const update = () => {
+            const titleText = title?.value.trim() || '';
+            const bodyText = body?.value.trim() || '';
+            $('[data-preview-title]', preview).textContent = titleText || 'Tiêu đề thông báo';
+            $('[data-preview-body]', preview).textContent = bodyText ? (bodyText.length > 300 ? `${bodyText.slice(0, 297)}…` : bodyText) : 'Nội dung sẽ hiển thị tại đây khi bạn nhập.';
+            const who = audience?.value === 'user' ? ($('#customerNoticeSelectedUser')?.textContent.replace(/^Đã chọn:?\s*/, '') || 'một khách hàng') : 'Tất cả khách hàng';
+            $('[data-preview-meta]', preview).textContent = `Gửi tới: ${who} · vừa xong`;
+            const src = objectUrl || imageUrl?.value || '';
+            image.hidden = !src; if (src) image.src = src;
+            preview.classList.toggle('is-empty', !titleText && !bodyText);
+            $('[data-check="title"]', preview).classList.toggle('is-ok', Boolean(titleText));
+            $('[data-check="body"]', preview).classList.toggle('is-ok', Boolean(bodyText));
+            $('[data-check="length"]', preview).classList.toggle('is-ok', Boolean(bodyText) && bodyText.length <= 300);
+            const card = $('.v2-notice-card', preview);
+            card.classList.remove('is-bump'); void card.offsetWidth; card.classList.add('is-bump');
+        };
+        [title, body, audience].forEach((field) => field?.addEventListener('input', update));
+        audience?.addEventListener('change', update);
+        file?.addEventListener('change', () => {
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+            const chosen = file.files?.[0];
+            objectUrl = chosen && chosen.type.startsWith('image/') ? URL.createObjectURL(chosen) : '';
+            update();
+        });
+        form.addEventListener('reset', () => setTimeout(() => { if (objectUrl) URL.revokeObjectURL(objectUrl); objectUrl = ''; update(); }, 0));
+        if (imageUrl) new MutationObserver(update).observe(imageUrl, { attributes: true, attributeFilter: ['value'] });
+        update();
+    }
+
     function start() {
         const shell = $('#adminShell');
         if (!shell) return;
@@ -539,6 +629,9 @@
             installAutoRefresh();
             installDirtyGuard();
             prepareTables();
+            installRipple();
+            installNoticePreview();
+            setTimeout(installScrollReveal, 400);
         };
         if (!shell.hidden) boot();
         else new MutationObserver((_, observer) => { if (!shell.hidden) { observer.disconnect(); boot(); } }).observe(shell, { attributes: true, attributeFilter: ['hidden'] });

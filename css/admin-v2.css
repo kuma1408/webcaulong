@@ -262,3 +262,206 @@ html body.admin-body .admin-kpi-card { container-type: inline-size; }
 @supports (font-size: 1cqi) {
     html body.admin-body .admin-kpi-card > strong { font-size: clamp(15px, 14cqi, 30px) !important; text-overflow: clip; }
 }
+
+/* =============================================================
+   PHẦN 2 — đồng bộ tông màu, hộp thoại, khung xương tải, animation
+   ============================================================= */
+
+/* ---------- Tông màu: bỏ nền nâu đỏ còn sót của theme cũ ---------- */
+:root[data-theme="dark"] body.admin-body { background: radial-gradient(1200px 600px at 85% -10%, rgba(255, 90, 31, .07), transparent 60%), var(--bs-bg, #0c1420) !important; }
+html body.admin-body dialog.admin-dialog { background: var(--bs-card) !important; color: var(--v2-ink); border: 1px solid var(--v2-line) !important; }
+
+/* ---------- Tiêu đề bảng dính: nền đặc để không đè lên dòng đầu ---------- */
+html:root body.admin-body .admin-table-wrap table thead th,
+html:root[data-theme] body.admin-body .admin-table-card .admin-table-wrap table thead th {
+    position: sticky !important; top: 0; z-index: 3 !important;
+    background: var(--bs-card) !important;
+    box-shadow: inset 0 -1px 0 var(--v2-line), inset 0 999px 0 rgba(255, 255, 255, .025);
+}
+
+/* ---------- Hộp thoại: tiêu đề và nút lưu luôn trong tầm mắt ---------- */
+html body.admin-body dialog.admin-dialog .admin-dialog__heading {
+    position: sticky; top: 0; z-index: 6; margin: 0 0 14px !important; padding-top: 18px !important; padding-bottom: 14px !important;
+    background: color-mix(in srgb, var(--bs-card) 92%, transparent) !important; backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--v2-line) !important;
+}
+html body.admin-body dialog.admin-dialog .admin-dialog__actions {
+    position: sticky; bottom: 0; z-index: 6; margin-top: 16px !important; padding-top: 14px !important; padding-bottom: 16px !important;
+    background: color-mix(in srgb, var(--bs-card) 94%, transparent) !important; backdrop-filter: blur(10px);
+    border-top: 1px solid var(--v2-line) !important;
+}
+html:root body.admin-body dialog.admin-dialog.admin-dialog--product { width: min(880px, calc(100% - 28px)) !important; max-width: min(880px, calc(100% - 28px)) !important; }
+html body.admin-body dialog.admin-dialog::backdrop { background: rgba(6, 10, 16, .62) !important; backdrop-filter: blur(6px); }
+html body.admin-body dialog.admin-dialog .admin-dialog__heading button[data-close-dialog] { transition: rotate .3s var(--v2-ease), background-color .2s ease, color .2s ease !important; }
+html body.admin-body dialog.admin-dialog .admin-dialog__heading button[data-close-dialog]:hover { rotate: 90deg; }
+
+/* ---------- Nút chính: gradient chuyển động + phát sáng ---------- */
+html body.admin-body .admin-primary, html body.admin-body .admin-view .admin-toolbar > button {
+    position: relative; overflow: hidden; isolation: isolate;
+    background: linear-gradient(120deg, #ff4d1a, #ff7a2f 45%, #ffa24d 70%, #ff4d1a) 0 0 / 220% 100% !important;
+    color: #fff !important; border: 0 !important; box-shadow: 0 8px 22px rgba(255, 90, 31, .28) !important;
+    transition: background-position .6s var(--v2-ease), translate .25s var(--v2-ease), box-shadow .25s ease !important;
+}
+html body.admin-body .admin-primary:hover, html body.admin-body .admin-view .admin-toolbar > button:hover {
+    background-position: 100% 0 !important; translate: 0 -2px; box-shadow: 0 14px 30px rgba(255, 90, 31, .4) !important;
+}
+html body.admin-body .admin-primary:active, html body.admin-body .admin-view .admin-toolbar > button:active { translate: 0 0; scale: .98; }
+
+/* ---------- Khung xương tải dữ liệu ---------- */
+html body.admin-body .v2-skeleton-row td { padding-top: 16px !important; padding-bottom: 16px !important; }
+html body.admin-body .v2-skeleton {
+    display: block; height: 12px; border-radius: 6px;
+    background: linear-gradient(90deg, rgba(148, 163, 184, .1) 0%, rgba(148, 163, 184, .24) 40%, rgba(148, 163, 184, .1) 80%) 0 0 / 300% 100%;
+    animation: v2-shimmer 1.3s linear infinite;
+}
+html body.admin-body .v2-skeleton-row:nth-child(2) .v2-skeleton { animation-delay: .1s; }
+html body.admin-body .v2-skeleton-row:nth-child(3) .v2-skeleton { animation-delay: .2s; }
+html body.admin-body .v2-skeleton-row:nth-child(4) .v2-skeleton { animation-delay: .3s; }
+
+/* ---------- Chi tiết đơn: thanh công cụ ---------- */
+html body.admin-body .v2-order-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+html body.admin-body .v2-order-tools .admin-detail-button { height: 34px !important; }
+
+/* ---------- Badge trạng thái đang chờ: nhịp sáng nhẹ ---------- */
+html body.admin-body .admin-badge:not([class*="admin-badge--"]) { animation: v2-pending 2.2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: no-preference) {
+    /* Khung trang xuất hiện lần lượt */
+    html body.admin-body .admin-sidebar { animation: v2-slide-right .7s var(--v2-ease) backwards; }
+    html body.admin-body .admin-topbar { animation: v2-drop .6s var(--v2-ease) .08s backwards; }
+    html body.admin-body #adminNavigation > [data-admin-view] { animation: v2-slide-right .5s var(--v2-ease) backwards; }
+    html body.admin-body #adminNavigation > [data-admin-view]:nth-of-type(2) { animation-delay: .04s; }
+    html body.admin-body #adminNavigation > [data-admin-view]:nth-of-type(3) { animation-delay: .08s; }
+    html body.admin-body #adminNavigation > [data-admin-view]:nth-of-type(4) { animation-delay: .12s; }
+    html body.admin-body #adminNavigation > [data-admin-view]:nth-of-type(5) { animation-delay: .16s; }
+    html body.admin-body #adminNavigation > [data-admin-view]:nth-of-type(6) { animation-delay: .2s; }
+    html body.admin-body #adminNavigation > [data-admin-view]:nth-of-type(7) { animation-delay: .24s; }
+    html body.admin-body #adminNavigation > [data-admin-view]:nth-of-type(n+8) { animation-delay: .28s; }
+
+    /* Mục đang chọn: nền gradient sáng nhẹ và biểu tượng nảy */
+    html body.admin-body #adminNavigation > [data-admin-view] { transition: background-color .25s ease, color .25s ease, padding-left .3s var(--v2-ease) !important; }
+    html body.admin-body #adminNavigation > [data-admin-view]:hover:not(.is-active) { padding-left: 18px !important; }
+    html body.admin-body #adminNavigation > [data-admin-view].is-active {
+        background: linear-gradient(90deg, rgba(255, 90, 31, .2), rgba(255, 90, 31, .04)) !important;
+        box-shadow: inset 0 0 0 1px rgba(255, 122, 61, .28), 0 8px 20px rgba(255, 90, 31, .12) !important;
+    }
+    html body.admin-body #adminNavigation > [data-admin-view].is-active > span:first-child { animation: v2-pop .5s var(--v2-ease); }
+
+    /* Thẻ KPI: vệt sáng quét ngang và biểu tượng bay lên khi rê chuột */
+    html body.admin-body .admin-kpi-card {
+        background-image: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, .07) 50%, transparent 65%) !important;
+        background-size: 250% 100% !important; background-position: 130% 0 !important; background-repeat: no-repeat !important;
+        transition: background-position .9s var(--v2-ease), transform .3s var(--v2-ease), border-color .3s ease, box-shadow .3s ease !important;
+    }
+    html body.admin-body .admin-kpi-card:hover { background-position: -30% 0 !important; box-shadow: 0 18px 36px rgba(0, 0, 0, .22), 0 0 0 1px color-mix(in srgb, var(--kpi-color, var(--v2-accent)) 35%, transparent) !important; }
+    html body.admin-body .admin-kpi-card:hover .admin-kpi-icon { animation: v2-float 1.2s ease-in-out infinite; }
+
+    /* Thẻ lớn: viền sáng nhẹ khi rê chuột */
+    html body.admin-body .admin-card { transition: box-shadow .35s ease, border-color .35s ease !important; }
+    html body.admin-body .admin-card:hover { border-color: color-mix(in srgb, var(--v2-accent) 28%, var(--v2-line)) !important; box-shadow: 0 18px 40px rgba(0, 0, 0, .18) !important; }
+
+    /* Xuất hiện khi cuộn tới (admin-plus.js gắn .is-revealed) */
+    html body.admin-body .v2-reveal.is-revealed { animation: v2-rise .7s var(--v2-ease) backwards; }
+
+    /* Hộp thoại mở ra */
+    html body.admin-body dialog.admin-dialog[open] { animation: v2-dialog-in .38s var(--v2-ease) !important; }
+    html body.admin-body dialog.admin-dialog[open]::backdrop { animation: v2-fade .3s ease !important; }
+
+    /* Dòng chi tiết đơn / sản phẩm mở ra mượt */
+    html body.admin-body tr[class*="detail"]:not([hidden]) > td > * { animation: v2-unfold .4s var(--v2-ease); transform-origin: top center; }
+
+    /* Gợn sóng khi bấm (admin-plus.js tạo .v2-ripple) */
+    html body.admin-body .v2-ripple {
+        position: absolute; z-index: 0; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; pointer-events: none;
+        background: currentColor; opacity: .28; animation: v2-ripple .6s ease-out forwards;
+    }
+}
+
+@keyframes v2-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@keyframes v2-pending { 0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); } 50% { box-shadow: 0 0 0 4px rgba(251, 191, 36, .16); } }
+@keyframes v2-slide-right { from { opacity: 0; translate: -18px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes v2-drop { from { opacity: 0; translate: 0 -14px; } to { opacity: 1; translate: 0 0; } }
+@keyframes v2-pop { 0% { scale: 1; } 40% { scale: 1.35; rotate: -10deg; } 70% { scale: .95; } 100% { scale: 1; rotate: 0deg; } }
+@keyframes v2-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -4px; } }
+@keyframes v2-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes v2-dialog-in { from { opacity: 0; translate: 0 18px; scale: .96; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@keyframes v2-unfold { from { opacity: 0; scale: 1 .92; } to { opacity: 1; scale: 1 1; } }
+@keyframes v2-ripple { to { transform: scale(26); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+    html body.admin-body .v2-skeleton, html body.admin-body .admin-badge { animation: none !important; }
+}
+
+/* ---------- Giao diện tối: thay toàn bộ nền nâu đỏ còn sót bằng tông navy ---------- */
+html:root[data-theme="dark"] body.admin-body :is(dialog.admin-dialog, .admin-dialog__form) {
+    background: #142131 !important; border-color: rgba(148, 163, 184, .16) !important; color: #e6edf5;
+}
+html:root[data-theme="dark"] body.admin-body .admin-dialog__heading,
+html:root[data-theme="dark"] body.admin-body .admin-dialog__actions { background: rgba(20, 33, 49, .94) !important; }
+html:root[data-theme="dark"] body.admin-body tr.admin-order-detail-row > td,
+html:root[data-theme="dark"] body.admin-body tr[class*="detail"] > td { background: #0f1a28 !important; }
+html:root[data-theme="dark"] body.admin-body :is(.admin-order-detail, .admin-product-detail) {
+    background: #142131 !important; border: 1px solid rgba(148, 163, 184, .16) !important; border-radius: 16px !important; box-shadow: none !important;
+}
+html:root[data-theme="dark"] body.admin-body :is(.admin-order-summary > div, .admin-order-items, .admin-order-item, .admin-order-shipping, .admin-order-timeline, .admin-order-proof) {
+    background: #1a2a3d !important; border-color: rgba(148, 163, 184, .14) !important;
+}
+html:root[data-theme="dark"] body.admin-body .store-admin-chat__messages { background: #0f1a28 !important; }
+html:root[data-theme="dark"] body.admin-body .btn-health-action {
+    background: #1a2a3d !important; border: 1px solid rgba(148, 163, 184, .18) !important; color: #e6edf5 !important;
+    transition: border-color .2s ease, color .2s ease, translate .2s var(--v2-ease) !important;
+}
+html:root[data-theme="dark"] body.admin-body .btn-health-action:hover { border-color: var(--v2-accent) !important; color: #ffb38a !important; translate: 0 -1px; }
+html:root[data-theme="dark"] body.admin-body dialog.admin-dialog :is(button:not(.admin-primary):not([data-close-dialog]):not(.ap-copy)) {
+    background: #1a2a3d !important; border-color: rgba(148, 163, 184, .2) !important; color: #e6edf5 !important;
+}
+html:root[data-theme="dark"] body.admin-body dialog.admin-dialog :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), textarea, select) {
+    background-color: #0f1a28 !important; border-color: rgba(148, 163, 184, .2) !important; color: #e6edf5 !important;
+}
+html:root[data-theme="dark"] body.admin-body dialog.admin-dialog :is(input, textarea, select):focus {
+    border-color: var(--v2-accent) !important; box-shadow: 0 0 0 3px rgba(255, 90, 31, .18) !important; outline: none !important;
+}
+html:root[data-theme="dark"] body.admin-body dialog.admin-dialog :is(fieldset, section, .product-form-section, [class*="section"]) {
+    border-color: rgba(148, 163, 184, .14) !important;
+}
+html:root[data-theme="dark"] body.admin-body dialog.admin-dialog .admin-dialog__actions button:not(.admin-primary) { background: #1a2a3d !important; border-color: rgba(148, 163, 184, .2) !important; color: #e6edf5 !important; }
+
+/* ---------- Băng giới thiệu đầu mục & đầu khung chat: tông navy + điểm nhấn cam ---------- */
+html:root[data-theme="dark"] body.admin-body .admin-approval-intro,
+html:root[data-theme="dark"] body.admin-body .store-admin-chat__contact {
+    background: linear-gradient(120deg, rgba(255, 90, 31, .14), rgba(255, 90, 31, .03) 45%, transparent 70%), #142131 !important;
+    border: 1px solid rgba(148, 163, 184, .16) !important; box-shadow: none !important;
+}
+html body.admin-body .admin-approval-intro { position: relative; overflow: hidden; }
+html body.admin-body .admin-approval-intro::after {
+    content: ""; position: absolute; right: -40px; top: -60px; width: 220px; height: 220px; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, rgba(255, 122, 61, .18), transparent 65%);
+}
+
+/* ---------- Soạn thông báo: form + xem trước ---------- */
+html body.admin-body .v2-notice-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: 16px; align-items: start; margin-bottom: 18px; }
+html body.admin-body .v2-notice-layout > #customerNoticeForm { margin-bottom: 0 !important; }
+@media (max-width: 1100px) { html body.admin-body .v2-notice-layout { grid-template-columns: 1fr; } }
+html body.admin-body .v2-notice-preview { position: sticky; top: 16px; padding: 18px 20px !important; }
+html body.admin-body .v2-notice-preview h3 { margin: 4px 0 14px; font-size: 16px; }
+html body.admin-body .v2-notice-phone {
+    position: relative; padding: 22px 16px 18px; border-radius: 22px; border: 1px solid var(--v2-line);
+    background: linear-gradient(160deg, rgba(255, 90, 31, .08), transparent 45%), var(--v2-surface-2);
+}
+html body.admin-body .v2-notice-bell { position: absolute; right: 16px; top: -14px; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #ff5a1f, #ffa24d); box-shadow: 0 8px 18px rgba(255, 90, 31, .35); font-size: 15px; animation: v2-bell 3.2s ease-in-out infinite; }
+html body.admin-body .v2-notice-card { display: grid; gap: 10px; padding: 14px; border-radius: 16px; background: var(--bs-card); border: 1px solid var(--v2-line); box-shadow: 0 10px 24px rgba(0, 0, 0, .18); }
+html body.admin-body .v2-notice-card img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 12px; }
+html body.admin-body .v2-notice-card strong { display: block; font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
+html body.admin-body .v2-notice-card p { margin: 6px 0 8px; color: var(--v2-muted); font-size: 13px; line-height: 1.55; white-space: pre-line; overflow-wrap: anywhere; }
+html body.admin-body .v2-notice-card small { color: var(--v2-muted); font-size: 11px; }
+html body.admin-body .v2-notice-preview.is-empty .v2-notice-card { opacity: .55; border-style: dashed; }
+html body.admin-body .v2-notice-card.is-bump { animation: v2-bump .35s var(--v2-ease); }
+html body.admin-body .v2-notice-checks { display: grid; gap: 6px; margin: 16px 0 0; padding: 0; list-style: none; font-size: 12px; color: var(--v2-muted); }
+html body.admin-body .v2-notice-checks li { display: flex; align-items: center; gap: 8px; transition: color .25s ease; }
+html body.admin-body .v2-notice-checks li::before { content: "○"; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--v2-line); font-size: 10px; transition: background-color .25s ease, border-color .25s ease, color .25s ease; }
+html body.admin-body .v2-notice-checks li.is-ok { color: var(--v2-ink); }
+html body.admin-body .v2-notice-checks li.is-ok::before { content: "✓"; background: #22c55e; border-color: #22c55e; color: #fff; }
+@keyframes v2-bell { 0%, 70%, 100% { rotate: 0deg; } 74% { rotate: 14deg; } 80% { rotate: -12deg; } 86% { rotate: 8deg; } 92% { rotate: -4deg; } }
+@keyframes v2-bump { 0% { scale: 1; } 40% { scale: 1.015; } 100% { scale: 1; } }
+@media (prefers-reduced-motion: reduce) { html body.admin-body .v2-notice-bell, html body.admin-body .v2-notice-card.is-bump { animation: none !important; } }
+html body.admin-body .admin-table-wrap td .admin-row-actions:has(> select) { flex-wrap: nowrap !important; max-width: none; }
