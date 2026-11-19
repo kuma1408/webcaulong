@@ -38,6 +38,7 @@
     };
     let pendingUserAvatar = null;
     let approvalReviewId = null;
+    let adminChatSearchTimer = 0;
     let approvalReviewDecision = null;
     let approvalConfirmId = null;
     let paymentProofObjectUrl = null;
@@ -2996,7 +2997,8 @@
         $('#userPrev').addEventListener('click',()=>{if(state.userPage>1){state.userPage-=1;loadUsers();}});$('#userNext').addEventListener('click',()=>{if(state.userPage*20<state.userTotal){state.userPage+=1;loadUsers();}});
         $('#contentTypeFilter').addEventListener('change',()=>{const active=$(`#contentFilterPills [data-filter="${$('#contentTypeFilter').value}"]`);if(active){$$('#contentFilterPills .admin-pill-btn').forEach((btn)=>btn.classList.toggle('is-active',btn===active));}loadContent();});$('#contentSort').addEventListener('change',loadContent);$('#addContent').addEventListener('click',()=>openContentDialog());$('#contentForm').addEventListener('submit',saveContent);$('#contentActive').addEventListener('change',syncContentPublishHint);
         $('#supportSearch').addEventListener('submit',(event)=>{event.preventDefault();state.supportPage=1;loadSupport();});$('#supportStatus').addEventListener('change',()=>{state.supportPage=1;loadSupport();});$('#supportPrev').addEventListener('click',()=>{if(state.supportPage>1){state.supportPage-=1;loadSupport();}});$('#supportNext').addEventListener('click',()=>{if(state.supportPage*20<state.supportTotal){state.supportPage+=1;loadSupport();}});$('#supportForm').addEventListener('submit',saveSupport);
-        $('#adminChatSearch').addEventListener('submit',(event)=>{event.preventDefault();loadAdminChatThreads();});
+        $('#adminChatSearch').addEventListener('submit',(event)=>{event.preventDefault();window.clearTimeout(adminChatSearchTimer);loadAdminChatThreads();});
+        $('#adminChatQuery').addEventListener('input',()=>{window.clearTimeout(adminChatSearchTimer);adminChatSearchTimer=window.setTimeout(loadAdminChatThreads,320);});
         $('#chatRefresh').addEventListener('click',()=>{loadAdminChatThreads();loadAdminChatMessages(false);});
         $('#adminChatReply').addEventListener('submit',sendAdminChatMessage);
         $('#adminChatChooseFile').addEventListener('click',()=>$('#adminChatFileInput').click());

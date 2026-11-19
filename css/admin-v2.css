@@ -465,3 +465,133 @@ html body.admin-body .v2-notice-checks li.is-ok::before { content: "✓"; backgr
 @keyframes v2-bump { 0% { scale: 1; } 40% { scale: 1.015; } 100% { scale: 1; } }
 @media (prefers-reduced-motion: reduce) { html body.admin-body .v2-notice-bell, html body.admin-body .v2-notice-card.is-bump { animation: none !important; } }
 html body.admin-body .admin-table-wrap td .admin-row-actions:has(> select) { flex-wrap: nowrap !important; max-width: none; }
+
+/* ==========================================================================
+   Hộp thư khách hàng — làm lại khung tìm kiếm, danh sách hội thoại & ô soạn
+   (gom về một lớp duy nhất, ghi đè các lớp cũ trong admin/theme/redesign/fx)
+   ========================================================================== */
+html body.admin-body .store-admin-chat { gap: 16px; }
+html body.admin-body .store-admin-chat__list,
+html body.admin-body .store-admin-chat__conversation {
+    border: 1px solid var(--v2-line) !important; border-radius: 18px !important;
+    background: var(--v2-surface) !important; box-shadow: 0 18px 40px rgba(0, 0, 0, .16) !important; overflow: hidden;
+}
+html body.admin-body .store-admin-chat__list { display: grid; grid-template-rows: auto auto minmax(0, 1fr); }
+
+/* Tiêu đề danh sách */
+html body.admin-body .store-admin-chat__list-heading { padding: 18px 18px 4px; align-items: flex-end; }
+html body.admin-body .store-admin-chat__list-heading span { color: var(--v2-accent); font-size: 10px; letter-spacing: .14em; }
+html body.admin-body .store-admin-chat__list-heading strong { font-size: 18px; line-height: 1.2; }
+html body.admin-body .store-admin-chat__list-heading small {
+    padding: 4px 9px; border: 1px solid var(--v2-line); border-radius: 99px; background: var(--v2-surface-2);
+    color: var(--v2-muted); font-size: 11px; font-weight: 600; white-space: nowrap;
+}
+
+/* Ô tìm kiếm: một khung duy nhất, có biểu tượng kính lúp, nút nằm gọn bên trong */
+html body.admin-body .store-admin-chat__list .admin-search {
+    position: relative; display: flex !important; align-items: center; gap: 6px;
+    height: auto !important; min-width: 0 !important; margin: 12px 16px 14px !important; padding: 5px 5px 5px 38px !important;
+    border: 1px solid var(--v2-line) !important; border-radius: 13px !important; background: var(--v2-surface-2) !important;
+    overflow: visible; transition: border-color .2s ease, box-shadow .2s ease;
+}
+html body.admin-body .store-admin-chat__list .admin-search::before {
+    content: ""; position: absolute; left: 13px; top: 50%; width: 16px; height: 16px; translate: 0 -50%; pointer-events: none;
+    background: var(--v2-muted);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+html body.admin-body .store-admin-chat__list .admin-search:focus-within {
+    border-color: var(--v2-accent) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--v2-accent) 18%, transparent) !important;
+}
+html body.admin-body .store-admin-chat__list .admin-search:focus-within::before { background: var(--v2-accent); }
+html body.admin-body .store-admin-chat__list .admin-search input,
+html body.admin-body .store-admin-chat__list .admin-search input:focus {
+    flex: 1 1 auto; width: auto !important; min-width: 0 !important; height: 34px; padding: 0 !important;
+    border: 0 !important; border-radius: 0 !important; outline: 0 !important; box-shadow: none !important;
+    background: transparent !important; backdrop-filter: none; color: var(--v2-ink) !important; font-size: 13px !important;
+}
+html body.admin-body .store-admin-chat__list .admin-search input::placeholder { color: var(--v2-muted) !important; opacity: .85; }
+html body.admin-body .store-admin-chat__list .admin-search button {
+    flex: 0 0 auto; width: auto !important; height: 34px; min-height: 0 !important; padding: 0 14px !important;
+    border: 0 !important; border-radius: 9px !important; background: linear-gradient(135deg, var(--v2-accent), var(--v2-accent-2)) !important;
+    color: #fff !important; font-size: 12px !important; font-weight: 800; cursor: pointer; box-shadow: 0 6px 14px rgba(255, 90, 31, .25);
+    transition: filter .2s ease, translate .2s var(--v2-ease);
+}
+html body.admin-body .store-admin-chat__list .admin-search button:hover { filter: brightness(1.08); translate: 0 -1px; }
+
+/* Danh sách hội thoại */
+html body.admin-body .store-admin-chat__threads { display: grid; align-content: start; gap: 4px; padding: 10px 10px 12px; border-top: 1px solid var(--v2-line); }
+html body.admin-body .store-admin-chat__thread {
+    width: 100%; grid-template-columns: 42px minmax(0, 1fr); gap: 12px; min-height: 0; padding: 11px 12px !important;
+    border: 1px solid transparent !important; border-radius: 13px !important; background: transparent !important;
+    color: inherit; text-align: left; font: inherit; cursor: pointer;
+}
+html body.admin-body .store-admin-chat__thread:hover { transform: none; background: var(--v2-surface-2) !important; }
+html body.admin-body .store-admin-chat__thread.is-active {
+    border-color: color-mix(in srgb, var(--v2-accent) 40%, transparent) !important;
+    background: linear-gradient(120deg, color-mix(in srgb, var(--v2-accent) 16%, transparent), color-mix(in srgb, var(--v2-accent) 4%, transparent)) !important;
+}
+html body.admin-body .store-admin-chat__thread.is-active::before { inset: 14px auto 14px -1px; }
+html body.admin-body .store-admin-chat__thread:focus-visible { outline: 2px solid var(--v2-accent); outline-offset: 1px; }
+html body.admin-body .store-admin-chat__avatar {
+    width: 42px; height: 42px; border: 0 !important; background-color: #ff6a2a;
+    background-image: linear-gradient(145deg, #ffb86b, #ed4926 72%); background-size: cover; background-position: center;
+    box-shadow: 0 0 0 2px var(--v2-surface), 0 0 0 3px color-mix(in srgb, var(--v2-accent) 35%, transparent);
+    font-size: 15px; overflow: hidden;
+}
+html body.admin-body .store-admin-chat__avatar.has-image { background-color: var(--v2-surface-2); }
+html body.admin-body .store-admin-chat__thread-content { gap: 3px; }
+html body.admin-body .store-admin-chat__thread-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+html body.admin-body .store-admin-chat__thread-head strong { font-size: 13.5px; font-weight: 700; }
+html body.admin-body .store-admin-chat__thread-head em {
+    display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px;
+    background: var(--v2-accent); color: #fff; font-size: 11px; font-weight: 800; font-style: normal;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--v2-accent) 22%, transparent);
+}
+html body.admin-body .store-admin-chat__thread-preview { color: color-mix(in srgb, var(--v2-ink) 72%, var(--v2-muted)); font-size: 12.5px; }
+html body.admin-body .store-admin-chat__thread:has(em) .store-admin-chat__thread-preview { color: var(--v2-ink); font-weight: 600; }
+html body.admin-body .store-admin-chat__thread-meta { align-items: center; color: var(--v2-muted); font-size: 11px; }
+html body.admin-body .store-admin-chat__thread-meta > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html body.admin-body .store-admin-chat__thread-meta time { font-size: 11px; font-variant-numeric: tabular-nums; }
+html body.admin-body .store-admin-chat__threads > .admin-empty-cell { padding: 28px 12px; color: var(--v2-muted); font-size: 13px; text-align: center; }
+
+/* Đầu khung hội thoại */
+html body.admin-body .store-admin-chat__contact { min-height: 76px; padding: 14px 20px !important; border: 0 !important; border-bottom: 1px solid var(--v2-line) !important; border-radius: 0 !important; }
+html body.admin-body .store-admin-chat__contact-identity strong { font-size: 15px; }
+html body.admin-body .store-admin-chat__contact-identity span { font-size: 12px; }
+html body.admin-body .store-admin-chat__contact-status { padding: 6px 12px; font-size: 11px !important; font-weight: 600; background: var(--v2-surface-2); border-color: var(--v2-line); }
+
+/* Trạng thái trống trong khung tin nhắn */
+html body.admin-body .store-admin-chat__messages > .admin-empty-cell {
+    display: grid; justify-items: center; gap: 12px; margin: auto; padding: 24px; color: var(--v2-muted); font-size: 13px; text-align: center;
+}
+html body.admin-body .store-admin-chat__messages > .admin-empty-cell::before {
+    content: ""; width: 64px; height: 64px; border-radius: 20px;
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff7a3d' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z'/%3E%3Cpath d='M8.5 11h7M8.5 14.5h4'/%3E%3C/svg%3E") center / 30px no-repeat,
+        color-mix(in srgb, var(--v2-accent) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--v2-accent) 28%, transparent);
+}
+
+/* Ô soạn tin */
+html body.admin-body .store-admin-chat__reply {
+    grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; padding: 12px 16px !important;
+    border-top: 1px solid var(--v2-line); background: var(--v2-surface) !important; box-shadow: none !important;
+}
+html body.admin-body .store-admin-chat .store-chat-tools { gap: 6px; min-height: 0; }
+html body.admin-body .store-admin-chat .store-chat-tool {
+    width: 34px; height: 34px; border: 1px solid var(--v2-line) !important; border-radius: 10px !important;
+    background: var(--v2-surface-2) !important; color: var(--v2-muted) !important; font-size: 15px;
+}
+html body.admin-body .store-admin-chat .store-chat-tool:not(:disabled):hover { border-color: var(--v2-accent) !important; color: var(--v2-accent) !important; }
+html body.admin-body .store-admin-chat__reply textarea {
+    min-height: 46px; padding: 12px 14px !important; border: 1px solid var(--v2-line) !important; border-radius: 13px !important;
+    background: var(--v2-surface-2) !important; color: var(--v2-ink) !important; font-size: 13px !important; box-shadow: none !important;
+}
+html body.admin-body .store-admin-chat__reply textarea:focus {
+    border-color: var(--v2-accent) !important; outline: 0 !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--v2-accent) 18%, transparent) !important;
+}
+html body.admin-body .store-admin-chat__reply textarea:disabled { opacity: .6; cursor: not-allowed; }
+html body.admin-body .store-admin-chat__reply #adminChatSend { height: 46px; min-height: 46px; padding-inline: 20px; border-radius: 13px; white-space: nowrap; }
+html body.admin-body .store-admin-chat__reply #adminChatSend:disabled { opacity: .45; filter: grayscale(.35); box-shadow: none; cursor: not-allowed; }
+html body.admin-body .store-admin-chat__reply .form-status:empty { display: none; }
