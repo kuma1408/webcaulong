@@ -9,7 +9,7 @@
     const TOKEN_KEY = 'badminton_access_token';
     const THEME_KEY = 'badminton_theme';
     const SPORT_ASSET_VERSION = '20260921-1';
-    const NOVA_ASSET_VERSION = '20261120-mobile-1';
+    const NOVA_ASSET_VERSION = '20261120-mobile-3';
 
     function ensureSportDesignAssets() {
         const adminPage = /(?:^|\/)admin\.html$/.test(location.pathname);

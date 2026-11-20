@@ -246,6 +246,13 @@ html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%;
     html body .site-header .header__inner > .header__actions { grid-area: 1 / 2 !important; justify-content: flex-end !important; gap: 2px !important; min-width: 0; }
     html body .site-header .header__inner > .nav-toggle { grid-area: 1 / 3 !important; }
     html body .site-header .header__actions :is(.icon-button, .bs-icon-button) { width: 38px !important; height: 38px !important; min-width: 38px; }
+    /* Header tự ẩn khi cuộn xuống, hiện lại khi cuộn lên; dải "Danh mục" không dính */
+    html body .header:has(.bs-header) { transition: transform .4s var(--nova-ease), box-shadow .3s, background-color .3s !important; will-change: transform; }
+    html.nova-header-hidden body .header:has(.bs-header) { transform: translateY(-105%); box-shadow: none !important; }
+    html body #menu:has(.bs-nav) { position: relative !important; top: auto !important; z-index: 5 !important; }
+    /* Trang chi tiết: bớt lớp đệm lồng nhau để nội dung rộng hơn */
+    html body .detail-container { padding: 0 10px !important; }
+    html body .product-detail-layout { padding: 14px !important; border-radius: 20px !important; }
     /* Breadcrumb trang chi tiết: cuộn ngang thay vì tràn */
     html body .breadcrumb-nav { max-width: 100%; overflow-x: auto; white-space: nowrap; scrollbar-width: none; transform: none !important; }
     html body .breadcrumb-nav::-webkit-scrollbar { display: none; }
@@ -261,6 +268,41 @@ html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%;
     .nova-aurora i:nth-child(3) { display: none; }
     /* Tiêu đề lớn không bị cắt */
     main h1, main h2 { overflow-wrap: anywhere; }
+    /* Thẻ sản phẩm trang chủ: nút nằm gọn ở đáy ảnh, không che sản phẩm */
+    html body .product-card__actions {
+        top: auto !important; bottom: 8px !important; left: 8px !important; right: 8px !important;
+        display: flex !important; flex-direction: row !important; align-items: center; justify-content: space-between; gap: 6px !important;
+    }
+    html body .product-card__action--cart {
+        flex: 1 1 auto; min-height: 34px !important; height: 34px; padding: 0 10px !important;
+        border-radius: 999px !important; font-size: 11.5px !important; white-space: nowrap;
+    }
+    html body .product-card__action--wish { flex: none; width: 34px !important; min-width: 34px; height: 34px; min-height: 34px !important; padding: 0 !important; border-radius: 50% !important; order: 2; }
+    /* Bộ lọc danh mục: hãng thành 2 cột dạng chip */
+    html body .brand-list { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
+    html body .brand-list .brand-item {
+        margin: 0 !important; min-height: 42px; padding: 8px 10px !important; border-radius: 12px;
+        border: 1px solid color-mix(in srgb, var(--nova-ink) 12%, transparent);
+        background: color-mix(in srgb, var(--nova-ink) 4%, transparent);
+        transition: border-color .25s, background-color .25s;
+    }
+    html body .brand-list .brand-item:has(input:checked) { border-color: var(--nova-accent); background: color-mix(in srgb, var(--nova-accent) 12%, transparent); }
+    /* Trang tài khoản: tab thành lưới 3 cột thay vì cuộn ngang bị cắt chữ */
+    html body .account-tabs { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 6px !important; overflow: visible !important; }
+    html body .account-tabs > * {
+        min-width: 0 !important; width: auto !important; margin: 0 !important; padding: 9px 4px !important;
+        display: flex !important; flex-direction: column; align-items: center !important; justify-content: center !important; gap: 4px !important;
+        font-size: 11.5px !important; line-height: 1.2; text-align: center; white-space: normal !important;
+    }
+    html body.account-body:not(.admin-body) main h2 { font-size: clamp(22px, 6.6vw, 28px) !important; line-height: 1.2; text-wrap: balance; }
+    /* Khung bao ngoài kiểu "thẻ trong thẻ": bỏ viền/nền để nội dung rộng hơn */
+    html body :is(.wishlist-main, .contact-main, .news-hub) {
+        margin-inline: 0 !important; padding: 14px 12px !important;
+        border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important;
+    }
+    /* Thẻ "lối chơi": bớt khoảng trống */
+    html body .playstyle-card { min-height: 0 !important; padding: 18px !important; }
+    html body .playstyle-card__line { height: 56px !important; max-height: 56px; }
     /* Lưới thông số trang chi tiết: dễ đọc hơn */
     html body .spec-tile, html body [class*="spec-tile"]:not([class*="__"]):not([class*="-label"]):not([class*="-value"]):not([class*="-icon"]):not([class*="-body"]) { padding: 12px !important; }
 }
@@ -304,6 +346,38 @@ html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%;
     body.nova-has-tabbar .store-chat-widget { bottom: calc(80px + env(safe-area-inset-bottom)) !important; right: 12px !important; }
     body.nova-has-tabbar .bs-back-to-top { bottom: calc(132px + env(safe-area-inset-bottom)) !important; right: 14px !important; width: 42px !important; height: 42px !important; }
 }
+/* ---------- Thanh mua hàng dính đáy (trang chi tiết, điện thoại) ---------- */
+.nova-buybar { display: none; }
+@media (max-width: 768px) {
+    .nova-buybar {
+        position: fixed; left: 10px; right: 10px; z-index: 9310;
+        bottom: calc(78px + env(safe-area-inset-bottom));
+        display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 8px;
+        padding: 8px 8px 8px 14px; border-radius: 18px;
+        background: var(--nova-glass); border: 1px solid var(--nova-glass-line);
+        -webkit-backdrop-filter: saturate(1.8) blur(20px); backdrop-filter: saturate(1.8) blur(20px);
+        box-shadow: 0 16px 36px -16px rgb(0 0 0 / .6);
+        transform: translateY(16px); opacity: 0; pointer-events: none;
+        transition: transform .45s var(--nova-spring), opacity .3s, bottom .45s var(--nova-ease);
+    }
+    .nova-buybar.is-shown { transform: none; opacity: 1; pointer-events: auto; }
+    body:has(.nova-tabbar.is-hidden) .nova-buybar { bottom: calc(10px + env(safe-area-inset-bottom)); }
+    .nova-buybar__price { min-width: 0; display: grid; gap: 2px; }
+    .nova-buybar__price small { font: 700 10px/1.1 system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: color-mix(in srgb, var(--nova-ink) 55%, transparent); }
+    .nova-buybar__price b { font: 900 17px/1.1 system-ui, sans-serif; color: var(--nova-accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nova-buybar button {
+        height: 44px; border: 0; border-radius: 14px; padding: 0 14px; cursor: pointer;
+        font: 800 13px/1 system-ui, sans-serif; white-space: nowrap;
+        transition: transform .25s var(--nova-spring);
+    }
+    .nova-buybar button:active { transform: scale(.95); }
+    .nova-buybar__cart { background: color-mix(in srgb, var(--nova-accent) 14%, transparent); color: var(--nova-accent); border: 1px solid color-mix(in srgb, var(--nova-accent) 35%, transparent) !important; width: 44px; padding: 0 !important; font-size: 18px !important; }
+    .nova-buybar__buy { color: #fff; background: linear-gradient(135deg, var(--nova-hot), var(--nova-accent)); box-shadow: 0 10px 22px -10px rgb(255 90 31 / .8); }
+    body.nova-has-buybar .store-chat-widget { bottom: calc(146px + env(safe-area-inset-bottom)) !important; }
+    body.nova-has-buybar .bs-back-to-top { bottom: calc(198px + env(safe-area-inset-bottom)) !important; }
+}
+@media print { .nova-buybar { display: none !important; } }
+
 @keyframes nova-tab-pop { 0% { transform: scale(1); } 40% { transform: scale(1.25) translateY(-2px); } 100% { transform: scale(1); } }
 @media print { .nova-tabbar { display: none !important; } }
 

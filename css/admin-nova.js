@@ -151,6 +151,44 @@
         });
     }
 
+    /* ---------- Bảng → thẻ trên điện thoại: gắn nhãn cột cho từng ô ---------- */
+    const ACTION_HEADER = /thao tác|quyết định|chuyển trạng thái|hành động xử lý/i;
+    const watchedTables = new WeakSet();
+    function labelTable(table) {
+        const headers = [...table.querySelectorAll(':scope > thead th')].map((th) => th.textContent.replace(/\s+/g, ' ').trim());
+        if (!headers.length) return;
+        table.classList.add('an-card-table');
+        table.querySelectorAll(':scope > tbody > tr').forEach((row) => {
+            const cells = [...row.children];
+            const full = cells.length === 1 && cells[0].colSpan > 1;
+            row.classList.toggle('an-row-full', full);
+            if (full) return;
+            let column = 0;
+            cells.forEach((cell, index) => {
+                const label = headers[column] || '';
+                if (cell.dataset.label !== label) cell.dataset.label = label;
+                const isAction = ACTION_HEADER.test(label) || (index === cells.length - 1 && index > 0 && cell.querySelector('button, select, a.admin-pill-btn'));
+                cell.classList.toggle('an-cell-actions', Boolean(isAction));
+                cell.classList.toggle('an-cell-primary', index === 0);
+                column += Math.max(1, cell.colSpan || 1);
+            });
+        });
+    }
+    function cardTables(scope = document) {
+        $$('.admin-table-wrap table', scope).forEach((table) => {
+            labelTable(table);
+            if (watchedTables.has(table)) return;
+            watchedTables.add(table);
+            let pending = false;
+            new MutationObserver(() => {
+                if (pending) return;
+                pending = true;
+                // setTimeout thay vì rAF để vẫn chạy khi tab đang ở nền.
+                setTimeout(() => { pending = false; labelTable(table); }, 30);
+            }).observe(table, { childList: true, subtree: true });
+        });
+    }
+
     function watchDom() {
         const queue = new Set();
         let frame = 0;
@@ -164,6 +202,7 @@
                     if (!node.isConnected) return;
                     spotlight(node.parentElement || node);
                     sheen(node.parentElement || node);
+                    if (node.matches('table, .admin-table-wrap') || node.querySelector?.('.admin-table-wrap table')) cardTables(node.parentElement || node);
                 });
                 queue.clear();
             });
@@ -177,6 +216,7 @@
         spotlight();
         trackPointer();
         sheen();
+        cardTables();
         watchValues();
         titleSwap();
         watchDom();

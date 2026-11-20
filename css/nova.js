@@ -58,14 +58,57 @@
     /* ---------- Header kính mờ khi cuộn ---------- */
     function headerGlass() {
         let ticking = false;
+        let lastY = window.scrollY;
+        const phone = matchMedia('(max-width: 820px)');
+        // Đang mở menu tài khoản / thông báo / tìm kiếm thì luôn giữ header.
+        const headerBusy = () => Boolean(document.querySelector('.bs-user[open], .bs-notification-widget [aria-expanded="true"], .header:has(.bs-header) :focus'));
         const update = () => {
             ticking = false;
-            const scrolled = window.scrollY > 12;
+            const y = window.scrollY;
+            const scrolled = y > 12;
             root.classList.toggle('nova-scrolled', scrolled);
             document.querySelectorAll('.site-header').forEach((header) => header.classList.toggle('nova-scrolled', scrolled));
+            // Điện thoại: ẩn header khi cuộn xuống, hiện lại khi cuộn lên.
+            const delta = y - lastY;
+            if (!phone.matches || y < 80 || headerBusy()) root.classList.remove('nova-header-hidden');
+            else if (Math.abs(delta) > 8) root.classList.toggle('nova-header-hidden', delta > 0 && y > 220);
+            if (Math.abs(delta) > 8 || y < 80) lastY = y;
         };
         window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+        document.addEventListener('focusin', (event) => { if (event.target.closest?.('.header')) root.classList.remove('nova-header-hidden'); });
         update();
+    }
+
+    /* ---------- Thanh mua hàng dính đáy trên trang chi tiết (điện thoại) ---------- */
+    function buybar() {
+        const buy = document.querySelector('.btn-buy-now');
+        const cart = document.querySelector('.btn-add-cart');
+        if (!buy || document.querySelector('.nova-buybar') || !('IntersectionObserver' in window)) return;
+        const bar = document.createElement('div');
+        bar.className = 'nova-buybar';
+        bar.setAttribute('role', 'region');
+        bar.setAttribute('aria-label', 'Mua nhanh');
+        bar.innerHTML = '<div class="nova-buybar__price"><small>Giá bán</small><b></b></div>'
+            + (cart ? '<button type="button" class="nova-buybar__cart" aria-label="Thêm vào giỏ hàng">🛒</button>' : '<span></span>')
+            + '<button type="button" class="nova-buybar__buy">Mua ngay</button>';
+        document.body.appendChild(bar);
+        document.body.classList.add('nova-has-buybar');
+        const price = bar.querySelector('b');
+        const priceSource = () => document.querySelector('#productPrice');
+        const syncPrice = () => { price.textContent = (priceSource()?.textContent || '').trim(); };
+        syncPrice();
+        if (priceSource()) new MutationObserver(syncPrice).observe(priceSource(), { childList: true, characterData: true, subtree: true });
+        // Đưa nút gốc vào tầm nhìn rồi bấm, để khách thấy lựa chọn cấu hình / thông báo lỗi.
+        const press = (target) => {
+            target.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'center' });
+            setTimeout(() => target.click(), reduced() ? 0 : 380);
+        };
+        bar.querySelector('.nova-buybar__buy').addEventListener('click', () => press(buy));
+        bar.querySelector('.nova-buybar__cart')?.addEventListener('click', () => press(cart));
+        let buyVisible = true;
+        const sync = () => bar.classList.toggle('is-shown', !buyVisible && window.scrollY > 360 && Boolean(price.textContent));
+        new IntersectionObserver((entries) => { buyVisible = entries[0].isIntersecting; sync(); }, { rootMargin: '0px 0px -80px 0px' }).observe(buy);
+        window.addEventListener('scroll', sync, { passive: true });
     }
 
     /* ---------- Thanh chỉ báo menu trượt ---------- */
@@ -246,6 +289,7 @@
     function start() {
         root.classList.add('nova-ready');
         tabbar();
+        buybar();
         intro();
         syncAurora();
         headerGlass();
