@@ -1,0 +1,216 @@
+/* =============================================================
+   NOVA — lớp giao diện & chuyển động thống nhất cho cửa hàng (2026-11)
+   Nạp sau cùng qua auth.js. Mọi hiệu ứng là "tăng cường": nội dung
+   luôn hiển thị khi JS lỗi, và tắt hoàn toàn với prefers-reduced-motion.
+   1. Token màu / easing         7. Ảnh hiện dần (blur-up)
+   2. Chuyển trang View Transition 8. Tiêu đề: gạch chân gradient chạy
+   3. Nền aurora động             9. Ô nhập: vòng sáng khi focus
+   4. Header kính mờ khi cuộn    10. Con trỏ vòng sáng (chuột)
+   5. Thanh chỉ báo menu trượt   11. Thông báo bật lò xo
+   6. Thẻ: viền gradient xoay,   12. Màn mở đầu (một lần mỗi phiên)
+      ánh quét khi rê chuột
+   ============================================================= */
+
+/* ---------- 1. Tokens ---------- */
+:root {
+    --nova-accent: #ff5a1f;
+    --nova-accent-2: #ff9d4d;
+    --nova-accent-3: #ffd166;
+    --nova-hot: #e8283c;
+    --nova-base: #f4f5f7;
+    --nova-ink: #17212b;
+    --nova-glass: rgb(255 255 255 / .72);
+    --nova-glass-line: rgb(20 30 45 / .08);
+    --nova-orb-a: rgb(255 122 61 / .20);
+    --nova-orb-b: rgb(232 40 60 / .12);
+    --nova-orb-c: rgb(255 209 102 / .16);
+    --nova-shadow-lift: 0 22px 48px -18px rgb(20 30 45 / .28), 0 8px 18px -10px rgb(255 90 31 / .22);
+    --nova-ease: cubic-bezier(.22, 1, .36, 1);
+    --nova-spring: cubic-bezier(.34, 1.56, .64, 1);
+    --nova-grad: linear-gradient(110deg, var(--nova-hot), var(--nova-accent) 40%, var(--nova-accent-2) 70%, var(--nova-accent-3));
+}
+:root[data-theme="dark"], html:has(body.dark-theme) {
+    --nova-base: #0b121c;
+    --nova-ink: #edf4fa;
+    --nova-glass: rgb(12 20 32 / .72);
+    --nova-glass-line: rgb(255 255 255 / .07);
+    --nova-orb-a: rgb(255 106 41 / .16);
+    --nova-orb-b: rgb(232 40 60 / .12);
+    --nova-orb-c: rgb(80 120 255 / .10);
+    --nova-shadow-lift: 0 26px 56px -20px rgb(0 0 0 / .65), 0 10px 26px -12px rgb(255 90 31 / .30);
+}
+
+/* ---------- 2. Chuyển trang mượt (Chrome/Edge, Safari 18+) ---------- */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: nova-page-out .28s var(--nova-ease) both; }
+::view-transition-new(root) { animation: nova-page-in .48s var(--nova-ease) both; }
+@keyframes nova-page-out { to { opacity: 0; transform: scale(.985); filter: blur(4px); } }
+@keyframes nova-page-in { from { opacity: 0; transform: translateY(14px) scale(1.01); filter: blur(6px); } }
+
+/* ---------- 3. Nền aurora ---------- */
+html.nova-ready { background-color: var(--nova-base); }
+body.nova-ambient { background-color: transparent !important; }
+.nova-aurora {
+    position: fixed; inset: -20vmax; z-index: -1; pointer-events: none;
+    overflow: hidden; contain: strict;
+}
+.nova-aurora i {
+    position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%;
+    filter: blur(70px); will-change: transform; opacity: .9;
+}
+.nova-aurora i:nth-child(1) { left: 0; top: 0; background: radial-gradient(circle, var(--nova-orb-a), transparent 65%); animation: nova-orb-1 26s ease-in-out infinite alternate; }
+.nova-aurora i:nth-child(2) { right: 0; top: 18%; background: radial-gradient(circle, var(--nova-orb-b), transparent 65%); animation: nova-orb-2 32s ease-in-out infinite alternate; }
+.nova-aurora i:nth-child(3) { left: 30%; bottom: 0; background: radial-gradient(circle, var(--nova-orb-c), transparent 65%); animation: nova-orb-3 38s ease-in-out infinite alternate; }
+@keyframes nova-orb-1 { to { transform: translate(22vmax, 16vmax) scale(1.15); } }
+@keyframes nova-orb-2 { to { transform: translate(-18vmax, 22vmax) scale(.9); } }
+@keyframes nova-orb-3 { to { transform: translate(-14vmax, -20vmax) scale(1.2); } }
+.nova-aurora::after { /* hạt nhiễu nhẹ cho chiều sâu */
+    content: ""; position: absolute; inset: 0; opacity: .035; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- 4. Header kính mờ khi cuộn ---------- */
+.bs-header, .site-header { transition: box-shadow .35s var(--nova-ease), background-color .35s var(--nova-ease), backdrop-filter .35s; }
+.nova-scrolled .bs-header,
+.site-header.nova-scrolled {
+    background-color: var(--nova-glass) !important;
+    -webkit-backdrop-filter: saturate(1.6) blur(16px);
+    backdrop-filter: saturate(1.6) blur(16px);
+    box-shadow: 0 1px 0 var(--nova-glass-line), 0 14px 34px -22px rgb(0 0 0 / .45);
+}
+.bs-header, .site-header { position: relative; }
+.bs-header::after, .site-header::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; pointer-events: none;
+    background: var(--nova-grad); background-size: 200% 100%;
+    transform: scaleX(0); transform-origin: left; opacity: 0;
+    transition: transform .6s var(--nova-ease), opacity .3s;
+}
+.nova-scrolled .bs-header::after, .site-header.nova-scrolled::after { transform: scaleX(1); opacity: .85; animation: nova-flow 6s linear infinite; }
+@keyframes nova-flow { to { background-position: -200% 0; } }
+
+.bs-brand__mark, .brand__mark, .admin-emblem { transition: transform .5s var(--nova-spring), box-shadow .4s; }
+.bs-brand:hover .bs-brand__mark, .brand:hover .brand__mark { transform: rotate(-12deg) scale(1.08); box-shadow: 0 0 0 4px rgb(255 90 31 / .18), 0 10px 26px -6px rgb(255 90 31 / .6); }
+
+/* ---------- 5. Thanh chỉ báo menu trượt ---------- */
+.nova-ink-host { position: relative; }
+.nova-nav-ink {
+    position: absolute; left: 0; bottom: 4px; height: 3px; width: 0; border-radius: 3px;
+    background: var(--nova-grad); pointer-events: none; opacity: 0;
+    box-shadow: 0 0 14px rgb(255 90 31 / .65);
+    transition: transform .45s var(--nova-ease), width .45s var(--nova-ease), opacity .25s;
+}
+
+/* ---------- 6. Thẻ: viền gradient xoay + ánh quét (phần tử con, không đụng ::before/::after sẵn có) ---------- */
+.nova-card { transition: box-shadow .5s var(--nova-ease); }
+.nova-card__fx {
+    position: absolute; inset: 0; z-index: 5; border-radius: inherit; pointer-events: none; overflow: hidden;
+}
+.nova-card__fx::before { /* viền gradient xoay */
+    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 2px;
+    background: conic-gradient(from var(--nova-angle, 0deg), transparent 0 30%, var(--nova-hot) 45%, var(--nova-accent) 60%, var(--nova-accent-3) 75%, transparent 90%);
+    filter: drop-shadow(0 0 6px rgb(255 90 31 / .55));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    opacity: 0; transition: opacity .4s;
+}
+.nova-card__fx::after { /* ánh quét */
+    content: ""; position: absolute; inset: 0; border-radius: inherit;
+    background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / .26) 48%, transparent 60%);
+    background-size: 250% 100%; background-position: 150% 0; opacity: 0;
+}
+@property --nova-angle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@media (hover: hover) and (pointer: fine) {
+    .nova-card:hover { box-shadow: var(--nova-shadow-lift) !important; }
+    .nova-card:hover > .nova-card__fx::before { opacity: 1; animation: nova-spin 3.2s linear infinite; }
+    .nova-card:hover > .nova-card__fx::after { animation: nova-sheen 1s var(--nova-ease) both; }
+}
+@keyframes nova-spin { to { --nova-angle: 360deg; } }
+@keyframes nova-sheen { 0% { opacity: 1; background-position: 150% 0; } 100% { opacity: 0; background-position: -60% 0; } }
+
+/* Nhãn giảm giá nhịp nhàng */
+.discount-badge, .sale-badge, .product-card__badge, .badge-sale, [class*="discount-tag"] { animation: nova-pulse-badge 2.4s var(--nova-ease) infinite; }
+@keyframes nova-pulse-badge { 0%, 100% { box-shadow: 0 0 0 0 rgb(232 40 60 / .45); } 60% { box-shadow: 0 0 0 9px rgb(232 40 60 / 0); } }
+
+/* ---------- Nút chính: nhấc lên + ánh quét (phần tử con) ---------- */
+.nova-btn { transition: transform .35s var(--nova-spring), box-shadow .35s var(--nova-ease), background-color .25s, color .25s, border-color .25s; }
+.nova-btn__sheen {
+    position: absolute; inset: 0; z-index: 1; border-radius: inherit; pointer-events: none; overflow: hidden;
+}
+.nova-btn__sheen::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / .38) 50%, transparent 70%);
+    transform: translateX(-120%);
+}
+@media (hover: hover) and (pointer: fine) {
+    .nova-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 30px -12px rgb(255 90 31 / .7); }
+    .nova-btn:hover > .nova-btn__sheen::after { transform: translateX(120%); transition: transform .8s var(--nova-ease); }
+}
+.nova-btn:active { transform: translateY(0) scale(.97); }
+
+/* ---------- 7. Ảnh hiện dần ---------- */
+img.nova-img-wait { opacity: 0; filter: blur(10px); transform: scale(1.03); }
+img.nova-img-done { opacity: 1; filter: none; transition: opacity .6s var(--nova-ease), filter .7s var(--nova-ease), transform .9s var(--nova-ease); }
+
+.nova-gradient-text {
+    background: var(--nova-grad); background-size: 220% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent !important;
+    animation: nova-flow 7s linear infinite;
+}
+
+/* ---------- 9. Ô nhập ---------- */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+select, textarea { transition: border-color .25s, box-shadow .35s var(--nova-ease), background-color .25s; }
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus-visible,
+select:focus-visible, textarea:focus-visible {
+    box-shadow: 0 0 0 4px rgb(255 90 31 / .16), 0 8px 24px -14px rgb(255 90 31 / .7);
+}
+
+/* ---------- 10. Con trỏ vòng sáng ---------- */
+.nova-cursor {
+    position: fixed; left: 0; top: 0; z-index: 2147483000; pointer-events: none;
+    width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%;
+    border: 1.5px solid rgb(255 90 31 / .7);
+    background: radial-gradient(circle, rgb(255 140 70 / .14), transparent 70%);
+    transition: width .3s var(--nova-ease), height .3s var(--nova-ease), margin .3s var(--nova-ease), opacity .3s, border-color .3s, background-color .3s;
+    opacity: 0; will-change: transform;
+}
+.nova-cursor.is-visible { opacity: 1; }
+.nova-cursor.is-hover { width: 58px; height: 58px; margin: -29px 0 0 -29px; border-color: rgb(255 157 77 / .9); background-color: rgb(255 90 31 / .08); }
+.nova-cursor.is-down { width: 24px; height: 24px; margin: -12px 0 0 -12px; }
+.nova-cursor.is-text { width: 4px; height: 30px; margin: -15px 0 0 -2px; border-radius: 2px; background: var(--nova-accent); border-color: transparent; }
+
+/* ---------- 12. Màn mở đầu ---------- */
+.nova-intro {
+    position: fixed; inset: 0; z-index: 2147483100; display: grid; place-items: center;
+    background: radial-gradient(circle at 50% 45%, #2a1410, #0b121c 70%);
+    animation: nova-intro-out .7s var(--nova-ease) .75s forwards;
+}
+.nova-intro__mark {
+    width: 84px; height: 84px; border-radius: 24px; display: grid; place-items: center;
+    font: 900 42px/1 system-ui, sans-serif; color: #fff;
+    background: linear-gradient(135deg, var(--nova-hot), var(--nova-accent) 60%, var(--nova-accent-2));
+    box-shadow: 0 0 0 0 rgb(255 90 31 / .6), 0 20px 60px -10px rgb(255 90 31 / .8);
+    animation: nova-intro-mark .9s var(--nova-spring) both, nova-intro-ring 1.2s ease-out .2s;
+}
+.nova-intro__bar { position: absolute; left: 50%; top: calc(50% + 70px); width: 140px; height: 3px; margin-left: -70px; border-radius: 3px; overflow: hidden; background: rgb(255 255 255 / .1); }
+.nova-intro__bar::after { content: ""; position: absolute; inset: 0; background: var(--nova-grad); transform-origin: left; animation: nova-intro-load .8s var(--nova-ease) both; }
+@keyframes nova-intro-mark { from { transform: scale(.3) rotate(-30deg); opacity: 0; } }
+@keyframes nova-intro-ring { to { box-shadow: 0 0 0 40px rgb(255 90 31 / 0), 0 20px 60px -10px rgb(255 90 31 / .8); } }
+@keyframes nova-intro-load { from { transform: scaleX(0); } }
+@keyframes nova-intro-out { to { clip-path: circle(0% at 50% 50%); opacity: 0; visibility: hidden; } }
+
+/* ---------- Thông báo (toast) bật lò xo ---------- */
+.bs-toast { animation: nova-toast-in .55s var(--nova-spring) both; }
+@keyframes nova-toast-in { from { opacity: 0; transform: translateY(18px) scale(.92); } }
+
+/* ---------- Giảm chuyển động / thiết bị cảm ứng ---------- */
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
+    .nova-aurora i, .nova-intro, .nova-cursor, .discount-badge, .sale-badge, .product-card__badge, .badge-sale { animation: none !important; }
+    .nova-intro, .nova-cursor { display: none !important; }
+    img.nova-img-wait { opacity: 1 !important; transform: none !important; filter: none !important; }
+    .nova-card__fx, .nova-btn, .nova-btn__sheen, .nova-gradient-text { transition: none !important; animation: none !important; }
+    .nova-card__fx { display: none !important; }
+}
+@media (hover: none), (pointer: coarse) { .nova-cursor { display: none !important; } }
+@media print { .nova-aurora, .nova-cursor, .nova-intro { display: none !important; } }

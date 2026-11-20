@@ -1,0 +1,178 @@
+/* =============================================================
+   ADMIN NOVA — lớp giao diện & chuyển động bổ sung cho admin (2026-11)
+   Nạp sau cùng qua auth.js. Bổ sung cho admin-v2/admin-plus, không thay:
+   1. Nền aurora động phía sau toàn bộ bảng điều khiển
+   2. Topbar kính mờ dính đầu trang + đường sáng gradient + đồng hồ
+   3. Spotlight theo con trỏ trên thẻ KPI / thẻ nội dung
+   4. Số liệu "nảy" khi giá trị thay đổi
+   5. Tiêu đề trang chuyển mượt khi đổi mục
+   6. Sidebar: biểu tượng phát sáng, huy hiệu đếm nhịp, icon nhích khi rê
+   7. Nút chính: gradient chạy + ánh quét; vạch nhấn hàng bảng
+   Tôn trọng prefers-reduced-motion.
+   ============================================================= */
+html:root body.admin-body {
+    --an-accent: #ff5a1f;
+    --an-accent-2: #ff9d4d;
+    --an-accent-3: #ffd166;
+    --an-hot: #e8283c;
+    --an-ease: cubic-bezier(.22, 1, .36, 1);
+    --an-spring: cubic-bezier(.34, 1.56, .64, 1);
+    --an-grad: linear-gradient(110deg, var(--an-hot), var(--an-accent) 40%, var(--an-accent-2) 70%, var(--an-accent-3));
+    --an-glass: rgb(255 255 255 / .74);
+    --an-glass-line: rgb(20 30 45 / .08);
+    --an-orb-a: rgb(255 122 61 / .16);
+    --an-orb-b: rgb(232 40 60 / .10);
+    --an-orb-c: rgb(59 130 246 / .10);
+    --an-spot: rgb(255 122 61 / .12);
+}
+html:root[data-theme="dark"] body.admin-body {
+    --an-glass: rgb(16 26 40 / .72);
+    --an-glass-line: rgb(255 255 255 / .07);
+    --an-orb-a: rgb(255 106 41 / .13);
+    --an-orb-b: rgb(232 40 60 / .09);
+    --an-orb-c: rgb(80 120 255 / .10);
+    --an-spot: rgb(255 140 70 / .17);
+}
+
+/* ---------- 1. Nền aurora ---------- */
+html:root body.admin-body.an-ambient .admin-app,
+html:root body.admin-body.an-ambient .admin-shell,
+html:root body.admin-body.an-ambient .admin-workspace { background-color: transparent !important; }
+html:root body.admin-body .admin-app { position: relative; z-index: 1; }
+.an-aurora { position: fixed; inset: -20vmax; z-index: 0; pointer-events: none; overflow: hidden; contain: strict; }
+.an-aurora i { position: absolute; width: 58vmax; height: 58vmax; border-radius: 50%; filter: blur(80px); will-change: transform; }
+.an-aurora i:nth-child(1) { right: 6%; top: 0; background: radial-gradient(circle, var(--an-orb-a), transparent 65%); animation: an-orb-1 30s ease-in-out infinite alternate; }
+.an-aurora i:nth-child(2) { left: 10%; bottom: 0; background: radial-gradient(circle, var(--an-orb-b), transparent 65%); animation: an-orb-2 36s ease-in-out infinite alternate; }
+.an-aurora i:nth-child(3) { left: 40%; top: 30%; background: radial-gradient(circle, var(--an-orb-c), transparent 65%); animation: an-orb-3 42s ease-in-out infinite alternate; }
+@keyframes an-orb-1 { to { transform: translate(-20vmax, 18vmax) scale(1.15); } }
+@keyframes an-orb-2 { to { transform: translate(22vmax, -16vmax) scale(.9); } }
+@keyframes an-orb-3 { to { transform: translate(-12vmax, 14vmax) scale(1.2); } }
+.an-aurora[hidden] { display: none; }
+
+/* ---------- 2. Topbar kính mờ ---------- */
+@media (min-width: 900px) {
+    html:root body.admin-body .admin-topbar {
+        position: sticky !important; top: 10px; z-index: 30;
+        transition: background-color .35s var(--an-ease), box-shadow .35s var(--an-ease), backdrop-filter .35s;
+    }
+    html:root body.admin-body.an-scrolled .admin-topbar {
+        background-color: var(--an-glass) !important;
+        -webkit-backdrop-filter: saturate(1.6) blur(18px);
+        backdrop-filter: saturate(1.6) blur(18px);
+        box-shadow: 0 1px 0 var(--an-glass-line), 0 18px 40px -24px rgb(0 0 0 / .55) !important;
+    }
+}
+html:root body.admin-body .admin-topbar { overflow: hidden; }
+.an-topbar-line {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 2px; pointer-events: none;
+    background: var(--an-grad); background-size: 200% 100%; opacity: .75;
+    animation: an-flow 6s linear infinite;
+}
+@keyframes an-flow { to { background-position: -200% 0; } }
+.an-clock {
+    display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 999px;
+    font: 700 12px/1 inherit; letter-spacing: .02em; white-space: nowrap;
+    color: var(--v2-ink, inherit);
+    background: color-mix(in srgb, var(--an-accent) 9%, transparent);
+    border: 1px solid color-mix(in srgb, var(--an-accent) 22%, transparent);
+    font-variant-numeric: tabular-nums;
+}
+.an-clock b { color: var(--an-accent-2); font-weight: 800; }
+.an-clock__sep { width: 4px; height: 4px; border-radius: 50%; background: var(--an-accent); animation: an-blink 2s ease-in-out infinite; }
+@keyframes an-blink { 50% { opacity: .25; } }
+@media (max-width: 1100px) { .an-clock__date { display: none; } }
+@media (max-width: 720px) { .an-clock { display: none; } }
+
+/* ---------- 3. Spotlight theo con trỏ ---------- */
+.an-spot-host { position: relative; isolation: isolate; }
+.an-spot {
+    position: absolute; inset: 0; z-index: 2; border-radius: inherit; pointer-events: none; overflow: hidden;
+    opacity: 0; transition: opacity .35s var(--an-ease);
+    background: radial-gradient(420px circle at var(--an-x, 50%) var(--an-y, 50%), var(--an-spot), transparent 45%);
+}
+.an-spot::after { /* viền sáng theo con trỏ */
+    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+    background: radial-gradient(260px circle at var(--an-x, 50%) var(--an-y, 50%), rgb(255 157 77 / .75), transparent 60%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+}
+@media (hover: hover) and (pointer: fine) {
+    .an-spot-host:hover > .an-spot { opacity: 1; }
+    html:root body.admin-body .admin-kpi-card:hover .admin-kpi-icon { animation: an-icon-bob .7s var(--an-spring); }
+}
+@keyframes an-icon-bob { 30% { transform: translateY(-5px) rotate(-8deg) scale(1.1); } 60% { transform: translateY(1px) rotate(4deg); } }
+
+/* ---------- 4. Số liệu nảy khi đổi ---------- */
+.an-bump { animation: an-bump .7s var(--an-spring); }
+@keyframes an-bump {
+    0% { transform: scale(1); text-shadow: none; }
+    35% { transform: scale(1.12); text-shadow: 0 0 18px rgb(255 122 61 / .7); }
+    100% { transform: scale(1); text-shadow: none; }
+}
+html:root body.admin-body .admin-kpi-card strong { display: inline-block; transform-origin: left center; }
+
+/* ---------- 5. Tiêu đề trang ---------- */
+.an-title-in { animation: an-title .6s var(--an-ease) both; }
+@keyframes an-title { from { opacity: 0; transform: translateY(10px); filter: blur(6px); letter-spacing: .04em; } }
+html:root body.admin-body .admin-topbar .eyebrow {
+    background: var(--an-grad); background-size: 220% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent !important;
+    animation: an-flow 7s linear infinite;
+}
+
+/* ---------- 6. Sidebar ---------- */
+html:root body.admin-body .admin-emblem {
+    position: relative;
+    background: linear-gradient(135deg, var(--an-hot), var(--an-accent) 60%, var(--an-accent-2)) !important;
+    box-shadow: 0 10px 26px -8px rgb(255 90 31 / .8);
+    transition: transform .5s var(--an-spring);
+}
+html:root body.admin-body .admin-emblem::after {
+    content: ""; position: absolute; inset: -4px; border-radius: inherit; pointer-events: none;
+    border: 2px solid rgb(255 122 61 / .55); animation: an-halo 2.8s ease-out infinite;
+}
+@keyframes an-halo { 0% { opacity: .9; transform: scale(.9); } 100% { opacity: 0; transform: scale(1.35); } }
+html:root body.admin-body .admin-sidebar__heading:hover .admin-emblem { transform: rotate(-12deg) scale(1.08); }
+html:root body.admin-body #adminNavigation [data-admin-view] > span[aria-hidden="true"] { display: inline-block; transition: transform .4s var(--an-spring); }
+@media (hover: hover) and (pointer: fine) {
+    html:root body.admin-body #adminNavigation [data-admin-view]:hover > span[aria-hidden="true"] { transform: translateX(3px) scale(1.18) rotate(-6deg); }
+}
+html:root body.admin-body #adminNavigation [data-admin-view] em:not([hidden]) { animation: an-badge 2.2s var(--an-ease) infinite; }
+@keyframes an-badge { 0%, 100% { box-shadow: 0 0 0 0 rgb(255 90 31 / .55); } 55% { box-shadow: 0 0 0 7px rgb(255 90 31 / 0); } }
+html:root body.admin-body #adminNavigation [data-admin-view].is-active > span[aria-hidden="true"] { filter: drop-shadow(0 0 8px rgb(255 122 61 / .8)); }
+
+/* ---------- 7. Nút ---------- */
+html:root body.admin-body .admin-primary {
+    background-image: linear-gradient(110deg, var(--an-hot), var(--an-accent) 45%, var(--an-accent-2) 70%, var(--an-accent)) !important;
+    background-size: 220% 100% !important;
+    transition: background-position .6s var(--an-ease), transform .35s var(--an-spring), box-shadow .35s var(--an-ease) !important;
+    position: relative; overflow: hidden;
+}
+.an-sheen { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; overflow: hidden; }
+.an-sheen::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / .38) 50%, transparent 70%); transform: translateX(-120%); }
+@media (hover: hover) and (pointer: fine) {
+    html:root body.admin-body .admin-primary:not(:disabled):hover { background-position: 100% 0 !important; transform: translateY(-2px); box-shadow: 0 14px 30px -12px rgb(255 90 31 / .75) !important; }
+    html:root body.admin-body .admin-primary:not(:disabled):hover > .an-sheen::after { transform: translateX(120%); transition: transform .8s var(--an-ease); }
+}
+/* Hàng bảng: vạch nhấn trượt khi rê chuột */
+@media (hover: hover) and (pointer: fine) {
+    html:root body.admin-body .admin-table-wrap tbody tr > :first-child { transition: box-shadow .3s var(--an-ease); }
+    html:root body.admin-body .admin-table-wrap tbody tr:hover > :first-child { box-shadow: inset 3px 0 0 var(--an-accent); }
+}
+
+/* Thanh cuộn cùng tông */
+html:root body.admin-body ::-webkit-scrollbar { width: 10px; height: 10px; }
+html:root body.admin-body ::-webkit-scrollbar-thumb { border-radius: 10px; border: 3px solid transparent; background: color-mix(in srgb, var(--an-accent) 45%, transparent) padding-box; }
+html:root body.admin-body ::-webkit-scrollbar-thumb:hover { background-color: var(--an-accent); }
+html:root body.admin-body ::-webkit-scrollbar-track { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+    .an-aurora { display: none !important; }
+    .an-aurora i, .an-topbar-line, .an-clock__sep, .an-bump, .an-title-in,
+    html:root body.admin-body .admin-topbar .eyebrow,
+    html:root body.admin-body .admin-emblem::after,
+    html:root body.admin-body #adminNavigation [data-admin-view] em,
+    html:root body.admin-body .admin-kpi-card .admin-kpi-icon { animation: none !important; }
+    .an-spot, .an-sheen { display: none !important; }
+}
+@media print { .an-aurora, .an-clock, .an-topbar-line { display: none !important; } }

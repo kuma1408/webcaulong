@@ -22,6 +22,13 @@ Flask + MySQL.
 - Trải nghiệm: chế độ sáng/tối thống nhất trên toàn bộ trang con, hiệu ứng sương
   có thể tắt, ripple/tilt/glare và chuyển cảnh khi cuộn,
   dashboard quản trị và hạng thành viên dùng số liệu thật từ MySQL.
+- Lớp giao diện Nova (`css/nova.*` cho cửa hàng, `css/admin-nova.*` cho quản trị,
+  nạp sau cùng qua `auth.js`): chuyển trang mượt bằng View Transitions, nền aurora
+  động, header/topbar kính mờ khi cuộn, thanh chỉ báo menu trượt, viền gradient
+  xoay + ánh quét trên thẻ và nút, con trỏ vòng sáng, ảnh hiện dần, màn mở đầu
+  một lần mỗi phiên; admin có thêm đồng hồ, spotlight theo chuột và số liệu nảy
+  khi đổi. Tất cả tắt theo `prefers-reduced-motion`; tắt riêng nền aurora bằng
+  `localStorage.nova_aurora = "off"`.
 - Phím tắt quản trị: `Ctrl/⌘ + K` mở bảng lệnh nhanh, `Alt + 1…9` chuyển mục,
   `/` tìm trong mục, `Shift + R` làm mới; bấm tiêu đề cột để sắp xếp bảng; nút
   “Tự làm mới” cập nhật tổng quan mỗi 60 giây; cảnh báo khi đóng hộp thoại chưa lưu.

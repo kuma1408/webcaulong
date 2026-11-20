@@ -9,6 +9,7 @@
     const TOKEN_KEY = 'badminton_access_token';
     const THEME_KEY = 'badminton_theme';
     const SPORT_ASSET_VERSION = '20260921-1';
+    const NOVA_ASSET_VERSION = '20261120-nova-1';
 
     function ensureSportDesignAssets() {
         const adminPage = /(?:^|\/)admin\.html$/.test(location.pathname);
@@ -42,6 +43,25 @@
         if (!document.querySelector('script[src*="css/ui-motion.js"]')) {
             const script = document.createElement('script');
             script.src = 'css/ui-motion.js?v=20261105-rounded-1';
+            script.defer = true;
+            document.head.appendChild(script);
+        }
+        // Lớp giao diện Nova: luôn nạp sau cùng để đè các lớp cũ một cách nhất quán.
+        const novaCss = adminPage ? 'css/admin-nova.css' : 'css/nova.css';
+        const novaJs = adminPage ? 'css/admin-nova.js' : 'css/nova.js';
+        if (!document.querySelector(`link[href*="${novaCss}"]`)) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet'; link.href = `${novaCss}?v=${NOVA_ASSET_VERSION}`;
+            const place = () => document.head.appendChild(link);
+            place();
+            // Giữ Nova đứng sau các stylesheet mà trang khai báo phía dưới script này.
+            if (document.readyState === 'loading' && typeof document.addEventListener === 'function') {
+                document.addEventListener('DOMContentLoaded', place, { once: true });
+            }
+        }
+        if (!document.querySelector(`script[src*="${novaJs}"]`)) {
+            const script = document.createElement('script');
+            script.src = `${novaJs}?v=${NOVA_ASSET_VERSION}`;
             script.defer = true;
             document.head.appendChild(script);
         }
