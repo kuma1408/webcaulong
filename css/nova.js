@@ -85,7 +85,8 @@
             const activeLink = () => links.find((link) => link.matches('.active, .is-active, [aria-current="page"]') || link.parentElement?.matches('.active, .is-active'));
             const moveTo = (link) => {
                 if (!link || !link.offsetWidth) { ink.style.opacity = '0'; return; }
-                const hostRect = host.getBoundingClientRect();
+                // Không ép position cho host: đo theo khối định vị thực tế của thanh sáng.
+                const hostRect = (ink.offsetParent || document.body).getBoundingClientRect();
                 const rect = link.getBoundingClientRect();
                 const inset = Math.min(14, rect.width * .18);
                 ink.style.width = `${rect.width - inset * 2}px`;
@@ -184,8 +185,67 @@
         document.documentElement.addEventListener('mouseleave', () => ring.classList.remove('is-visible'));
     }
 
+    /* ---------- Thanh điều hướng đáy cho điện thoại ---------- */
+    const TABS = [
+        { href: 'trangchu.html', label: 'Trang chủ', match: /(?:^|\/)(?:trangchu|index)\.html$|\/$/, icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h5v-6h4v6h5V9.5"/>' },
+        { href: 'sanpham.html', label: 'Sản phẩm', match: /(?:sanpham|chitiet|sale%20off|sale off|c%E1%BA%A7u%20l%C3%B4ng|cầu lông)/i, icon: '<rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/>' },
+        { href: 'yeuthich.html', label: 'Yêu thích', match: /yeuthich\.html$/, icon: '<path d="M12 20s-7.5-4.6-9.2-9.4C1.7 7.4 3.8 4 7.3 4c2 0 3.4 1.1 4.7 2.8C13.3 5.1 14.7 4 16.7 4c3.5 0 5.6 3.4 4.5 6.6C19.5 15.4 12 20 12 20Z"/>' },
+        { href: 'giohang.html', label: 'Giỏ hàng', match: /giohang\.html$/, icon: '<path d="M3 4h2.2l2.3 11.1a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.5L21 8H6.2"/><circle cx="10" cy="20.3" r="1.2"/><circle cx="17.5" cy="20.3" r="1.2"/>', badge: true },
+        { href: 'canhan.html', label: 'Tài khoản', match: /canhan\.html$/, icon: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.4-4 4.4-6 8-6s6.6 2 8 6"/>' }
+    ];
+    function tabbar() {
+        const path = decodeURIComponent(location.pathname);
+        // Trang đăng nhập/đăng ký và trang chuyển hướng không cần thanh đáy.
+        if (/(?:dangnhap|dangky|quenmatkhau|datlaimatkhau|index)\.html$/.test(path) || document.querySelector('.nova-tabbar')) return;
+        const bar = document.createElement('nav');
+        bar.className = 'nova-tabbar';
+        bar.setAttribute('aria-label', 'Điều hướng nhanh');
+        bar.innerHTML = TABS.map((tab) => {
+            const active = tab.match.test(path) || tab.match.test(location.pathname);
+            return `<a href="${tab.href}"${active ? ' class="is-active" aria-current="page"' : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${tab.icon}</svg><span>${tab.label}</span>${tab.badge ? '<b class="nova-tabbar__badge" hidden></b>' : ''}</a>`;
+        }).join('');
+        document.body.appendChild(bar);
+        document.body.classList.add('nova-has-tabbar');
+
+        // Đồng bộ số lượng giỏ hàng từ huy hiệu trên header.
+        const badge = bar.querySelector('.nova-tabbar__badge');
+        const syncCount = () => {
+            const source = document.querySelector('.bs-cart-count, .cart-count, [data-cart-count]');
+            const value = (source?.textContent || '').trim();
+            const visible = value && value !== '0' && !(source?.hidden) && getComputedStyle(source).display !== 'none';
+            if (visible && badge.textContent !== value && !reduced()) {
+                badge.classList.remove('is-bump'); void badge.offsetWidth; badge.classList.add('is-bump');
+            }
+            badge.textContent = visible ? value : '';
+            badge.hidden = !visible;
+        };
+        syncCount();
+        let countFrame = 0;
+        new MutationObserver((records) => {
+            if (countFrame || records.every((record) => bar.contains(record.target))) return;
+            countFrame = requestAnimationFrame(() => { countFrame = 0; syncCount(); });
+        }).observe(document.body, { subtree: true, childList: true, characterData: true });
+
+        // Ẩn khi cuộn xuống / khi bàn phím mở, hiện lại khi cuộn lên.
+        let lastY = window.scrollY, ticking = false;
+        const typing = () => document.activeElement?.matches?.('input:not([type="checkbox"]):not([type="radio"]), textarea, select, [contenteditable="true"]');
+        const update = () => {
+            ticking = false;
+            const y = window.scrollY, delta = y - lastY;
+            if (Math.abs(delta) > 6) {
+                bar.classList.toggle('is-hidden', delta > 0 && y > 160);
+                lastY = y;
+            }
+            if (y < 40) bar.classList.remove('is-hidden');
+        };
+        window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+        document.addEventListener('focusin', () => { if (typing()) bar.classList.add('is-hidden'); });
+        document.addEventListener('focusout', () => setTimeout(() => { if (!typing()) bar.classList.remove('is-hidden'); }, 120));
+    }
+
     function start() {
         root.classList.add('nova-ready');
+        tabbar();
         intro();
         syncAurora();
         headerGlass();

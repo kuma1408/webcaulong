@@ -166,6 +166,71 @@ html:root body.admin-body ::-webkit-scrollbar-thumb { border-radius: 10px; borde
 html:root body.admin-body ::-webkit-scrollbar-thumb:hover { background-color: var(--an-accent); }
 html:root body.admin-body ::-webkit-scrollbar-track { background: transparent; }
 
+/* =============================================================
+   ĐIỆN THOẠI: không để nội dung đẩy khung nhìn rộng quá màn hình
+   ============================================================= */
+@media (max-width: 720px) {
+    html:root body.admin-body { overflow-x: clip; }
+    html:root body.admin-body .health-actions { display: flex !important; flex-wrap: wrap !important; gap: 8px !important; max-width: 100% !important; min-width: 0 !important; }
+    html:root body.admin-body .health-actions > * { flex: 1 1 calc(50% - 8px) !important; min-width: 0 !important; white-space: normal !important; justify-content: center; }
+    html:root body.admin-body :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea) { font-size: 16px !important; }
+
+    /* Sidebar → thanh app bar gọn, dính đầu trang */
+    html:root body.admin-body .admin-sidebar {
+        position: sticky !important; top: 0 !important; z-index: 60 !important;
+        display: grid !important; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px 10px !important;
+        height: auto !important; overflow: visible !important;
+        width: auto !important; margin: 0 0 12px !important;
+        padding: 10px !important; border-radius: 18px !important;
+        background: var(--an-glass) !important; border: 0 !important; border-bottom: 1px solid var(--an-glass-line) !important;
+        -webkit-backdrop-filter: saturate(1.6) blur(18px); backdrop-filter: saturate(1.6) blur(18px);
+        box-shadow: 0 14px 30px -20px rgb(0 0 0 / .6) !important;
+    }
+    html:root body.admin-body .admin-sidebar__heading { margin: 0 !important; padding: 0 !important; border: 0 !important; }
+    html:root body.admin-body .admin-sidebar__heading > div { display: none !important; }
+    html:root body.admin-body .admin-sidebar__heading .admin-emblem { width: 40px !important; height: 40px !important; }
+    html:root body.admin-body #adminNavigationToggle {
+        margin: 0 !important; min-height: 44px; width: 100% !important; border-radius: 14px !important;
+        display: flex !important; align-items: center; justify-content: space-between; gap: 8px; text-align: left;
+    }
+    html:root body.admin-body #adminNavigationToggle::after { content: "▾"; transition: transform .35s var(--an-ease); }
+    html:root body.admin-body #adminNavigationToggle[aria-expanded="true"]::after { transform: rotate(180deg); }
+    html:root body.admin-body .admin-sidebar > :not(.admin-sidebar__heading):not(#adminNavigationToggle) { grid-column: 1 / -1; }
+    html:root body.admin-body .admin-sidebar:has(#adminNavigationToggle[aria-expanded="false"]) :is(.admin-sidebar__account, .admin-store-link, .admin-logout) { display: none !important; }
+    html:root body.admin-body .admin-sidebar:has(#adminNavigationToggle[aria-expanded="true"]) #adminNavigation { animation: an-drawer .4s var(--an-ease); max-height: 58dvh; overflow: auto; overscroll-behavior: contain; }
+    @keyframes an-drawer { from { opacity: 0; transform: translateY(-8px); } }
+
+    /* KPI: 2 cột gọn */
+    html:root body.admin-body .admin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+    html:root body.admin-body .admin-kpi-card { padding: 12px !important; min-height: 0 !important; }
+    html:root body.admin-body .admin-kpi-card strong { font-size: clamp(16px, 5vw, 20px) !important; overflow-wrap: anywhere; }
+    html:root body.admin-body .admin-kpi-card small { font-size: 11px !important; line-height: 1.35; }
+    html:root body.admin-body .admin-kpi-card__head { gap: 6px; }
+    html:root body.admin-body .admin-kpi-card__head > span:first-child { font-size: 10px !important; line-height: 1.3; }
+    html:root body.admin-body .admin-kpi-card .metric-spark { display: none !important; }
+
+    /* Thẻ số liệu tổng quan: 2 cột gọn */
+    html:root body.admin-body .stat-grid.admin-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+    html:root body.admin-body .stat-grid.admin-metrics .stat-card { padding: 12px !important; min-height: 0 !important; }
+    html:root body.admin-body .stat-grid.admin-metrics .stat-card-head { margin-bottom: 8px !important; }
+    html:root body.admin-body .stat-grid.admin-metrics .stat-sparkline { display: none !important; }
+    html:root body.admin-body .stat-grid.admin-metrics .label { font-size: 10px !important; line-height: 1.3; }
+    html:root body.admin-body .stat-grid.admin-metrics .value { font-size: clamp(16px, 5vw, 20px) !important; overflow-wrap: anywhere; }
+    html:root body.admin-body .stat-grid.admin-metrics .sub { font-size: 11px !important; line-height: 1.35; }
+
+    /* Bảng: bóng mờ ở mép báo hiệu có thể vuốt ngang */
+    html:root body.admin-body .admin-table-wrap {
+        -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
+        background:
+            linear-gradient(to right, var(--bs-card, #142131) 30%, transparent) left / 28px 100% no-repeat local,
+            linear-gradient(to left, var(--bs-card, #142131) 30%, transparent) right / 28px 100% no-repeat local,
+            radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / .45), transparent) left / 14px 100% no-repeat scroll,
+            radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / .45), transparent) right / 14px 100% no-repeat scroll !important;
+    }
+
+    /* Hộp thoại: gần như toàn màn hình, nút dính đáy */
+    html:root body.admin-body dialog.admin-dialog { width: calc(100% - 16px) !important; max-width: none !important; max-height: calc(100dvh - 16px) !important; margin: auto !important; }
+}
 @media (prefers-reduced-motion: reduce) {
     .an-aurora { display: none !important; }
     .an-aurora i, .an-topbar-line, .an-clock__sep, .an-bump, .an-title-in,
