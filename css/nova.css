@@ -392,3 +392,92 @@ html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%;
 }
 @media (hover: none), (pointer: coarse) { .nova-cursor { display: none !important; } }
 @media print { .nova-aurora, .nova-cursor, .nova-intro { display: none !important; } }
+
+/* =============================================================
+   15. ĐIỆN THOẠI — LƯỢT 2: gọn header, nút nổi, thẻ, chữ nhỏ
+   ============================================================= */
+@media (max-width: 640px) {
+    /* Header trang chủ: bỏ nút hiệu ứng tuyết (trang trí) cho đỡ chật; giỏ hàng thành icon */
+    html body .site-header .header__actions .ambient-toggle { display: none !important; }
+    html body .site-header .cart-link {
+        width: 38px !important; min-width: 38px; height: 38px !important; min-height: 38px !important;
+        padding: 0 !important; justify-content: center; position: relative; font-size: 0 !important;
+    }
+    html body .site-header .cart-link > span[aria-hidden="true"] {
+        display: block; width: 20px; height: 20px; font-size: 0; background: currentColor;
+        -webkit-mask: var(--nova-ico-cart) center / contain no-repeat; mask: var(--nova-ico-cart) center / contain no-repeat;
+    }
+    html body .site-header .cart-link__count {
+        position: absolute; top: -4px; right: -4px; min-width: 17px; height: 17px; font-size: 10px !important;
+        box-shadow: 0 0 0 2px var(--nova-base);
+    }
+    /* Header trang con: cũng ẩn nút tuyết */
+    html body .bs-header .bs-header__actions .bs-icon-button.bs-ambient-action { display: none !important; }
+
+    /* Nút nổi (Hỏi AI, Nhắn cửa hàng, Lên đầu): cột dọc nhỏ gọn, chỉ icon */
+    html body .store-chat-launchers { display: flex !important; flex-direction: column; align-items: flex-end; gap: 8px !important; }
+    html body .store-chat-launcher {
+        width: 46px; height: 46px; min-height: 46px !important; padding: 0 !important; gap: 0 !important;
+        border-radius: 16px !important; font-size: 0 !important;
+        box-shadow: 0 10px 24px -10px rgb(0 0 0 / .6) !important;
+    }
+    html body .store-chat-launcher > span:not(.store-chat-launcher__icon) {
+        position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+    }
+    html body .store-chat-launcher__icon { font-size: 19px !important; }
+    html body #storeMessengerLauncher .store-chat-launcher__icon {
+        width: 22px; height: 22px; font-size: 0 !important; background: #fff;
+        -webkit-mask: var(--nova-ico-chat) center / contain no-repeat; mask: var(--nova-ico-chat) center / contain no-repeat;
+    }
+    html body .bs-back-to-top { width: 40px !important; height: 40px !important; border-radius: 14px !important; }
+    body.nova-has-tabbar .bs-back-to-top { bottom: calc(190px + env(safe-area-inset-bottom)) !important; right: 15px !important; }
+    body.nova-has-buybar .bs-back-to-top { bottom: calc(256px + env(safe-area-inset-bottom)) !important; }
+    /* Cuộn xuống để đọc: nút nổi lùi ra mép cùng thanh đáy; cuộn lên là hiện lại */
+    html body .store-chat-widget, html body .bs-back-to-top {
+        transition: transform .45s var(--nova-ease), opacity .3s, bottom .45s var(--nova-ease) !important;
+    }
+    body:has(.nova-tabbar.is-hidden) .store-chat-widget:not(:has(.store-chat-window:not([hidden]))),
+    body:has(.nova-tabbar.is-hidden) .bs-back-to-top {
+        transform: translateX(calc(100% + 24px)) !important; opacity: 0 !important; pointer-events: none;
+    }
+
+    /* Thẻ danh mục trang chủ: thấp hơn, ít khoảng trống */
+    html body .category-grid { gap: 10px !important; }
+    html body .category-grid .category-card,
+    html body .category-grid .category-card--wide { min-height: 212px !important; border-radius: 20px !important; }
+    html body .category-grid .category-card img,
+    html body .category-grid .category-card--wide img { width: 78% !important; height: 58% !important; top: 4% !important; right: 6% !important; }
+    html body .category-card__copy { left: 0 !important; right: 0 !important; bottom: 0 !important; padding: 0 14px 14px !important; }
+    html body .category-card__copy strong { font-size: clamp(19px, 5.6vw, 23px) !important; }
+    html body .category-card__copy > span { margin-top: 8px !important; }
+    html body .category-card__index { top: 10px !important; right: 10px !important; width: 28px !important; height: 28px !important; }
+
+    /* Chữ quá nhỏ (8–10px) → tối thiểu ~11px để dễ đọc */
+    html body .category-card__copy small,
+    html body .category-card__copy > span,
+    html body .category-card__index,
+    html body .brand-strip__label,
+    html body .product-card__type,
+    html body .product-card__badge { font-size: 11px !important; letter-spacing: .04em !important; }
+    html body .hero dd, html body .hero [class*="proof"] dd { font-size: 11.5px !important; line-height: 1.35; }
+    html body .topline p,
+    html body .hero__feature span,
+    html body .service-strip p { font-size: 11.5px !important; }
+    html body .playstyle-card a { display: inline-flex; align-items: center; min-height: 40px; }
+
+    /* Lưới sản phẩm (danh mục): ảnh lấp đầy khung, bớt viền thừa */
+    html:root[data-theme] body .product-card-upgraded .img-container, html body .product-card-upgraded .img-container { padding: 0 !important; background: #fff !important; border-radius: 18px 18px 14px 14px !important; }
+    html body .product-card-upgraded .img-container::after { opacity: .18 !important; }
+    html body .product-card-upgraded .img-container img { padding: 6px !important; width: 100% !important; height: 100% !important; object-fit: contain; }
+    html body .product-card-upgraded .card-info { padding: 12px 12px 14px !important; gap: 4px !important; }
+
+    /* Chân trang: liên kết dễ chạm hơn */
+    html body .bs-footer ul a { display: inline-flex; align-items: center; min-height: 36px; }
+    html body .bs-footer ul { gap: 0 !important; }
+    html body .bs-footer__grid { row-gap: 22px !important; }
+    html body .text-link { display: inline-flex; align-items: center; min-height: 40px; }
+}
+:root {
+    --nova-ico-cart: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='20' r='1.4'/%3E%3Ccircle cx='18' cy='20' r='1.4'/%3E%3Cpath d='M2.5 3.5h2.6l2.3 11.2a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.2L21 7.5H6'/%3E%3C/svg%3E");
+    --nova-ico-chat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 11.5a8.4 8.4 0 0 1-12.3 7.4L3 21l2.1-5.6A8.4 8.4 0 1 1 21 11.5z'/%3E%3Cpath d='M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01'/%3E%3C/svg%3E");
+}
