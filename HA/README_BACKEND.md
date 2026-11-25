@@ -119,3 +119,28 @@ database bằng phpMyAdmin. Sau cùng bấm **Reload/Restart** website trong b�
 Gói Alwaysdata miễn phí phù hợp học tập/demo, không tự tạo tính sẵn sàng cao,
 WAF hay backup ngoài nhà cung cấp. Cần sao lưu database và thư mục `HA/avatars`
 định kỳ; GitHub Student không tự bổ sung các lớp vận hành này.
+
+## 7. Trợ lý AI (nút "Hỏi AI")
+
+- Endpoint `POST /api/ai/chat` gọi Google Gemini từ máy chủ. Nhận JSON
+  `{ "message", "history" }` hoặc `multipart/form-data` với `message`,
+  `history` (chuỗi JSON) và tối đa 3 tệp `images` (JPG/PNG/WEBP, mỗi ảnh ≤ 4 MB).
+  Trả về `reply` (ngắn, có gạch đầu dòng), `products` (thẻ sản phẩm có ảnh, giá,
+  giá gốc, còn hàng) và `suggestions` (2-3 câu hỏi gợi ý tiếp theo).
+- Đặt `GEMINI_API_KEY` (và tùy chọn `GEMINI_MODEL`) trong `.env`, rồi khởi
+  động lại API. Thiếu key thì endpoint trả `503 ai_not_configured` và trang vẫn chạy.
+- `GEMINI_MODEL` nhận tối đa 4 model cách nhau dấu phẩy (mặc định
+  `gemini-3.6-flash`, `gemini-3.5-flash-lite`, `gemini-3.5-flash`,
+  `gemini-flash-lite-latest`). Máy chủ gọi song song 2 model đầu và lấy câu trả lời
+  về trước; model nào quá tải (429/503), treo hoặc đã bị Google gỡ thì gọi model kế
+  tiếp. Cả lượt tối đa 40 giây.
+- Ảnh khách gửi được trình duyệt thu nhỏ trước khi tải lên, máy chủ kiểm tra lại,
+  xoay đúng chiều, thu về cạnh dài 1024px, bỏ EXIF (vị trí GPS...) rồi chỉ chuyển
+  cho Gemini; ảnh không được lưu trên máy chủ hay database.
+- Mỗi câu hỏi, máy chủ chọn sản phẩm đang bán khớp câu hỏi (tên, thương hiệu,
+  danh mục, ngân sách như "dưới 1 triệu"); khi có ảnh thì thêm mẫu đều các danh
+  mục (tối đa 40 sản phẩm) để AI đối chiếu, nên AI chỉ giới thiệu hàng có thật.
+- Không cần đăng nhập; giới hạn 8 câu/phút và 60 câu/giờ cho mỗi IP. Hội thoại AI
+  không được lưu vào database, lịch sử chỉ nằm trong tab trình duyệt.
+- Gói miễn phí của Gemini có giới hạn số request và Google có thể dùng dữ liệu
+  gửi lên (kể cả ảnh) để cải thiện dịch vụ; không đưa thông tin cá nhân vào ngữ cảnh AI.

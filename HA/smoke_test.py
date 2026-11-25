@@ -625,5 +625,167 @@ class ApiSmokeTest(unittest.TestCase):
         self.assertEqual(missing, [])
 
 
+class AiChatSmokeTest(unittest.TestCase):
+    def setUp(self):
+        self.client = app.test_client()
+        from HA.app import RATE_LIMITER
+        RATE_LIMITER._events.clear()
+
+    def test_ai_chat_reports_missing_key_without_calling_gemini(self):
+        with patch.dict("os.environ", {"GEMINI_API_KEY": ""}), patch("HA.app.call_gemini") as gemini:
+            response = self.client.post("/api/ai/chat", json={"message": "Xin chào"})
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.get_json()["code"], "ai_not_configured")
+        gemini.assert_not_called()
+
+    def test_ai_chat_rejects_empty_message(self):
+        with patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}):
+            response = self.client.post("/api/ai/chat", json={"message": "   "})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["code"], "invalid_ai_message")
+
+    def test_ai_chat_returns_cards_only_for_products_given_to_the_model(self):
+        products = [{
+            "MaSP": 7, "TenSP": "Vợt Lining Turbo", "ThuongHieu": "Lining", "TenDM": "Vợt cầu lông",
+            "GiaBan": Decimal("700000"), "GiaGoc": None, "TonKho": 2, "HinhAnh": "HA/anh vot/a.png",
+        }]
+        reply = "**Gợi ý:** Vợt Lining Turbo [SP:7] hợp người mới. Không có [SP:999]."
+        with patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}),                 patch("HA.app.ai_load_store_context", return_value=(products, ["Vợt cầu lông"])),                 patch("HA.app.call_gemini", return_value=reply) as gemini:
+            response = self.client.post("/api/ai/chat", json={
+                "message": "Vợt dưới 1 triệu?",
+                "history": [{"role": "model", "text": "bỏ"}, {"role": "user", "text": "Chào"}, {"role": "model", "text": "Chào bạn"}],
+            })
+        data = response.get_json()
+        self.assertEqual(response.status_code, 200, data)
+        self.assertNotIn("[SP:", data["reply"])
+        self.assertNotIn("**", data["reply"])
+        self.assertEqual([card["MaSP"] for card in data["products"]], [7])
+        contents = gemini.call_args.args[2]
+        self.assertEqual([turn["role"] for turn in contents], ["user", "model", "user"])
+        self.assertIn("[SP:7]", gemini.call_args.args[1])
+
+    def _png_upload(self, size=(120, 90)):
+        buffer = io.BytesIO()
+        Image.new("RGB", size, "orange").save(buffer, "PNG")
+        buffer.seek(0)
+        return buffer
+
+    def test_ai_chat_sends_uploaded_photo_to_gemini_and_returns_suggestions(self):
+        products = [{
+            "MaSP": 5, "TenSP": "Giày Yonex 65Z", "ThuongHieu": "Yonex", "TenDM": "Giày cầu lông",
+            "GiaBan": Decimal("2500000"), "GiaGoc": Decimal("3000000"), "TonKho": 0, "HinhAnh": "HA/a.png",
+        }]
+        reply = "Ảnh là một đôi giày cầu lông.\n* Đế còn tốt\nNên xem Giày Yonex 65Z [SP:5].\nGỢI Ý: Size nào hợp? | Giày nào nhẹ hơn?"
+        with patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}), \
+                patch("HA.app.ai_load_store_context", return_value=(products, ["Giày cầu lông"])) as context, \
+                patch("HA.app.call_gemini", return_value=reply) as gemini:
+            response = self.client.post(
+                "/api/ai/chat",
+                data={"message": "", "history": "[]", "images": (self._png_upload(), "giay.png")},
+                content_type="multipart/form-data",
+            )
+        data = response.get_json()
+        self.assertEqual(response.status_code, 200, data)
+        self.assertTrue(context.call_args.kwargs["with_images"])
+        parts = gemini.call_args.args[2][-1]["parts"]
+        self.assertEqual(parts[1]["inline_data"]["mime_type"], "image/jpeg")
+        self.assertTrue(parts[0]["text"])
+        self.assertEqual(data["suggestions"], ["Size nào hợp?", "Giày nào nhẹ hơn?"])
+        self.assertNotIn("GỢI Ý", data["reply"])
+        self.assertIn("- Đế còn tốt", data["reply"])
+        self.assertEqual(data["products"][0]["GiaGoc"], 3000000.0)
+        self.assertFalse(data["products"][0]["ConHang"])
+
+    def test_ai_chat_rejects_non_image_upload(self):
+        with patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}), patch("HA.app.call_gemini") as gemini:
+            response = self.client.post(
+                "/api/ai/chat",
+                data={"message": "xem giúp", "images": (io.BytesIO(b"not an image at all"), "x.png")},
+                content_type="multipart/form-data",
+            )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["code"], "ai_image_invalid")
+        gemini.assert_not_called()
+
+    def test_ai_chat_limits_photo_count(self):
+        with patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}):
+            response = self.client.post(
+                "/api/ai/chat",
+                data={"message": "x", "images": [(self._png_upload(), f"{i}.png") for i in range(4)]},
+                content_type="multipart/form-data",
+            )
+        self.assertEqual(response.get_json()["code"], "ai_image_count")
+
+    def test_ai_image_is_downscaled_to_jpeg(self):
+        from HA.app import AI_IMAGE_MAX_SIDE, normalized_ai_image
+        upload = FileStorage(stream=self._png_upload((3000, 1500)), filename="big.png")
+        content = normalized_ai_image(upload)
+        with Image.open(io.BytesIO(content)) as result:
+            self.assertEqual(result.format, "JPEG")
+            self.assertEqual(max(result.size), AI_IMAGE_MAX_SIDE)
+
+    def test_gemini_falls_back_to_next_model_when_busy(self):
+        from HA.app import AiServiceError, call_gemini
+        calls = []
+
+        def fake_model(api_key, model, payload, timeout):
+            calls.append(model)
+            if model == "busy-model":
+                raise AiServiceError("ai_busy")
+            return "Xin chào"
+
+        settings = {"api_key": "k", "models": ["busy-model", "ok-model"]}
+        with patch("HA.app.call_gemini_model", side_effect=fake_model):
+            self.assertEqual(call_gemini(settings, "sys", []), "Xin chào")
+        self.assertCountEqual(calls, ["busy-model", "ok-model"])
+
+    def test_gemini_returns_fast_model_without_waiting_for_slow_one(self):
+        import threading
+        import time as time_module
+        from HA.app import call_gemini
+        release = threading.Event()
+
+        def fake_model(api_key, model, payload, timeout):
+            if model == "slow-model":
+                release.wait(5)
+                return "chậm"
+            return "nhanh"
+
+        settings = {"api_key": "k", "models": ["slow-model", "fast-model"]}
+        started = time_module.monotonic()
+        with patch("HA.app.call_gemini_model", side_effect=fake_model):
+            result = call_gemini(settings, "sys", [])
+        release.set()
+        self.assertEqual(result, "nhanh")
+        self.assertLess(time_module.monotonic() - started, 2)
+
+    def test_gemini_stops_on_configuration_error(self):
+        from HA.app import AiServiceError, call_gemini
+
+        def fake_model(api_key, model, payload, timeout):
+            raise AiServiceError("ai_config")
+
+        with patch("HA.app.call_gemini_model", side_effect=fake_model):
+            with self.assertRaises(AiServiceError) as raised:
+                call_gemini({"api_key": "k", "models": ["a", "b", "c"]}, "sys", [])
+        self.assertEqual(raised.exception.code, "ai_config")
+
+    def test_gemini_model_list_comes_from_env(self):
+        from HA.app import ai_settings
+        with patch.dict("os.environ", {"GEMINI_MODEL": "a-1, b.2 ,a-1,bad model"}):
+            self.assertEqual(ai_settings()["models"], ["a-1", "b.2"])
+
+    def test_ai_ranking_prefers_requested_category_within_budget(self):
+        from HA.app import ai_budget_from_text, ai_rank_products
+        rows = [
+            {"MaSP": 1, "TenSP": "Vợt Yonex Astrox 77", "ThuongHieu": "Yonex", "TenDM": "Vợt cầu lông", "GiaBan": 1400000, "TonKho": 3},
+            {"MaSP": 2, "TenSP": "Giày Lining AYZS", "ThuongHieu": "Lining", "TenDM": "Giày cầu lông", "GiaBan": 900000, "TonKho": 1},
+            {"MaSP": 3, "TenSP": "Vợt Lining Turbo", "ThuongHieu": "Lining", "TenDM": "Vợt cầu lông", "GiaBan": 700000, "TonKho": 2},
+        ]
+        self.assertEqual(ai_budget_from_text("dưới 1,5 triệu"), 1500000)
+        self.assertEqual(ai_budget_from_text("tầm 800k"), 800000)
+        self.assertEqual([row["MaSP"] for row in ai_rank_products(rows, "tư vấn vợt cầu lông dưới 1 triệu")], [3, 1])
+
+
 if __name__ == "__main__":
     unittest.main()
