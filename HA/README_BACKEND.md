@@ -159,3 +159,27 @@ WAF hay backup ngoài nhà cung cấp. Cần sao lưu database và thư mục `H
   dẫn số liệu thật, kèm thẻ sản phẩm được nhắc tới và câu hỏi gợi ý tiếp theo.
 - Giới hạn 10 lần/phút và 150 lần/giờ cho mỗi tài khoản admin. Dùng chung
   `GEMINI_API_KEY`/`GEMINI_MODEL` với trợ lý AI của khách hàng.
+
+## 9. Lệnh dữ liệu cửa hàng (chạy qua SSH)
+
+Chạy trong thư mục ứng dụng trên Alwaysdata sau khi `source .venv/bin/activate`.
+Mọi lệnh mặc định chỉ **xem trước**; thêm `--apply` mới ghi vào database.
+
+```bash
+flask --app wsgi restock-products                    # xem sản phẩm đang bán đã hết hàng
+flask --app wsgi restock-products --quantity 20 --apply
+flask --app wsgi import-products-2026-11             # xem 76 sản phẩm mới (vợt, túi, balo, lưới…)
+flask --app wsgi import-products-2026-11 --apply     # thêm, đang bán, tồn 10, ảnh tạm
+flask --app wsgi demo-activity                       # xem trước dữ liệu DEMO 30 ngày
+flask --app wsgi demo-activity --apply
+flask --app wsgi demo-activity --remove --apply      # xóa sạch dữ liệu DEMO
+```
+
+- Sản phẩm mới lấy tên và giá tham khảo từ danh mục công khai META.vn ngày
+  26/11/2026, không sao chép ảnh/mô tả. Ảnh là ảnh tạm: admin cần tải ảnh thật
+  và kiểm tra lại giá. Dùng `--hidden` nếu muốn thêm ở trạng thái ẩn để duyệt trước.
+- `demo-activity` tạo khách hàng `demo_kh_###` (email `@demo.invalid`, bị khóa
+  đăng nhập) và đơn hàng ghi chú `[DEMO]` ở trạng thái hoàn thành/hủy. Lệnh không
+  cộng "Đã bán", không trừ tồn kho, không tạo đánh giá nên khách hàng không thấy;
+  số liệu chỉ hiện ở báo cáo và Trợ lý AI quản trị. Nhớ xóa trước khi dùng báo cáo
+  doanh thu thật.

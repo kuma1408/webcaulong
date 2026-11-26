@@ -871,5 +871,86 @@ class AdminAiSmokeTest(unittest.TestCase):
         self.assertEqual(response.get_json()["code"], "ai_image_count")
 
 
+class StoreDataToolsTest(unittest.TestCase):
+    def _connection(self, fetchall=None, fetchone=None):
+        cursor = MagicMock()
+        cursor.fetchall.side_effect = fetchall or []
+        cursor.fetchone.side_effect = fetchone or []
+        cursor.rowcount = 2
+        conn = MagicMock()
+        conn.cursor.return_value = cursor
+        return conn, cursor
+
+    def test_restock_preview_does_not_write(self):
+        conn, cursor = self._connection(fetchall=[[{"MaSP": 3, "TenSP": "Vợt A", "TonKho": 0}]])
+        with patch("HA.store_data_tools.get_db_connection", return_value=conn):
+            result = app.test_cli_runner().invoke(args=["restock-products"])
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIn("XEM TRƯỚC", result.output)
+        self.assertFalse(any("UPDATE" in str(c.args[0]) for c in cursor.execute.call_args_list))
+        conn.commit.assert_not_called()
+
+    def test_restock_apply_updates_only_active_out_of_stock(self):
+        conn, cursor = self._connection(fetchall=[[{"MaSP": 3, "TenSP": "Vợt A", "TonKho": 0}]])
+        with patch("HA.store_data_tools.get_db_connection", return_value=conn):
+            result = app.test_cli_runner().invoke(args=["restock-products", "--quantity", "25", "--apply"])
+        self.assertEqual(result.exit_code, 0, result.output)
+        update = [c for c in cursor.execute.call_args_list if "UPDATE SanPham" in str(c.args[0])][0]
+        self.assertIn("TrangThai = 1", update.args[0])
+        self.assertEqual(update.args[1], (25, 0))
+        conn.commit.assert_called_once()
+
+    def test_new_product_catalog_is_clean(self):
+        from HA.store_data_tools import NEW_PRODUCTS_2026_11
+        names = [item[1].lower() for item in NEW_PRODUCTS_2026_11]
+        self.assertGreaterEqual(len(names), 50)
+        self.assertEqual(len(names), len(set(names)))
+        for category, name, brand, price, original, url in NEW_PRODUCTS_2026_11:
+            self.assertIn(category, {1, 6, 7, 8}, name)
+            self.assertTrue(brand and price > 0, name)
+            self.assertTrue(original is None or original > price, name)
+            self.assertTrue(url.startswith("https://meta.vn/"), name)
+
+    def test_import_skips_existing_names(self):
+        from HA.store_data_tools import NEW_PRODUCTS_2026_11
+        existing = [{"MaSP": 1}] + [None] * (len(NEW_PRODUCTS_2026_11) - 1)
+        conn, cursor = self._connection(fetchall=[[{"MaDM": c} for c in (1, 6, 7, 8)]], fetchone=existing)
+        with patch("HA.store_data_tools.get_db_connection", return_value=conn):
+            result = app.test_cli_runner().invoke(args=["import-products-2026-11", "--apply"])
+        self.assertEqual(result.exit_code, 0, result.output)
+        inserts = [c for c in cursor.execute.call_args_list if "INSERT INTO SanPham" in str(c.args[0])]
+        self.assertEqual(len(inserts), len(NEW_PRODUCTS_2026_11) - 1)
+        self.assertEqual(inserts[0].args[1][8], 1, "Mặc định sản phẩm mới đang bán")
+
+    def test_demo_plan_stays_in_window_and_only_final_states(self):
+        import random as random_module
+        from datetime import datetime, timedelta
+        from HA.store_data_tools import build_demo_plan
+        products = [{"MaSP": i, "MaDM": 1 + i % 8, "GiaBan": 100000 * (i + 1)} for i in range(16)]
+        now = datetime(2026, 11, 26, 12, 0, 0)
+        plan = build_demo_plan(products, 20, 300, 30, random_module.Random(7), now)
+        self.assertEqual(len(plan), 300)
+        self.assertTrue(all(now - timedelta(days=30) <= order[1] <= now for order in plan))
+        self.assertTrue({order[2] for order in plan} <= {"HOAN_THANH", "DA_HUY"})
+        self.assertTrue(all(order[4] and all(q >= 1 and price > 0 for _, q, price in order[4]) for order in plan))
+        self.assertEqual(plan, sorted(plan, key=lambda order: order[1]))
+
+    def test_demo_activity_refuses_to_duplicate_existing_demo_data(self):
+        conn, cursor = self._connection(fetchone=[{"n": 60}, {"n": 220}])
+        with patch("HA.store_data_tools.get_db_connection", return_value=conn):
+            result = app.test_cli_runner().invoke(args=["demo-activity", "--apply"])
+        self.assertNotEqual(result.exit_code, 0)
+        self.assertIn("--remove --apply", result.output)
+        self.assertFalse(any("INSERT" in str(c.args[0]) for c in cursor.execute.call_args_list))
+
+    def test_demo_activity_never_touches_public_counters_or_stock(self):
+        import inspect
+        from HA import store_data_tools
+        source = inspect.getsource(store_data_tools.demo_activity.callback)
+        self.assertNotIn("SoLuotMua", source)
+        self.assertNotIn("TonKho", source)
+        self.assertNotIn("DanhGia", source)
+
+
 if __name__ == "__main__":
     unittest.main()

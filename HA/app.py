@@ -6550,6 +6550,11 @@ def unhandled_database_error(_error):
     )
 
 
+# Lệnh CLI quản trị dữ liệu (restock-products, import-products-2026-11, demo-activity).
+if __name__ != "__main__":
+    from HA import store_data_tools  # noqa: E402,F401
+
+
 if __name__ == "__main__":
     app.run(
         debug=os.getenv("FLASK_DEBUG", "0") == "1",
