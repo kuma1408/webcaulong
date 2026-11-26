@@ -13,3 +13,11 @@ cấp phép trước khi dùng như hình ảnh thương mại chính thức.
 | `power-cushion-88-dial-3-wide-*.webp` | Yonex Power Cushion 88 Dial Gen 3 Wide | https://shopvnb.com/giay-cau-long-yonex-88-dial-3-wide-2025.html |
 | `cascade-accel-gen-2-*.webp` | Yonex Cascade Accel Gen 2 | https://shopvnb.com/giay-cau-long-yonex-cascade-accel-gen-2.html |
 | `cascade-accel-gen-2-wide-*.webp` | Yonex Cascade Accel Gen 2 Wide | https://shopvnb.com/giay-cau-long-yonex-cascade-accel-gen-2-wide.html |
+
+## Ảnh sản phẩm mới 2026-11 (`meta-*.webp`)
+
+76 ảnh `meta-*.webp` được lấy ngày 2026-11-26 từ ảnh đại diện (og:image) của trang
+sản phẩm tương ứng trên [META.vn](https://meta.vn/), thu nhỏ và chuyển sang WEBP bằng
+`python -m HA.download_meta_images_2026_11`. Danh sách tên sản phẩm, trang nguồn và URL
+ảnh gốc của từng tệp nằm trong `meta-2026-11.json`. Nguồn ảnh là nhà bán lẻ; cần thay
+bằng ảnh do cửa hàng sở hữu/được cấp phép trước khi dùng như hình ảnh thương mại chính thức.

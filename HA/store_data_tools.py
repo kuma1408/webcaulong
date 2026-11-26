@@ -18,6 +18,8 @@ Dữ liệu DEMO (demo-activity) chỉ để báo cáo/AI quản trị có số 
 
 from __future__ import annotations
 
+import json
+import os
 import random
 import secrets
 from datetime import datetime, timedelta
@@ -25,7 +27,7 @@ from datetime import datetime, timedelta
 import click
 from werkzeug.security import generate_password_hash
 
-from HA.app import app, get_db_connection
+from HA.app import PROJECT_ROOT, app, get_db_connection
 
 # ---------------------------------------------------------------------------
 # 1. Bổ sung tồn kho
@@ -79,6 +81,7 @@ def restock_products(threshold: int, quantity: int, apply_changes: bool):
 # MaDM: 1 vợt, 6 túi, 7 balo, 8 phụ kiện. Không sao chép ảnh/mô tả nguồn.
 CHECKED_ON = "26/11/2026"
 PLACEHOLDER_IMAGE = "HA/cc-removebg-preview.png"
+IMAGE_MANIFEST_2026_11 = os.path.join(PROJECT_ROOT, "HA", "imported-products", "meta-2026-11.json")
 M = "https://meta.vn/"
 NEW_PRODUCTS_2026_11 = [
     (1, "Vợt cầu lông FZ Forza Light 1", "Forza", 960000, 1320000, M + "vot-cau-long-fz-forza-light-1-p76664"),
@@ -180,6 +183,7 @@ def import_products_2026_11(stock: int, hidden: bool, apply_changes: bool):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     created = []
+    images = load_image_manifest_2026_11()
     try:
         cursor.execute("SELECT MaDM FROM DanhMuc")
         categories = {int(row["MaDM"]) for row in cursor.fetchall()}
@@ -198,7 +202,7 @@ def import_products_2026_11(stock: int, hidden: bool, apply_changes: bool):
                         TrangThai, NguonURL, NguonTen)
                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, '[]', %s, %s, 'META.vn')""",
                     (category, name, new_product_description(category, brand, "META.vn"), price, original,
-                     stock, PLACEHOLDER_IMAGE, brand, 0 if hidden else 1, url),
+                     stock, images.get(name, PLACEHOLDER_IMAGE), brand, 0 if hidden else 1, url),
                 )
         for name in created:
             click.echo(f"  + {name}")
@@ -210,7 +214,63 @@ def import_products_2026_11(stock: int, hidden: bool, apply_changes: bool):
             return
         conn.commit()
         click.echo(f"Đã thêm {len(created)} sản phẩm {state}, tồn {stock}; bỏ qua {skipped} tên đã có.")
-        click.echo("Ảnh đang là ảnh tạm: hãy vào admin > Sản phẩm để tải ảnh thật và kiểm tra lại giá.")
+        click.echo("Ảnh lấy từ trang nguồn META.vn; nên thay bằng ảnh cửa hàng tự chụp và kiểm tra lại giá.")
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def load_image_manifest_2026_11() -> dict[str, str]:
+    """Tên sản phẩm -> đường dẫn ảnh đã tải sẵn trong HA/imported-products (chỉ tệp có thật)."""
+    try:
+        with open(IMAGE_MANIFEST_2026_11, encoding="utf-8") as handle:
+            manifest = json.load(handle)
+    except (OSError, ValueError):
+        return {}
+    images = {}
+    for name, entry in manifest.items():
+        path = str(entry.get("file") or "")
+        if path.startswith("HA/imported-products/") and os.path.isfile(os.path.join(PROJECT_ROOT, path)):
+            images[name] = path
+    return images
+
+
+@app.cli.command("attach-product-images-2026-11")
+@click.option("--apply", "apply_changes", is_flag=True, help="Ghi vào database (mặc định chỉ xem trước).")
+def attach_product_images_2026_11(apply_changes: bool):
+    """Gắn ảnh đã tải cho sản phẩm mới 2026-11 đang dùng ảnh tạm (không đè ảnh admin đã tải)."""
+    images = load_image_manifest_2026_11()
+    if not images:
+        raise click.ClickException("Không tìm thấy ảnh trong HA/imported-products/meta-2026-11.json.")
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    updated = 0
+    try:
+        for name, path in images.items():
+            cursor.execute(
+                """SELECT MaSP, HinhAnh FROM SanPham
+                   WHERE LOWER(TenSP) = LOWER(%s)
+                     AND (HinhAnh IS NULL OR HinhAnh = '' OR HinhAnh = %s)""",
+                (name, PLACEHOLDER_IMAGE),
+            )
+            rows = cursor.fetchall()
+            for row in rows:
+                updated += 1
+                click.echo(f"  #{row['MaSP']:<5} {name} -> {path}")
+                if apply_changes:
+                    cursor.execute(
+                        "UPDATE SanPham SET HinhAnh = %s, NgayCapNhat = NOW() WHERE MaSP = %s",
+                        (path, row["MaSP"]),
+                    )
+        if not apply_changes:
+            conn.rollback()
+            click.echo(f"XEM TRƯỚC: {updated} sản phẩm sẽ được gắn ảnh. Thêm --apply để ghi.")
+            return
+        conn.commit()
+        click.echo(f"Đã gắn ảnh cho {updated} sản phẩm.")
     except Exception:
         conn.rollback()
         raise

@@ -921,6 +921,42 @@ class StoreDataToolsTest(unittest.TestCase):
         inserts = [c for c in cursor.execute.call_args_list if "INSERT INTO SanPham" in str(c.args[0])]
         self.assertEqual(len(inserts), len(NEW_PRODUCTS_2026_11) - 1)
         self.assertEqual(inserts[0].args[1][8], 1, "Mặc định sản phẩm mới đang bán")
+        self.assertTrue(inserts[0].args[1][6].startswith("HA/imported-products/meta-"), "Sản phẩm mới phải có ảnh thật")
+
+    def test_every_new_product_has_a_bundled_image(self):
+        import os
+        from PIL import Image as PILImage
+        from HA.app import PROJECT_ROOT
+        from HA.store_data_tools import NEW_PRODUCTS_2026_11, load_image_manifest_2026_11
+        images = load_image_manifest_2026_11()
+        for item in NEW_PRODUCTS_2026_11:
+            self.assertIn(item[1], images, item[1])
+            with PILImage.open(os.path.join(PROJECT_ROOT, images[item[1]])) as picture:
+                self.assertEqual(picture.format, "WEBP")
+                self.assertGreaterEqual(min(picture.size), 150, item[1])
+
+    def test_attach_images_preview_then_apply_only_placeholders(self):
+        from HA.store_data_tools import PLACEHOLDER_IMAGE, load_image_manifest_2026_11
+        count = len(load_image_manifest_2026_11())
+        rows = [[{"MaSP": 7, "HinhAnh": PLACEHOLDER_IMAGE}]] + [[]] * (count - 1)
+        conn, cursor = self._connection(fetchall=list(rows))
+        with patch("HA.store_data_tools.get_db_connection", return_value=conn):
+            preview = app.test_cli_runner().invoke(args=["attach-product-images-2026-11"])
+        self.assertEqual(preview.exit_code, 0, preview.output)
+        self.assertIn("1 sản phẩm sẽ được gắn ảnh", preview.output)
+        conn.commit.assert_not_called()
+        select = cursor.execute.call_args_list[0]
+        self.assertIn("HinhAnh = %s", select.args[0])
+        self.assertEqual(select.args[1][1], PLACEHOLDER_IMAGE)
+
+        conn, cursor = self._connection(fetchall=list(rows))
+        with patch("HA.store_data_tools.get_db_connection", return_value=conn):
+            applied = app.test_cli_runner().invoke(args=["attach-product-images-2026-11", "--apply"])
+        self.assertEqual(applied.exit_code, 0, applied.output)
+        updates = [c for c in cursor.execute.call_args_list if "UPDATE SanPham" in str(c.args[0])]
+        self.assertEqual(len(updates), 1)
+        self.assertEqual(updates[0].args[1][1], 7)
+        conn.commit.assert_called_once()
 
     def test_demo_plan_stays_in_window_and_only_final_states(self):
         import random as random_module

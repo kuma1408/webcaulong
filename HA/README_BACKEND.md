@@ -169,15 +169,19 @@ Mọi lệnh mặc định chỉ **xem trước**; thêm `--apply` mới ghi và
 flask --app wsgi restock-products                    # xem sản phẩm đang bán đã hết hàng
 flask --app wsgi restock-products --quantity 20 --apply
 flask --app wsgi import-products-2026-11             # xem 76 sản phẩm mới (vợt, túi, balo, lưới…)
-flask --app wsgi import-products-2026-11 --apply     # thêm, đang bán, tồn 10, ảnh tạm
+flask --app wsgi import-products-2026-11 --apply     # thêm, đang bán, tồn 10, kèm ảnh
+flask --app wsgi attach-product-images-2026-11 --apply  # gắn ảnh cho sản phẩm đã thêm trước đó bằng ảnh tạm
 flask --app wsgi demo-activity                       # xem trước dữ liệu DEMO 30 ngày
 flask --app wsgi demo-activity --apply
 flask --app wsgi demo-activity --remove --apply      # xóa sạch dữ liệu DEMO
 ```
 
 - Sản phẩm mới lấy tên và giá tham khảo từ danh mục công khai META.vn ngày
-  26/11/2026, không sao chép ảnh/mô tả. Ảnh là ảnh tạm: admin cần tải ảnh thật
-  và kiểm tra lại giá. Dùng `--hidden` nếu muốn thêm ở trạng thái ẩn để duyệt trước.
+  26/11/2026. Ảnh đại diện của 76 sản phẩm đã tải sẵn trong `HA/imported-products/meta-*.webp`
+  (nguồn ghi ở `SOURCES.md` và `meta-2026-11.json`; tải lại bằng
+  `python -m HA.download_meta_images_2026_11`). `attach-product-images-2026-11` chỉ thay
+  ảnh tạm, không đè ảnh admin đã tải. Nên thay dần bằng ảnh cửa hàng tự chụp và kiểm tra
+  lại giá. Dùng `--hidden` nếu muốn thêm ở trạng thái ẩn để duyệt trước.
 - `demo-activity` tạo khách hàng `demo_kh_###` (email `@demo.invalid`, bị khóa
   đăng nhập) và đơn hàng ghi chú `[DEMO]` ở trạng thái hoàn thành/hủy. Lệnh không
   cộng "Đã bán", không trừ tồn kho, không tạo đánh giá nên khách hàng không thấy;
