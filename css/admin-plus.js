@@ -22,7 +22,7 @@
     const normalize = (value) => String(value || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd');
 
     /* ---------- 1. Bảng lệnh nhanh ---------- */
-    const VIEW_ICONS = { overview: '⌂', products: '◇', orders: '□', users: '◎', content: '✎', support: '✉', chat: '💬', notifications: '◉', vouchers: '%', deposits: '₫', approvals: '✓', 'supplemental-evidence': '📎', audit: '≡' };
+    const VIEW_ICONS = { overview: '⌂', products: '◇', orders: '□', users: '◎', ai: '✦', content: '✎', support: '✉', chat: '💬', notifications: '◉', vouchers: '%', deposits: '₫', approvals: '✓', 'supplemental-evidence': '📎', audit: '≡' };
     function clickIfEnabled(selector, view) {
         return () => {
             const run = () => { const node = $(selector); if (node && !node.disabled) node.click(); };

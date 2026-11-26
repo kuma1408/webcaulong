@@ -144,3 +144,18 @@ WAF hay backup ngoài nhà cung cấp. Cần sao lưu database và thư mục `H
   không được lưu vào database, lịch sử chỉ nằm trong tab trình duyệt.
 - Gói miễn phí của Gemini có giới hạn số request và Google có thể dùng dữ liệu
   gửi lên (kể cả ảnh) để cải thiện dịch vụ; không đưa thông tin cá nhân vào ngữ cảnh AI.
+
+## 8. Trợ lý AI quản trị (mục "Trợ lý AI" trong admin.html)
+
+- `GET /api/admin/ai/snapshot` (cần quyền admin) trả các KPI 30 ngày và xu hướng
+  14 ngày để hiện trên đầu mục.
+- `POST /api/admin/ai/analyze` (cần quyền admin) nhận `message`, `history` và tối
+  đa 4 ảnh (ảnh sản phẩm, banner, biểu đồ, ảnh chụp màn hình…). Máy chủ gửi cho
+  Gemini một bản tóm tắt số liệu tổng hợp: doanh thu/đơn 30 ngày so với kỳ trước,
+  tỉ lệ hủy, giá trị đơn trung bình, xu hướng 14 ngày, top bán chạy, hàng tồn
+  không bán được 60 ngày, sắp hết hàng, doanh thu theo danh mục, phương thức thanh
+  toán, giỏ hàng bỏ dở. Không gửi tên, email, số điện thoại hay địa chỉ khách hàng.
+- AI trả lời theo các phần `## Đánh giá nhanh / Phân tích / Đề xuất hành động`,
+  dẫn số liệu thật, kèm thẻ sản phẩm được nhắc tới và câu hỏi gợi ý tiếp theo.
+- Giới hạn 10 lần/phút và 150 lần/giờ cho mỗi tài khoản admin. Dùng chung
+  `GEMINI_API_KEY`/`GEMINI_MODEL` với trợ lý AI của khách hàng.

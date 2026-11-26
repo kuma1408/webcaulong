@@ -787,5 +787,89 @@ class AiChatSmokeTest(unittest.TestCase):
         self.assertEqual([row["MaSP"] for row in ai_rank_products(rows, "tư vấn vợt cầu lông dưới 1 triệu")], [3, 1])
 
 
+class AdminAiSmokeTest(unittest.TestCase):
+    def setUp(self):
+        from HA.app import RATE_LIMITER
+        RATE_LIMITER._events.clear()
+        self.client = app.test_client()
+
+    def test_admin_ai_requires_login(self):
+        response = self.client.post("/api/admin/ai/analyze", json={"message": "Doanh thu thế nào?"})
+        self.assertEqual(response.status_code, 401)
+
+    def test_admin_ai_prompt_uses_aggregates_without_customer_identity(self):
+        from HA.app import admin_ai_system_prompt
+        snapshot = {
+            "kpis": {
+                "revenue_30": 12_000_000, "revenue_prev_30": 10_000_000, "revenue_change": 20.0,
+                "orders_30": 40, "orders_prev_30": 35, "completed_30": 30, "cancelled_30": 4, "cancel_rate": 10.0,
+                "average_order_30": 300_000, "pending_orders": 3, "shipping_orders": 2, "active_products": 120,
+                "out_of_stock": 5, "stock_value": 90_000_000, "new_users_30": 12, "users": 300, "open_support": 1,
+                "cart_users": 7, "cart_items": 11,
+            },
+            "trend": [{"date": "2026-11-25", "orders": 3, "revenue": 900000}],
+            "top_products": [{"MaSP": 9, "TenSP": "Vợt Yonex Astrox 99", "GiaBan": 4_000_000, "TonKho": 2, "DaBan": 3, "DoanhThu": 12_000_000}],
+            "slow_products": [], "low_stock": [], "categories": [], "payments": [],
+        }
+        prompt = admin_ai_system_prompt(snapshot, has_images=True)
+        self.assertIn("+20.0%", prompt)
+        self.assertIn("[SP:9] Vợt Yonex Astrox 99", prompt)
+        self.assertIn("tỉ lệ hủy 10.0%", prompt)
+        self.assertIn("Admin có gửi ảnh", prompt)
+        for private in ("Email", "SoDienThoai", "HoTen", "TenDangNhap", "DiaChi"):
+            self.assertNotIn(private, prompt)
+
+    def test_admin_ai_analyze_sends_photo_and_returns_sections(self):
+        from HA import app as app_module
+        snapshot = {
+            "kpis": {"revenue_change": None}, "trend": [],
+            "top_products": [{"MaSP": 9, "TenSP": "Vợt A", "GiaBan": 1_000_000, "TonKho": 1, "HinhAnh": "HA/a.png"}],
+            "slow_products": [], "low_stock": [],
+        }
+        reply = "### Đánh giá nhanh\n* **Ảnh** hơi tối\n## Đề xuất\n- Nhập thêm Vợt A [SP:9]\nGỢI Ý: Nên giảm giá không? | Ảnh nào tốt hơn?"
+        buffer = io.BytesIO()
+        Image.new("RGB", (200, 120), "white").save(buffer, "PNG")
+        buffer.seek(0)
+        view = app_module.admin_ai_analyze.__wrapped__
+        with patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}), \
+                patch("HA.app.load_admin_ai_snapshot", return_value=snapshot), \
+                patch("HA.app.admin_ai_system_prompt", return_value="sys"), \
+                patch("HA.app.call_gemini", return_value=reply) as gemini, \
+                app.test_request_context(
+                    "/api/admin/ai/analyze", method="POST",
+                    data={"message": "Đánh giá ảnh", "history": "[]", "images": (buffer, "chart.png")},
+                    content_type="multipart/form-data"):
+            from flask import g
+            g.current_user = {"MaND": 1, "VaiTro": "admin"}
+            response = app.make_response(view())
+        data = response.get_json()
+        self.assertEqual(response.status_code, 200, data)
+        self.assertTrue(data["reply"].startswith("## Đánh giá nhanh"))
+        self.assertIn("- Ảnh hơi tối", data["reply"])
+        self.assertEqual([p["MaSP"] for p in data["products"]], [9])
+        self.assertEqual(data["suggestions"], ["Nên giảm giá không?", "Ảnh nào tốt hơn?"])
+        parts = gemini.call_args.args[2][-1]["parts"]
+        self.assertEqual(parts[1]["inline_data"]["mime_type"], "image/jpeg")
+
+    def test_admin_ai_limits_photo_count(self):
+        from HA import app as app_module
+        view = app_module.admin_ai_analyze.__wrapped__
+        files = []
+        for index in range(5):
+            buffer = io.BytesIO()
+            Image.new("RGB", (64, 64), "white").save(buffer, "PNG")
+            buffer.seek(0)
+            files.append((buffer, f"{index}.png"))
+        with patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}), \
+                app.test_request_context(
+                    "/api/admin/ai/analyze", method="POST",
+                    data={"message": "x", "images": files}, content_type="multipart/form-data"):
+            from flask import g
+            g.current_user = {"MaND": 1, "VaiTro": "admin"}
+            response, status = view()
+        self.assertEqual(status, 400)
+        self.assertEqual(response.get_json()["code"], "ai_image_count")
+
+
 if __name__ == "__main__":
     unittest.main()

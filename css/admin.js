@@ -7,7 +7,7 @@
     const money = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 });
     const dateTime = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
     const dateTimeFull = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const pageTitles = { overview: 'Tổng quan', products: 'Sản phẩm', orders: 'Đơn hàng', users: 'Người dùng', content: 'Tin tức & Hướng dẫn', support: 'Hỗ trợ khách hàng', chat: 'Tin nhắn trực tiếp', notifications: 'Thông báo khách hàng', 'supplemental-evidence': 'Bổ sung minh chứng', vouchers: 'Voucher', deposits: 'Yêu cầu nạp tiền', approvals: 'Phê duyệt thay đổi', audit: 'Nhật ký quản trị' };
+    const pageTitles = { overview: 'Tổng quan', products: 'Sản phẩm', orders: 'Đơn hàng', users: 'Người dùng', ai: 'Trợ lý AI', content: 'Tin tức & Hướng dẫn', support: 'Hỗ trợ khách hàng', chat: 'Tin nhắn trực tiếp', notifications: 'Thông báo khách hàng', 'supplemental-evidence': 'Bổ sung minh chứng', vouchers: 'Voucher', deposits: 'Yêu cầu nạp tiền', approvals: 'Phê duyệt thay đổi', audit: 'Nhật ký quản trị' };
     const statusMeta = {
         CHO_XAC_NHAN: ['Chờ xác nhận', ''], DANG_GIAO: ['Đang giao', 'admin-badge--info'],
         HOAN_THANH: ['Hoàn thành', 'admin-badge--success'], DA_HUY: ['Đã hủy', 'admin-badge--danger'],
@@ -358,6 +358,7 @@
         if (view === 'products') return loadProducts();
         if (view === 'orders') return loadOrders();
         if (view === 'users') return loadUsers();
+        if (view === 'ai') return window.AdminAI?.load();
         if (view === 'content') return loadContent();
         if (view === 'support') return loadSupport();
         if (view === 'chat') return loadAdminChatThreads();
