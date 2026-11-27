@@ -521,6 +521,11 @@
         let selectedRating = 5;
         let productPriceVal = 0;
         let productDetails = null;
+        // Mọi dữ liệu từ API (tên khách, thương hiệu, danh mục…) phải được escape
+        // trước khi ghép vào innerHTML để tránh XSS lưu trữ.
+        const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        })[ch]);
         let thumbnailSwiper = null;
 
 
@@ -676,7 +681,7 @@
                         <span class="spec-tile-icon">${t.icon}</span>
                         <div class="spec-tile-body">
                             <span class="spec-tile-label">${t.label}</span>
-                            <strong class="spec-tile-value">${t.value}</strong>
+                            <strong class="spec-tile-value">${escapeHtml(t.value)}</strong>
                         </div>
                     `;
                     matrix.appendChild(el);
@@ -699,7 +704,7 @@
                 ];
                 fullSpecs.forEach(([k, v]) => {
                     const row = document.createElement('tr');
-                    row.innerHTML = `<td class="spec-title">${k}</td><td class="spec-desc">${v}</td>`;
+                    row.innerHTML = `<td class="spec-title">${escapeHtml(k)}</td><td class="spec-desc">${escapeHtml(v)}</td>`;
                     table.appendChild(row);
                 });
             } else {
@@ -717,7 +722,7 @@
                         <span class="spec-tile-icon">${t.icon}</span>
                         <div class="spec-tile-body">
                             <span class="spec-tile-label">${t.label}</span>
-                            <strong class="spec-tile-value">${t.value}</strong>
+                            <strong class="spec-tile-value">${escapeHtml(t.value)}</strong>
                         </div>
                     `;
                     matrix.appendChild(el);
@@ -734,7 +739,7 @@
                 ];
                 fullSpecs.forEach(([k, v]) => {
                     const row = document.createElement('tr');
-                    row.innerHTML = `<td class="spec-title">${k}</td><td class="spec-desc">${v}</td>`;
+                    row.innerHTML = `<td class="spec-title">${escapeHtml(k)}</td><td class="spec-desc">${escapeHtml(v)}</td>`;
                     table.appendChild(row);
                 });
             }
@@ -749,7 +754,7 @@
             document.getElementById('productName').textContent = p.TenSP;
             document.getElementById('productBrand').textContent = p.ThuongHieu || 'Chính hãng';
             document.getElementById('productPrice').textContent = `${Number(p.GiaBan || 0).toLocaleString('vi-VN')} ₫`;
-            document.getElementById('productStars').textContent = `⭐ ${Number(p.DanhGiaTrungBinh || 5).toFixed(1)}`;
+            document.getElementById('productStars').textContent = Number(p.DanhGiaTrungBinh) > 0 ? `⭐ ${Number(p.DanhGiaTrungBinh).toFixed(1)}` : '⭐ Chưa có đánh giá';
             document.getElementById('productCode').textContent = `Mã SP: #${p.MaSP}`;
             document.getElementById('productSold').textContent = Number(p.SoLuotMua || 0).toLocaleString('vi-VN');
             document.getElementById('productViews').textContent = Number(p.SoLuotXem || 0).toLocaleString('vi-VN');
@@ -947,7 +952,10 @@
                 productDetails = null;
                 const message = error.name === 'AbortError'
                     ? 'Kết nối quá lâu. Vui lòng thử tải lại sản phẩm.'
-                    : (error.message || 'Không thể tải sản phẩm lúc này.');
+                    : error instanceof TypeError
+                        // fetch() ném TypeError tiếng Anh ("Failed to fetch") khi mất mạng.
+                        ? 'Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.'
+                        : (error.message || 'Không thể tải sản phẩm lúc này.');
                 document.getElementById('productName').textContent = 'Chưa tải được sản phẩm';
                 document.getElementById('breadcrumbCurrent').textContent = 'Không thể tải';
                 document.getElementById('productPrice').textContent = '—';
@@ -1194,37 +1202,36 @@
                 });
 
                 const isVerified = Boolean(r.DaMuaXacThuc);
-                const score = Number(r.Diem || 5);
+                const score = Math.min(5, Math.max(1, Math.round(Number(r.Diem) || 5)));
                 const starsText = `${'★'.repeat(score)}${'☆'.repeat(5 - score)}`;
 
-                // Phân loại mua phù hợp với đúng danh mục sản phẩm
-                const isRacketItem = isStrictlyRacket(productDetails);
-                const variantTag = r.VariantInfo || (isRacketItem ? 'Phân loại: 4U-G5 · Yonex BG65 (10.5 kg)' : `Phân loại: ${productDetails?.TenDM || 'Chính hãng tiêu chuẩn'}`);
+                // Chỉ hiển thị phân loại khi API thật sự trả về; không tự bịa cấu hình.
+                const variantTag = r.VariantInfo ? String(r.VariantInfo) : '';
 
                 card.innerHTML = `
                     <div class="review-header">
                         <div class="review-identity">
-                            <span class="review-avatar">${initial}</span>
+                            <span class="review-avatar">${escapeHtml(initial)}</span>
                             <div class="review-id-details">
                                 <div class="review-user-row">
-                                    <strong class="review-user-name">${r.HoTen || r.TenDangNhap}</strong>
-                                    ${isVerified ? '<span class="review-verified">✓ Đã mua hàng tại Badminton Hub</span>' : ''}
+                                    <strong class="review-user-name">${escapeHtml(r.HoTen || r.TenDangNhap || 'Khách hàng')}</strong>
+                                    ${isVerified ? '<span class="review-verified">✓ Đã mua hàng tại cửa hàng</span>' : ''}
                                 </div>
-                                <span class="review-handle">@${r.TenDangNhap || 'khach-hang'}</span>
+                                <span class="review-handle">@${escapeHtml(r.TenDangNhap || 'khach-hang')}</span>
                             </div>
                         </div>
-                        <time class="review-date">${formattedDate}</time>
+                        <time class="review-date">${escapeHtml(formattedDate)}</time>
                     </div>
                     <div class="review-rating-row">
                         <span class="review-rating-stars">${starsText}</span>
-                        <span class="review-variant-pill">🏸 ${variantTag}</span>
+                        ${variantTag ? `<span class="review-variant-pill">🏸 ${escapeHtml(variantTag)}</span>` : ''}
                     </div>
-                    <p class="review-body-text">${r.NoiDung || (isRacketItem ? 'Sản phẩm cầm rất đầm tay, nảy cầu và trợ lực tốt, dịch vụ căng cước máy điện tử chuẩn xác. Rất đáng tiền!' : 'Sản phẩm chính hãng chất lượng hoàn thiện rất tốt, đóng gói cẩn thận, giao hàng nhanh chóng!')}</p>
+                    <p class="review-body-text">${escapeHtml(r.NoiDung || '')}</p>
                     <div class="review-card-footer">
                         <button type="button" class="btn-helpful-reaction" onclick="toggleHelpful(this)">
-                            <span class="helpful-icon">👍</span> Hữu ích (<span class="helpful-count">${Math.floor(Math.random() * 8) + 3}</span>)
+                            <span class="helpful-icon">👍</span> Hữu ích (<span class="helpful-count">0</span>)
                         </button>
-                        <span class="review-verified-store">Chứng thực bởi Badminton Store BWF</span>
+                        ${isVerified ? '<span class="review-verified-store">Đánh giá từ đơn hàng đã hoàn thành</span>' : ''}
                     </div>
                 `;
                 list.appendChild(card);
@@ -1305,7 +1312,7 @@
             if (!isStrictlyRacket(productDetails)) {
                 const variantWrap = document.getElementById('generalVariantWrap');
                 const variantVal = (!variantWrap || variantWrap.hidden) ? '' : (document.getElementById('generalVariantSelect')?.value || '');
-                return variantVal ? { weight_grip: variantVal, string: '', tension_lbs: null, addons: [] } : null;
+                return variantVal ? { size: variantVal } : null;
             }
             const configurator = document.getElementById('racketConfigurator');
             if (!configurator || configurator.hidden) return null;
@@ -1412,7 +1419,7 @@
                         const priceRow = document.createElement('div'); priceRow.className = 'price-row'; const stack = document.createElement('span'); stack.className = 'price-stack';
                         if (relatedSale) { const original = document.createElement('span'); original.className = 'original-price'; original.textContent = `${Number(p.GiaGoc).toLocaleString('vi-VN')} ₫`; stack.appendChild(original); }
                         const price = document.createElement('span'); price.className = 'price'; price.textContent = `${Number(p.GiaBan || 0).toLocaleString('vi-VN')} ₫`; stack.appendChild(price);
-                        const rating = document.createElement('span'); rating.className = 'rating'; rating.textContent = `⭐ ${Number(p.DanhGiaTrungBinh || 5).toFixed(1)}`;
+                        const rating = document.createElement('span'); rating.className = 'rating'; rating.textContent = Number(p.DanhGiaTrungBinh) > 0 ? `⭐ ${Number(p.DanhGiaTrungBinh).toFixed(1)}` : '⭐ Mới';
                         priceRow.append(stack, rating); info.append(brand, title, priceRow); card.append(media, info);
                         grid.appendChild(card);
                     });

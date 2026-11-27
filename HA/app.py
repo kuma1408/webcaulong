@@ -125,6 +125,8 @@ LEGACY_PASSWORD_SALT = "shop_caulong_2024"
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 PHONE_RE = re.compile(r"^(0|\+84)[3-9]\d{8}$")
 USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,30}$")
+# Họ tên hiển thị công khai (đánh giá, hội thoại): không nhận ký tự dựng thẻ HTML.
+HTML_MARKUP_RE = re.compile(r"[<>]")
 ORDER_STATES = {"CHO_XAC_NHAN", "DANG_GIAO", "HOAN_THANH", "DA_HUY"}
 DUMMY_PASSWORD_HASH = generate_password_hash("invalid-login-placeholder")
 PRODUCT_PRICE_MAX = Decimal("9999999999.99")
@@ -199,19 +201,61 @@ RACKET_ADDONS = {"QUAN_CAN_CAO_SU", "TUI_CACH_NHIET", "HOP_CAU_LONG"}
 PRODUCT_PLAY_STYLES = {"TAN_CONG", "CAN_BANG", "PHONG_THU"}
 PRODUCT_BALANCE_POINTS = {"NANG_DAU", "CAN_BANG", "NHE_DAU"}
 PRODUCT_SHAFT_STIFFNESS = {"MEM", "TRUNG_BINH", "CUNG"}
+# Kích cỡ cho giày và trang phục; trang chi tiết chỉ gửi đúng các nhãn này.
+SHOE_SIZES = {f"Size {size}" for size in range(36, 47)}
+APPAREL_SIZES = {"Size XS", "Size S", "Size M", "Size L", "Size XL", "Size XXL", "Size 3XL"}
+PRODUCT_SIZES = SHOE_SIZES | APPAREL_SIZES
 
 
-def validate_racket_configuration(value) -> dict | None:
-    """Chuẩn hóa cấu hình vợt do client gửi; không tin mã tùy chọn tự do."""
+def is_size_configuration(value) -> bool:
+    return isinstance(value, dict) and "size" in value and "weight_grip" not in value
+
+
+def parse_configuration_object(value):
     if value in (None, "", {}):
         return None
     if isinstance(value, str):
         try:
             value = json.loads(value)
         except (TypeError, ValueError, json.JSONDecodeError) as exc:
-            raise ValueError("Cấu hình vợt không đúng định dạng.") from exc
+            raise ValueError("Cấu hình sản phẩm không đúng định dạng.") from exc
     if not isinstance(value, dict):
-        raise ValueError("Cấu hình vợt không đúng định dạng.")
+        raise ValueError("Cấu hình sản phẩm không đúng định dạng.")
+    return value
+
+
+def validate_size_configuration(value) -> dict:
+    size = str(value.get("size", "")).strip()
+    if size not in PRODUCT_SIZES:
+        raise ValueError("Kích cỡ đã chọn không hợp lệ.")
+    return {"size": size}
+
+
+def validate_product_configuration(value) -> dict | None:
+    """Cấu hình vợt (trọng lượng/cước) hoặc kích cỡ giày/trang phục."""
+    value = parse_configuration_object(value)
+    if value is None:
+        return None
+    if is_size_configuration(value):
+        return validate_size_configuration(value)
+    return validate_racket_configuration(value)
+
+
+def stored_product_configuration(value) -> dict | None:
+    try:
+        return validate_product_configuration(value)
+    except ValueError:
+        return None
+
+
+def validate_racket_configuration(value) -> dict | None:
+    """Chuẩn hóa cấu hình vợt do client gửi; không tin mã tùy chọn tự do."""
+    try:
+        value = parse_configuration_object(value)
+    except ValueError as exc:
+        raise ValueError("Cấu hình vợt không đúng định dạng.") from exc
+    if value is None:
+        return None
 
     weight_grip = str(value.get("weight_grip", "")).strip().upper()
     string_code = str(value.get("string", "KHONG_CANG")).strip().upper()
@@ -1062,10 +1106,15 @@ def send_password_reset_email(recipient: str, display_name: str, token: str) -> 
         port = int(os.getenv("SMTP_PORT", "587"))
     except ValueError as exc:
         raise RuntimeError("SMTP_PORT không hợp lệ") from exc
-    base_url = normalize_public_url(
-        os.getenv("PUBLIC_BASE_URL", request.url_root).rstrip("/"),
-        allow_relative=False,
-    )
+    configured_base = os.getenv("PUBLIC_BASE_URL", "").strip()
+    if not configured_base:
+        # Không dựng liên kết từ Host/X-Forwarded-Host do client gửi: kẻ tấn công
+        # có thể khiến email chứa token trỏ về tên miền của họ. Chỉ chấp nhận
+        # fallback khi đang chạy local.
+        if (request.host.split(":")[0] or "").lower() not in {"127.0.0.1", "localhost", "[::1]"}:
+            raise RuntimeError("PUBLIC_BASE_URL chưa được cấu hình")
+        configured_base = request.url_root
+    base_url = normalize_public_url(configured_base.rstrip("/"), allow_relative=False)
     if not base_url:
         raise RuntimeError("PUBLIC_BASE_URL không hợp lệ")
     reset_url = f"{base_url}/datlaimatkhau.html?token={token}"
@@ -1264,7 +1313,7 @@ def storefront_index():
 def public_base_url() -> str:
     """URL gốc công khai dùng cho canonical, sitemap và liên kết trong email."""
     configured = os.getenv("PUBLIC_BASE_URL", "").strip().rstrip("/")
-    if configured:
+    if configured and normalize_public_url(configured, allow_relative=False):
         return configured
     return request.url_root.rstrip("/")
 
@@ -1498,7 +1547,12 @@ def login():
 
         valid, needs_upgrade = verify_password(user["MatKhau"], password)
         if not valid:
-            attempts = int(user.get("SoLanDangNhapSai") or 0) + 1
+            previous_attempts = int(user.get("SoLanDangNhapSai") or 0)
+            if user.get("KhoaDen") and user["KhoaDen"] <= now:
+                # Hết hạn khóa thì đếm lại từ đầu; nếu không, một lần gõ sai
+                # ngay sau đó sẽ khóa tài khoản thêm 15 phút.
+                previous_attempts = 0
+            attempts = previous_attempts + 1
             lock_until = now + timedelta(minutes=LOGIN_LOCK_MINUTES) if attempts >= LOGIN_MAX_ATTEMPTS else None
             cursor.execute(
                 "UPDATE NguoiDung SET SoLanDangNhapSai = %s, KhoaDen = %s WHERE MaND = %s",
@@ -1682,8 +1736,8 @@ def register():
 
     if not USERNAME_RE.fullmatch(username):
         return api_error("Tên đăng nhập cần 3–30 ký tự, chỉ gồm chữ, số hoặc dấu gạch dưới.")
-    if len(fullname) < 2 or len(fullname) > 100:
-        return api_error("Họ tên cần từ 2 đến 100 ký tự.")
+    if len(fullname) < 2 or len(fullname) > 100 or HTML_MARKUP_RE.search(fullname):
+        return api_error("Họ tên cần từ 2 đến 100 ký tự và không chứa ký tự < >.")
     if len(email) > 100 or not EMAIL_RE.fullmatch(email):
         return api_error("Email không hợp lệ.")
     if phone and not PHONE_RE.fullmatch(phone):
@@ -1831,8 +1885,8 @@ def update_profile():
     email = str(data.get("email", "")).strip().lower()
     phone = str(data.get("phone", "")).strip()
     address = str(data.get("address", "")).strip()
-    if len(fullname) < 2 or len(fullname) > 100:
-        return api_error("Họ tên cần từ 2 đến 100 ký tự.")
+    if len(fullname) < 2 or len(fullname) > 100 or HTML_MARKUP_RE.search(fullname):
+        return api_error("Họ tên cần từ 2 đến 100 ký tự và không chứa ký tự < >.")
     if len(email) > 100 or not EMAIL_RE.fullmatch(email):
         return api_error("Email không hợp lệ.")
     if phone and not PHONE_RE.fullmatch(phone):
@@ -1904,6 +1958,10 @@ def change_password():
         return api_error(message)
     if old_password == new_password:
         return api_error("Mật khẩu mới phải khác mật khẩu hiện tại.")
+    # Chặn dò mật khẩu hiện tại bằng một phiên đăng nhập bị lộ.
+    limited = enforce_rate_limit("change-password", str(g.current_user["MaND"]), 5, 15 * 60)
+    if limited:
+        return limited
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -2096,7 +2154,7 @@ def add_to_cart():
     if quantity is None:
         return api_error("Số lượng cần là số nguyên từ 1 đến 99.", 400, "invalid_quantity")
     try:
-        configuration = validate_racket_configuration(data.get("cau_hinh"))
+        configuration = validate_product_configuration(data.get("cau_hinh"))
     except ValueError as error:
         return api_error(str(error), 400, "invalid_racket_configuration")
 
@@ -2115,9 +2173,16 @@ def add_to_cart():
             return api_error("Sản phẩm không tồn tại hoặc đang tạm ẩn.", 404, "product_not_found")
         category_name = normalize_search_text(product.get("TenDM"))
         is_racket = int(product.get("MaDM") or 0) == 1 or category_name == "vot cau long"
-        if configuration and not is_racket:
+        is_size_option = bool(configuration) and "size" in configuration
+        if configuration and not is_racket and not is_size_option:
             return api_error(
                 "Chỉ sản phẩm vợt mới nhận cấu hình trọng lượng và căng cước.",
+                400,
+                "configuration_not_supported",
+            )
+        if is_size_option and is_racket:
+            return api_error(
+                "Vợt cần chọn trọng lượng/tay cầm thay vì kích cỡ.",
                 400,
                 "configuration_not_supported",
             )
@@ -2216,7 +2281,7 @@ def view_cart():
         items = []
         for row in cursor.fetchall():
             item = serialize_row(row)
-            item["CauHinh"] = stored_racket_configuration(row.get("CauHinh"))
+            item["CauHinh"] = stored_product_configuration(row.get("CauHinh"))
             items.append(item)
         total = sum(Decimal(str(item["ThanhTien"])) for item in items)
         return jsonify({"success": True, "items": items, "total": float(total)})
@@ -2623,7 +2688,12 @@ def checkout():
                 "INSERT INTO SuDungVoucher (MaND,MaVoucher,MaDH) VALUES (%s,%s,%s)",
                 (g.current_user["MaND"], voucher["MaVoucher"], order_id),
             )
-        cursor.execute("DELETE FROM GioHang WHERE MaND = %s", (g.current_user["MaND"],))
+        # Chỉ xóa các dòng đã mua; sản phẩm đang tạm ẩn vẫn nằm lại trong giỏ.
+        purchased_ids = [item["MaSP"] for item in items]
+        cursor.execute(
+            f"DELETE FROM GioHang WHERE MaND = %s AND MaSP IN ({','.join(['%s'] * len(purchased_ids))})",
+            [g.current_user["MaND"], *purchased_ids],
+        )
         conn.commit()
         response = {
             "success": True,
@@ -2703,7 +2773,7 @@ def order_detail(order_id):
         items = []
         for row in cursor.fetchall():
             item = serialize_row(row)
-            item["CauHinh"] = stored_racket_configuration(row.get("CauHinh"))
+            item["CauHinh"] = stored_product_configuration(row.get("CauHinh"))
             items.append(item)
         payload = {"success": True, "order": serialize_row(order), "items": items}
         if order.get("PhuongThuc") == "BANKING" and order.get("TrangThaiThanhToan") != "DA_THANH_TOAN":
@@ -2747,12 +2817,35 @@ def cancel_order_transaction(cursor, order_id: int, owner_id: int | None = None)
             """,
             (item["SoLuong"], item["SoLuong"], item["MaSP"]),
         )
-    if order.get("PhuongThuc") == "SO_DU":
-        cursor.execute("UPDATE NguoiDung SET SoDu = SoDu + %s WHERE MaND = %s", (order["TongTien"], order["MaND"]))
+    # Hoàn tiền vào số dư cho mọi khoản khách đã thực trả: thanh toán bằng số dư
+    # hoặc chuyển khoản đã được admin đối soát. COD/chuyển khoản chưa nhận tiền
+    # thì không có gì để hoàn.
+    paid_by_balance = order.get("PhuongThuc") == "SO_DU"
+    paid_by_transfer = (
+        order.get("PhuongThuc") == "BANKING"
+        and order.get("TrangThaiThanhToan") == "DA_THANH_TOAN"
+    )
+    refund_amount = Decimal(str(order.get("TongTien") or 0))
+    if (paid_by_balance or paid_by_transfer) and refund_amount > 0:
+        cursor.execute("UPDATE NguoiDung SET SoDu = SoDu + %s WHERE MaND = %s", (refund_amount, order["MaND"]))
+        description = (
+            f"Hoàn tiền đơn hàng #{order_id}"
+            if paid_by_balance
+            else f"Hoàn tiền chuyển khoản đơn hàng #{order_id} vào số dư"
+        )
         cursor.execute(
             "INSERT INTO LichSuGiaoDich (MaND, LoaiGiaoDich, SoTien, MoTa) VALUES (%s, 'HOAN_TIEN', %s, %s)",
-            (order["MaND"], order["TongTien"], f"Hoàn tiền đơn hàng #{order_id}"),
+            (order["MaND"], refund_amount, description),
         )
+    # Trả lại lượt voucher để khách có thể dùng lại mã cho đơn mới.
+    cursor.execute("SELECT MaVoucher FROM SuDungVoucher WHERE MaDH=%s", (order_id,))
+    for usage in cursor.fetchall():
+        voucher_code = usage["MaVoucher"] if isinstance(usage, dict) else usage[0]
+        cursor.execute(
+            "UPDATE Voucher SET DaSuDung = GREATEST(DaSuDung - 1, 0) WHERE MaVoucher=%s",
+            (voucher_code,),
+        )
+    cursor.execute("DELETE FROM SuDungVoucher WHERE MaDH=%s", (order_id,))
     cursor.execute(
         "UPDATE DonHang SET TrangThaiThanhToan='DA_HUY' WHERE MaDH=%s",
         (order_id,),
@@ -4787,7 +4880,7 @@ def admin_orders():
             items_by_order = {}
             for item_row in cursor.fetchall():
                 item = serialize_row(item_row)
-                item["CauHinh"] = stored_racket_configuration(item_row.get("CauHinh"))
+                item["CauHinh"] = stored_product_configuration(item_row.get("CauHinh"))
                 items_by_order.setdefault(item["MaDH"], []).append(item)
             for order in orders:
                 order["SanPham"] = items_by_order.get(order["MaDH"], [])
@@ -5178,6 +5271,9 @@ def admin_update_user(user_id):
             if key == "fullname" and not value:
                 conn.rollback()
                 return api_error("Họ tên không được để trống.")
+            if key == "fullname" and HTML_MARKUP_RE.search(value):
+                conn.rollback()
+                return api_error("Họ tên không được chứa ký tự < >.")
             if key == "email" and value and not EMAIL_RE.fullmatch(value):
                 conn.rollback()
                 return api_error("Email không hợp lệ.")
@@ -5218,7 +5314,8 @@ def admin_update_user(user_id):
             conn.rollback()
             return jsonify({"success": True, "message": "Hồ sơ không có thông tin nào thay đổi.", "unchanged": True})
         cursor.execute(f"UPDATE NguoiDung SET {', '.join(updates)} WHERE MaND = %s", values + [user_id])
-        if active is False:
+        if active is False or changed.get("password_reset"):
+            # Khóa tài khoản hoặc admin đặt mật khẩu mới: đăng xuất mọi thiết bị.
             cursor.execute("UPDATE PhienDangNhap SET DaThuHoi = 1 WHERE MaND = %s", (user_id,))
         cursor.execute(
             """SELECT MaND, TenDangNhap, HoTen, Email, SoDienThoai, DiaChi, Avatar,

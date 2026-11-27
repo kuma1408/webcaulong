@@ -125,11 +125,18 @@
         const requestToken = getToken();
         const { auth = true, json, headers, ...fetchOptions } = options;
         const finalHeaders = auth ? getApiHeaders(headers) : { 'Content-Type': 'application/json', ...(headers || {}) };
-        const response = await fetch(`${window.API_BASE}${path}`, {
-            ...fetchOptions,
-            headers: finalHeaders,
-            body: json === undefined ? fetchOptions.body : JSON.stringify(json)
-        });
+        let response;
+        try {
+            response = await fetch(`${window.API_BASE}${path}`, {
+                ...fetchOptions,
+                headers: finalHeaders,
+                body: json === undefined ? fetchOptions.body : JSON.stringify(json)
+            });
+        } catch (error) {
+            if (error?.name === 'AbortError') throw error;
+            // fetch() chỉ trả "Failed to fetch" tiếng Anh khi mất mạng/máy chủ tắt.
+            throw new ApiError('Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.', 0, 'network_error', {});
+        }
         let payload = {};
         try {
             payload = await response.json();

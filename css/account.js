@@ -456,7 +456,7 @@
                 if (item.CauHinh && typeof item.CauHinh === 'object') {
                     const labels = { KHONG_CANG: 'Chưa căng cước', YONEX_BG65: 'Yonex BG65', YONEX_BG65TI: 'Yonex BG65Ti', YONEX_NANOGY98: 'Yonex Nanogy 98', YONEX_AEROBITE: 'Yonex Aerobite', LINING_NO1: 'Lining No.1', QUAN_CAN_CAO_SU: 'Quấn cán cao su', TUI_CACH_NHIET: 'Túi cách nhiệt', HOP_CAU_LONG: 'Hộp cầu lông' };
                     const config = element('span', 'cart-item-config');
-                    [item.CauHinh.weight_grip, labels[item.CauHinh.string] || item.CauHinh.string, item.CauHinh.tension_lbs ? `${item.CauHinh.tension_lbs} lbs` : '', ...(Array.isArray(item.CauHinh.addons) ? item.CauHinh.addons.map(code => labels[code] || code) : [])].filter(Boolean).forEach(value => config.appendChild(element('span', '', value)));
+                    [item.CauHinh.size, item.CauHinh.weight_grip, labels[item.CauHinh.string] || item.CauHinh.string, item.CauHinh.tension_lbs ? `${item.CauHinh.tension_lbs} lbs` : '', ...(Array.isArray(item.CauHinh.addons) ? item.CauHinh.addons.map(code => labels[code] || code) : [])].filter(Boolean).forEach(value => config.appendChild(element('span', '', value)));
                     info.appendChild(config);
                 }
                 product.append(image, info, element('strong', '', formatMoney(Number(item.GiaBan) * Number(item.SoLuong))));

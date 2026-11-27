@@ -23,6 +23,7 @@ from HA.app import (
     admin_update_product,
     admin_vouchers,
     app,
+    cancel_order_transaction,
     checkout,
     decimal_number,
     fuzzy_product_score,
@@ -39,6 +40,7 @@ from HA.app import (
     sanitize_rich_text,
     serialize_chat_messages,
     update_cart,
+    validate_product_configuration,
     validate_racket_configuration,
     validated_product_specs,
     verify_password,
@@ -366,6 +368,65 @@ class ApiSmokeTest(unittest.TestCase):
                 "weight_grip": "4U-G5", "string": "YONEX_BG65",
                 "tension_lbs": 99, "addons": [],
             })
+
+    def test_size_configuration_is_whitelisted(self):
+        self.assertEqual(validate_product_configuration({"size": "Size 41"}), {"size": "Size 41"})
+        self.assertEqual(validate_product_configuration('{"size": "Size XL"}'), {"size": "Size XL"})
+        self.assertIsNone(validate_product_configuration(None))
+        with self.assertRaises(ValueError):
+            validate_product_configuration({"size": "<img src=x>"})
+        # Cấu hình vợt vẫn đi qua whitelist riêng.
+        self.assertEqual(
+            validate_product_configuration({"weight_grip": "4U-G5", "string": "KHONG_CANG"})["weight_grip"],
+            "4U-G5",
+        )
+
+    def test_add_shoe_with_size_reaches_cart_insert(self):
+        conn = MagicMock()
+        cursor = conn.cursor.return_value
+        cursor.fetchone.side_effect = [
+            {"TonKho": 5, "TrangThai": 1, "MaDM": 2, "TenDM": "Giày Cầu Lông"},
+            None,
+        ]
+        with app.test_request_context(
+            "/api/gio-hang/them", method="POST",
+            json={"ma_san_pham": 7, "so_luong": 1, "cau_hinh": {"size": "Size 41"}},
+        ):
+            from flask import g
+            g.current_user = {"MaND": 3}
+            with patch("HA.app.get_db_connection", return_value=conn):
+                response = add_to_cart.__wrapped__()
+        self.assertEqual(response.get_json()["success"], True)
+        insert_params = cursor.execute.call_args_list[-1].args[1]
+        self.assertIn('"size": "Size 41"', insert_params[3])
+
+    def test_cancel_refunds_verified_bank_transfer_and_releases_voucher(self):
+        cursor = MagicMock()
+        cursor.fetchone.return_value = {
+            "MaDH": 11, "MaND": 3, "TrangThai": "CHO_XAC_NHAN", "PhuongThuc": "BANKING",
+            "TrangThaiThanhToan": "DA_THANH_TOAN", "TongTien": Decimal("450000.00"),
+        }
+        cursor.rowcount = 1
+        cursor.fetchall.side_effect = [[{"MaSP": 4, "SoLuong": 1}], [{"MaVoucher": "SALE10"}]]
+        order, error = cancel_order_transaction(cursor, 11, 3)
+        self.assertEqual(error, "")
+        statements = [call.args[0] for call in cursor.execute.call_args_list]
+        self.assertTrue(any("SoDu = SoDu +" in sql for sql in statements))
+        self.assertTrue(any("HOAN_TIEN" in sql for sql in statements))
+        self.assertTrue(any("DaSuDung = GREATEST" in sql for sql in statements))
+        self.assertTrue(any("DELETE FROM SuDungVoucher" in sql for sql in statements))
+
+    def test_cancel_unpaid_bank_transfer_does_not_refund(self):
+        cursor = MagicMock()
+        cursor.fetchone.return_value = {
+            "MaDH": 12, "MaND": 3, "TrangThai": "CHO_XAC_NHAN", "PhuongThuc": "BANKING",
+            "TrangThaiThanhToan": "CHO_THANH_TOAN", "TongTien": Decimal("450000.00"),
+        }
+        cursor.rowcount = 1
+        cursor.fetchall.side_effect = [[], []]
+        cancel_order_transaction(cursor, 12, 3)
+        statements = [call.args[0] for call in cursor.execute.call_args_list]
+        self.assertFalse(any("SoDu = SoDu +" in sql for sql in statements))
 
     def test_product_racket_specs_are_bounded(self):
         specs = validated_product_specs({
