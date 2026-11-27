@@ -219,7 +219,7 @@ html:root body.admin-body ::-webkit-scrollbar-track { background: transparent; }
     html:root body.admin-body .stat-grid.admin-metrics .sub { font-size: 11px !important; line-height: 1.35; }
 
     /* Bảng → danh sách thẻ: mỗi dòng một thẻ, nhãn cột hiện trong từng ô */
-    html:root body.admin-body .admin-table-wrap:has(> .an-card-table) { overflow: visible !important; background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+    html:root body.admin-body .admin-table-wrap:has(> .an-card-table) { overflow: visible !important; max-height: none !important; background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; }
     html:root body.admin-body .an-card-table { display: block !important; width: 100% !important; min-width: 0 !important; border: 0 !important; background: none !important; }
     html:root body.admin-body .an-card-table > thead {
         position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important;
@@ -302,6 +302,97 @@ html:root body.admin-body ::-webkit-scrollbar-track { background: transparent; }
     html:root body.admin-body .an-card-table > tbody { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     html:root body.admin-body .an-card-table > tbody > tr.an-row-full { grid-column: 1 / -1; }
     html:root body.admin-body dialog.admin-dialog { width: min(720px, calc(100% - 32px)) !important; }
+}
+/* =============================================================
+   ĐIỆN THOẠI (≤640px) — LƯỢT 2: rộng hơn, bảng đủ dòng, chat, AI, chữ nhỏ
+   ============================================================= */
+@media (max-width: 640px) {
+    /* Bỏ lớp khung lồng nhau: nội dung rộng gần hết màn hình */
+    html:root body.admin-body .admin-app { padding: 8px 8px 24px !important; }
+    html:root body.admin-body .admin-workspace {
+        padding: 0 !important; border: 0 !important; border-radius: 0 !important;
+        background: none !important; box-shadow: none !important; -webkit-backdrop-filter: none; backdrop-filter: none;
+    }
+    html:root body.admin-body .admin-sidebar { margin-bottom: 10px !important; }
+    html:root body.admin-body .admin-topbar { border-radius: 18px !important; }
+
+    /* Bảng dạng thẻ: hiện đủ mọi dòng (trước đây bị giới hạn 72dvh mà không cuộn được → mất dòng, đè lên phân trang) */
+    html:root body.admin-body .admin-table-wrap:has(> .an-card-table) { max-height: none !important; }
+    html:root body.admin-body .admin-table-card { overflow: visible !important; }
+    html:root body.admin-body .an-card-table > tbody > tr:not([hidden]) { padding: 12px !important; gap: 10px 12px !important; }
+    /* Ô có avatar + tên (khách hàng, quản trị viên): không đè sang cột bên cạnh */
+    html:root body.admin-body .an-card-table td .admin-user-cell { display: flex !important; align-items: center; gap: 8px; min-width: 0; max-width: 100%; }
+    html:root body.admin-body .an-card-table td .admin-user-cell > div { min-width: 0; }
+    html:root body.admin-body .an-card-table td .admin-user-cell strong { display: block; overflow-wrap: anywhere; white-space: normal !important; line-height: 1.3; }
+    html:root body.admin-body .an-card-table td .admin-user-cell .admin-user-avatar { flex: none; width: 30px !important; height: 30px !important; }
+    /* Nút nằm trong ô thường (Xem dữ liệu, Xem bằng chứng…): không tràn khỏi thẻ */
+    html:root body.admin-body .an-card-table td:not(.an-cell-actions) :is(button, a.admin-pill-btn) { max-width: 100%; white-space: normal !important; text-align: left; }
+    /* Nhóm thao tác: 3 nút/hàng, gọn hơn */
+    html:root body.admin-body .an-card-table td.an-cell-actions :is(button, a.admin-pill-btn) {
+        flex: 1 1 calc(33.333% - 6px) !important; min-height: 38px !important; padding: 6px 8px !important;
+        font-size: 13px !important; line-height: 1.2; border-radius: 12px !important;
+    }
+    html:root body.admin-body .an-card-table td.an-cell-actions :is(.admin-actions, .admin-row-actions, div:has(> button)) { gap: 6px !important; width: 100% !important; max-width: none !important; }
+    html:root body.admin-body .an-card-table td.an-cell-actions select { min-height: 40px !important; font-size: 16px !important; }
+    html:root body.admin-body .an-card-table > tbody > tr > td::before { font-size: 10.5px !important; }
+    /* Phân trang: nút to, cách thẻ cuối */
+    html:root body.admin-body .admin-pagination { padding: 14px 0 6px !important; gap: 8px !important; }
+    html:root body.admin-body .admin-pagination button { min-height: 40px !important; padding: 0 14px !important; }
+
+    /* Thanh công cụ (tìm kiếm/lọc): ô tìm và nút "Tìm" không bị cắt */
+    html:root body.admin-body .admin-toolbar { padding: 10px 0 !important; gap: 8px !important; background: none !important; }
+    html:root body.admin-body .admin-search { display: flex !important; overflow: hidden; }
+    html:root body.admin-body .admin-search input { flex: 1 1 auto; min-width: 0 !important; width: auto !important; }
+    html:root body.admin-body .admin-search button { flex: none; }
+
+    /* Phễu khách hàng: biểu tượng nằm trên, chữ không bị bẻ từng từ */
+    html:root body.admin-body .conversion-funnel-card { padding: 16px 14px !important; }
+    html:root body.admin-body .funnel-step { margin: 0 !important; }
+    html:root body.admin-body .funnel-step .step-head { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
+    html:root body.admin-body .funnel-step .step-head > div:last-child { min-width: 0; width: 100%; }
+    html:root body.admin-body .funnel-step .step-icon { width: 34px !important; height: 34px !important; }
+    html:root body.admin-body .funnel-step .step-count { font-size: 20px !important; line-height: 1.15; }
+
+    /* Top sản phẩm bán chạy: huy hiệu hạng đè góc ảnh, nhường chỗ cho tên */
+    html:root body.admin-body .top-product-card { position: relative; gap: 12px !important; padding: 12px !important; }
+    html:root body.admin-body .top-product-rank { position: absolute !important; top: 4px; left: 4px; z-index: 2; width: 26px !important; height: 26px !important; font-size: 14px !important; }
+    html:root body.admin-body .top-product-thumb { flex: none; width: 64px !important; height: 64px !important; }
+    html:root body.admin-body .top-product-title { white-space: normal !important; display: -webkit-box !important; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* Tin nhắn trực tiếp: danh sách hội thoại đủ cao, khung chat cố định chiều cao */
+    html:root body.admin-body .store-admin-chat { display: flex !important; flex-direction: column; gap: 12px !important; height: auto !important; }
+    html:root body.admin-body .store-admin-chat__list { height: auto !important; max-height: none !important; display: flex !important; flex-direction: column; }
+    html:root body.admin-body .store-admin-chat__threads { height: auto !important; max-height: min(320px, 42dvh) !important; grid-auto-rows: auto !important; grid-template-rows: none !important; overflow: auto !important; overscroll-behavior: contain; }
+    html:root body.admin-body .store-admin-chat__thread { height: auto !important; min-height: 64px !important; }
+    html:root body.admin-body .store-admin-chat__list > .admin-search { flex: none !important; height: auto !important; }
+    html:root body.admin-body .store-admin-chat__conversation { height: min(74dvh, 620px) !important; min-height: 420px; scroll-margin-top: 84px; }
+
+    /* Trợ lý AI: ô nhập rộng hết hàng, nút ảnh + gửi ở hàng dưới */
+    html:root body.admin-body .aai-composer { display: flex !important; flex-wrap: wrap !important; align-items: center; gap: 8px !important; }
+    html:root body.admin-body .aai-composer > textarea { order: -1; flex: 1 1 100% !important; width: 100% !important; min-height: 48px; }
+    html:root body.admin-body .aai-composer > .aai-pending-list { order: -2; flex: 1 1 100%; }
+    html:root body.admin-body .aai-composer > .aai-attach { flex: none; width: 44px; height: 44px; }
+    html:root body.admin-body .aai-composer > .aai-send { flex: 1 1 auto; min-height: 44px; }
+    html:root body.admin-body .aai-composer > .aai-status { flex: 1 1 100%; margin: 0; }
+    html:root body.admin-body .aai-head__actions .admin-detail-button { min-height: 36px; padding: 0 12px !important; font-size: 12.5px !important; }
+
+    /* Hộp thoại: hai nút cuối cùng hàng, đỡ tốn chỗ */
+    html:root body.admin-body dialog.admin-dialog .admin-dialog__actions { display: flex !important; flex-direction: row !important; gap: 8px !important; }
+    html:root body.admin-body dialog.admin-dialog .admin-dialog__actions > button { flex: 1 1 0 !important; min-width: 0; min-height: 46px !important; width: auto !important; margin: 0 !important; }
+    html:root body.admin-body dialog.admin-dialog .admin-dialog__actions > .admin-primary { flex-grow: 1.6 !important; }
+
+    /* Nút nhỏ (Xem tất cả, Làm mới, Báo cáo…): đủ cao để chạm */
+    html:root body.admin-body .admin-workspace :is(.btn-health-action, .admin-card__head button, .admin-approval-intro button, .admin-detail-button) { min-height: 38px !important; }
+    html:root body.admin-body .ap-copy { min-width: 34px !important; min-height: 34px !important; }
+
+    /* Chữ 8–10px → tối thiểu 11px */
+    html:root body.admin-body .admin-workspace :is(
+        .eyebrow, .health-label, .stat-card-body .label, .stat-card-body .hint, .admin-chart-total-stat small,
+        .admin-donut-center small, .legend-pct, .top-product-sold, .top-product-rev, .admin-kpi-card__head > span,
+        .admin-badge, .admin-contact-cell strong, .admin-contact-cell span, .admin-detail-button, .admin-content-summary,
+        .admin-approval-intro span, .admin-live span, .health-item p, .health-item span
+    ) { font-size: 11px !important; line-height: 1.35; }
+    html:root body.admin-body .admin-workspace .admin-badge { padding: 3px 8px !important; }
 }
 @media (prefers-reduced-motion: reduce) {
     .an-aurora { display: none !important; }

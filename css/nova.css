@@ -481,3 +481,29 @@ html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%;
     --nova-ico-cart: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='20' r='1.4'/%3E%3Ccircle cx='18' cy='20' r='1.4'/%3E%3Cpath d='M2.5 3.5h2.6l2.3 11.2a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.2L21 7.5H6'/%3E%3C/svg%3E");
     --nova-ico-chat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 11.5a8.4 8.4 0 0 1-12.3 7.4L3 21l2.1-5.6A8.4 8.4 0 1 1 21 11.5z'/%3E%3Cpath d='M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01'/%3E%3C/svg%3E");
 }
+
+/* =============================================================
+   16. ĐIỆN THOẠI — LƯỢT 3: trang tài khoản, form, chữ nhỏ còn sót
+   ============================================================= */
+@media (max-width: 640px) {
+    /* Trang tài khoản: thẻ số liệu 2 cột, thấp hơn */
+    html body .account-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+    html body .account-metrics > article { min-height: 0 !important; padding: 12px !important; }
+    html body .account-metrics > article > :first-child:not(p) { width: 32px; height: 32px; margin-bottom: 8px; }
+    html body .account-metrics > article strong { font-size: clamp(18px, 5.4vw, 22px) !important; overflow-wrap: anywhere; }
+    html body .account-metrics > article::after { display: none !important; }
+    /* Liên kết chữ nhỏ (Nạp thêm, Xem đơn, Chỉnh sửa…): đủ cao để chạm */
+    html body.account-body:not(.admin-body) main :is(a, button):not(.nova-tabbar a) { min-height: 32px; }
+    html body.account-body:not(.admin-body) main a:not([class]) { display: inline-flex; align-items: center; }
+
+    /* Chữ 9–10px còn sót → ≥11px */
+    html body :is(
+        .account-body:not(.admin-body) main .eyebrow, .account-body:not(.admin-body) main small, .field__hint, .label-optional,
+        .contact-required-note, .contact-label-text, .product-card__stock, .racket-lab-badge,
+        .detail-container small, .wishlist-main p
+    ) { font-size: 11px !important; line-height: 1.4; }
+    html body .nova-tabbar a { font-size: 11px; }
+    /* Breadcrumb, "Quay lại": vùng chạm cao hơn */
+    html body .breadcrumb-nav a { display: inline-flex; align-items: center; min-height: 32px; }
+    html body main a[href]:is([class*="back"], [class*="return"]) { display: inline-flex; align-items: center; min-height: 40px; }
+}

@@ -209,8 +209,19 @@
         }).observe(document.body, { childList: true, subtree: true });
     }
 
+    /* ---------- Điện thoại: chọn hội thoại chat thì cuộn tới khung tin nhắn ---------- */
+    const phone = matchMedia('(max-width: 640px)');
+    function chatJump() {
+        document.addEventListener('click', (event) => {
+            if (!phone.matches || !event.target.closest?.('.store-admin-chat__thread')) return;
+            const conversation = $('.store-admin-chat__conversation');
+            if (conversation) setTimeout(() => conversation.scrollIntoView({ behavior: reduceQuery.matches ? 'auto' : 'smooth', block: 'start' }), 60);
+        });
+    }
+
     function start() {
         if (!document.body.classList.contains('admin-body')) return;
+        chatJump();
         syncAurora();
         topbar();
         spotlight();
