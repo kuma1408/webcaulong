@@ -3047,6 +3047,36 @@ def get_customer_chat():
         conn.close()
 
 
+@app.get("/api/chat/chua-doc")
+@auth_required
+def customer_chat_unread():
+    """Số tin cửa hàng gửi mà khách chưa đọc; chỉ đọc, không đánh dấu đã xem.
+
+    Widget gọi định kỳ để hiện chấm đỏ và phát tiếng báo khi hộp chat đang đóng.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            """SELECT COUNT(*) AS unread, COALESCE(MAX(m.MaTinNhan), 0) AS last_id
+               FROM ChatTinNhan m JOIN ChatHoiThoai c ON c.MaHoiThoai=m.MaHoiThoai
+               WHERE c.MaND=%s AND m.VaiTroGui='ADMIN' AND m.KhachDaDoc=0""",
+            (g.current_user["MaND"],),
+        )
+        row = cursor.fetchone() or {}
+        return jsonify({
+            "success": True,
+            "unread": int(row.get("unread") or 0),
+            "last_id": int(row.get("last_id") or 0),
+        })
+    except mysql.connector.Error:
+        app.logger.exception("Không thể đếm tin nhắn chưa đọc")
+        return jsonify({"success": True, "unread": 0, "last_id": 0, "unavailable": True})
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.post("/api/chat/messages")
 @auth_required
 def send_customer_chat_message():

@@ -190,3 +190,71 @@
     .store-chat-launcher, .store-chat-window, .store-chat-emoji-picker,
     .store-chat-pending__item, .store-chat-tool.is-recording { animation: none; transition: none; }
 }
+
+/* --- Phóng to / thu nhỏ khung chat --- */
+.store-chat-window__actions { display: flex; align-items: center; gap: 8px; }
+.store-chat-resize { font-size: 17px; line-height: 1; }
+.store-chat-close:hover { background: rgba(255,255,255,.2); }
+.store-chat-window { transition: width .22s ease, height .22s ease; }
+.store-chat-window.is-expanded {
+    width: min(760px, calc(100vw - 36px));
+    height: min(820px, calc(100dvh - 150px));
+}
+.store-chat-window.is-expanded .store-chat-message { max-width: 72%; }
+.store-chat-window.is-expanded .store-ai-product { flex-basis: 170px; }
+
+/* --- Số tin chưa đọc trên nút "Nhắn cửa hàng" --- */
+.store-chat-launcher { position: relative; }
+.store-chat-badge {
+    display: inline-grid; place-items: center; min-width: 21px; height: 21px; padding: 0 6px;
+    margin-left: 2px; border-radius: 999px; background: #ef2b2b; color: #fff;
+    font-size: 11px; font-style: normal; font-weight: 800; line-height: 1; box-sizing: border-box;
+    box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 4px 12px rgba(200, 20, 20, .45);
+    animation: store-chat-badge-pop .35s cubic-bezier(.3, 1.6, .5, 1) both;
+}
+@media (max-width: 640px) {
+    /* Nút tròn chỉ có biểu tượng: chấm đỏ nằm góc trên bên phải, trong khung nút. */
+    html body .store-chat-launcher .store-chat-badge {
+        position: absolute; top: 1px; right: 1px; min-width: 17px; height: 17px; margin: 0; padding: 0 4px; font-size: 10px;
+    }
+}
+.store-chat-badge[hidden] { display: none; }
+@keyframes store-chat-badge-pop { from { transform: scale(.3); } to { transform: scale(1); } }
+
+/* --- Trợ lý AI dùng tông tím/chàm, tách biệt với hộp thư cửa hàng (cam) --- */
+.store-chat-window[data-chat-mode="ai"] {
+    --chat-accent: #6d4ee8;
+    --chat-accent-dark: #4f35c2;
+    --chat-line: #ddd5fb;
+    --chat-surface: #faf8ff;
+    border-color: #cfc3fa;
+    box-shadow: 0 24px 80px rgba(48, 28, 120, .3);
+}
+.store-chat-window[data-chat-mode="ai"] .store-chat-window__head {
+    background: linear-gradient(115deg, #3b2db3, #6d4ee8 60%, #a35ce8);
+}
+.store-chat-window[data-chat-mode="ai"] .store-chat-close { background: rgba(20, 10, 70, .2); }
+.store-chat-window[data-chat-mode="ai"] #storeChatSend {
+    background: linear-gradient(120deg, #5236d6, #8a5cf0);
+}
+.store-chat-window[data-chat-mode="ai"] .store-chat-message.is-mine { border-color: #d3c6ff; background: #efe9ff; }
+.store-chat-window[data-chat-mode="ai"] .store-chat-messages,
+.store-chat-window[data-chat-mode="ai"] .store-ai-content { background: radial-gradient(ellipse at 20% 0%, rgba(109, 78, 232, .08), transparent 55%); }
+.store-chat-window[data-chat-mode="ai"] .store-chat-composer textarea:focus { outline: 2px solid #b4a1fb; outline-offset: 0; border-color: #6d4ee8; }
+:root[data-theme="dark"] .store-chat-window[data-chat-mode="ai"] {
+    --chat-ink: #f3efff; --chat-muted: #c3b8ec; --chat-surface: #17142a; --chat-line: #3f3672;
+    border-color: #4a3f8a;
+}
+:root[data-theme="dark"] .store-chat-window[data-chat-mode="ai"] .store-chat-message { background: #221d3d; border-color: #3f3672; }
+:root[data-theme="dark"] .store-chat-window[data-chat-mode="ai"] .store-chat-message.is-mine { background: #3a2c7a; border-color: #5a47b8; }
+:root[data-theme="dark"] .store-chat-window[data-chat-mode="ai"] :is(.store-chat-composer textarea, .store-ai-suggestions button, .store-chat-tool, .store-chat-emoji-picker) { background: #120f22; }
+:root[data-theme="dark"] .store-chat-window[data-chat-mode="ai"] .store-ai-product { background: #120f22; }
+
+@media (max-width: 520px) {
+    /* Điện thoại: phóng to = gần toàn màn hình. */
+    .store-chat-window.is-expanded {
+        position: fixed; inset: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom)) 8px;
+        width: auto; height: auto; border-radius: 18px; z-index: 9300;
+    }
+}
+@media (prefers-reduced-motion: reduce) { .store-chat-window, .store-chat-badge { transition: none; animation: none; } }

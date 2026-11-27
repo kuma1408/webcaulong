@@ -834,6 +834,69 @@
                 transform: translateY(-2px);
                 box-shadow: 0 16px 32px rgba(244, 67, 34, 0.42);
             }
+
+            /* Khu nhập thông tin giao hàng: đồng bộ với thẻ "Thông tin đơn hàng".
+               visual-refresh.css biến .checkout-form thành thẻ xanh không padding,
+               nên chữ dính sát mép và lệch tông với khung nâu bên ngoài. */
+            html:root body .checkout-box #checkoutForm.checkout-form {
+                background: color-mix(in srgb, var(--card-bg) 88%, var(--text-color) 4%) !important;
+                border: 1px solid var(--border-color) !important;
+                border-radius: 18px !important;
+                box-shadow: none !important;
+                padding: 18px 18px 20px !important;
+                margin-top: 14px;
+                gap: 0 14px;
+            }
+            html:root body .checkout-box #checkoutForm h3 {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin: 18px 0 12px !important;
+                padding-top: 16px;
+                font-size: 15px !important;
+                letter-spacing: .01em;
+            }
+            html:root body .checkout-box #checkoutForm h3:first-child {
+                margin-top: 0 !important;
+                padding-top: 0;
+                border-top: 0;
+            }
+            html:root body .checkout-box #checkoutForm .checkout-field { gap: 7px; margin-bottom: 12px; }
+            html:root body .checkout-box #checkoutForm .checkout-field label { font-size: 12.5px; font-weight: 700; }
+            html:root body .checkout-box #checkoutForm .checkout-field label span { font-weight: 500; color: var(--text-muted); }
+            html:root body .checkout-box #checkoutForm :is(input:not([type="radio"]), textarea),
+            html:root body .checkout-box #couponInput {
+                border-radius: 12px !important;
+                border: 1px solid var(--border-color) !important;
+                background: var(--input-bg) !important;
+                padding: 11px 14px !important;
+                font-size: 13px;
+                transition: border-color .2s ease, box-shadow .2s ease;
+            }
+            html:root body .checkout-box #checkoutForm :is(input:not([type="radio"]), textarea):focus,
+            html:root body .checkout-box #couponInput:focus {
+                border-color: var(--primary-color, #f4511e) !important;
+                box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color, #f4511e) 22%, transparent) !important;
+            }
+            html:root body .checkout-box #checkoutForm .checkout-field textarea { min-height: 64px; }
+            html:root body .checkout-box #checkoutForm #shippingNote { min-height: 46px; }
+            html:root body .checkout-box #checkoutForm .pay-methods { gap: 10px; }
+            html:root body .checkout-box #checkoutForm .pay-method-card {
+                border-radius: 14px !important;
+                padding: 12px 14px !important;
+                background: var(--card-bg) !important;
+            }
+            html:root body .checkout-box #checkoutForm .checkout-privacy {
+                margin-top: 12px !important;
+                padding: 10px 12px;
+                border-radius: 12px;
+                background: color-mix(in srgb, var(--text-color) 5%, transparent);
+            }
+            html:root body .checkout-box #checkoutForm #btnPlaceOrder { border-radius: 14px !important; }
+            html:root body .checkout-box :is(.checkout-summary, .checkout-coupon) { border-radius: 16px !important; }
+            @media (max-width: 640px) {
+                html:root body .checkout-box #checkoutForm.checkout-form { padding: 14px !important; border-radius: 16px !important; }
+            }
         </style>
 
         <!-- Footer -->
@@ -841,7 +904,7 @@
     </div>
 
     <!-- Script Layout & Auth -->
-    <script src="css/auth.js?v=20261127-mobile-5"></script>
+    <script src="css/auth.js?v=20261127-chat-1"></script>
     <script>
         let cartItems = [];
         let cartTotal = 0;
@@ -1015,7 +1078,9 @@
                 list.appendChild(empty);
                 recalculateInvoice(0);
             } catch (error) {
-                list.textContent = error.message || 'Không thể tải giỏ hàng.';
+                list.textContent = error instanceof TypeError
+                    ? 'Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.'
+                    : (error.message || 'Không thể tải giỏ hàng.');
                 list.style.cssText = 'color:#b42318;text-align:center;padding:24px';
             }
         }

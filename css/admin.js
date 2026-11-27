@@ -2374,7 +2374,15 @@
             const data = await Auth.request(`/api/admin/chat?limit=80&q=${encodeURIComponent(query)}`);
             state.chatThreads = data.threads || [];
             renderAdminChatThreads();
-            updateNavBadge($('#navUnreadChat'), data.unread_total ?? state.chatThreads.reduce((sum, thread) => sum + Number(thread.ChuaDoc || 0), 0));
+            const unreadTotal = Number(data.unread_total ?? state.chatThreads.reduce((sum, thread) => sum + Number(thread.ChuaDoc || 0), 0)) || 0;
+            updateNavBadge($('#navUnreadChat'), unreadTotal);
+            // Lần tải đầu chỉ lấy mốc; các lần sau số chưa đọc tăng nghĩa là có tin mới.
+            const notifier = window.BadmintonChatNotify;
+            if (notifier) {
+                if (state.chatUnreadBaseline !== undefined && unreadTotal > state.chatUnreadBaseline) notifier.ting();
+                notifier.setUnread(unreadTotal);
+            }
+            state.chatUnreadBaseline = unreadTotal;
             if (state.chatThreadId && !state.chatThreads.some(thread => Number(thread.MaHoiThoai) === Number(state.chatThreadId))) {
                 state.chatThreadId = null;
                 state.chatMessages = [];
@@ -2433,8 +2441,24 @@
         identity.append(element('strong', '', thread.HoTen || thread.TenDangNhap || 'Khách hàng'));
         identity.append(element('span', '', `@${thread.TenDangNhap || 'khach'}${thread.Email ? ' · ' + thread.Email : ''}${thread.SoDienThoai ? ' · ' + thread.SoDienThoai : ''}`));
         const contactStatus = element('span', 'store-admin-chat__contact-status', 'Hội thoại riêng');
-        $('#adminChatContact').append(avatar, identity, contactStatus);
+        // Điện thoại: hội thoại chiếm toàn khung như Messenger, nút ← quay về danh sách.
+        const back = element('button', 'store-admin-chat__back', '←');
+        back.type = 'button';
+        back.setAttribute('aria-label', 'Quay lại danh sách khách hàng');
+        back.addEventListener('click', closeAdminChatThreadOnMobile);
+        $('#adminChatContact').append(back, avatar, identity, contactStatus);
+        const chatLayout = $('.store-admin-chat');
+        chatLayout?.classList.add('is-thread-open');
+        if (chatLayout && window.matchMedia('(max-width: 820px)').matches) chatLayout.scrollIntoView({ block: 'start', behavior: 'smooth' });
         await loadAdminChatMessages(true);
+        loadAdminChatThreads();
+    }
+    function closeAdminChatThreadOnMobile() {
+        $('.store-admin-chat')?.classList.remove('is-thread-open');
+        state.chatThreadId = null;
+        state.chatMessages = [];
+        state.chatLastId = 0;
+        renderAdminChatThreads();
         loadAdminChatThreads();
     }
     async function loadAdminChatMessages(initial = false) {

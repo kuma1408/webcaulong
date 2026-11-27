@@ -1305,16 +1305,19 @@ const API_HEADERS = window.API_HEADERS;
         if (!document.querySelector('link[data-store-chat-styles]')) {
             const styles = document.createElement('link');
             styles.rel = 'stylesheet';
-            styles.href = new URL('css/store-chat.css?v=20261125-ai-chat-5', document.baseURI).href;
+            styles.href = new URL('css/store-chat.css?v=20261127-chat-expand-2', document.baseURI).href;
             styles.dataset.storeChatStyles = 'true';
             document.head.appendChild(styles);
         }
         if (document.querySelector('script[data-store-chat-widget]')) return;
-        const script = document.createElement('script');
-        script.src = new URL('css/store-chat.js?v=20261125-ai-chat-5', document.baseURI).href;
-        script.dataset.storeChatWidget = 'true';
-        script.defer = true;
-        document.body.appendChild(script);
+        // async=false giữ đúng thứ tự: chat-notify.js phải chạy trước store-chat.js.
+        [['css/chat-notify.js?v=20261127-notify-1', 'chatNotify'], ['css/store-chat.js?v=20261127-chat-expand-2', 'storeChatWidget']].forEach(([src, key]) => {
+            const script = document.createElement('script');
+            script.src = new URL(src, document.baseURI).href;
+            script.dataset[key] = 'true';
+            script.async = false;
+            document.body.appendChild(script);
+        });
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true });
     else install();

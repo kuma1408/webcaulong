@@ -25,6 +25,7 @@ from HA.app import (
     app,
     cancel_order_transaction,
     checkout,
+    customer_chat_unread,
     decimal_number,
     fuzzy_product_score,
     integer_number,
@@ -427,6 +428,21 @@ class ApiSmokeTest(unittest.TestCase):
         cancel_order_transaction(cursor, 12, 3)
         statements = [call.args[0] for call in cursor.execute.call_args_list]
         self.assertFalse(any("SoDu = SoDu +" in sql for sql in statements))
+
+    def test_customer_chat_unread_counts_without_marking_read(self):
+        conn = MagicMock()
+        cursor = conn.cursor.return_value
+        cursor.fetchone.return_value = {"unread": 3, "last_id": 41}
+        with app.test_request_context("/api/chat/chua-doc", method="GET"):
+            from flask import g
+            g.current_user = {"MaND": 5}
+            with patch("HA.app.get_db_connection", return_value=conn):
+                response = customer_chat_unread.__wrapped__()
+        self.assertEqual(response.get_json(), {"success": True, "unread": 3, "last_id": 41})
+        sql = cursor.execute.call_args.args[0]
+        self.assertIn("KhachDaDoc=0", sql)
+        self.assertNotIn("UPDATE", sql)
+        conn.commit.assert_not_called()
 
     def test_product_racket_specs_are_bounded(self):
         specs = validated_product_specs({

@@ -12,7 +12,10 @@
         <div class="store-chat-window" id="storeChatWindow" data-chat-mode="messenger" role="dialog" aria-modal="false" aria-label="Nhắn tin với cửa hàng" hidden>
             <header class="store-chat-window__head">
                 <div class="store-chat-window__identity"><strong id="storeChatTitle">Nhắn tin với cửa hàng</strong><span id="storeChatSubtitle">Phản hồi trực tiếp từ đội ngũ Badminton Store</span></div>
-                <button class="store-chat-close" id="storeChatClose" type="button" aria-label="Đóng hộp chat">×</button>
+                <div class="store-chat-window__actions">
+                    <button class="store-chat-close store-chat-resize" id="storeChatResize" type="button" aria-pressed="false" aria-label="Phóng to khung chat" title="Phóng to">⤢</button>
+                    <button class="store-chat-close" id="storeChatClose" type="button" aria-label="Đóng hộp chat">×</button>
+                </div>
             </header>
             <div class="store-chat-messages" id="storeChatBody" aria-live="polite"></div>
             <form class="store-chat-composer" id="storeChatComposer">
@@ -32,7 +35,7 @@
         </div>
         <div class="store-chat-launchers">
             <button class="store-chat-launcher store-chat-launcher--ai" id="storeAiLauncher" type="button" aria-expanded="false" aria-controls="storeChatWindow"><span class="store-chat-launcher__icon" aria-hidden="true">✦</span><span>Hỏi AI</span></button>
-            <button class="store-chat-launcher" id="storeMessengerLauncher" type="button" aria-expanded="false" aria-controls="storeChatWindow"><span class="store-chat-launcher__icon" aria-hidden="true">▰</span><span>Nhắn cửa hàng</span></button>
+            <button class="store-chat-launcher" id="storeMessengerLauncher" type="button" aria-expanded="false" aria-controls="storeChatWindow"><span class="store-chat-launcher__icon" aria-hidden="true">▰</span><span>Nhắn cửa hàng</span><b class="store-chat-badge" id="storeChatUnreadBadge" hidden></b></button>
         </div>`;
     document.body.appendChild(widget);
 
@@ -57,6 +60,50 @@
     let mediaRecorder = null;
     let recordingStream = null;
     let recordingChunks = [];
+    const Notify = () => window.BadmintonChatNotify;
+    const unreadBadge = widget.querySelector('#storeChatUnreadBadge');
+    let lastNotifiedId = null; // null = chưa có mốc; lần kiểm tra đầu không kêu
+    let unreadPolling = false;
+    const EXPAND_KEY = 'store_chat_expanded';
+
+    function showUnread(count) {
+        const value = Math.max(0, Number(count) || 0);
+        unreadBadge.hidden = !value;
+        unreadBadge.textContent = value > 9 ? '9+' : String(value);
+        widget.querySelector('#storeMessengerLauncher').setAttribute(
+            'aria-label', value ? `Nhắn cửa hàng, ${value} tin nhắn chưa đọc` : 'Nhắn cửa hàng'
+        );
+        Notify()?.setUnread(value);
+    }
+    const messengerInView = () => activeMode === 'messenger' && !panel.hidden && document.visibilityState === 'visible';
+
+    async function pollUnread() {
+        if (unreadPolling || !Auth.getToken()) return;
+        if (messengerInView()) return; // hộp thư đang mở: loadCustomerMessages tự đánh dấu đã đọc
+        if (Notify()?.isMobileDevice && document.visibilityState !== 'visible') return;
+        unreadPolling = true;
+        try {
+            const data = await Auth.request('/api/chat/chua-doc');
+            const lastId = Number(data.last_id) || 0;
+            if (lastNotifiedId !== null && data.unread > 0 && lastId > lastNotifiedId) Notify()?.ting();
+            lastNotifiedId = Math.max(lastNotifiedId || 0, lastId);
+            showUnread(data.unread);
+        } catch (_) {
+            /* Lỗi mạng tạm thời: thử lại ở lần sau. */
+        } finally {
+            unreadPolling = false;
+        }
+    }
+
+    function setExpanded(expanded) {
+        panel.classList.toggle('is-expanded', expanded);
+        const toggle = widget.querySelector('#storeChatResize');
+        toggle.setAttribute('aria-pressed', String(expanded));
+        toggle.setAttribute('aria-label', expanded ? 'Thu nhỏ khung chat' : 'Phóng to khung chat');
+        toggle.title = expanded ? 'Thu nhỏ' : 'Phóng to';
+        toggle.textContent = expanded ? '⤡' : '⤢';
+        try { localStorage.setItem(EXPAND_KEY, expanded ? '1' : '0'); } catch (_) { /* chế độ riêng tư */ }
+    }
 
     const loginHref = () => 'dangnhap.html?next=' + encodeURIComponent(window.location.pathname.split('/').pop() + window.location.search + window.location.hash);
     const make = (tag, className, text) => {
@@ -265,10 +312,14 @@
                 body.replaceChildren();
                 if (!data.messages?.length) addNote('Xin chào! Bạn có thể gửi câu hỏi tại đây. Tin nhắn sẽ được lưu trong tài khoản để Admin phản hồi.');
             }
+            const incoming = (data.messages || []).filter(message => message.VaiTroGui === 'ADMIN');
             (data.messages || []).forEach(message => {
                 addMessage(message, message.VaiTroGui !== 'ADMIN');
                 lastMessageId = Math.max(lastMessageId, Number(message.MaTinNhan) || 0);
             });
+            if (!initial && incoming.length && document.visibilityState !== 'visible') Notify()?.ting();
+            lastNotifiedId = Math.max(lastNotifiedId || 0, lastMessageId);
+            showUnread(0);
             if (initial || wasAtBottom) body.scrollTop = body.scrollHeight;
             if (initial) input.focus();
         } catch (error) {
@@ -606,6 +657,8 @@
     });
     installEmojiPicker(widget.querySelector('#storeChatEmoji'), widget.querySelector('#storeChatEmojiPicker'), input);
     widget.querySelector('#storeChatRecord').addEventListener('click', event => toggleVoiceRecording(event.currentTarget));
+    widget.querySelector('#storeChatResize').addEventListener('click', () => setExpanded(!panel.classList.contains('is-expanded')));
+    try { if (localStorage.getItem(EXPAND_KEY) === '1') setExpanded(true); } catch (_) { /* bỏ qua */ }
     widget.querySelector('#storeChatClose').addEventListener('click', () => {
         panel.hidden = true;
         activeMode = null;
@@ -618,5 +671,11 @@
     });
     window.setInterval(() => {
         if (activeMode === 'messenger' && !document.hidden) loadCustomerMessages(false);
+        else if (activeMode === 'messenger' && !Notify()?.isMobileDevice) loadCustomerMessages(false);
     }, 5000);
+    // Kiểm tra tin mới khi hộp chat đóng hoặc đang ở chế độ AI.
+    window.setInterval(pollUnread, 12000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pollUnread(); });
+    window.addEventListener('badminton:auth-changed', () => { lastNotifiedId = null; showUnread(0); pollUnread(); });
+    window.setTimeout(pollUnread, 1500);
 })();
